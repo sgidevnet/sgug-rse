@@ -1,0 +1,21 @@
+--- binutils-2.23.2/libtool.m4	2011-02-13 21:00:08.000000000 +0000
++++ binutils-2.23.2-patched/libtool.m4	2019-12-04 21:40:50.082668560 +0000
+@@ -5919,8 +5919,10 @@
+ 	    if test "$GXX" = yes; then
+ 	      if test "$with_gnu_ld" = no; then
+ 	        _LT_TAGVAR(archive_cmds, $1)='$CC -shared -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags ${wl}-soname ${wl}$soname `test -n "$verstring" && func_echo_all "${wl}-set_version ${wl}$verstring"` ${wl}-update_registry ${wl}${output_objdir}/so_locations -o $lib'
++		_LT_TAGVAR(inherit_rpath, $1)=yes
+ 	      else
+ 	        _LT_TAGVAR(archive_cmds, $1)='$CC -shared -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags ${wl}-soname ${wl}$soname `test -n "$verstring" && func_echo_all "${wl}-set_version ${wl}$verstring"` -o $lib'
++		_LT_TAGVAR(inherit_rpath, $1)=no
+ 	      fi
+ 	    fi
+ 	    _LT_TAGVAR(link_all_deplibs, $1)=yes
+@@ -5928,7 +5930,6 @@
+         esac
+         _LT_TAGVAR(hardcode_libdir_flag_spec, $1)='${wl}-rpath ${wl}$libdir'
+         _LT_TAGVAR(hardcode_libdir_separator, $1)=:
+-        _LT_TAGVAR(inherit_rpath, $1)=yes
+         ;;
+ 
+       linux* | k*bsd*-gnu | kopensolaris*-gnu)

@@ -1,0 +1,89 @@
+diff -r -u -w emacs-23.3/configure emacs-23.3-patched/configure
+--- emacs-23.3/configure	2011-11-26 03:20:20.000000000 +0000
++++ emacs-23.3-patched/configure	2019-11-07 13:12:40.810183320 +0000
+@@ -9848,27 +9848,27 @@
+ 
+   fi
+ 
+-    if test "${HAVE_JPEG}" = "yes"; then
+-    $as_echo "#define HAVE_JPEG 1" >>confdefs.h
+-
+-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+-/* end confdefs.h.  */
+-#include <jpeglib.h>
+-	 version=JPEG_LIB_VERSION
++#    if test "${HAVE_JPEG}" = "yes"; then
++#    $as_echo "#define HAVE_JPEG 1" >>confdefs.h
+ 
+-_ACEOF
+-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+-  $EGREP "version= *(6[2-9]|[7-9][0-9])" >/dev/null 2>&1; then :
++#    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++#/* end confdefs.h.  */
++##include <jpeglib.h>
++#	 version=JPEG_LIB_VERSION
++#
++#_ACEOF
++#if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
++#  $EGREP "version= *(6[2-9]|[7-9][0-9])" >/dev/null 2>&1; then :
+   $as_echo "#define HAVE_JPEG 1" >>confdefs.h
+-
+-else
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libjpeg found, but not version 6b or later" >&5
+-$as_echo "$as_me: WARNING: libjpeg found, but not version 6b or later" >&2;}
+-        HAVE_JPEG=no
+-fi
+-rm -f conftest*
+-
+-  fi
++#
++#else
++#  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libjpeg found, but not version 6b or later" >&5
++#$as_echo "$as_me: WARNING: libjpeg found, but not version 6b or later" >&2;}
++#        HAVE_JPEG=no
++#fi
++#rm -f conftest*
++#
++#  fi
+ fi
+ 
+ ### Use -lpng if available, unless `--with-png=no'.
+diff -r -u -w emacs-23.3/configure.in emacs-23.3-patched/configure.in
+--- emacs-23.3/configure.in	2011-11-26 03:20:20.000000000 +0000
++++ emacs-23.3-patched/configure.in	2019-11-07 13:12:45.404686560 +0000
+@@ -2140,13 +2140,13 @@
+   AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
+   if test "${HAVE_JPEG}" = "yes"; then
+     AC_DEFINE(HAVE_JPEG)
+-    AC_EGREP_CPP([version= *(6[2-9]|[7-9][0-9])],
+-        [#include <jpeglib.h>
+-	 version=JPEG_LIB_VERSION
+-],
+-        [AC_DEFINE(HAVE_JPEG)],
+-        [AC_MSG_WARN([libjpeg found, but not version 6b or later])
+-        HAVE_JPEG=no])
++#    AC_EGREP_CPP([version= *(6[2-9]|[7-9][0-9])],
++#        [#include <jpeglib.h>
++#	 version=JPEG_LIB_VERSION
++#],
++#        [AC_DEFINE(HAVE_JPEG)],
++#        [AC_MSG_WARN([libjpeg found, but not version 6b or later])
++#        HAVE_JPEG=no])
+   fi
+ fi
+ 
+diff -r -u -w emacs-23.3/lib-src/fakemail.c emacs-23.3-patched/lib-src/fakemail.c
+--- emacs-23.3/lib-src/fakemail.c	2011-11-26 03:20:20.000000000 +0000
++++ emacs-23.3-patched/lib-src/fakemail.c	2019-11-07 13:12:34.366579640 +0000
+@@ -23,6 +23,11 @@
+ 
+ #define _XOPEN_SOURCE 500	/* for cuserid */
+ 
++#if defined(__sgi)
++#include <stdio.h>
++#include <unistd.h>
++#endif
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif

@@ -1,0 +1,617 @@
+Only in bash-5.0-patched: Makefile
+diff -u -r -w bash-5.0/Makefile.in bash-5.0-patched/Makefile.in
+--- bash-5.0/Makefile.in	Fri May 25 13:47:09 2018
++++ bash-5.0-patched/Makefile.in	Sun Oct 27 22:14:32 2019
+@@ -139,7 +139,7 @@
+ 
+ LOCAL_LIBS = @LOCAL_LIBS@
+ LIBS = $(BUILTINS_LIB) $(LIBRARIES) @LIBS@
+-LIBS_FOR_BUILD = 
++LIBS_FOR_BUILD = @LIBS@
+ 
+ STATIC_LD = @STATIC_LD@
+ LOCAL_LDFLAGS = @LOCAL_LDFLAGS@
+Only in bash-5.0-patched: Makefile.in~
+diff -u -r -w bash-5.0/bashline.c bash-5.0-patched/bashline.c
+--- bash-5.0/bashline.c	Tue Nov 27 18:20:16 2018
++++ bash-5.0-patched/bashline.c	Sun Oct 27 22:11:35 2019
+@@ -231,6 +231,7 @@
+ static int bash_complete_command __P((int, int));
+ static int bash_possible_command_completions __P((int, int));
+ 
++static int completion_glob_pattern __P((char *));
+ static char *glob_complete_word __P((const char *, int));
+ static int bash_glob_completion_internal __P((int));
+ static int bash_glob_complete_word __P((int, int));
+@@ -1741,7 +1742,7 @@
+ 
+   /* This could be a globbing pattern, so try to expand it using pathname
+      expansion. */
+-  if (!matches && glob_pattern_p (text))
++  if (!matches && completion_glob_pattern ((char *)text))
+     {
+       matches = rl_completion_matches (text, glob_complete_word);
+       /* A glob expression that matches more than one filename is problematic.
+@@ -1850,7 +1851,7 @@
+ 	  glob_matches = (char **)NULL;
+ 	}
+ 
+-      globpat = glob_pattern_p (hint_text);
++      globpat = completion_glob_pattern ((char *)hint_text);
+ 
+       /* If this is an absolute program name, do not check it against
+ 	 aliases, reserved words, functions or builtins.  We must check
+@@ -3713,6 +3714,61 @@
+   return bash_specific_completion (what_to_do, command_word_completion_function);
+ }
+ 
++static int
++completion_glob_pattern (string)
++     char *string;
++{
++  register int c;
++  char *send;
++  int open;
++
++  DECLARE_MBSTATE;
++
++  open = 0;
++  send = string + strlen (string);
++
++  while (c = *string++)
++    {
++      switch (c)
++	{
++	case '?':
++	case '*':
++	  return (1);
++
++	case '[':
++	  open++;
++	  continue;
++
++	case ']':
++	  if (open)
++	    return (1);
++	  continue;
++
++	case '+':
++	case '@':
++	case '!':
++	  if (*string == '(')	/*)*/
++	    return (1);
++	  continue;
++
++	case '\\':
++	  if (*string++ == 0)
++	    return (0);	 	  
++	}
++
++      /* Advance one fewer byte than an entire multibyte character to
++	 account for the auto-increment in the loop above. */
++#ifdef HANDLE_MULTIBYTE
++      string--;
++      ADVANCE_CHAR_P (string, send - string);
++      string++;
++#else
++      ADVANCE_CHAR_P (string, send - string);
++#endif
++    }
++  return (0);
++}
++
+ static char *globtext;
+ static char *globorig;
+ 
+@@ -3877,7 +3933,7 @@
+       t = substring (rl_line_buffer, p, rl_point);
+     }      
+ 
+-  if (t && glob_pattern_p (t) == 0)
++  if (t && completion_glob_pattern (t) == 0)
+     rl_explicit_arg = 1;	/* XXX - force glob_complete_word to append `*' */
+   FREE (t);
+ 
+Only in bash-5.0-patched/builtins: Makefile
+diff -u -r -w bash-5.0/builtins/Makefile.in bash-5.0-patched/builtins/Makefile.in
+--- bash-5.0/builtins/Makefile.in	Fri Mar  9 19:28:39 2018
++++ bash-5.0-patched/builtins/Makefile.in	Sun Oct 27 22:15:59 2019
+@@ -242,7 +242,7 @@
+ # Technically this is wrong; the pipe size should be for the target system,
+ # not the build host.
+ psize.aux:	psize.c
+-	$(CC_FOR_BUILD) $(CCFLAGS_FOR_BUILD) ${LDFLAGS_FOR_BUILD} -o $@ $(srcdir)/psize.c
++	$(CC_FOR_BUILD) $(CCFLAGS_FOR_BUILD) ${LDFLAGS_FOR_BUILD} -o $@ $(srcdir)/psize.c $(LIBS)
+ 
+ documentation: builtins.texi
+ 
+Only in bash-5.0-patched/builtins: Makefile.in~
+Only in bash-5.0-patched/builtins: Makefile~
+diff -u -r -w bash-5.0/builtins/evalstring.c bash-5.0-patched/builtins/evalstring.c
+--- bash-5.0/builtins/evalstring.c	Wed Dec 26 16:19:21 2018
++++ bash-5.0-patched/builtins/evalstring.c	Sun Oct 27 22:11:35 2019
+@@ -100,12 +100,22 @@
+ 	  ((command->flags & CMD_INVERT_RETURN) == 0));
+ }
+ 
++int
++can_optimize_connection (command)
++     COMMAND *command;
++{
++  return (*bash_input.location.string == '\0' &&
++	  (command->value.Connection->connector == AND_AND || command->value.Connection->connector == OR_OR || command->value.Connection->connector == ';') &&
++	  command->value.Connection->second->type == cm_simple);
++}
++
+ void
+ optimize_fork (command)
+      COMMAND *command;
+ {
+   if (command->type == cm_connection &&
+-      (command->value.Connection->connector == AND_AND || command->value.Connection->connector == OR_OR) &&
++      (command->value.Connection->connector == AND_AND || command->value.Connection->connector == OR_OR || command->value.Connection->connector == ';') &&
++      (command->value.Connection->second->flags & CMD_TRY_OPTIMIZING) &&
+       should_suppress_fork (command->value.Connection->second))
+     {
+       command->value.Connection->second->flags |= CMD_NO_FORK;
+@@ -412,8 +422,18 @@
+ 		  command->flags |= CMD_NO_FORK;
+ 		  command->value.Simple->flags |= CMD_NO_FORK;
+ 		}
+-	      else if (command->type == cm_connection)
+-		optimize_fork (command);
++
++	      /* Can't optimize forks out here execept for simple commands.
++		 This knows that the parser sets up commands as left-side heavy
++		 (&& and || are left-associative) and after the single parse,
++		 if we are at the end of the command string, the last in a
++		 series of connection commands is
++		 command->value.Connection->second. */
++	      else if (command->type == cm_connection && can_optimize_connection (command))
++		{
++		  command->value.Connection->second->flags |= CMD_TRY_OPTIMIZING;
++		  command->value.Connection->second->value.Simple->flags |= CMD_TRY_OPTIMIZING;
++		}
+ #endif /* ONESHOT */
+ 
+ 	      /* See if this is a candidate for $( <file ). */
+diff -u -r -w bash-5.0/builtins/shopt.def bash-5.0-patched/builtins/shopt.def
+--- bash-5.0/builtins/shopt.def	Fri Oct  5 19:49:02 2018
++++ bash-5.0-patched/builtins/shopt.def	Sun Oct 27 22:11:35 2019
+@@ -122,7 +122,7 @@
+ extern int array_expand_once;
+ #endif
+ 
+-#if defined (SYSLOG_HISTORY) && defined (SYSLOG_SHOPT)
++#if defined (SYSLOG_HISTORY)
+ extern int syslog_history;
+ #endif
+ 
+diff -u -r -w bash-5.0/command.h bash-5.0-patched/command.h
+--- bash-5.0/command.h	Sat Jul 21 02:16:31 2018
++++ bash-5.0-patched/command.h	Sun Oct 27 22:11:35 2019
+@@ -186,6 +186,7 @@
+ #define CMD_COPROC_SUBSHELL 0x1000
+ #define CMD_LASTPIPE	    0x2000
+ #define CMD_STDPATH	    0x4000	/* use standard path for command lookup */
++#define CMD_TRY_OPTIMIZING  0x8000	/* try to optimize this simple command */
+ 
+ /* What a command looks like. */
+ typedef struct command {
+Only in bash-5.0-patched: config.h
+Only in bash-5.0-patched: config.log
+Only in bash-5.0-patched: config.status
+Only in bash-5.0-patched/doc: Makefile
+Only in bash-5.0-patched/examples/loadables: Makefile
+diff -u -r -w bash-5.0/examples/loadables/Makefile.in bash-5.0-patched/examples/loadables/Makefile.in
+--- bash-5.0/examples/loadables/Makefile.in	Fri Nov 16 20:44:28 2018
++++ bash-5.0-patched/examples/loadables/Makefile.in	Sun Oct 27 22:11:35 2019
+@@ -100,7 +100,7 @@
+ 	$(SHOBJ_CC) $(SHOBJ_CFLAGS) $(CCFLAGS) $(INC) -c -o $@ $<
+ 
+ 
+-ALLPROG = print truefalse sleep finfo logname basename dirname fdflags \
++ALLPROG = print truefalse sleep finfo logname basename dirname \
+ 	  tty pathchk tee head mkdir rmdir printenv id whoami \
+ 	  uname sync push ln unlink realpath strftime mypid setpgid seq
+ OTHERPROG = necho hello cat pushd stat rm
+Only in bash-5.0-patched/examples/loadables: Makefile.inc
+diff -u -r -w bash-5.0/examples/loadables/fdflags.c bash-5.0-patched/examples/loadables/fdflags.c
+--- bash-5.0/examples/loadables/fdflags.c	Thu Feb  2 16:40:42 2017
++++ bash-5.0-patched/examples/loadables/fdflags.c	Sun Oct 27 22:11:35 2019
+@@ -113,8 +113,10 @@
+       return -1;
+     }
+ 
++#ifdef O_CLOEXEC
+   if (c)
+     f |= O_CLOEXEC;
++#endif
+ 
+   return f & getallflags();
+ }
+@@ -199,6 +201,7 @@
+   parseflags(v, &pos, &neg);
+ 
+   cloexec = -1;
++#ifdef O_CLOEXEC
+   if ((pos & O_CLOEXEC) && (f & O_CLOEXEC) == 0)
+     cloexec = FD_CLOEXEC;
+   if ((neg & O_CLOEXEC) && (f & O_CLOEXEC))
+@@ -209,6 +212,7 @@
+   pos &= ~O_CLOEXEC;
+   neg &= ~O_CLOEXEC;
+   f &= ~O_CLOEXEC;
++#endif
+ 
+   n = f;
+   n |= pos;
+Only in bash-5.0-patched/examples/loadables/perl: Makefile
+diff -u -r -w bash-5.0/examples/loadables/push.c bash-5.0-patched/examples/loadables/push.c
+--- bash-5.0/examples/loadables/push.c	Tue Jun 20 15:54:52 2017
++++ bash-5.0-patched/examples/loadables/push.c	Sun Oct 27 22:11:35 2019
+@@ -35,7 +35,7 @@
+ extern int errno;
+ #endif
+ 
+-extern int dollar_dollar_pid;
++extern pid_t dollar_dollar_pid;
+ extern int last_command_exit_value;
+ 
+ int
+diff -u -r -w bash-5.0/execute_cmd.c bash-5.0-patched/execute_cmd.c
+--- bash-5.0/execute_cmd.c	Wed Dec  5 14:05:14 2018
++++ bash-5.0-patched/execute_cmd.c	Sun Oct 27 22:11:35 2019
+@@ -2767,6 +2767,8 @@
+ 	  ((command->value.Connection->connector == OR_OR) &&
+ 	   (exec_result != EXECUTION_SUCCESS)))
+ 	{
++	  optimize_fork (command);
++
+ 	  second = command->value.Connection->second;
+ 	  if (ignore_return && second)
+ 	    second->flags |= CMD_IGNORE_RETURN;
+diff -u -r -w bash-5.0/jobs.c bash-5.0-patched/jobs.c
+--- bash-5.0/jobs.c	Thu Dec  6 16:44:34 2018
++++ bash-5.0-patched/jobs.c	Sun Oct 27 22:11:35 2019
+@@ -2488,10 +2488,8 @@
+     r = wait_for (last_procsub_child->pid);
+   wait_procsubs ();
+   reap_procsubs ();
+-#if 1
++#if 0
+   /* We don't want to wait indefinitely if we have stopped children. */
+-  /* XXX - should add a loop that goes through the list of process
+-     substitutions and waits for each proc in turn before this code. */
+   if (any_stopped == 0)
+     {
+       /* Check whether or not we have any unreaped children. */
+@@ -4839,15 +4837,13 @@
+ end_job_control ()
+ {
+   if (job_control)
+-    {
+       terminate_stopped_jobs ();
+ 
+-      if (original_pgrp >= 0)
++  if (original_pgrp >= 0 && terminal_pgrp != original_pgrp)
+ 	give_terminal_to (original_pgrp, 1);
+-    }
+ 
+-  if (original_pgrp >= 0)
+-    setpgid (0, original_pgrp);
++  if (original_pgrp >= 0 && setpgid (0, original_pgrp) == 0)
++    shell_pgrp = original_pgrp;
+ }
+ 
+ /* Restart job control by closing shell tty and reinitializing.  This is
+Only in bash-5.0-patched/lib/glob: Makefile
+diff -u -r -w bash-5.0/lib/glob/glob.c bash-5.0-patched/lib/glob/glob.c
+--- bash-5.0/lib/glob/glob.c	Thu Sep 20 15:53:23 2018
++++ bash-5.0-patched/lib/glob/glob.c	Sun Oct 27 22:11:35 2019
+@@ -1061,7 +1061,7 @@
+   char *directory_name, *filename, *dname, *fn;
+   unsigned int directory_len;
+   int free_dirname;			/* flag */
+-  int dflags;
++  int dflags, hasglob;
+ 
+   result = (char **) malloc (sizeof (char *));
+   result_size = 1;
+@@ -1110,9 +1110,12 @@
+       free_dirname = 1;
+     }
+ 
++  hasglob = 0;
+   /* If directory_name contains globbing characters, then we
+-     have to expand the previous levels.  Just recurse. */
+-  if (directory_len > 0 && glob_pattern_p (directory_name))
++     have to expand the previous levels.  Just recurse.
++     If glob_pattern_p returns != [0,1] we have a pattern that has backslash
++     quotes but no unquoted glob pattern characters. We dequote it below. */
++  if (directory_len > 0 && (hasglob = glob_pattern_p (directory_name)) == 1)
+     {
+       char **directories, *d, *p;
+       register unsigned int i;
+@@ -1175,7 +1178,7 @@
+       if (d[directory_len - 1] == '/')
+ 	d[directory_len - 1] = '\0';
+ 
+-      directories = glob_filename (d, dflags);
++      directories = glob_filename (d, dflags|GX_RECURSE);
+ 
+       if (free_dirname)
+ 	{
+@@ -1332,6 +1335,20 @@
+ 	    free (directory_name);
+ 	  return (NULL);
+ 	}
++      /* If we have a directory name with quoted characters, and we are
++	 being called recursively to glob the directory portion of a pathname,
++	 we need to dequote the directory name before returning it so the
++	 caller can read the directory */
++      if (directory_len > 0 && hasglob == 2 && (flags & GX_RECURSE) != 0)
++	{
++	  dequote_pathname (directory_name);
++	  directory_len = strlen (directory_name);
++	}
++
++      /* We could check whether or not the dequoted directory_name is a
++	 directory and return it here, returning the original directory_name
++	 if not, but we don't do that yet. I'm not sure it matters. */
++
+       /* Handle GX_MARKDIRS here. */
+       result[0] = (char *) malloc (directory_len + 1);
+       if (result[0] == NULL)
+diff -u -r -w bash-5.0/lib/glob/glob.h bash-5.0-patched/lib/glob/glob.h
+--- bash-5.0/lib/glob/glob.h	Mon Oct 28 18:46:12 2013
++++ bash-5.0-patched/lib/glob/glob.h	Sun Oct 27 22:11:35 2019
+@@ -30,6 +30,7 @@
+ #define GX_NULLDIR	0x100	/* internal -- no directory preceding pattern */
+ #define GX_ADDCURDIR	0x200	/* internal -- add passed directory name */
+ #define GX_GLOBSTAR	0x400	/* turn on special handling of ** */
++#define GX_RECURSE	0x800	/* internal -- glob_filename called recursively */
+ 
+ extern int glob_pattern_p __P((const char *));
+ extern char **glob_vector __P((char *, char *, int));
+diff -u -r -w bash-5.0/lib/glob/glob_loop.c bash-5.0-patched/lib/glob/glob_loop.c
+--- bash-5.0/lib/glob/glob_loop.c	Mon Dec 31 18:35:15 2018
++++ bash-5.0-patched/lib/glob/glob_loop.c	Sun Oct 27 22:11:35 2019
+@@ -26,10 +26,10 @@
+ {
+   register const GCHAR *p;
+   register GCHAR c;
+-  int bopen;
++  int bopen, bsquote;
+ 
+   p = pattern;
+-  bopen = 0;
++  bopen = bsquote = 0;
+ 
+   while ((c = *p++) != L('\0'))
+     switch (c)
+@@ -54,20 +54,23 @@
+ 	continue;
+ 
+       case L('\\'):
+-#if 0
+ 	/* Don't let the pattern end in a backslash (GMATCH returns no match
+-	   if the pattern ends in a backslash anyway), but otherwise return 1,
+-	   since the matching engine uses backslash as an escape character
+-	   and it can be removed. */
+-	return (*p != L('\0'));
+-#else
+-	/* The pattern may not end with a backslash. */
+-	if (*p++ == L('\0'))
++	   if the pattern ends in a backslash anyway), but otherwise note that 
++	   we have seen this, since the matching engine uses backslash as an
++	   escape character and it can be removed. We return 2 later if we
++	   have seen only backslash-escaped characters, so interested callers
++	   know they can shortcut and just dequote the pathname. */
++	if (*p != L('\0'))
++	  {
++	    p++;
++	    bsquote = 1;
++	    continue;
++	  }
++	else 	/* (*p == L('\0')) */
+ 	  return 0;
+-#endif
+       }
+ 
+-  return 0;
++  return bsquote ? 2 : 0;
+ }
+ 
+ #undef INTERNAL_GLOB_PATTERN_P
+Only in bash-5.0-patched/lib/intl: Makefile
+Only in bash-5.0-patched/lib/malloc: Makefile
+Only in bash-5.0-patched/lib/readline: Makefile
+Only in bash-5.0-patched/lib/sh: Makefile
+diff -u -r -w bash-5.0/lib/sh/strftime.c bash-5.0-patched/lib/sh/strftime.c
+--- bash-5.0/lib/sh/strftime.c	Sun Apr 29 01:57:24 2012
++++ bash-5.0-patched/lib/sh/strftime.c	Sun Oct 27 22:11:35 2019
+@@ -102,7 +102,7 @@
+ #if !defined(OS2) && !defined(MSDOS) && !defined(__CYGWIN__) && defined(HAVE_TZNAME)
+ extern char *tzname[2];
+ extern int daylight;
+-#if defined(SOLARIS) || defined(mips) || defined (M_UNIX)
++#if defined(SOLARIS) || defined(mips) || defined (M_UNIX) || defined(__sgi)
+ extern long int timezone, altzone;
+ #else
+ #  if defined (HPUX) || defined(__hpux)
+@@ -621,7 +621,7 @@
+ 			 * Systems with tzname[] probably have timezone as
+ 			 * secs west of GMT.  Convert to mins east of GMT.
+ 			 */
+-#  if defined(__hpux) || defined (HPUX) || defined(__CYGWIN__)
++#  if defined(__hpux) || defined (HPUX) || defined(__CYGWIN__) || defined(__sgi)
+ 			off = -timezone / 60;
+ #  else
+ 			/* ADR: 4 August 2001, fixed this per gazelle@interaccess.com */
+Only in bash-5.0-patched/lib/termcap: Makefile
+Only in bash-5.0-patched/lib/tilde: Makefile
+diff -u -r -w bash-5.0/parse.y bash-5.0-patched/parse.y
+--- bash-5.0/parse.y	Wed Jan  2 18:57:34 2019
++++ bash-5.0-patched/parse.y	Sun Oct 27 22:11:36 2019
+@@ -2557,12 +2557,14 @@
+   if (uc == 0 && pushed_string_list && pushed_string_list->flags != PSH_SOURCE &&
+       pushed_string_list->flags != PSH_DPAREN &&
+       (parser_state & PST_COMMENT) == 0 &&
++      (parser_state & PST_ENDALIAS) == 0 &&	/* only once */
+       shell_input_line_index > 0 &&
+-      shell_input_line[shell_input_line_index-1] != ' ' &&
++      shellblank (shell_input_line[shell_input_line_index-1]) == 0 &&
+       shell_input_line[shell_input_line_index-1] != '\n' &&
+       shellmeta (shell_input_line[shell_input_line_index-1]) == 0 &&
+       (current_delimiter (dstack) != '\'' && current_delimiter (dstack) != '"'))
+     {
++      parser_state |= PST_ENDALIAS;
+       return ' ';	/* END_ALIAS */
+     }
+ #endif
+@@ -2571,6 +2573,7 @@
+   /* This case works for PSH_DPAREN as well */
+   if (uc == 0 && pushed_string_list && pushed_string_list->flags != PSH_SOURCE)
+     {
++      parser_state &= ~PST_ENDALIAS;
+       pop_string ();
+       uc = shell_input_line[shell_input_line_index];
+       if (uc)
+diff -u -r -w bash-5.0/parser.h bash-5.0-patched/parser.h
+--- bash-5.0/parser.h	Sat Dec 29 00:11:18 2018
++++ bash-5.0-patched/parser.h	Sun Oct 27 22:11:36 2019
+@@ -47,6 +47,7 @@
+ #define PST_REPARSE	0x040000	/* re-parsing in parse_string_to_word_list */
+ #define PST_REDIRLIST	0x080000	/* parsing a list of redirections preceding a simple command name */
+ #define PST_COMMENT	0x100000	/* parsing a shell comment; used by aliases */
++#define PST_ENDALIAS	0x200000	/* just finished expanding and consuming an alias */
+ 
+ /* Definition of the delimiter stack.  Needed by parse.y and bashhist.c. */
+ struct dstack {
+diff -u -r -w bash-5.0/patchlevel.h bash-5.0-patched/patchlevel.h
+--- bash-5.0/patchlevel.h	Wed Feb 21 20:47:15 2018
++++ bash-5.0-patched/patchlevel.h	Sun Oct 27 22:11:36 2019
+@@ -25,6 +25,6 @@
+    regexp `^#define[ 	]*PATCHLEVEL', since that's what support/mkversion.sh
+    looks for to find the patch level (for the sccs version string). */
+ 
+-#define PATCHLEVEL 0
++#define PATCHLEVEL 7
+ 
+ #endif /* _PATCHLEVEL_H_ */
+diff -u -r -w bash-5.0/pathexp.c bash-5.0-patched/pathexp.c
+--- bash-5.0/pathexp.c	Sun Apr 29 22:44:48 2018
++++ bash-5.0-patched/pathexp.c	Sun Oct 27 22:11:36 2019
+@@ -65,11 +65,11 @@
+ {
+   register int c;
+   char *send;
+-  int open;
++  int open, bsquote;
+ 
+   DECLARE_MBSTATE;
+ 
+-  open = 0;
++  open = bsquote = 0;
+   send = string + strlen (string);
+ 
+   while (c = *string++)
+@@ -100,7 +100,14 @@
+ 	   can be removed by the matching engine, so we have to run it through
+ 	   globbing. */
+ 	case '\\':
+-	  return (*string != 0);
++	  if (*string != '\0' && *string != '/')
++	    {
++	      bsquote = 1;
++	      string++;
++	      continue;
++	    }
++	  else if (*string == 0)
++	    return (0);
+ 	 	  
+ 	case CTLESC:
+ 	  if (*string++ == '\0')
+@@ -117,7 +124,8 @@
+       ADVANCE_CHAR_P (string, send - string);
+ #endif
+     }
+-  return (0);
++
++  return (bsquote ? 2 : 0);
+ }
+ 
+ /* Return 1 if C is a character that is `special' in a POSIX ERE and needs to
+Only in bash-5.0-patched: pathnames.h
+Only in bash-5.0-patched/po: Makefile
+Only in bash-5.0-patched/po: Makefile.in
+Only in bash-5.0-patched/po: POTFILES
+Only in bash-5.0-patched: stamp-h
+Only in bash-5.0-patched/support: Makefile
+diff -u -r -w bash-5.0/support/Makefile.in bash-5.0-patched/support/Makefile.in
+--- bash-5.0/support/Makefile.in	Fri May 11 19:28:43 2018
++++ bash-5.0-patched/support/Makefile.in	Sun Oct 27 22:11:36 2019
+@@ -77,7 +77,7 @@
+ all: man2html$(EXEEXT)
+ 
+ man2html$(EXEEXT): $(OBJ1)
+-	$(CC_FOR_BUILD) $(CCFLAGS_FOR_BUILD) $(OBJ1) -o $@ ${LIBS_FOR_BUILD}
++	$(CC_FOR_BUILD) $(CCFLAGS_FOR_BUILD) $(OBJ1) -o $@ ${LIBS_FOR_BUILD} $(LDFLAGS_FOR_BUILD)
+ 
+ clean:
+ 	$(RM) man2html$(EXEEXT) $(OBJ1)
+Only in bash-5.0-patched/support: bash.pc
+diff -u -r -w bash-5.0/support/bashbug.sh bash-5.0-patched/support/bashbug.sh
+--- bash-5.0/support/bashbug.sh	Fri Aug 21 16:19:22 2015
++++ bash-5.0-patched/support/bashbug.sh	Sun Oct 27 22:13:10 2019
+@@ -26,14 +26,14 @@
+ # configuration section:
+ #	these variables are filled in by the make target in Makefile
+ #
+-MACHINE="!MACHINE!"
+-OS="!OS!"
+-CC="!CC!"
+-CFLAGS="!CFLAGS!"
+-RELEASE="!RELEASE!"
++MACHINE="mips"
++OS="irix6.5"
++CC="c99"
++CFLAGS="-mips3 -n32  -O1 -I/usr/didbs/0_1_7_n32_mips3_mp/include/libdicl-0.1"
++RELEASE="5.0"
+ PATCHLEVEL="!PATCHLEVEL!"
+-RELSTATUS="!RELSTATUS!"
+-MACHTYPE="!MACHTYPE!"
++RELSTATUS="release"
++MACHTYPE="mips-sgi-irix6.5"
+ 
+ PATH=/bin:/usr/bin:/usr/local/bin:$PATH
+ export PATH
+Only in bash-5.0-patched/tests: core
+diff -u -r -w bash-5.0/y.tab.c bash-5.0-patched/y.tab.c
+--- bash-5.0/y.tab.c	Wed Jan  2 18:57:43 2019
++++ bash-5.0-patched/y.tab.c	Sun Oct 27 22:11:36 2019
+@@ -4873,12 +4873,14 @@
+   if (uc == 0 && pushed_string_list && pushed_string_list->flags != PSH_SOURCE &&
+       pushed_string_list->flags != PSH_DPAREN &&
+       (parser_state & PST_COMMENT) == 0 &&
++      (parser_state & PST_ENDALIAS) == 0 &&	/* only once */
+       shell_input_line_index > 0 &&
+-      shell_input_line[shell_input_line_index-1] != ' ' &&
++      shellblank (shell_input_line[shell_input_line_index-1]) == 0 &&
+       shell_input_line[shell_input_line_index-1] != '\n' &&
+       shellmeta (shell_input_line[shell_input_line_index-1]) == 0 &&
+       (current_delimiter (dstack) != '\'' && current_delimiter (dstack) != '"'))
+     {
++      parser_state |= PST_ENDALIAS;
+       return ' ';	/* END_ALIAS */
+     }
+ #endif
+@@ -4887,6 +4889,7 @@
+   /* This case works for PSH_DPAREN as well */
+   if (uc == 0 && pushed_string_list && pushed_string_list->flags != PSH_SOURCE)
+     {
++      parser_state &= ~PST_ENDALIAS;
+       pop_string ();
+       uc = shell_input_line[shell_input_line_index];
+       if (uc)

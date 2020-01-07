@@ -1,0 +1,36 @@
+diff -u -r -w groff-1.22.4/src/libs/libgroff/getopt.c groff-1.22.4-patched/src/libs/libgroff/getopt.c
+--- groff-1.22.4/src/libs/libgroff/getopt.c	2018-10-10 22:44:56.000000000 +0000
++++ groff-1.22.4-patched/src/libs/libgroff/getopt.c	2019-05-25 22:57:44.678296560 +0000
+@@ -248,8 +248,15 @@
+ /* Initialize the internal data when the first call is made.  */
+ 
+ static const char *
+-_getopt_initialize (__attribute__((__unused__)) int argc,
+-		    __attribute__((__unused__)) char **argv,
++_getopt_initialize (
++#if !defined(__sgi)
++__attribute__((__unused__))
++#endif
++ int argc,
++#if !defined(__sgi)
++__attribute__((__unused__))
++#endif
++ char **argv,
+ 		    const char *optstring, int posixly_correct,
+ 		    struct _getopt_data *d)
+ {
+diff -u -r -w groff-1.22.4/src/libs/libgroff/new.cpp groff-1.22.4-patched/src/libs/libgroff/new.cpp
+--- groff-1.22.4/src/libs/libgroff/new.cpp	2018-10-10 22:44:56.000000000 +0000
++++ groff-1.22.4-patched/src/libs/libgroff/new.cpp	2019-05-25 22:58:33.569031520 +0000
+@@ -69,7 +69,10 @@
+ }
+ 
+ void operator delete(void *p,
+-		     __attribute__((__unused__)) long unsigned int size)
++#if !defined(__sgi)
++__attribute__((__unused__))
++#endif
++		     long unsigned int size)
+ {
+   // It's ugly to duplicate the code from delete(void *) above, but if
+   // we don't, g++ 6.3 can't figure out we're calling through it to

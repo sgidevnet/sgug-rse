@@ -1,0 +1,424 @@
+diff -N -r -u -w boost_1_69_0/boost/asio/detail/impl/epoll_reactor.ipp boost_1_69_0-patched/boost/asio/detail/impl/epoll_reactor.ipp
+--- boost_1_69_0/boost/asio/detail/impl/epoll_reactor.ipp	2018-12-05 19:58:15.000000000 +0000
++++ boost_1_69_0-patched/boost/asio/detail/impl/epoll_reactor.ipp	2019-08-30 11:29:30.500718800 +0000
+@@ -611,7 +611,11 @@
+ 
+   if (fd == -1 && errno == EINVAL)
+   {
++#if defined(__sgi)
++    fd = timerfd_create(CLOCK_SGI_CYCLE, 0);
++#else
+     fd = timerfd_create(CLOCK_MONOTONIC, 0);
++#endif
+     if (fd != -1)
+       ::fcntl(fd, F_SETFD, FD_CLOEXEC);
+   }
+diff -N -r -u -w boost_1_69_0/boost/asio/detail/impl/null_event.ipp boost_1_69_0-patched/boost/asio/detail/impl/null_event.ipp
+--- boost_1_69_0/boost/asio/detail/impl/null_event.ipp	2018-12-05 19:58:15.000000000 +0000
++++ boost_1_69_0-patched/boost/asio/detail/impl/null_event.ipp	2019-08-30 11:29:49.809316280 +0000
+@@ -23,7 +23,7 @@
+ # include <boost/asio/detail/socket_types.hpp>
+ #else
+ # include <unistd.h>
+-# if defined(__hpux)
++# if defined(__hpux) || defined(__sgi)
+ #  include <sys/time.h>
+ # endif
+ # if !defined(__hpux) || defined(__SELECT)
+diff -N -r -u -w boost_1_69_0/boost/asio/detail/impl/posix_event.ipp boost_1_69_0-patched/boost/asio/detail/impl/posix_event.ipp
+--- boost_1_69_0/boost/asio/detail/impl/posix_event.ipp	2018-12-05 19:58:15.000000000 +0000
++++ boost_1_69_0-patched/boost/asio/detail/impl/posix_event.ipp	2019-08-30 11:29:19.865806360 +0000
+@@ -32,14 +32,15 @@
+ posix_event::posix_event()
+   : state_(0)
+ {
+-#if (defined(__MACH__) && defined(__APPLE__)) \
++#if (defined(__MACH__) && defined(__APPLE__)) || defined(__sgi) \
+       || (defined(__ANDROID__) && (__ANDROID_API__ < 21))
+   int error = ::pthread_cond_init(&cond_, 0);
+ #else // (defined(__MACH__) && defined(__APPLE__))
+       // || (defined(__ANDROID__) && (__ANDROID_API__ < 21))
+   ::pthread_condattr_t attr;
+-  ::pthread_condattr_init(&attr);
++  ::pthread_condattr_init(&attr);#
+   int error = ::pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
++
+   if (error == 0)
+     error = ::pthread_cond_init(&cond_, &attr);
+ #endif // (defined(__MACH__) && defined(__APPLE__))
+diff -N -r -u -w boost_1_69_0/boost/asio/detail/impl/socket_ops.ipp boost_1_69_0-patched/boost/asio/detail/impl/socket_ops.ipp
+--- boost_1_69_0/boost/asio/detail/impl/socket_ops.ipp	2018-12-05 19:58:15.000000000 +0000
++++ boost_1_69_0-patched/boost/asio/detail/impl/socket_ops.ipp	2019-08-30 11:29:40.544027520 +0000
+@@ -43,6 +43,29 @@
+ 
+ #include <boost/asio/detail/push_options.hpp>
+ 
++#if defined(__sgi)
++// Redefine using xopen group style recvmsg and sendmsg
++// as it's a pain in the arse otherwise
++extern "C" {
++/*
++ * XPG5 message header
++ */
++struct xgp5_msghdr {
++	void    *msg_name;              /* optional address */
++	socklen_t msg_namelen;          /* size of address */
++	struct  iovec *msg_iov;         /* scatter/gather array */
++	int     msg_iovlen;             /* # elements in msg_iov */
++	void    *msg_ctrl;              /* ancillary data */
++	socklen_t msg_ctrllen;          /* ancillary data buffer len */
++	int     msg_flags;              /* flags on rec'd message */
++};
++extern ssize_t _xpg5_recvmsg(int, struct xpg5_msghdr *, int);
++extern ssize_t _xpg5_sendmsg(int, const struct xpg5_msghdr *, int);
++#pragma optional _xpg5_recvmsg
++#pragma optional _xpg5_sendmsg
++}
++#endif
++
+ namespace boost {
+ namespace asio {
+ namespace detail {
+@@ -778,10 +801,19 @@
+   ec = boost::system::error_code();
+   return bytes_transferred;
+ #else // defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
++
++#if defined(__sgi)
++  xpg5_msghdr msg = xpg5_msghdr();
++#else
+   msghdr msg = msghdr();
++#endif
+   msg.msg_iov = bufs;
+   msg.msg_iovlen = static_cast<int>(count);
++#if defined(__sgi)
++  signed_size_type result = error_wrapper(::_xpg5_recvmsg(s, &msg, flags), ec);
++#else
+   signed_size_type result = error_wrapper(::recvmsg(s, &msg, flags), ec);
++#endif
+   if (result >= 0)
+     ec = boost::system::error_code();
+   return result;
+@@ -932,12 +964,21 @@
+   ec = boost::system::error_code();
+   return bytes_transferred;
+ #else // defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
++
++#if defined(__sgi)
++  xpg5_msghdr msg = xpg5_msghdr();
++#else
+   msghdr msg = msghdr();
++#endif
+   init_msghdr_msg_name(msg.msg_name, addr);
+   msg.msg_namelen = static_cast<int>(*addrlen);
+   msg.msg_iov = bufs;
+   msg.msg_iovlen = static_cast<int>(count);
++#if defined(__sgi)
++  signed_size_type result = error_wrapper(::_xpg5_recvmsg(s, &msg, flags), ec);
++#else
+   signed_size_type result = error_wrapper(::recvmsg(s, &msg, flags), ec);
++#endif
+   *addrlen = msg.msg_namelen;
+   if (result >= 0)
+     ec = boost::system::error_code();
+@@ -1047,10 +1088,19 @@
+   out_flags = 0;
+   return socket_ops::recv(s, bufs, count, in_flags, ec);
+ #else // defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
++
++#if defined(__sgi)
++  xpg5_msghdr msg = xpg5_msghdr();
++#else
+   msghdr msg = msghdr();
++#endif
+   msg.msg_iov = bufs;
+   msg.msg_iovlen = static_cast<int>(count);
++#if defined(__sgi)
++  signed_size_type result = error_wrapper(::_xpg5_recvmsg(s, &msg, in_flags), ec);
++#else
+   signed_size_type result = error_wrapper(::recvmsg(s, &msg, in_flags), ec);
++#endif
+   if (result >= 0)
+   {
+     ec = boost::system::error_code();
+@@ -1175,13 +1225,22 @@
+   ec = boost::system::error_code();
+   return bytes_transferred;
+ #else // defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
++
++#if defined(__sgi)
++  xpg5_msghdr msg = xpg5_msghdr();
++#else
+   msghdr msg = msghdr();
++#endif
+   msg.msg_iov = const_cast<buf*>(bufs);
+   msg.msg_iovlen = static_cast<int>(count);
+ #if defined(__linux__)
+   flags |= MSG_NOSIGNAL;
+ #endif // defined(__linux__)
++#if defined(__sgi)
++  signed_size_type result = error_wrapper(::_xpg5_sendmsg(s, &msg, flags), ec);
++#else
+   signed_size_type result = error_wrapper(::sendmsg(s, &msg, flags), ec);
++#endif
+   if (result >= 0)
+     ec = boost::system::error_code();
+   return result;
+@@ -1302,7 +1361,12 @@
+   ec = boost::system::error_code();
+   return bytes_transferred;
+ #else // defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
++
++#if defined(__sgi)
++  xpg5_msghdr msg = xpg5_msghdr();
++#else
+   msghdr msg = msghdr();
++#endif
+   init_msghdr_msg_name(msg.msg_name, addr);
+   msg.msg_namelen = static_cast<int>(addrlen);
+   msg.msg_iov = const_cast<buf*>(bufs);
+@@ -1310,7 +1374,12 @@
+ #if defined(__linux__)
+   flags |= MSG_NOSIGNAL;
+ #endif // defined(__linux__)
++
++#if defined(__sgi)
++  signed_size_type result = error_wrapper(::_xpg5_sendmsg(s, &msg, flags), ec);
++#else
+   signed_size_type result = error_wrapper(::sendmsg(s, &msg, flags), ec);
++#endif
+   if (result >= 0)
+     ec = boost::system::error_code();
+   return result;
+diff -N -r -u -w boost_1_69_0/boost/asio/detail/posix_event.hpp boost_1_69_0-patched/boost/asio/detail/posix_event.hpp
+--- boost_1_69_0/boost/asio/detail/posix_event.hpp	2018-12-05 19:58:15.000000000 +0000
++++ boost_1_69_0-patched/boost/asio/detail/posix_event.hpp	2019-08-30 11:30:06.059933480 +0000
+@@ -127,7 +127,11 @@
+ #else // (defined(__MACH__) && defined(__APPLE__))
+       // || (defined(__ANDROID__) && (__ANDROID_API__ < 21)
+       //     && defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE))
++#if defined(__sgi)
++      if (::clock_gettime(CLOCK_SGI_CYCLE, &ts) == 0)
++#else
+       if (::clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
++#endif
+       {
+         ts.tv_sec += usec / 1000000;
+         ts.tv_nsec = (usec % 1000000) * 1000;
+diff -N -r -u -w boost_1_69_0/boost/chrono/config.hpp boost_1_69_0-patched/boost/chrono/config.hpp
+--- boost_1_69_0/boost/chrono/config.hpp	2018-12-05 19:58:16.000000000 +0000
++++ boost_1_69_0-patched/boost/chrono/config.hpp	2019-08-30 11:33:16.629277240 +0000
+@@ -82,7 +82,7 @@
+ # if defined( BOOST_CHRONO_POSIX_API )
+ #   define BOOST_CHRONO_HAS_PROCESS_CLOCKS
+ #   include <time.h>  //to check for CLOCK_REALTIME and CLOCK_MONOTONIC and _POSIX_THREAD_CPUTIME
+-#   if defined(CLOCK_MONOTONIC)
++#   if defined(CLOCK_MONOTONIC) || defined(CLOCK_SGI_CYCLE)
+ #      define BOOST_CHRONO_HAS_CLOCK_STEADY
+ #   endif
+ #   if defined(_POSIX_THREAD_CPUTIME) && !defined(BOOST_DISABLE_THREADS)
+diff -N -r -u -w boost_1_69_0/boost/chrono/detail/inlined/posix/chrono.hpp boost_1_69_0-patched/boost/chrono/detail/inlined/posix/chrono.hpp
+--- boost_1_69_0/boost/chrono/detail/inlined/posix/chrono.hpp	2018-12-05 19:58:16.000000000 +0000
++++ boost_1_69_0-patched/boost/chrono/detail/inlined/posix/chrono.hpp	2019-08-30 11:32:04.257098000 +0000
+@@ -75,7 +75,11 @@
+   steady_clock::time_point steady_clock::now() BOOST_NOEXCEPT
+   {
+     timespec ts;
++#if defined(__sgi)
++    if ( ::clock_gettime( CLOCK_SGI_CYCLE, &ts ) )
++#else
+     if ( ::clock_gettime( CLOCK_MONOTONIC, &ts ) )
++#endif
+     {
+       BOOST_ASSERT(0 && "Boost::Chrono - Internal Error");
+     }
+@@ -88,7 +92,11 @@
+   steady_clock::time_point steady_clock::now(system::error_code & ec)
+   {
+     timespec ts;
++#if defined(__sgi)
++    if ( ::clock_gettime( CLOCK_SGI_CYCLE, &ts ) )
++#else
+     if ( ::clock_gettime( CLOCK_MONOTONIC, &ts ) )
++#endif
+     {
+         if (::boost::chrono::is_throws(ec))
+         {
+diff -N -r -u -w boost_1_69_0/boost/config/detail/posix_features.hpp boost_1_69_0-patched/boost/config/detail/posix_features.hpp
+--- boost_1_69_0/boost/config/detail/posix_features.hpp	2018-12-05 19:58:16.000000000 +0000
++++ boost_1_69_0-patched/boost/config/detail/posix_features.hpp	2019-08-30 11:31:33.137892360 +0000
+@@ -13,6 +13,9 @@
+ // _XOPEN_SOURCE have been defined to the right value (it's up
+ // to the user to do this *before* including any header, although
+ // in most cases the compiler will do this for you).
++# if defined(__sgi)
++#define CLOCK_MONOTONIC CLOCK_SGI_CYCLE
++#endif
+ 
+ #  if defined(BOOST_HAS_UNISTD_H)
+ #     include <unistd.h>
+diff -N -r -u -w boost_1_69_0/boost/config/platform/irix.hpp boost_1_69_0-patched/boost/config/platform/irix.hpp
+--- boost_1_69_0/boost/config/platform/irix.hpp	2018-12-05 19:58:16.000000000 +0000
++++ boost_1_69_0-patched/boost/config/platform/irix.hpp	2019-08-30 11:26:44.579047080 +0000
+@@ -20,7 +20,7 @@
+ 
+ #ifdef __GNUC__
+    // GNU C on IRIX does not support threads (checked up to gcc 3.3)
+-#  define BOOST_DISABLE_THREADS
++//#  define BOOST_DISABLE_THREADS
+ #endif
+ 
+ // boilerplate code:
+diff -N -r -u -w boost_1_69_0/boost/config/requires_threads.hpp boost_1_69_0-patched/boost/config/requires_threads.hpp
+--- boost_1_69_0/boost/config/requires_threads.hpp	2018-12-05 19:58:16.000000000 +0000
++++ boost_1_69_0-patched/boost/config/requires_threads.hpp	2019-08-30 11:26:44.592830920 +0000
+@@ -20,8 +20,8 @@
+ //
+ // this is checked up to gcc 3.3:
+ //
+-#if defined(__sgi) || defined(__hpux)
+-#  error "Multi-threaded programs are not supported by gcc on HPUX or Irix (last checked with gcc 3.3)"
++#if defined(__hpux)
++#  error "Multi-threaded programs are not supported by gcc on HPUX (last checked with gcc 3.3)"
+ #endif
+ 
+ #endif
+diff -N -r -u -w boost_1_69_0/boost/interprocess/detail/os_thread_functions.hpp boost_1_69_0-patched/boost/interprocess/detail/os_thread_functions.hpp
+--- boost_1_69_0/boost/interprocess/detail/os_thread_functions.hpp	2018-12-05 19:58:18.000000000 +0000
++++ boost_1_69_0-patched/boost/interprocess/detail/os_thread_functions.hpp	2019-08-30 11:28:24.347904560 +0000
+@@ -69,6 +69,8 @@
+ #     define BOOST_INTERPROCESS_CLOCK_MONOTONIC CLOCK_HIGHRES
+ #  elif defined(CLOCK_MONOTONIC)         //POSIX (AIX, BSD, Linux, Solaris)
+ #     define BOOST_INTERPROCESS_CLOCK_MONOTONIC CLOCK_MONOTONIC
++#  elif defined(CLOCK_SGI_CYCLE)         //POSIX IRIX
++#     define BOOST_INTERPROCESS_CLOCK_MONOTONIC CLOCK_SGI_CYCLE
+ #  else
+ #     error "No high resolution steady clock in your system, please provide a patch"
+ #  endif
+diff -N -r -u -w boost_1_69_0/boost/thread/detail/config.hpp boost_1_69_0-patched/boost/thread/detail/config.hpp
+--- boost_1_69_0/boost/thread/detail/config.hpp	2018-12-05 19:58:23.000000000 +0000
++++ boost_1_69_0-patched/boost/thread/detail/config.hpp	2019-08-30 11:30:42.037631640 +0000
+@@ -429,6 +429,10 @@
+     #define BOOST_THREAD_HAS_MONO_CLOCK
+     #define BOOST_THREAD_INTERNAL_CLOCK_IS_MONO
+   #endif
++  #if defined(CLOCK_SGI_CYCLE)
++    #define BOOST_THREAD_HAS_MONO_CLOCK
++    #define BOOST_THREAD_INTERNAL_CLOCK_IS_MONO
++  #endif
+ #endif
+ 
+ #if defined(BOOST_THREAD_PLATFORM_WIN32)
+diff -N -r -u -w boost_1_69_0/boost/thread/detail/platform_time.hpp boost_1_69_0-patched/boost/thread/detail/platform_time.hpp
+--- boost_1_69_0/boost/thread/detail/platform_time.hpp	2018-12-05 19:58:23.000000000 +0000
++++ boost_1_69_0-patched/boost/thread/detail/platform_time.hpp	2019-08-30 11:30:26.332913360 +0000
+@@ -442,7 +442,11 @@
+       return mono_platform_timepoint(fp());
+ #else
+       timespec ts;
++#if defined(__sgi)
++      if ( ::clock_gettime( CLOCK_SGI_CYCLE, &ts ) )
++#else
+       if ( ::clock_gettime( CLOCK_MONOTONIC, &ts ) )
++#endif
+       {
+         BOOST_ASSERT(0 && "Boost::Thread - clock_gettime(CLOCK_MONOTONIC) Internal Error");
+         return mono_platform_timepoint(0);
+diff -N -r -u -w boost_1_69_0/boost/thread/pthread/pthread_helpers.hpp boost_1_69_0-patched/boost/thread/pthread/pthread_helpers.hpp
+--- boost_1_69_0/boost/thread/pthread/pthread_helpers.hpp	2018-12-05 19:58:23.000000000 +0000
++++ boost_1_69_0-patched/boost/thread/pthread/pthread_helpers.hpp	2019-08-30 11:31:01.957416760 +0000
+@@ -18,7 +18,9 @@
+     {
+       inline int cond_init(pthread_cond_t& cond) {
+ 
+-  #ifdef BOOST_THREAD_INTERNAL_CLOCK_IS_MONO
++#if defined(__sgi)
++              return pthread_cond_init(&cond,NULL);
++#elif defined(BOOST_THREAD_INTERNAL_CLOCK_IS_MONO)
+               pthread_condattr_t attr;
+               int res = pthread_condattr_init(&attr);
+               if (res)
+diff -N -r -u -w boost_1_69_0/boost/thread/pthread/thread_data.hpp boost_1_69_0-patched/boost/thread/pthread/thread_data.hpp
+--- boost_1_69_0/boost/thread/pthread/thread_data.hpp	2018-12-05 19:58:23.000000000 +0000
++++ boost_1_69_0-patched/boost/thread/pthread/thread_data.hpp	2019-08-30 11:26:44.615777880 +0000
+@@ -32,6 +32,11 @@
+ # endif
+ #endif
+ 
++#if defined(__sgi)
++# undef PTHREAD_STACK_MIN
++# define PTHREAD_STACK_MIN 16384
++#endif
++
+ #include <pthread.h>
+ #include <unistd.h>
+ 
+diff -N -r -u -w boost_1_69_0/boost/type_index/stl_type_index.hpp boost_1_69_0-patched/boost/type_index/stl_type_index.hpp
+--- boost_1_69_0/boost/type_index/stl_type_index.hpp	2018-12-05 19:58:23.000000000 +0000
++++ boost_1_69_0-patched/boost/type_index/stl_type_index.hpp	2019-08-30 11:26:44.633467400 +0000
+@@ -47,8 +47,7 @@
+ #   include <boost/container_hash/hash.hpp>
+ #endif
+ 
+-#if (defined(__EDG_VERSION__) && __EDG_VERSION__ < 245) \
+-        || (defined(__sgi) && defined(_COMPILER_VERSION) && _COMPILER_VERSION <= 744)
++#if (defined(__EDG_VERSION__) && __EDG_VERSION__ < 245)
+ #   include <boost/type_traits/is_signed.hpp>
+ #   include <boost/type_traits/make_signed.hpp>
+ #   include <boost/type_traits/type_identity.hpp>
+@@ -195,7 +194,6 @@
+ // comparisons don't work, so we are using typeid(x).name() instead.
+ # if (defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 5))) \
+     || defined(_AIX) \
+-    || (defined(__sgi) && defined(__host_mips)) \
+     || (defined(__hpux) && defined(__HP_aCC)) \
+     || (defined(linux) && defined(__INTEL_COMPILER) && defined(__ICC))
+ #  define BOOST_TYPE_INDEX_CLASSINFO_COMPARE_BY_NAMES
+@@ -227,8 +225,7 @@
+     typedef BOOST_DEDUCED_TYPENAME boost::remove_reference<T>::type no_ref_t;
+     typedef BOOST_DEDUCED_TYPENAME boost::remove_cv<no_ref_t>::type no_cvr_prefinal_t;
+ 
+-    #  if (defined(__EDG_VERSION__) && __EDG_VERSION__ < 245) \
+-        || (defined(__sgi) && defined(_COMPILER_VERSION) && _COMPILER_VERSION <= 744)
++    #  if (defined(__EDG_VERSION__) && __EDG_VERSION__ < 245)
+ 
+         // Old EDG-based compilers seem to mistakenly distinguish 'integral' from 'signed integral'
+         // in typeid() expressions. Full template specialization for 'integral' fixes that issue:
+diff -N -r -u -w boost_1_69_0/bootstrap.sh boost_1_69_0-patched/bootstrap.sh
+--- boost_1_69_0/bootstrap.sh	2018-12-05 19:58:10.000000000 +0000
++++ boost_1_69_0-patched/bootstrap.sh	2019-08-30 11:26:44.651846520 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ # Copyright (C) 2005, 2006 Douglas Gregor.
+ # Copyright (C) 2006 The Trustees of Indiana University
+ #
+diff -N -r -u -w boost_1_69_0/tools/build/bootstrap.sh boost_1_69_0-patched/tools/build/bootstrap.sh
+--- boost_1_69_0/tools/build/bootstrap.sh	2018-12-05 19:58:24.000000000 +0000
++++ boost_1_69_0-patched/tools/build/bootstrap.sh	2019-08-30 11:26:44.669377240 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ # Copyright (C) 2005, 2006 Douglas Gregor.
+ # Copyright (C) 2006 The Trustees of Indiana University
+ # Copyright (C) 2010 Bryce Lelbach 
+diff -N -r -u -w boost_1_69_0/tools/build/src/engine/execunix.c boost_1_69_0-patched/tools/build/src/engine/execunix.c
+--- boost_1_69_0/tools/build/src/engine/execunix.c	2018-12-05 19:58:24.000000000 +0000
++++ boost_1_69_0-patched/tools/build/src/engine/execunix.c	2019-08-30 11:26:44.701137640 +0000
+@@ -546,9 +546,16 @@
+                     close_streams( i, ERR );
+ 
+                 /* Reap the child and release resources. */
++#if defined(__sgi)
++                while ( ( pid = waitpid( cmdtab[ i ].pid, &status, 0 ) ) == -1 )
++                    if ( errno != EINTR )
++                        break;
++		getrusage(RUSAGE_CHILDREN, &cmd_usage);
++#else
+                 while ( ( pid = wait4( cmdtab[ i ].pid, &status, 0, &cmd_usage ) ) == -1 )
+                     if ( errno != EINTR )
+                         break;
++#endif
+                 if ( pid != cmdtab[ i ].pid )
+                 {
+                     err_printf( "unknown pid %d with errno = %d\n", pid, errno );

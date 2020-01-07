@@ -1,0 +1,12 @@
+diff -u -r tcl8.6.9/unix/tcl.m4 tcl8.6.9-patched/unix/tcl.m4
+--- tcl8.6.9/unix/tcl.m4	2019-12-03 17:35:45.731837960 +0000
++++ tcl8.6.9-patched/unix/tcl.m4	2019-12-03 17:41:02.726855560 +0000
+@@ -1375,7 +1375,7 @@
+ 	    ;;
+ 	IRIX64-6.*)
+ 	    SHLIB_CFLAGS=""
+-	    SHLIB_LD="ld -n32 -shared -rdata_shared"
++	    SHLIB_LD="ld -shared"
+ 	    SHLIB_SUFFIX=".so"
+ 	    DL_OBJS="tclLoadDl.o"
+ 	    DL_LIBS=""

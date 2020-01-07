@@ -1,0 +1,39 @@
+diff -u -r -w gettext-0.19.8.1/gettext-tools/gnulib-lib/libxml/trionan.c gettext-0.19.8.1-patched/gettext-tools/gnulib-lib/libxml/trionan.c
+--- gettext-0.19.8.1/gettext-tools/gnulib-lib/libxml/trionan.c	2015-12-23 07:08:27.000000000 +0000
++++ gettext-0.19.8.1-patched/gettext-tools/gnulib-lib/libxml/trionan.c	2019-05-23 15:36:44.624359240 +0000
+@@ -2,6 +2,9 @@
+ 
+ #include "config.h"
+ #include <math.h>
++#if defined(__sgi)
++#include <limits.h>
++#endif
+ 
+ /* Copied from gnulib/tests/infinity.h.  */
+ 
+diff -u -r -w gettext-0.19.8.1/gettext-tools/src/cldr-plural-exp.c gettext-0.19.8.1-patched/gettext-tools/src/cldr-plural-exp.c
+--- gettext-0.19.8.1/gettext-tools/src/cldr-plural-exp.c	2016-03-20 07:37:53.000000000 +0000
++++ gettext-0.19.8.1-patched/gettext-tools/src/cldr-plural-exp.c	2019-05-23 16:16:44.549905800 +0000
+@@ -668,7 +668,7 @@
+     }
+ 
+   /* If there are more printable rules, build a ternary operator.  */
+-  fprintf (fp, "nplurals=%zu; plural=(", nplurals);
++  fprintf (fp, "nplurals=%lu; plural=(", nplurals);
+   for (i = 0, count = 0; i < rules->nitems; i++)
+     {
+       struct cldr_plural_rule_ty *rule = rules->items[i];
+@@ -686,10 +686,10 @@
+               printable_left = true;
+ 
+           if (i < rules->nitems - 1 && printable_left)
+-            fprintf (fp, " ? %zu : ", count++);
++            fprintf (fp, " ? %lu : ", count++);
+         }
+     }
+   if (rules->nitems > 1)
+-    fprintf (fp, " ? %zu : %zu", count, count + 1);
++    fprintf (fp, " ? %lu : %lu", count, count + 1);
+   fprintf (fp, ");\n");
+ }
+Only in gettext-0.19.8.1-patched/gettext-tools/src: cldr-plural-exp.c~

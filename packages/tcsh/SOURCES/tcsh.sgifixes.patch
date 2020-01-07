@@ -1,0 +1,8 @@
+--- tcsh-6.20.00/nls/catgen	2014-07-25 15:45:25.000000000 +0000
++++ tcsh-6.20.00-patched/nls/catgen	2019-12-04 16:11:49.471856560 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ # Wrapper for gencat
+ TMP=/tmp/catgen.$$
+ trap "rm -f $TMP" 0 1 2 3 15

@@ -1,0 +1,186 @@
+diff -r -u -w openssl-1.1.1d/Configurations/10-main.conf openssl-1.1.1d-patched/Configurations/10-main.conf
+--- openssl-1.1.1d/Configurations/10-main.conf	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/Configurations/10-main.conf	2019-11-06 15:08:48.415055160 +0000
+@@ -375,7 +375,7 @@
+         CFLAGS           => picker(debug   => "-g -O0",
+                                    release => "-O3"),
+         LDFLAGS          => "-static-libgcc",
+-        cflags           => "-mabi=n32",
++        cflags           => "-mabi=n32 -Wl,--unresolved-symbols=ignore-all",
+         bn_ops           => "RC4_CHAR SIXTY_FOUR_BIT",
+         perlasm_scheme   => "n32",
+         multilib         => "32",
+@@ -389,6 +389,27 @@
+         bn_ops           => "RC4_CHAR SIXTY_FOUR_BIT",
+         perlasm_scheme   => "n32",
+         multilib         => "32",
++    },
++    "irix-mips4-gcc" => {
++        inherit_from     => [ "irix-common", asm("mips64_asm") ],
++        CC               => "gcc",
++        CFLAGS           => picker(debug   => "-g -O0",
++                                   release => "-O3"),
++        LDFLAGS          => "-static-libgcc",
++        cflags           => "-mabi=n32 -mips4 -Wl,--unresolved-symbols=ignore-all",
++        bn_ops           => "RC4_CHAR SIXTY_FOUR_BIT",
++        perlasm_scheme   => "n32",
++        multilib         => "32",
++    },
++    "irix-mips4-cc" => {
++        inherit_from     => [ "irix-common", asm("mips64_asm") ],
++        cc               => "c99",
++        CFLAGS           => picker(debug   => "-g -O0",
++                                   release => "-O1"),
++        cflags           => "-mips4 -O1 -use_readonly_const -OPT\:Olimit=0:space=ON -TENV\:X=1 -CG\:unique_exit=on -OPT\:IEEE_arithmetic=1\:roundoff=0\:wrap_around_unsafe_opt=off\:IEEE_comparisons=ON -woff 1009,1014,1107,1110,1116,1164,1185,1188,1204,1230,1233 -Wl,-woff,86,-woff,84",
++        bn_ops           => "RC4_CHAR SIXTY_FOUR_BIT",
++        perlasm_scheme   => "n32",
++        multilib         => "32",
+     },
+     # N64 ABI builds.
+     "irix64-mips4-gcc" => {
+diff -r -u -w openssl-1.1.1d/Configurations/unix-Makefile.tmpl openssl-1.1.1d-patched/Configurations/unix-Makefile.tmpl
+--- openssl-1.1.1d/Configurations/unix-Makefile.tmpl	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/Configurations/unix-Makefile.tmpl	2019-11-06 15:04:33.401617440 +0000
+@@ -379,7 +379,7 @@
+                           '$(CNF_CXXFLAGS)', '$(CXXFLAGS)') -}
+ LIB_LDFLAGS={- join(' ', $target{shared_ldflag} || (),
+                          $config{shared_ldflag} || (),
+-                         '$(CNF_LDFLAGS)', '$(LDFLAGS)') -}
++                         '$(CNF_LDFLAGS)', '$(LDFLAGS)') -} -shared
+ LIB_EX_LIBS=$(CNF_EX_LIBS) $(EX_LIBS)
+ DSO_CPPFLAGS={- join(' ', $target{dso_cppflags} || (),
+                           $target{module_cppflags} || (),
+@@ -403,7 +403,7 @@
+                          $target{module_ldflags} || (),
+                          @{$config{dso_ldflags}},
+                          @{$config{module_ldflags}},
+-                         '$(CNF_LDFLAGS)', '$(LDFLAGS)') -}
++                         '$(CNF_LDFLAGS)', '$(LDFLAGS)') -} -shared
+ DSO_EX_LIBS=$(CNF_EX_LIBS) $(EX_LIBS)
+ BIN_CPPFLAGS={- join(' ', $target{bin_cppflags} || (),
+                           (map { '-D'.$_ } @{$config{bin_defines} || ()}),
+diff -r -u -w openssl-1.1.1d/config openssl-1.1.1d-patched/config
+--- openssl-1.1.1d/config	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/config	2019-11-06 15:04:33.409094960 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ # Copyright 1998-2019 The OpenSSL Project Authors. All Rights Reserved.
+ #
+ # Licensed under the OpenSSL license (the "License").  You may not use
+diff -r -u -w openssl-1.1.1d/demos/certs/apps/mkacerts.sh openssl-1.1.1d-patched/demos/certs/apps/mkacerts.sh
+--- openssl-1.1.1d/demos/certs/apps/mkacerts.sh	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/demos/certs/apps/mkacerts.sh	2019-11-06 15:04:33.411792160 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ 
+ # Recreate the demo certificates in the apps directory.
+ 
+diff -r -u -w openssl-1.1.1d/test/certs/setup.sh openssl-1.1.1d-patched/test/certs/setup.sh
+--- openssl-1.1.1d/test/certs/setup.sh	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/test/certs/setup.sh	2019-11-06 15:04:33.414767360 +0000
+@@ -1,4 +1,4 @@
+-#! /bin/sh
++#! /usr/bin/env sh
+ 
+ # Primary root: root-cert
+ # root cert variants: CA:false, key2, DN2
+diff -r -u -w openssl-1.1.1d/test/ct_test.c openssl-1.1.1d-patched/test/ct_test.c
+--- openssl-1.1.1d/test/ct_test.c	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/test/ct_test.c	2019-11-06 15:04:33.417208480 +0000
+@@ -415,9 +415,7 @@
+     return result;
+ }
+ 
+-static int test_decode_tls_sct(void)
+-{
+-    const unsigned char tls_sct_list[] = "\x00\x78" /* length of list */
++static const unsigned char tls_sct_list[] = "\x00\x78" /* length of list */
+         "\x00\x76"
+         "\x00" /* version */
+         /* log ID */
+@@ -435,6 +433,8 @@
+         "\x6A\x68\x06\x53\x98\x7D\xCF\x41\x02\x7D\xFE\xFF\xA1\x05\x51\x9D\x89"
+         "\xED\xBF\x08";
+ 
++static int test_decode_tls_sct(void)
++{
+     SETUP_CT_TEST_FIXTURE();
+     if (fixture == NULL)
+         return 0;
+diff -r -u -w openssl-1.1.1d/test/recipes/01-test_symbol_presence.t openssl-1.1.1d-patched/test/recipes/01-test_symbol_presence.t
+--- openssl-1.1.1d/test/recipes/01-test_symbol_presence.t	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/test/recipes/01-test_symbol_presence.t	2019-11-06 15:04:33.419120880 +0000
+@@ -57,7 +57,7 @@
+         note "Number of lines in \@def_lines before massaging: ", scalar @def_lines;
+ 
+         # Massage the nm output to only contain defined symbols
+-        @nm_lines = sort map { s| .*||; $_ } grep(m|.* [BCDST] .*|, @nm_lines);
++        @nm_lines = sort map { s?.*\|??; $_ } grep(m|.* GLOB\|DEFAULT .*|, @nm_lines);
+ 
+         # Massage the mkdef.pl output to only contain global symbols
+         # The output we got is in Unix .map format, which has a global
+diff -r -u -w openssl-1.1.1d/test/recipes/95-test_external_krb5_data/krb5.sh openssl-1.1.1d-patched/test/recipes/95-test_external_krb5_data/krb5.sh
+--- openssl-1.1.1d/test/recipes/95-test_external_krb5_data/krb5.sh	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/test/recipes/95-test_external_krb5_data/krb5.sh	2019-11-06 15:04:33.421040720 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh -ex
++#!/usr/bin/env sh -ex
+ #
+ # Copyright 2017 The OpenSSL Project Authors. All Rights Reserved.
+ #
+diff -r -u -w openssl-1.1.1d/test/recipes/95-test_external_pyca_data/cryptography.sh openssl-1.1.1d-patched/test/recipes/95-test_external_pyca_data/cryptography.sh
+--- openssl-1.1.1d/test/recipes/95-test_external_pyca_data/cryptography.sh	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/test/recipes/95-test_external_pyca_data/cryptography.sh	2019-11-06 15:04:33.422494000 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ #
+ # Copyright 2017 The OpenSSL Project Authors. All Rights Reserved.
+ # Copyright (c) 2017, Oracle and/or its affiliates.  All rights reserved.
+diff -r -u -w openssl-1.1.1d/test/smime-certs/mksmime-certs.sh openssl-1.1.1d-patched/test/smime-certs/mksmime-certs.sh
+--- openssl-1.1.1d/test/smime-certs/mksmime-certs.sh	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/test/smime-certs/mksmime-certs.sh	2019-11-06 15:04:33.454634480 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ # Copyright 2013-2016 The OpenSSL Project Authors. All Rights Reserved.
+ #
+ # Licensed under the OpenSSL license (the "License").  You may not use
+diff -r -u -w openssl-1.1.1d/util/check-malloc-errs openssl-1.1.1d-patched/util/check-malloc-errs
+--- openssl-1.1.1d/util/check-malloc-errs	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/util/check-malloc-errs	2019-11-06 15:04:33.456392240 +0000
+@@ -1,4 +1,4 @@
+-#! /bin/sh
++#! /usr/bin/env sh
+ # Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
+ #
+ # Licensed under the OpenSSL license (the "License").  You may not use
+diff -r -u -w openssl-1.1.1d/util/openssl-format-source openssl-1.1.1d-patched/util/openssl-format-source
+--- openssl-1.1.1d/util/openssl-format-source	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/util/openssl-format-source	2019-11-06 15:04:33.457967600 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ #
+ # Copyright 2015-2019 The OpenSSL Project Authors. All Rights Reserved.
+ #
+diff -r -u -w openssl-1.1.1d/util/opensslwrap.sh openssl-1.1.1d-patched/util/opensslwrap.sh
+--- openssl-1.1.1d/util/opensslwrap.sh	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/util/opensslwrap.sh	2019-11-06 15:04:33.459344800 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ 
+ HERE="`echo $0 | sed -e 's|[^/]*$||'`"
+ OPENSSL="${HERE}../apps/openssl"
+diff -r -u -w openssl-1.1.1d/util/shlib_wrap.sh.in openssl-1.1.1d-patched/util/shlib_wrap.sh.in
+--- openssl-1.1.1d/util/shlib_wrap.sh.in	2019-09-10 14:13:07.000000000 +0000
++++ openssl-1.1.1d-patched/util/shlib_wrap.sh.in	2019-11-06 15:04:33.462009280 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/usr/bin/env sh
+ {-
+     use lib '.';
+     use configdata;

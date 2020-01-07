@@ -1,0 +1,28 @@
+diff -r -u -w openssh-8.1p1/sshbuf-misc.c openssh-8.1p1-patched/sshbuf-misc.c
+--- openssh-8.1p1/sshbuf-misc.c	2019-10-09 01:31:03.000000000 +0000
++++ openssh-8.1p1-patched/sshbuf-misc.c	2019-11-04 13:59:55.907235280 +0000
+@@ -35,6 +35,10 @@
+ #define SSHBUF_INTERNAL
+ #include "sshbuf.h"
+ 
++#if defined(__sgi)
++void *memmem(const void *, size_t, const void *, size_t);
++#endif
++
+ void
+ sshbuf_dump_data(const void *s, size_t len, FILE *f)
+ {
+diff -r -u -w openssh-8.1p1/sshkey.c openssh-8.1p1-patched/sshkey.c
+--- openssh-8.1p1/sshkey.c	2019-10-09 01:31:03.000000000 +0000
++++ openssh-8.1p1-patched/sshkey.c	2019-11-04 13:59:48.029758480 +0000
+@@ -76,6 +76,10 @@
+ #define DEFAULT_CIPHERNAME	"aes256-ctr"
+ #define	DEFAULT_ROUNDS		16
+ 
++#if !defined(strndup)
++extern char *strndup();
++#endif
++
+ /* Version identification string for SSH v1 identity files. */
+ #define LEGACY_BEGIN		"SSH PRIVATE KEY FILE FORMAT 1.1\n"
+ 

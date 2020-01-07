@@ -1,0 +1,15 @@
+diff -r -u -w flex-2.6.4/src/misc.c flex-2.6.4-patched/src/misc.c
+--- flex-2.6.4/src/misc.c	2017-05-03 21:16:37.000000000 +0000
++++ flex-2.6.4-patched/src/misc.c	2019-11-06 12:59:55.784137120 +0000
+@@ -30,6 +30,11 @@
+ /*  IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED */
+ /*  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR */
+ /*  PURPOSE. */
++
++/* Seem by massive - SIZE_MAX not pulled in certain cases */
++#if defined(__sgi)
++#include <stdint.h>
++#endif
+ #include "flexdef.h"
+ #include "tables.h"
+ 

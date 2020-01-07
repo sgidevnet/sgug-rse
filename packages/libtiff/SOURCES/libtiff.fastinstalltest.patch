@@ -1,0 +1,11 @@
+--- tiff-4.0.10/configure.ac~	2018-11-10 15:05:43.035010000 +0000
++++ tiff-4.0.10/configure.ac	2019-12-01 11:26:53.358231040 +0000
+@@ -1138,6 +1138,8 @@
+ 
+ dnl ---------------------------------------------------------------------------
+ 
++enable_fast_install=yes
++
+ AC_SUBST(LIBDIR)
+ 
+ AC_CONFIG_HEADERS([libtiff/tif_config.h libtiff/tiffconf.h])

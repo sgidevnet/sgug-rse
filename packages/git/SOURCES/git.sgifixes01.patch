@@ -1,0 +1,125 @@
+diff -u -r -w git-2.22.0/builtin/describe.c git-2.22.0-patched/builtin/describe.c
+--- git-2.22.0/builtin/describe.c	2019-06-07 19:37:32.000000000 +0000
++++ git-2.22.0-patched/builtin/describe.c	2019-07-24 04:35:12.907247680 +0000
+@@ -483,7 +483,12 @@
+ {
+ 	struct rev_info revs;
+ 	struct argv_array args = ARGV_ARRAY_INIT;
+-	struct process_commit_data pcd = { null_oid, oid, dst, &revs};
++//	struct process_commit_data pcd = { null_oid, oid, dst, &revs};
++	struct process_commit_data pcd;
++	pcd.current_commit = null_oid;
++	pcd.looking_for = oid;
++	pcd.dst = dst;
++	pcd.revs = &revs;
+ 
+ 	argv_array_pushl(&args, "internal: The first arg is not parsed",
+ 		"--objects", "--in-commit-order", "--reverse", "HEAD",
+Only in git-2.22.0-patched/builtin: describe.c.orig
+diff -u -r -w git-2.22.0/builtin/get-tar-commit-id.c git-2.22.0-patched/builtin/get-tar-commit-id.c
+--- git-2.22.0/builtin/get-tar-commit-id.c	2019-06-07 19:37:32.000000000 +0000
++++ git-2.22.0-patched/builtin/get-tar-commit-id.c	2019-07-24 04:35:12.908938080 +0000
+@@ -3,9 +3,9 @@
+  */
+ #include "cache.h"
+ #include "commit.h"
+-#include "tar.h"
+ #include "builtin.h"
+ #include "quote.h"
++#include "tar.h"
+ 
+ static const char builtin_get_tar_commit_id_usage[] =
+ "git get-tar-commit-id";
+Only in git-2.22.0-patched/builtin: get-tar-commit-id.c.orig
+diff -u -r -w git-2.22.0/config.mak.uname git-2.22.0-patched/config.mak.uname
+--- git-2.22.0/config.mak.uname	2019-06-07 19:37:32.000000000 +0000
++++ git-2.22.0-patched/config.mak.uname	2019-07-24 04:35:12.912146560 +0000
+@@ -305,7 +305,7 @@
+ 	NO_MMAP = YesPlease
+ 	NO_REGEX = YesPlease
+ 	SNPRINTF_RETURNS_BOGUS = YesPlease
+-	SHELL_PATH = /usr/gnu/bin/bash
++	SHELL_PATH = $(CONFIG_SHELL)
+ 	NEEDS_LIBGEN = YesPlease
+ endif
+ ifeq ($(uname_S),IRIX64)
+@@ -323,7 +323,7 @@
+ 	NO_MMAP = YesPlease
+ 	NO_REGEX = YesPlease
+ 	SNPRINTF_RETURNS_BOGUS = YesPlease
+-	SHELL_PATH = /usr/gnu/bin/bash
++	SHELL_PATH = $(CONFIG_SHELL)
+ 	NEEDS_LIBGEN = YesPlease
+ endif
+ ifeq ($(uname_S),HP-UX)
+Only in git-2.22.0-patched: config.mak.uname.orig
+diff -u -r -w git-2.22.0/http.c git-2.22.0-patched/http.c
+--- git-2.22.0/http.c	2019-06-07 19:37:32.000000000 +0000
++++ git-2.22.0-patched/http.c	2019-07-24 04:35:26.907640080 +0000
+@@ -2007,7 +2007,7 @@
+ 			return HTTP_START_FAILED;
+ 		}
+ 		rewind(result);
+-		if (ftruncate(fileno(result), 0) < 0) {
++		if (ftruncate(fileno((FILE*)result), 0) < 0) {
+ 			error_errno("unable to truncate a file");
+ 			return HTTP_START_FAILED;
+ 		}
+diff -u -r -w git-2.22.0/run-command.c git-2.22.0-patched/run-command.c
+--- git-2.22.0/run-command.c	2019-06-07 19:37:32.000000000 +0000
++++ git-2.22.0-patched/run-command.c	2019-07-24 04:35:12.917614080 +0000
+@@ -521,7 +521,7 @@
+ #endif
+ }
+ 
+-static void atfork_parent(struct atfork_state *as)
++static void gitatfork_parent(struct atfork_state *as)
+ {
+ #ifdef NO_PTHREADS
+ 	if (sigprocmask(SIG_SETMASK, &as->old, NULL))
+@@ -860,7 +860,7 @@
+ 			child_die(CHILD_ERR_ERRNO);
+ 		}
+ 	}
+-	atfork_parent(&as);
++	gitatfork_parent(&as);
+ 	if (cmd->pid < 0)
+ 		error_errno("cannot fork() for %s", cmd->argv[0]);
+ 	else if (cmd->clean_on_exit)
+Only in git-2.22.0-patched: run-command.c.orig
+diff -u -r -w git-2.22.0/t/Makefile git-2.22.0-patched/t/Makefile
+--- git-2.22.0/t/Makefile	2019-06-07 19:37:32.000000000 +0000
++++ git-2.22.0-patched/t/Makefile	2019-07-24 04:35:36.655116120 +0000
+@@ -96,10 +96,11 @@
+ test-lint-filenames:
+ 	@# We do *not* pass a glob to ls-files but use grep instead, to catch
+ 	@# non-ASCII characters (which are quoted within double-quotes)
+-	@bad="$$(git -c core.quotepath=true ls-files 2>/dev/null | \
+-			grep '["*:<>?\\|]')"; \
+-		test -z "$$bad" || { \
+-		echo >&2 "non-portable file name(s): $$bad"; exit 1; }
++#	@bad="$$(git -c core.quotepath=true ls-files 2>/dev/null | \
++#			grep '["*:<>?\\|]')"; \
++#		test -z "$$bad" || { \
++#		echo >&2 "non-portable file name(s): $$bad"; exit 1; }
++	@bad=""
+ 
+ aggregate-results-and-cleanup: $(T)
+ 	$(MAKE) aggregate-results
+diff -u -r -w git-2.22.0/tar.h git-2.22.0-patched/tar.h
+--- git-2.22.0/tar.h	2019-06-07 19:37:32.000000000 +0000
++++ git-2.22.0-patched/tar.h	2019-07-24 04:35:12.919579600 +0000
+@@ -1,3 +1,6 @@
++#ifndef ___TAR_H
++#define ___TAR_H
++
+ #define TYPEFLAG_AUTO		'\0'
+ #define TYPEFLAG_REG		'0'
+ #define TYPEFLAG_LNK		'2'
+@@ -23,3 +26,5 @@
+ 	char devminor[8];	/* 337 */
+ 	char prefix[155];	/* 345 */
+ };
++
++#endif
+Only in git-2.22.0-patched: tar.h.orig

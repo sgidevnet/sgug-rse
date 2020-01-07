@@ -1,0 +1,20 @@
+--- emacs-23.3/src/gmalloc.c~	2011-11-26 03:20:20.000000000 +0000
++++ emacs-23.3/src/gmalloc.c	2019-12-26 17:27:23.912651560 +0000
+@@ -117,7 +117,7 @@
+    in __ptr_t, making the new block SIZE bytes long.  */
+ extern __ptr_t realloc PP ((__ptr_t __ptr, __malloc_size_t __size));
+ /* Allocate NMEMB elements of SIZE bytes each, all initialized to 0.  */
+-extern __ptr_t calloc PP ((__malloc_size_t __nmemb, __malloc_size_t __size));
++extern __ptr_t ecalloc PP ((__malloc_size_t __nmemb, __malloc_size_t __size));
+ /* Free a block allocated by `malloc', `realloc' or `calloc'.  */
+ extern void free PP ((__ptr_t __ptr));
+ 
+@@ -1672,7 +1672,7 @@
+ /* Allocate an array of NMEMB elements each SIZE bytes long.
+    The entire array is initialized to zeros.  */
+ __ptr_t
+-calloc (nmemb, size)
++ecalloc (nmemb, size)
+      register __malloc_size_t nmemb;
+      register __malloc_size_t size;
+ {

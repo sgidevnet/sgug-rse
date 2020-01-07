@@ -1,0 +1,75 @@
+Only in m4-1.4.18-fixed/checks: Makefile
+Only in m4-1.4.18-fixed: config.log
+Only in m4-1.4.18-fixed: config.status
+Only in m4-1.4.18-fixed/doc: Makefile
+Only in m4-1.4.18-fixed/examples: Makefile
+Only in m4-1.4.18-fixed/lib: config.h
+diff -r -u -w m4-1.4.18/lib/getprogname.c m4-1.4.18-fixed/lib/getprogname.c
+--- m4-1.4.18/lib/getprogname.c	Sat Dec 31 13:54:41 2016
++++ m4-1.4.18-fixed/lib/getprogname.c	Wed Jun 20 12:08:33 2018
+@@ -43,8 +43,18 @@
+ # include <string.h>
+ #endif
+ 
++#ifdef __sgi
++#include <string.h>
++#include <unistd.h>
++#include <stdio.h>
++#include <fcntl.h>
++#include <sys/procfs.h>
++#endif
++
+ #include "dirname.h"
+ 
++extern char *program_name;
++
+ #ifndef HAVE_GETPROGNAME             /* not Mac OS X, FreeBSD, NetBSD, OpenBSD >= 5.4, Cygwin */
+ char const *
+ getprogname (void)
+@@ -143,8 +153,34 @@
+       free (buf.ps_pathptr);
+     }
+   return p;
++# elif defined __sgi
++  char filename[50];
++  int fd;
++
++  sprintf (filename, "/proc/pinfo/%d", (int) getpid ());
++  fd = open (filename, O_RDONLY);
++  if (0 <= fd)
++    {
++      prpsinfo_t buf;
++      int ioctl_ok = 0 <= ioctl (fd, PIOCPSINFO, &buf);
++      close (fd);
++      if (ioctl_ok)
++        {
++          char *name = buf.pr_fname;
++          size_t namesize = sizeof buf.pr_fname;
++          char *namenul = memchr (name, '\0', namesize);
++          size_t namelen = namenul ? namenul - name : namesize;
++          char *namecopy = malloc (namelen + 1);
++          if (namecopy)
++            {
++              namecopy[namelen] = 0;
++              return memcpy (namecopy, name, namelen);
++            }
++        }
++    }
++  return NULL;
+ # else
+-#  error "getprogname module not ported to this OS"
++# error "getprogname module not ported"
+ # endif
+ }
+ 
+Only in m4-1.4.18-fixed/lib/glthread: .deps
+Only in m4-1.4.18-fixed/lib/glthread: .dirstamp
+Only in m4-1.4.18-fixed/lib: Makefile
+Only in m4-1.4.18-fixed/lib: stamp-h1
+Only in m4-1.4.18-fixed/lib: .deps
+Only in m4-1.4.18-fixed: Makefile
+Only in m4-1.4.18-fixed/src: Makefile
+Only in m4-1.4.18-fixed/src: .deps
+Only in m4-1.4.18-fixed: stamp-h
+Only in m4-1.4.18-fixed/tests: Makefile
+Only in m4-1.4.18-fixed/tests: .deps

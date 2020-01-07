@@ -1,0 +1,28 @@
+diff -r -u -w libtool-2.4.6/m4/libtool.m4 libtool-2.4.6-patched/m4/libtool.m4
+--- libtool-2.4.6/m4/libtool.m4	2015-01-20 16:15:19.000000000 +0000
++++ libtool-2.4.6-patched/m4/libtool.m4	2019-12-01 16:11:18.641181680 +0000
+@@ -6910,13 +6910,16 @@
+ 	    # necessary to make sure instantiated templates are included
+ 	    # in the archive.
+ 	    _LT_TAGVAR(old_archive_cmds, $1)='$CC -ar -WR,-u -o $oldlib $oldobjs'
++	    _LT_TAGVAR(inherit_rpath, $1)=yes
+ 	    ;;
+           *)
+ 	    if test yes = "$GXX"; then
+ 	      if test no = "$with_gnu_ld"; then
+ 	        _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations -o $lib'
++		_LT_TAGVAR(inherit_rpath, $1)=yes
+ 	      else
+ 	        _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` -o $lib'
++		_LT_TAGVAR(inherit_rpath, $1)=no
+ 	      fi
+ 	    fi
+ 	    _LT_TAGVAR(link_all_deplibs, $1)=yes
+@@ -6924,7 +6927,6 @@
+         esac
+         _LT_TAGVAR(hardcode_libdir_flag_spec, $1)='$wl-rpath $wl$libdir'
+         _LT_TAGVAR(hardcode_libdir_separator, $1)=:
+-        _LT_TAGVAR(inherit_rpath, $1)=yes
+         ;;
+ 
+       linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)

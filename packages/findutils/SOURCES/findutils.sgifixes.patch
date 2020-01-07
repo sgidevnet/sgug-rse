@@ -1,0 +1,22 @@
+diff -u -r -w findutils-4.6.0/tests/test-gettimeofday.c findutils-4.6.0-patched/tests/test-gettimeofday.c
+--- findutils-4.6.0/tests/test-gettimeofday.c	2015-12-22 17:32:53.000000000 +0000
++++ findutils-4.6.0-patched/tests/test-gettimeofday.c	2019-03-09 11:02:08.806665668 +0000
+@@ -17,6 +17,7 @@
+ 
+ #include <config.h>
+ 
++#include <time.h>
+ #include <sys/time.h>
+ 
+ #include "signature.h"
+diff -u -r -w findutils-4.6.0/tests/test-sys_time.c findutils-4.6.0-patched/tests/test-sys_time.c
+--- findutils-4.6.0/tests/test-sys_time.c	2015-12-22 17:32:53.000000000 +0000
++++ findutils-4.6.0-patched/tests/test-sys_time.c	2019-03-09 11:02:08.806665668 +0000
+@@ -18,6 +18,7 @@
+ 
+ #include <config.h>
+ 
++#include <time.h>
+ #include <sys/time.h>
+ 
+ /* Check that the 'struct timeval' type is defined.  */

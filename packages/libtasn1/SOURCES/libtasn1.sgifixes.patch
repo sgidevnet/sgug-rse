@@ -1,0 +1,13 @@
+--- libtasn1-4.14/src/benchmark.c	2019-07-18 19:57:27.000000000 +0000
++++ libtasn1-4.14-patched/src/benchmark.c	2019-12-31 16:49:23.767656880 +0000
+@@ -26,6 +26,10 @@
+ #include <unistd.h>
+ #include "benchmark.h"
+ 
++#if defined(__sgi)
++#define CLOCK_MONOTONIC CLOCK_SGI_CYCLE
++#endif
++
+ int benchmark_must_finish = 0;
+ 
+ #if defined _WIN32

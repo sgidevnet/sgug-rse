@@ -1,0 +1,83 @@
+diff -N -r -u -w libdwarf-20191002/dwarfdump/print_reloc.c libdwarf-20191002-patched/dwarfdump/print_reloc.c
+--- libdwarf-20191002/dwarfdump/print_reloc.c	2019-09-20 17:52:00.000000000 +0000
++++ libdwarf-20191002-patched/dwarfdump/print_reloc.c	2019-10-27 18:05:40.359801960 +0000
+@@ -24,6 +24,9 @@
+ 
+ */
+ #include "globals.h"
++
++#include "dwarf_elf_defines.h"
++
+ #ifdef DWARF_WITH_LIBELF
+ #define DWARF_RELOC_MIPS
+ #define DWARF_RELOC_PPC
+@@ -502,7 +505,7 @@
+         }
+         esb_constructor(&tempesb);
+         esb_constructor(&tempesc);
+-        get_reloc_type_names(p->r_type,&tempesc));
++        get_reloc_type_names(p->r_type,&tempesc);
+         esb_append(&tempesb,sanitized(esb_get_string(&tempesc)));
+         printf("%5" DW_PR_DUu " %-26s <%3ld> %s\n",
+             (Dwarf_Unsigned) (p->r_offset),
+diff -N -r -u -w libdwarf-20191002/libdwarf/dwarf_elf_access.c libdwarf-20191002-patched/libdwarf/dwarf_elf_access.c
+--- libdwarf-20191002/libdwarf/dwarf_elf_access.c	2019-09-20 17:52:00.000000000 +0000
++++ libdwarf-20191002-patched/libdwarf/dwarf_elf_access.c	2019-10-27 18:06:30.130515880 +0000
+@@ -31,6 +31,13 @@
+ 
+ */
+ 
++/* Work around for an already installed elf.h from elfutils */
++#if defined(__sgi)
++#include "/usr/include/elf.h"
++#define _ELF_H
++#endif
++
++
+ /*  This file is ONLY used for libelf and with libelf
+     For */
+ 
+@@ -459,6 +466,7 @@
+ #define ELF64MIPS_REL_SYM(i) ((i) & 0xffffffff)
+ #define ELF64MIPS_REL_TYPE(i) ((i >> 56) &0xff)
+     if (machine == EM_MIPS && endianness == DW_OBJECT_LSB ){
++#if !defined(__sgi)
+         /*  This is really wierd. Treat this very specially.
+             The Elf64 LE MIPS object used for
+             testing (that has rela) wants the
+@@ -475,12 +483,19 @@
+             value R_MIPS_NONE in rela. */
+         relap->r_type = ELF64MIPS_REL_TYPE(relp->r_info);
+         relap->r_symidx = ELF64MIPS_REL_SYM(relp->r_info);
++#endif
++
+ #undef MIPS64SYM
+ #undef MIPS64TYPE
+     } else
+     {
++#if !defined(__sgi)
+         relap->r_type = ELF64_R_TYPE(relp->r_info);
+         relap->r_symidx = ELF64_R_SYM(relp->r_info);
++#else
++        relap->r_type = relp->r_type;
++        relap->r_symidx = relp->r_sym;
++#endif
+     }
+     relap->r_addend = relp->r_addend;
+ #endif
+diff -N -r -u -w libdwarf-20191002/libdwarf/pro_reloc_stream.c libdwarf-20191002-patched/libdwarf/pro_reloc_stream.c
+--- libdwarf-20191002/libdwarf/pro_reloc_stream.c	2019-09-23 21:01:50.000000000 +0000
++++ libdwarf-20191002-patched/libdwarf/pro_reloc_stream.c	2019-10-27 18:06:11.131290240 +0000
+@@ -26,6 +26,12 @@
+ 
+ */
+ 
++/* Work around for an already installed elf.h from elfutils */
++#if defined(__sgi)
++#include "/usr/include/elf.h"
++#define _ELF_H
++#endif
++
+ #include "config.h"
+ #ifdef DWARF_WITH_LIBELF
+ #include "libdwarfdefs.h"

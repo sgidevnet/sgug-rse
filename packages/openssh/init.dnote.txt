@@ -1,0 +1,11 @@
+From Northsky:
+
+@The Silence Of The Ass My tardist here has init-script that is more generic than the one provided by Nekoware. Neko_sshd expects always that you are running on port 22 (it gets sshd PID a silly way, checking what PID runs on port 22). http://sudenluola.org/irix/openssh-7.9p/
+also available as tar.gz if you just want to see the script
+just checked your init-script, seems to have the same behaviour as nekoware one
+
+Also from Jupo:
+
+I based mine on the tgcware init script, had to change all the paths of course - just throwing it out for reference as well. It will run ssh-keygen for you if the keys aren't present. https://github.com/jupo42/tgcirix-continued/blob/master/openssh/meta/sshd.init.irix
+
+Also perhaps worth looking at older RHEL before systemd merge, there's probably an example there too + the necessary .spec bits.

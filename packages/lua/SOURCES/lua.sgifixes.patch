@@ -1,0 +1,87 @@
+diff -r -u -w lua-5.3.5/Makefile lua-5.3.5-patched/Makefile
+--- lua-5.3.5/Makefile	2016-12-20 16:26:08.000000000 +0000
++++ lua-5.3.5-patched/Makefile	2019-10-22 12:06:13.542568440 +0000
+@@ -4,19 +4,19 @@
+ # == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
+ 
+ # Your platform. See PLATS for possible values.
+-PLAT= none
++PLAT=posix
+ 
+ # Where to install. The installation starts in the src and doc directories,
+ # so take care if INSTALL_TOP is not an absolute path. See the local target.
+ # You may want to make INSTALL_LMOD and INSTALL_CMOD consistent with
+ # LUA_ROOT, LUA_LDIR, and LUA_CDIR in luaconf.h.
+-INSTALL_TOP= /usr/local
++INSTALL_TOP= $(INSTALLDIR)
+ INSTALL_BIN= $(INSTALL_TOP)/bin
+ INSTALL_INC= $(INSTALL_TOP)/include
+-INSTALL_LIB= $(INSTALL_TOP)/lib
++INSTALL_LIB= $(INSTALL_TOP)/$(DIDBS_LIBDIR)
+ INSTALL_MAN= $(INSTALL_TOP)/man/man1
+ INSTALL_LMOD= $(INSTALL_TOP)/share/lua/$V
+-INSTALL_CMOD= $(INSTALL_TOP)/lib/lua/$V
++INSTALL_CMOD= $(INSTALL_TOP)/$(DIDBS_LIBDIR)/lua/$V
+ 
+ # How to install. If your install program does not support "-p", then
+ # you may have to run ranlib on the installed liblua.a.
+Only in lua-5.3.5-patched: Makefile~
+diff -r -u -w lua-5.3.5/src/Makefile lua-5.3.5-patched/src/Makefile
+--- lua-5.3.5/src/Makefile	2018-06-25 18:46:36.000000000 +0000
++++ lua-5.3.5-patched/src/Makefile	2019-10-22 12:03:16.190097160 +0000
+@@ -6,9 +6,9 @@
+ # Your platform. See PLATS for possible values.
+ PLAT= none
+ 
+-CC= gcc -std=gnu99
+-CFLAGS= -O2 -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
+-LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
++CC=$(DIDBS_LUA_CC)
++CFLAGS=$(DIDBS_LUA_CFLAGS) -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
++LDFLAGS= $(DIDBS_LUA_LDFLAGS) $(SYSLDFLAGS) $(MYLDFLAGS)
+ LIBS= -lm $(SYSLIBS) $(MYLIBS)
+ 
+ AR= ar rcu
+@@ -75,7 +75,7 @@
+ 	@echo "PLAT= $(PLAT)"
+ 	@echo "CC= $(CC)"
+ 	@echo "CFLAGS= $(CFLAGS)"
+-	@echo "LDFLAGS= $(SYSLDFLAGS)"
++	@echo "LDFLAGS= $(LDFLAGS)"
+ 	@echo "LIBS= $(LIBS)"
+ 	@echo "AR= $(AR)"
+ 	@echo "RANLIB= $(RANLIB)"
+diff -r -u -w lua-5.3.5/src/loslib.c lua-5.3.5-patched/src/loslib.c
+--- lua-5.3.5/src/loslib.c	2017-04-19 18:29:57.000000000 +0000
++++ lua-5.3.5-patched/src/loslib.c	2019-10-22 12:03:16.193666120 +0000
+@@ -7,6 +7,7 @@
+ #define loslib_c
+ #define LUA_LIB
+ 
++
+ #include "lprefix.h"
+ 
+ 
+diff -r -u -w lua-5.3.5/src/lprefix.h lua-5.3.5-patched/src/lprefix.h
+--- lua-5.3.5/src/lprefix.h	2017-04-19 18:20:42.000000000 +0000
++++ lua-5.3.5-patched/src/lprefix.h	2019-10-22 12:03:16.196629800 +0000
+@@ -7,6 +7,19 @@
+ #ifndef lprefix_h
+ #define lprefix_h
+ 
++#if defined(__sgi)
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include <errno.h>
++
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <time.h>
++#include <sys/time.h>
++#endif
+ 
+ /*
+ ** Allows POSIX/XSI stuff

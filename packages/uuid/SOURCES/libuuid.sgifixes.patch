@@ -1,0 +1,110 @@
+diff -u -r -w util-linux-2.34/Makefile.am util-linux-2.34-patched/Makefile.am
+--- util-linux-2.34/Makefile.am	2019-05-14 12:43:06.000503000 +0000
++++ util-linux-2.34-patched/Makefile.am	2019-07-22 11:55:11.670412920 +0000
+@@ -72,26 +72,26 @@
+ 	po/update-potfiles \
+ 	README.licensing
+ 
+-include tools/Makemodule.am
+-include include/Makemodule.am
+-include lib/Makemodule.am
++# include tools/Makemodule.am
++# include include/Makemodule.am
++# include lib/Makemodule.am
+ include libuuid/Makemodule.am
+-include libblkid/Makemodule.am
+-include libmount/Makemodule.am
+-include libsmartcols/Makemodule.am
+-include libfdisk/Makemodule.am
++# include libblkid/Makemodule.am
++# include libmount/Makemodule.am
++# include libsmartcols/Makemodule.am
++# include libfdisk/Makemodule.am
+ 
+-include schedutils/Makemodule.am
+-include text-utils/Makemodule.am
+-include term-utils/Makemodule.am
+-include login-utils/Makemodule.am
+-include sys-utils/Makemodule.am
+-include misc-utils/Makemodule.am
+-include disk-utils/Makemodule.am
++# include schedutils/Makemodule.am
++# include text-utils/Makemodule.am
++# include term-utils/Makemodule.am
++# include login-utils/Makemodule.am
++# include sys-utils/Makemodule.am
++# include misc-utils/Makemodule.am
++# include disk-utils/Makemodule.am
+ 
+-include bash-completion/Makemodule.am
++# include bash-completion/Makemodule.am
+ 
+-include tests/Makemodule.am
++# include tests/Makemodule.am
+ 
+ # pylibmountexec module must be installed after usrlib_exec libraries,
+ # otherwise the libtool relink step will fail to find libmount.la and
+diff -u -r -w util-linux-2.34/include/c.h util-linux-2.34-patched/include/c.h
+--- util-linux-2.34/include/c.h	2019-05-21 14:45:49.279524000 +0000
++++ util-linux-2.34-patched/include/c.h	2019-07-22 11:55:51.221597040 +0000
+@@ -5,6 +5,12 @@
+ #ifndef UTIL_LINUX_C_H
+ #define UTIL_LINUX_C_H
+ 
++#if defined(__sgi)
++#include <sys/param.h>
++#include <time.h>
++#include <sys/file.h>
++#endif
++
+ #include <limits.h>
+ #include <stddef.h>
+ #include <stdint.h>
+@@ -212,27 +218,28 @@
+ 		if (adderr)
+ 			fprintf(stderr, ": ");
+ 	}
+-	if (adderr)
+-		fprintf(stderr, "%m");
++	if (adderr) {
++	  fprintf(stderr, "%s",strerror(errno));
++	}
+ 	fprintf(stderr, "\n");
+ 	if (doexit)
+ 		exit(excode);
+ }
+ 
+ #ifndef HAVE_ERR
+-# define err(E, FMT...) errmsg(1, E, 1, FMT)
++# define err(E, ...) errmsg(1, E, 1, __VA_ARGS__)
+ #endif
+ 
+ #ifndef HAVE_ERRX
+-# define errx(E, FMT...) errmsg(1, E, 0, FMT)
++# define errx(E, ...) errmsg(1, E, 0, __VA_ARGS__)
+ #endif
+ 
+ #ifndef HAVE_WARN
+-# define warn(FMT...) errmsg(0, 0, 1, FMT)
++# define warn(...) errmsg(0, 0, 1, __VA_ARGS__)
+ #endif
+ 
+ #ifndef HAVE_WARNX
+-# define warnx(FMT...) errmsg(0, 0, 0, FMT)
++# define warnx(...) errmsg(0, 0, 0, __VA_ARGS__)
+ #endif
+ #endif /* !HAVE_ERR_H */
+ 
+@@ -305,7 +312,12 @@
+  */
+ static inline size_t get_hostname_max(void)
+ {
++
++#if defined(__sgi)
++        long len = MAXHOSTNAMELEN;
++#else
+ 	long len = sysconf(_SC_HOST_NAME_MAX);
++#endif
+ 
+ 	if (0 < len)
+ 		return len;

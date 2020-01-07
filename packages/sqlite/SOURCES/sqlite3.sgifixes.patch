@@ -1,0 +1,15 @@
+--- sqlite-src-3290000/src/ctime.c~	2019-07-10 19:06:53.000000000 +0000
++++ sqlite-src-3290000/src/ctime.c	2019-12-07 11:33:34.251454920 +0000
+@@ -14,6 +14,12 @@
+ ** SQLite was built with.
+ */
+ 
++#if defined(__sgi)
++#include <time.h>
++#include <sys/time.h>
++#include <unistd.h>
++#endif
++
+ #ifndef SQLITE_OMIT_COMPILEOPTION_DIAGS /* IMP: R-16824-07538 */
+ 
+ /*

@@ -1,0 +1,113 @@
+diff -r -u -w xosview-1.21/Makefile xosview-1.21-patched/Makefile
+--- xosview-1.21/Makefile	2017-11-04 15:05:59.000000000 +0000
++++ xosview-1.21-patched/Makefile	2018-07-20 08:42:47.181002800 +0000
+@@ -97,6 +97,7 @@
+         irix65/memmeter.o \
+         irix65/sarmeter.o
+ CPPFLAGS += -Iirix65/
++LDLIBS += -lrpcsvc
+ endif
+ 
+ ifeq ($(PLATFORM), sunos5)
+diff -r -u -w xosview-1.21/irix65/cpumeter.cc xosview-1.21-patched/irix65/cpumeter.cc
+--- xosview-1.21/irix65/cpumeter.cc	2017-11-04 15:05:59.000000000 +0000
++++ xosview-1.21-patched/irix65/cpumeter.cc	2018-07-20 08:40:57.398235800 +0000
+@@ -18,7 +18,7 @@
+             cputime_[i][j] = 0;
+ 
+     if ((sinfosz = sysmp(MP_SASZ, MPSA_SINFO)) < 0) {
+-           std::cerr << "sysinfo scall interface not supported" << endl;
++      std::cerr << "sysinfo scall interface not supported" << std::endl;
+         parent_->done(1);
+         return;
+     }
+diff -r -u -w xosview-1.21/sensorfieldmeter.cc xosview-1.21-patched/sensorfieldmeter.cc
+--- xosview-1.21/sensorfieldmeter.cc	2017-11-04 15:05:59.000000000 +0000
++++ xosview-1.21-patched/sensorfieldmeter.cc	2018-07-20 08:37:33.054453600 +0000
+@@ -134,7 +134,7 @@
+   if ( highest > fabs(total_) ) {
+     do_legend = true;
+     int scale = floor(log10(highest));
+-    total_ = ceil((highest / pow(10, scale)) * 1.25) * pow(10, scale);
++    total_ = ceil((highest / pow(10.0f, scale)) * 1.25) * pow(10.0f, scale);
+     if (negative_) {
+       total_ = -fabs(total_);
+       if (!has_low_)
+diff -r -u -w xosview-1.21/xosview.cc xosview-1.21-patched/xosview.cc
+--- xosview-1.21/xosview.cc	2017-11-04 15:05:59.000000000 +0000
++++ xosview-1.21-patched/xosview.cc	2018-07-20 08:29:58.850715600 +0000
+@@ -303,7 +303,7 @@
+   if (windowVisibility != OBSCURED) {
+     MeterNode *tmp = meters_;
+ 
+-    XOSDEBUG("Doing draw.\n");
++    XOSDEBUGSTR("Doing draw.\n");
+     clear();
+ 
+     while (tmp != NULL) {
+@@ -312,7 +312,7 @@
+     }
+   }
+   else {
+-    XOSDEBUG("Skipping draw:  not visible.\n");
++    XOSDEBUGSTR("Skipping draw:  not visible.\n");
+   }
+ }
+ 
+@@ -408,7 +408,7 @@
+ 
+ void XOSView::exposeEvent(XExposeEvent &event) {
+   _deferred_redraw = true;
+-  XOSDEBUG("Got expose event.\n");
++  XOSDEBUGSTR("Got expose event.\n");
+ }
+ 
+ /*
+@@ -417,12 +417,12 @@
+  */
+ 
+ void XOSView::resizeEvent( XConfigureEvent &event ) {
+-  XOSDEBUG("Got configure event.\n");
++  XOSDEBUGSTR("Got configure event.\n");
+ 
+   if (event.width == width_ && event.height == height_)
+     return;
+ 
+-  XOSDEBUG("Window has resized\n");
++  XOSDEBUGSTR("Window has resized\n");
+ 
+   width(event.width);
+   height(event.height);
+@@ -446,7 +446,7 @@
+     windowVisibility = FULLY_VISIBLE;
+   }
+ 
+-  XOSDEBUG("Got visibility event: %s\n",
++  XOSDEBUGSTRASTR("Got visibility event: %s\n",
+     (windowVisibility == FULLY_VISIBLE)
+         ? "Full"
+         : (windowVisibility == PARTIALLY_VISIBILE)
+diff -r -u -w xosview-1.21/xosview.h xosview-1.21-patched/xosview.h
+--- xosview-1.21/xosview.h	2017-11-04 15:05:59.000000000 +0000
++++ xosview-1.21-patched/xosview.h	2018-07-20 08:52:33.030334960 +0000
+@@ -76,12 +76,17 @@
+ };
+ 
+ #ifdef DEBUG
+-#define XOSDEBUG(...) { \
++#define XOSDEBUGSTR(fmt) {			  \
+   fprintf(stderr, "%s:%d: ", __func__, __LINE__); \
+-  fprintf(stderr, __VA_ARGS__); \
++  fprintf(stderr, fmt); \
++}
++#define XOSDEBUGSTRASTR(fmt,strp) {			  \
++  fprintf(stderr, "%s:%d: ", __func__, __LINE__); \
++  fprintf(stderr, fmt, strp);			  \
+ }
+ #else
+-#define XOSDEBUG(...)
++#define XOSDEBUGSTR(fmt)
++#define XOSDEBUGSTRASTR(fmt,strp)
+ #endif
+ 
+ #endif

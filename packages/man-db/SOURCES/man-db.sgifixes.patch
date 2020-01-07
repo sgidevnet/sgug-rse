@@ -1,0 +1,193 @@
+diff -r -u -w man-db-2.8.5/gl/lib/glob.c man-db-2.8.5-patched/gl/lib/glob.c
+--- man-db-2.8.5/gl/lib/glob.c	2019-01-05 11:37:52.000000000 +0000
++++ man-db-2.8.5-patched/gl/lib/glob.c	2019-10-26 23:11:23.549542200 +0000
+@@ -617,7 +617,7 @@
+               int err;
+               struct passwd *p;
+               struct passwd pwbuf;
+-              struct scratch_buffer s;
++              struct mdb_scratch_buffer s;
+               scratch_buffer_init (&s);
+               while (true)
+                 {
+@@ -785,7 +785,7 @@
+           /* Look up specific user's home directory.  */
+           {
+             struct passwd *p;
+-            struct scratch_buffer pwtmpbuf;
++            struct mdb_scratch_buffer pwtmpbuf;
+             scratch_buffer_init (&pwtmpbuf);
+ 
+ #  if defined HAVE_GETPWNAM_R || defined _LIBC
+diff -r -u -w man-db-2.8.5/gl/lib/libc-config.h man-db-2.8.5-patched/gl/lib/libc-config.h
+--- man-db-2.8.5/gl/lib/libc-config.h	2019-01-05 11:37:53.000000000 +0000
++++ man-db-2.8.5-patched/gl/lib/libc-config.h	2019-10-26 23:11:23.551502120 +0000
+@@ -162,7 +162,9 @@
+ 
+ /* A substitute for glibc <libc-symbols.h>, good enough for Gnulib.  */
+ #define attribute_hidden
++#if !defined(__sgi)
+ #define libc_hidden_proto(name, ...)
++#endif
+ #define libc_hidden_def(name)
+ #define libc_hidden_weak(name)
+ #define libc_hidden_ver(local, name)
+diff -r -u -w man-db-2.8.5/gl/lib/malloc/scratch_buffer.h man-db-2.8.5-patched/gl/lib/malloc/scratch_buffer.h
+--- man-db-2.8.5/gl/lib/malloc/scratch_buffer.h	2019-01-05 11:37:53.000000000 +0000
++++ man-db-2.8.5-patched/gl/lib/malloc/scratch_buffer.h	2019-10-26 23:11:23.553858920 +0000
+@@ -63,7 +63,7 @@
+ 
+ /* Scratch buffer.  Must be initialized with scratch_buffer_init
+    before its use.  */
+-struct scratch_buffer {
++struct mdb_scratch_buffer {
+   void *data;    /* Pointer to the beginning of the scratch area.  */
+   size_t length; /* Allocated space at the data pointer, in bytes.  */
+   max_align_t __space[(1023 + sizeof (max_align_t)) / sizeof (max_align_t)];
+@@ -72,7 +72,7 @@
+ /* Initializes *BUFFER so that BUFFER->data points to BUFFER->__space
+    and BUFFER->length reflects the available space.  */
+ static inline void
+-scratch_buffer_init (struct scratch_buffer *buffer)
++scratch_buffer_init (struct mdb_scratch_buffer *buffer)
+ {
+   buffer->data = buffer->__space;
+   buffer->length = sizeof (buffer->__space);
+@@ -80,7 +80,7 @@
+ 
+ /* Deallocates *BUFFER (if it was heap-allocated).  */
+ static inline void
+-scratch_buffer_free (struct scratch_buffer *buffer)
++scratch_buffer_free (struct mdb_scratch_buffer *buffer)
+ {
+   if (buffer->data != buffer->__space)
+     free (buffer->data);
+@@ -91,24 +91,28 @@
+    which case the old buffer is freed).  On success, the new buffer is
+    larger than the previous size.  On failure, *BUFFER is deallocated,
+    but remains in a free-able state, and errno is set.  */
+-bool __libc_scratch_buffer_grow (struct scratch_buffer *buffer);
++bool __libc_scratch_buffer_grow (struct mdb_scratch_buffer *buffer);
++#if !defined(__sgi)
+ libc_hidden_proto (__libc_scratch_buffer_grow)
++#endif
+ 
+ /* Alias for __libc_scratch_buffer_grow.  */
+ static __always_inline bool
+-scratch_buffer_grow (struct scratch_buffer *buffer)
++scratch_buffer_grow (struct mdb_scratch_buffer *buffer)
+ {
+   return __glibc_likely (__libc_scratch_buffer_grow (buffer));
+ }
+ 
+ /* Like __libc_scratch_buffer_grow, but preserve the old buffer
+    contents on success, as a prefix of the new buffer.  */
+-bool __libc_scratch_buffer_grow_preserve (struct scratch_buffer *buffer);
++bool __libc_scratch_buffer_grow_preserve (struct mdb_scratch_buffer *buffer);
++#if !defined(__sgi)
+ libc_hidden_proto (__libc_scratch_buffer_grow_preserve)
++#endif
+ 
+ /* Alias for __libc_scratch_buffer_grow_preserve.  */
+ static __always_inline bool
+-scratch_buffer_grow_preserve (struct scratch_buffer *buffer)
++scratch_buffer_grow_preserve (struct mdb_scratch_buffer *buffer)
+ {
+   return __glibc_likely (__libc_scratch_buffer_grow_preserve (buffer));
+ }
+@@ -119,13 +123,15 @@
+    (in which case the old buffer is freed, but *BUFFER remains in a
+    free-able state, and errno is set).  It is unspecified whether this
+    function can reduce the array size.  */
+-bool __libc_scratch_buffer_set_array_size (struct scratch_buffer *buffer,
++bool __libc_scratch_buffer_set_array_size (struct mdb_scratch_buffer *buffer,
+ 					   size_t nelem, size_t size);
++#if !defined(__sgi)
+ libc_hidden_proto (__libc_scratch_buffer_set_array_size)
++#endif
+ 
+ /* Alias for __libc_scratch_set_array_size.  */
+ static __always_inline bool
+-scratch_buffer_set_array_size (struct scratch_buffer *buffer,
++scratch_buffer_set_array_size (struct mdb_scratch_buffer *buffer,
+ 			       size_t nelem, size_t size)
+ {
+   return __glibc_likely (__libc_scratch_buffer_set_array_size
+diff -r -u -w man-db-2.8.5/gl/lib/malloc/scratch_buffer_grow.c man-db-2.8.5-patched/gl/lib/malloc/scratch_buffer_grow.c
+--- man-db-2.8.5/gl/lib/malloc/scratch_buffer_grow.c	2019-01-05 11:37:53.000000000 +0000
++++ man-db-2.8.5-patched/gl/lib/malloc/scratch_buffer_grow.c	2019-10-26 23:11:23.556189160 +0000
+@@ -24,7 +24,7 @@
+ #include <errno.h>
+ 
+ bool
+-__libc_scratch_buffer_grow (struct scratch_buffer *buffer)
++__libc_scratch_buffer_grow (struct mdb_scratch_buffer *buffer)
+ {
+   void *new_ptr;
+   size_t new_length = buffer->length * 2;
+diff -r -u -w man-db-2.8.5/gl/lib/malloc/scratch_buffer_grow_preserve.c man-db-2.8.5-patched/gl/lib/malloc/scratch_buffer_grow_preserve.c
+--- man-db-2.8.5/gl/lib/malloc/scratch_buffer_grow_preserve.c	2019-01-05 11:37:53.000000000 +0000
++++ man-db-2.8.5-patched/gl/lib/malloc/scratch_buffer_grow_preserve.c	2019-10-26 23:11:23.558836040 +0000
+@@ -25,7 +25,7 @@
+ #include <string.h>
+ 
+ bool
+-__libc_scratch_buffer_grow_preserve (struct scratch_buffer *buffer)
++__libc_scratch_buffer_grow_preserve (struct mdb_scratch_buffer *buffer)
+ {
+   size_t new_length = 2 * buffer->length;
+   void *new_ptr;
+diff -r -u -w man-db-2.8.5/gl/lib/malloc/scratch_buffer_set_array_size.c man-db-2.8.5-patched/gl/lib/malloc/scratch_buffer_set_array_size.c
+--- man-db-2.8.5/gl/lib/malloc/scratch_buffer_set_array_size.c	2019-01-05 11:37:53.000000000 +0000
++++ man-db-2.8.5-patched/gl/lib/malloc/scratch_buffer_set_array_size.c	2019-10-26 23:11:23.561370680 +0000
+@@ -25,7 +25,7 @@
+ #include <limits.h>
+ 
+ bool
+-__libc_scratch_buffer_set_array_size (struct scratch_buffer *buffer,
++__libc_scratch_buffer_set_array_size (struct mdb_scratch_buffer *buffer,
+ 				      size_t nelem, size_t size)
+ {
+   size_t new_length = nelem * size;
+diff -r -u -w man-db-2.8.5/src/man.c man-db-2.8.5-patched/src/man.c
+--- man-db-2.8.5/src/man.c	2018-12-24 14:57:34.000000000 +0000
++++ man-db-2.8.5-patched/src/man.c	2019-10-26 23:11:43.273908280 +0000
+@@ -765,7 +765,7 @@
+ }
+ #endif /* TROFF_IS_GROFF || HEIRLOOM_NROFF */
+ 
+-static void gripe_no_man (const char *name, const char *sec)
++static void gripe_no_man (const int argc, const char *name, const char *sec)
+ {
+ 	/* On AIX and IRIX, fall back to the vendor supplied browser. */
+ #if defined _AIX || defined __sgi
+@@ -4136,7 +4136,7 @@
+ 
+ 	get_term (); /* stores terminal settings */
+ #ifdef MAN_OWNER
+-	debug ("real user = %d; effective user = %d\n", ruid, euid);
++	debug ("real user = %ld; effective user = %ld\n", ruid, euid);
+ #endif /* MAN_OWNER */
+ 
+ 	/* close this locale and reinitialise if a new locale was 
+@@ -4365,7 +4365,7 @@
+ 					    CTYPE (isdigit, nextarg[0]))
+ 						gripe_no_name (nextarg);
+ 					else
+-						gripe_no_man (nextarg, section);
++					  gripe_no_man (argc, nextarg, section);
+ 				}
+ 			}
+ 		} else {
+diff -r -u -w man-db-2.8.5/src/mandb.c man-db-2.8.5-patched/src/mandb.c
+--- man-db-2.8.5/src/mandb.c	2018-11-03 15:23:28.000000000 +0000
++++ man-db-2.8.5-patched/src/mandb.c	2019-10-26 23:11:50.424034600 +0000
+@@ -444,7 +444,7 @@
+ 	int should_create;
+ 
+ 	dbname = mkdbname (catpath);
+-	database = xasprintf ("%s/%d", catpath, getpid ());
++	database = xasprintf ("%s/%ld", catpath, getpid ());
+ 
+ 	if (!quiet) 
+ 		printf (_("Processing manual pages under %s...\n"), manpath);

@@ -1,0 +1,96 @@
+diff -r -u -w automake-1.16.1/t/lex-clean-cxx.sh automake-1.16.1-patched/t/lex-clean-cxx.sh
+--- automake-1.16.1/t/lex-clean-cxx.sh	2018-03-08 21:35:44.000000000 +0000
++++ automake-1.16.1-patched/t/lex-clean-cxx.sh	2018-07-23 22:42:55.937430360 +0000
+@@ -72,6 +72,7 @@
+ cat > mainfoo.cc << 'END'
+ // This file should contain valid C++ but invalid C.
+ extern "C" int yylex (void);
++#include <iostream>
+ using namespace std;
+ int main (int argc, char **argv)
+ {
+diff -r -u -w automake-1.16.1/t/lex-depend-cxx.sh automake-1.16.1-patched/t/lex-depend-cxx.sh
+--- automake-1.16.1/t/lex-depend-cxx.sh	2018-03-08 21:35:44.000000000 +0000
++++ automake-1.16.1-patched/t/lex-depend-cxx.sh	2018-07-23 22:41:21.851154280 +0000
+@@ -70,6 +70,7 @@
+ 
+ cat > my-hdr.hxx <<'END'
+ // This header contains deliberately invalid C (but valid C++).
++#include <iostream>
+ using namespace std;
+ END
+ 
+diff -r -u -w automake-1.16.1/t/link_cond.sh automake-1.16.1-patched/t/link_cond.sh
+--- automake-1.16.1/t/link_cond.sh	2018-02-26 20:38:28.000000000 +0000
++++ automake-1.16.1-patched/t/link_cond.sh	2018-07-23 22:40:34.191626520 +0000
+@@ -71,6 +71,7 @@
+ rm -f *.c
+ cat > more.c++ <<'END'
+ /* Valid C++ but deliberately invalid C */
++#include <iostream>
+ using namespace std;
+ int main (void)
+ {
+diff -r -u -w automake-1.16.1/t/silent-cxx.sh automake-1.16.1-patched/t/silent-cxx.sh
+--- automake-1.16.1/t/silent-cxx.sh	2018-02-26 20:38:28.000000000 +0000
++++ automake-1.16.1-patched/t/silent-cxx.sh	2018-07-23 22:40:57.958615960 +0000
+@@ -47,6 +47,7 @@
+ EOF
+ 
+ cat > foo.cpp <<'EOF'
++#include <iostream>
+ using namespace std; /* C compilers fail on this. */
+ int main (void) { return 0; }
+ EOF
+diff -r -u -w automake-1.16.1/t/suffix3.tap automake-1.16.1-patched/t/suffix3.tap
+--- automake-1.16.1/t/suffix3.tap	2018-02-26 20:38:28.000000000 +0000
++++ automake-1.16.1-patched/t/suffix3.tap	2018-07-23 22:41:56.160360920 +0000
+@@ -56,6 +56,7 @@
+ 
+ # This is deliberately valid C++, but invalid C.
+ cat > foo.zoo <<'END'
++#include <iostream>
+ using namespace std;
+ INTEGER main (void)
+ {
+diff -r -u -w automake-1.16.1/t/yacc-clean-cxx.sh automake-1.16.1-patched/t/yacc-clean-cxx.sh
+--- automake-1.16.1/t/yacc-clean-cxx.sh	2018-02-26 20:38:28.000000000 +0000
++++ automake-1.16.1-patched/t/yacc-clean-cxx.sh	2018-07-23 22:41:44.948591960 +0000
+@@ -81,6 +81,7 @@
+ 
+ cat > sub1/mainfoo.cc << 'END'
+ // This file should contain valid C++ but invalid C.
++#include <iostream>
+ using namespace std;
+ int main (int argc, char **argv)
+ {
+diff -r -u -w automake-1.16.1/t/yacc-cxx.sh automake-1.16.1-patched/t/yacc-cxx.sh
+--- automake-1.16.1/t/yacc-cxx.sh	2018-02-26 20:38:28.000000000 +0000
++++ automake-1.16.1-patched/t/yacc-cxx.sh	2018-07-23 22:42:11.730805240 +0000
+@@ -59,6 +59,7 @@
+ 
+ cat > foo.cc << 'END'
+ // Valid C++, but deliberately invalid C.
++#include <iostream>
+ using namespace std;
+ int main (int argc, char **argv)
+ {
+diff -r -u -w automake-1.16.1/t/yacc-mix-c-cxx.sh automake-1.16.1-patched/t/yacc-mix-c-cxx.sh
+--- automake-1.16.1/t/yacc-mix-c-cxx.sh	2018-02-26 20:38:28.000000000 +0000
++++ automake-1.16.1-patched/t/yacc-mix-c-cxx.sh	2018-07-23 22:42:30.900899960 +0000
+@@ -105,6 +105,7 @@
+ END
+ 
+ cat > main1.cc <<'END'
++#include <iostream>
+ using namespace std;
+ #include "parse.hh"
+ int main (int argc, char **argv)
+@@ -115,6 +116,7 @@
+ END
+ 
+ cat > main2.c++ <<'END'
++#include <iostream>
+ using namespace std;
+ int main (int argc, char **argv)
+ {

@@ -1,0 +1,14 @@
+--- expect5.45.4/tclconfig/tcl.m4~	2018-02-04 13:55:43.000000000 +0000
++++ expect5.45.4/tclconfig/tcl.m4	2019-11-23 11:27:16.299188760 +0000
+@@ -1502,7 +1502,11 @@
+ 	    ;;
+ 	IRIX64-6.*)
+ 	    SHLIB_CFLAGS=""
++	    AS_IF([test "$GCC" = yes], [
++	    SHLIB_LD="ld -shared"
++	    ], [
+ 	    SHLIB_LD="ld -n32 -shared -rdata_shared"
++	    ])
+ 	    SHLIB_SUFFIX=".so"
+ 	    AS_IF([test $doRpath = yes], [
+ 		CC_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR}'

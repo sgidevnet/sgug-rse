@@ -1,0 +1,60 @@
+diff -u -r -w chkconfig-1.11/Makefile chkconfig-1.11-patched/Makefile
+--- chkconfig-1.11/Makefile	2018-09-10 14:28:29.000000000 +0000
++++ chkconfig-1.11-patched/Makefile	2019-12-24 13:58:16.790276640 +0000
+@@ -12,10 +12,11 @@
+ ALTDATADIR = /etc/alternatives
+ SUBDIRS = po
+ 
+-OBJS=chkconfig.o leveldb.o
+-NTOBJS=ntsysv.o leveldb.o
++#OBJS=chkconfig.o leveldb.o
++#NTOBJS=ntsysv.o leveldb.o
+ 
+-all: subdirs $(PROG) ntsysv alternatives
++#all: subdirs $(PROG) ntsysv alternatives
++all: subdirs alternatives
+ 
+ subdirs:
+ 	for d in $(SUBDIRS); do \
+@@ -56,12 +57,12 @@
+ 	[ -d $(DESTDIR)/$(MANDIR)/man5 ] || mkdir -p $(DESTDIR)/$(MANDIR)/man5
+ 	[ -d $(DESTDIR)/$(ALTDIR) ] || mkdir -p -m 755 $(DESTDIR)/$(ALTDIR)
+ 	[ -d $(DESTDIR)/$(ALTDATADIR) ] || mkdir -p -m 755 $(DESTDIR)/$(ALTDATADIR)
+-	[ -d $(DESTDIR)/usr/lib/systemd ] || mkdir -p -m 755 $(DESTDIR)/usr/lib/systemd
++#	[ -d $(DESTDIR)/usr/lib/systemd ] || mkdir -p -m 755 $(DESTDIR)/usr/lib/systemd
+ 
+-	install -m 755 $(PROG) $(DESTDIR)/$(BINDIR)/$(PROG)
+-	ln -s ../../../$(BINDIR)/$(PROG) $(DESTDIR)/usr/lib/systemd/systemd-sysv-install
++#	install -m 755 $(PROG) $(DESTDIR)/$(BINDIR)/$(PROG)
++#	ln -s ../../../$(BINDIR)/$(PROG) $(DESTDIR)/usr/lib/systemd/systemd-sysv-install
+ 
+-	install -m 755 ntsysv $(DESTDIR)/$(SBINDIR)/ntsysv
++#	install -m 755 ntsysv $(DESTDIR)/$(SBINDIR)/ntsysv
+ 	install -m 755 alternatives $(DESTDIR)/$(SBINDIR)/alternatives
+ 	ln -s alternatives $(DESTDIR)/$(SBINDIR)/update-alternatives
+ 
+@@ -71,10 +72,10 @@
+ 
+ 	ln -s alternatives.8 $(DESTDIR)/$(MANDIR)/man8/update-alternatives.8
+ 
+-	for d in $(SUBDIRS); do \
+-	(cd $$d; $(MAKE) install) \
+-	    || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac;\
+-	done && test -z "$$fail"
++#	for d in $(SUBDIRS); do \
++#	(cd $$d; $(MAKE) install) \
++#	    || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac;\
++#	done && test -z "$$fail"
+ 
+ tag:
+ 	@git tag -a -m "Tag as $(TAG)" -f $(TAG)
+Only in chkconfig-1.11-patched: chkconfig.o
+diff -u -r -w chkconfig-1.11/test-alternatives.sh chkconfig-1.11-patched/test-alternatives.sh
+--- chkconfig-1.11/test-alternatives.sh	2018-09-10 14:28:29.000000000 +0000
++++ chkconfig-1.11-patched/test-alternatives.sh	2019-12-24 13:58:38.352822480 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/bin/env bash
+ 
+ # Include the BeakerLib environment
+ . /usr/share/beakerlib/beakerlib.sh

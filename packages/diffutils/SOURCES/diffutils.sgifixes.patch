@@ -1,0 +1,99 @@
+--- diffutils-3.6/man/help2man.orig 2017-01-01 11:22:36.000000000 +0000
++++ diffutils-3.6-patched/man/help2man  2019-12-05 09:34:47.643514840 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/usr/bin/env perl
+ 
+ # Generate a short man page from --help and --version output.
+ # Copyright (C) 1997-2005, 2009-2011, 2013, 2015-2017 Free Software Foundation,
+diff -r -u -w diffutils-3.6/gnulib-tests/test-gettimeofday.c diffutils-3.6-patched/gnulib-tests/test-gettimeofday.c
+--- diffutils-3.6/gnulib-tests/test-gettimeofday.c	Thu May 18 17:23:32 2017
++++ diffutils-3.6-patched/gnulib-tests/test-gettimeofday.c	Sat Jun 23 22:15:12 2018
+@@ -17,6 +17,7 @@
+ 
+ #include <config.h>
+ 
++#include <time.h>
+ #include <sys/time.h>
+ 
+ #include "signature.h"
+diff -r -u -w diffutils-3.6/gnulib-tests/test-sys_time.c diffutils-3.6-patched/gnulib-tests/test-sys_time.c
+--- diffutils-3.6/gnulib-tests/test-sys_time.c	Thu May 18 17:23:32 2017
++++ diffutils-3.6-patched/gnulib-tests/test-sys_time.c	Sat Jun 23 22:16:29 2018
+@@ -18,6 +18,7 @@
+ 
+ #include <config.h>
+ 
++#include <time.h>
+ #include <sys/time.h>
+ 
+ /* Check that the 'struct timeval' type is defined.  */
+diff -r -u -w diffutils-3.6/lib/getprogname.c diffutils-3.6-patched/lib/getprogname.c
+--- diffutils-3.6/lib/getprogname.c	Tue Jan 31 18:36:50 2017
++++ diffutils-3.6-patched/lib/getprogname.c	Sat Jun 23 22:08:57 2018
+@@ -1,5 +1,5 @@
+ /* Program name management.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+ 
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+@@ -12,7 +12,7 @@
+    GNU General Public License for more details.
+ 
+    You should have received a copy of the GNU General Public License
+-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
++   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+ 
+ #include <config.h>
+ 
+@@ -64,7 +64,7 @@
+   /* https://www.gnu.org/software/libc/manual/html_node/Error-Messages.html */
+   return last_component (program_invocation_name);
+ # elif HAVE_GETEXECNAME                                     /* Solaris */
+-  /* http://docs.oracle.com/cd/E19253-01/816-5168/6mbb3hrb1/index.html */
++  /* https://docs.oracle.com/cd/E19253-01/816-5168/6mbb3hrb1/index.html */
+   const char *p = getexecname ();
+   if (!p)
+     p = "?";
+@@ -74,7 +74,7 @@
+   const char *p = __argv && __argv[0] ? __argv[0] : "?";
+   return last_component (p);
+ # elif HAVE_VAR___PROGNAME                                  /* OpenBSD, QNX */
+-  /* http://man.openbsd.org/style.9 */
++  /* https://man.openbsd.org/style.9 */
+   /* http://www.qnx.de/developers/docs/6.5.0/index.jsp?topic=%2Fcom.qnx.doc.neutrino_lib_ref%2Fp%2F__progname.html */
+   /* Be careful to declare this only when we absolutely need it
+      (OpenBSD 5.1), rather than when it's available.  Otherwise,
+@@ -85,9 +85,8 @@
+   return p && p[0] ? p : "?";
+ # elif _AIX                                                 /* AIX */
+   /* Idea by Bastien ROUCARIÈS,
+-     http://lists.gnu.org/archive/html/bug-gnulib/2010-12/msg00095.html
+-     Reference: http://
+-   ibm.biz/knowctr#ssw_aix_53/com.ibm.aix.basetechref/doc/basetrf1/getprocs.htm
++     https://lists.gnu.org/r/bug-gnulib/2010-12/msg00095.html
++     Reference: https://www.ibm.com/support/knowledgecenter/en/ssw_aix_61/com.ibm.aix.basetrf1/getprocs.htm
+   */
+   static char *p;
+   static int first = 1;
+@@ -165,7 +164,7 @@
+       if (ioctl_ok)
+         {
+           char *name = buf.pr_fname;
+-          char *namesize = sizeof buf.pr_fname;
++          size_t namesize = sizeof buf.pr_fname;
+           char *namenul = memchr (name, '\0', namesize);
+           size_t namelen = namenul ? namenul - name : namesize;
+           char *namecopy = malloc (namelen + 1);
+@@ -183,3 +182,10 @@
+ }
+ 
+ #endif
++
++/*
++ * Hey Emacs!
++ * Local Variables:
++ * coding: utf-8
++ * End:
++ */

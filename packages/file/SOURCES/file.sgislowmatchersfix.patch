@@ -1,0 +1,1065 @@
+Only in file-5.36-patched: Makefile
+Only in file-5.36-patched: config.h
+Only in file-5.36-patched: config.log
+Only in file-5.36-patched: config.status
+Only in file-5.36-patched/doc: Makefile
+Only in file-5.36-patched: libtool
+Only in file-5.36-patched/magic: Makefile
+Only in file-5.36-patched/python: Makefile
+Only in file-5.36-patched/src: .deps
+Only in file-5.36-patched/src: Makefile
+diff -r -u file-5.36/src/ascmagic.c file-5.36-patched/src/ascmagic.c
+--- file-5.36/src/ascmagic.c	2019-02-20 02:35:27.000000000 +0000
++++ file-5.36-patched/src/ascmagic.c	2019-12-29 01:10:14.616716720 +0000
+@@ -80,6 +80,7 @@
+ 	const char *type = NULL;
+ 
+ 	bb = *b;
++	//fprintf(stdout,"trim_nuls\n");
+ 	bb.flen = trim_nuls(CAST(const unsigned char *, b->fbuf), b->flen);
+ 	/*
+ 	 * Avoid trimming at an odd byte if the original buffer was evenly
+@@ -89,12 +90,16 @@
+ 		bb.flen++;
+ 
+ 	/* If file doesn't look like any sort of text, give up. */
++	//fprintf(stdout,"file_encoding\n");
+ 	if (file_encoding(ms, &bb, &ubuf, &ulen, &code, &code_mime,
+ 	    &type) == 0)
+ 		rv = 0;
+-        else
+-		rv = file_ascmagic_with_encoding(ms, &bb,
+-		    ubuf, ulen, code, type, text);
++        else {
++	  //fprintf(stdout,"file_ascmagic_with_encoding\n");
++	  rv = file_ascmagic_with_encoding(ms, &bb,
++					   ubuf, ulen, code, type, text);
++	  //fprintf(stdout,"file_ascmagic_with_encoding done\n");
++	}
+ 
+ 	free(ubuf);
+ 
+@@ -106,214 +111,219 @@
+     const struct buffer *b, unichar *ubuf, size_t ulen, const char *code,
+     const char *type, int text)
+ {
+-	struct buffer bb;
+-	const unsigned char *buf = CAST(const unsigned char *, b->fbuf);
+-	size_t nbytes = b->flen;
+-	unsigned char *utf8_buf = NULL, *utf8_end;
+-	size_t mlen, i;
+-	int rv = -1;
+-	int mime = ms->flags & MAGIC_MIME;
+-
+-	const char *subtype = NULL;
+-	const char *subtype_mime = NULL;
+-
+-	int has_escapes = 0;
+-	int has_backspace = 0;
+-	int seen_cr = 0;
+-
+-	int n_crlf = 0;
+-	int n_lf = 0;
+-	int n_cr = 0;
+-	int n_nel = 0;
+-	int executable = 0;
+-
+-	size_t last_line_end = CAST(size_t, -1);
+-	int has_long_lines = 0;
+-
+-	nbytes = trim_nuls(buf, nbytes);
+-
+-	/* If we have fewer than 2 bytes, give up. */
+-	if (nbytes <= 1) {
+-		rv = 0;
+-		goto done;
+-	}
+-
+-	if (ulen > 0 && (ms->flags & MAGIC_NO_CHECK_SOFT) == 0) {
+-		/* Convert ubuf to UTF-8 and try text soft magic */
+-		/* malloc size is a conservative overestimate; could be
+-		   improved, or at least realloced after conversion. */
+-		mlen = ulen * 6;
+-		if ((utf8_buf = CAST(unsigned char *, malloc(mlen))) == NULL) {
+-			file_oomem(ms, mlen);
+-			goto done;
+-		}
+-		if ((utf8_end = encode_utf8(utf8_buf, mlen, ubuf, ulen))
+-		    == NULL)
+-			goto done;
+-		buffer_init(&bb, b->fd, utf8_buf,
+-		    CAST(size_t, utf8_end - utf8_buf));
+-
+-		if ((rv = file_softmagic(ms, &bb, NULL, NULL,
+-		    TEXTTEST, text)) == 0)
+-			rv = -1;
+-		buffer_fini(&bb);
+-		if ((ms->flags & (MAGIC_APPLE|MAGIC_EXTENSION))) {
+-			rv = rv == -1 ? 0 : 1;
+-			goto done;
+-		}
++  struct buffer bb;
++  const unsigned char *buf = CAST(const unsigned char *, b->fbuf);
++  size_t nbytes = b->flen;
++  unsigned char *utf8_buf = NULL, *utf8_end;
++  size_t mlen, i;
++  int rv = -1;
++  int mime = ms->flags & MAGIC_MIME;
++
++  const char *subtype = NULL;
++  const char *subtype_mime = NULL;
++
++  int has_escapes = 0;
++  int has_backspace = 0;
++  int seen_cr = 0;
++
++  int n_crlf = 0;
++  int n_lf = 0;
++  int n_cr = 0;
++  int n_nel = 0;
++  int executable = 0;
++
++  size_t last_line_end = CAST(size_t, -1);
++  int has_long_lines = 0;
++
++  //fprintf(stdout,"01 trim_nuls\n");
++  nbytes = trim_nuls(buf, nbytes);
++
++  /* If we have fewer than 2 bytes, give up. */
++  if (nbytes <= 1) {
++    rv = 0;
++    goto done;
++  }
++
++  if (ulen > 0 && (ms->flags & MAGIC_NO_CHECK_SOFT) == 0) {
++    /* Convert ubuf to UTF-8 and try text soft magic */
++    /* malloc size is a conservative overestimate; could be
++       improved, or at least realloced after conversion. */
++    mlen = ulen * 6;
++    if ((utf8_buf = CAST(unsigned char *, malloc(mlen))) == NULL) {
++      file_oomem(ms, mlen);
++      goto done;
++    }
++    //fprintf(stdout,"02 encode_utf8\n");
++    if ((utf8_end = encode_utf8(utf8_buf, mlen, ubuf, ulen))
++	== NULL)
++      goto done;
++    buffer_init(&bb, b->fd, utf8_buf,
++		CAST(size_t, utf8_end - utf8_buf));
++
++    //fprintf(stdout,"03 file_softmagic\n");
++    if ((rv = file_softmagic(ms, &bb, NULL, NULL,
++			     TEXTTEST, text)) == 0)
++      rv = -1;
++    //fprintf(stdout,"03.1 file_softmagic done\n");
++    buffer_fini(&bb);
++    if ((ms->flags & (MAGIC_APPLE|MAGIC_EXTENSION))) {
++      rv = rv == -1 ? 0 : 1;
++      goto done;
++    }
++  }
++  if ((ms->flags & (MAGIC_APPLE|MAGIC_EXTENSION)))
++    return 0;
++
++  //fprintf(stdout,"04 other details\n");
++  /* Now try to discover other details about the file. */
++  for (i = 0; i < ulen; i++) {
++    if (ubuf[i] == '\n') {
++      if (seen_cr)
++	n_crlf++;
++      else
++	n_lf++;
++      last_line_end = i;
++    } else if (seen_cr)
++      n_cr++;
++
++    seen_cr = (ubuf[i] == '\r');
++    if (seen_cr)
++      last_line_end = i;
++
++    if (ubuf[i] == 0x85) { /* X3.64/ECMA-43 "next line" character */
++      n_nel++;
++      last_line_end = i;
++    }
++
++    /* If this line is _longer_ than MAXLINELEN, remember it. */
++    if (i > last_line_end + MAXLINELEN)
++      has_long_lines = 1;
++
++    if (ubuf[i] == '\033')
++      has_escapes = 1;
++    if (ubuf[i] == '\b')
++      has_backspace = 1;
++  }
++
++  /* Beware, if the data has been truncated, the final CR could have
++     been followed by a LF.  If we have ms->bytes_max bytes, it indicates
++     that the data might have been truncated, probably even before
++     this function was called. */
++  if (seen_cr && nbytes < ms->bytes_max)
++    n_cr++;
++
++  if (strcmp(type, "binary") == 0) {
++    rv = 0;
++    goto done;
++  }
++  if (mime) {
++    if (!file_printedlen(ms) && (mime & MAGIC_MIME_TYPE) != 0) {
++      if (subtype_mime) {
++	if (file_printf(ms, "%s", subtype_mime) == -1)
++	  goto done;
++      } else {
++	if (file_printf(ms, "text/plain") == -1)
++	  goto done;
++      }
++    }
++  } else {
++    if (file_printedlen(ms)) {
++      switch (file_replace(ms, " text$", ", ")) {
++      case 0:
++	switch (file_replace(ms, " text executable$",
++			     ", ")) {
++	case 0:
++	  if (file_printf(ms, ", ") == -1)
++	    goto done;
++	  break;
++	case -1:
++	  goto done;
++	default:
++	  executable = 1;
++	  break;
+ 	}
+-	if ((ms->flags & (MAGIC_APPLE|MAGIC_EXTENSION)))
+-		return 0;
+-
+-	/* Now try to discover other details about the file. */
+-	for (i = 0; i < ulen; i++) {
+-		if (ubuf[i] == '\n') {
+-			if (seen_cr)
+-				n_crlf++;
+-			else
+-				n_lf++;
+-			last_line_end = i;
+-		} else if (seen_cr)
+-			n_cr++;
+-
+-		seen_cr = (ubuf[i] == '\r');
+-		if (seen_cr)
+-			last_line_end = i;
+-
+-		if (ubuf[i] == 0x85) { /* X3.64/ECMA-43 "next line" character */
+-			n_nel++;
+-			last_line_end = i;
+-		}
+-
+-		/* If this line is _longer_ than MAXLINELEN, remember it. */
+-		if (i > last_line_end + MAXLINELEN)
+-			has_long_lines = 1;
+-
+-		if (ubuf[i] == '\033')
+-			has_escapes = 1;
+-		if (ubuf[i] == '\b')
+-			has_backspace = 1;
++	break;
++      case -1:
++	goto done;
++      default:
++	break;
++      }
++    }
++
++    if (file_printf(ms, "%s", code) == -1)
++      goto done;
++
++    if (subtype) {
++      if (file_printf(ms, " %s", subtype) == -1)
++	goto done;
++    }
++
++    if (file_printf(ms, " %s", type) == -1)
++      goto done;
++
++    if (executable)
++      if (file_printf(ms, " executable") == -1)
++	goto done;
++
++    if (has_long_lines)
++      if (file_printf(ms, ", with very long lines") == -1)
++	goto done;
++
++    /*
++     * Only report line terminators if we find one other than LF,
++     * or if we find none at all.
++     */
++    if ((n_crlf == 0 && n_cr == 0 && n_nel == 0 && n_lf == 0) ||
++	(n_crlf != 0 || n_cr != 0 || n_nel != 0)) {
++      if (file_printf(ms, ", with") == -1)
++	goto done;
++
++      if (n_crlf == 0 && n_cr == 0 && n_nel == 0 && n_lf == 0) {
++	if (file_printf(ms, " no") == -1)
++	  goto done;
++      } else {
++	if (n_crlf) {
++	  if (file_printf(ms, " CRLF") == -1)
++	    goto done;
++	  if (n_cr || n_lf || n_nel)
++	    if (file_printf(ms, ",") == -1)
++	      goto done;
+ 	}
+-
+-	/* Beware, if the data has been truncated, the final CR could have
+-	   been followed by a LF.  If we have ms->bytes_max bytes, it indicates
+-	   that the data might have been truncated, probably even before
+-	   this function was called. */
+-	if (seen_cr && nbytes < ms->bytes_max)
+-		n_cr++;
+-
+-	if (strcmp(type, "binary") == 0) {
+-		rv = 0;
+-		goto done;
++	if (n_cr) {
++	  if (file_printf(ms, " CR") == -1)
++	    goto done;
++	  if (n_lf || n_nel)
++	    if (file_printf(ms, ",") == -1)
++	      goto done;
+ 	}
+-	if (mime) {
+-		if (!file_printedlen(ms) && (mime & MAGIC_MIME_TYPE) != 0) {
+-			if (subtype_mime) {
+-				if (file_printf(ms, "%s", subtype_mime) == -1)
+-					goto done;
+-			} else {
+-				if (file_printf(ms, "text/plain") == -1)
+-					goto done;
+-			}
+-		}
+-	} else {
+-		if (file_printedlen(ms)) {
+-			switch (file_replace(ms, " text$", ", ")) {
+-			case 0:
+-				switch (file_replace(ms, " text executable$",
+-				    ", ")) {
+-				case 0:
+-					if (file_printf(ms, ", ") == -1)
+-						goto done;
+-					break;
+-				case -1:
+-					goto done;
+-				default:
+-					executable = 1;
+-					break;
+-				}
+-				break;
+-			case -1:
+-				goto done;
+-			default:
+-				break;
+-			}
+-		}
+-
+-		if (file_printf(ms, "%s", code) == -1)
+-			goto done;
+-
+-		if (subtype) {
+-			if (file_printf(ms, " %s", subtype) == -1)
+-				goto done;
+-		}
+-
+-		if (file_printf(ms, " %s", type) == -1)
+-			goto done;
+-
+-		if (executable)
+-			if (file_printf(ms, " executable") == -1)
+-				goto done;
+-
+-		if (has_long_lines)
+-			if (file_printf(ms, ", with very long lines") == -1)
+-				goto done;
+-
+-		/*
+-		 * Only report line terminators if we find one other than LF,
+-		 * or if we find none at all.
+-		 */
+-		if ((n_crlf == 0 && n_cr == 0 && n_nel == 0 && n_lf == 0) ||
+-		    (n_crlf != 0 || n_cr != 0 || n_nel != 0)) {
+-			if (file_printf(ms, ", with") == -1)
+-				goto done;
+-
+-			if (n_crlf == 0 && n_cr == 0 && n_nel == 0 && n_lf == 0) {
+-				if (file_printf(ms, " no") == -1)
+-					goto done;
+-			} else {
+-				if (n_crlf) {
+-					if (file_printf(ms, " CRLF") == -1)
+-						goto done;
+-					if (n_cr || n_lf || n_nel)
+-						if (file_printf(ms, ",") == -1)
+-							goto done;
+-				}
+-				if (n_cr) {
+-					if (file_printf(ms, " CR") == -1)
+-						goto done;
+-					if (n_lf || n_nel)
+-						if (file_printf(ms, ",") == -1)
+-							goto done;
+-				}
+-				if (n_lf) {
+-					if (file_printf(ms, " LF") == -1)
+-						goto done;
+-					if (n_nel)
+-						if (file_printf(ms, ",") == -1)
+-							goto done;
+-				}
+-				if (n_nel)
+-					if (file_printf(ms, " NEL") == -1)
+-						goto done;
+-			}
+-
+-			if (file_printf(ms, " line terminators") == -1)
+-				goto done;
+-		}
+-
+-		if (has_escapes)
+-			if (file_printf(ms, ", with escape sequences") == -1)
+-				goto done;
+-		if (has_backspace)
+-			if (file_printf(ms, ", with overstriking") == -1)
+-				goto done;
++	if (n_lf) {
++	  if (file_printf(ms, " LF") == -1)
++	    goto done;
++	  if (n_nel)
++	    if (file_printf(ms, ",") == -1)
++	      goto done;
+ 	}
+-	rv = 1;
+-done:
+-	free(utf8_buf);
++	if (n_nel)
++	  if (file_printf(ms, " NEL") == -1)
++	    goto done;
++      }
++
++      if (file_printf(ms, " line terminators") == -1)
++	goto done;
++    }
++
++    if (has_escapes)
++      if (file_printf(ms, ", with escape sequences") == -1)
++	goto done;
++    if (has_backspace)
++      if (file_printf(ms, ", with overstriking") == -1)
++	goto done;
++  }
++  rv = 1;
++ done:
++  free(utf8_buf);
+ 
+-	return rv;
++  return rv;
+ }
+ 
+ /*
+diff -r -u file-5.36/src/encoding.c file-5.36-patched/src/encoding.c
+--- file-5.36/src/encoding.c	2019-02-20 02:35:27.000000000 +0000
++++ file-5.36-patched/src/encoding.c	2019-12-29 01:05:22.164395000 +0000
+@@ -257,15 +257,21 @@
+ 
+ 	*ulen = 0;
+ 
++	//fprintf(stdout,"Doing %lu bytes\n", nbytes);
++
+ 	for (i = 0; i < nbytes; i++) {
+ 		int t = text_chars[buf[i]];
+ 
+ 		if (t != T)
+ 			return 0;
+ 
+-		ubuf[(*ulen)++] = buf[i];
++		//		ubuf[(*ulen)++] = buf[i];
++		ubuf[(*ulen)] = buf[i];
++		(*ulen)++;
+ 	}
+ 
++	//fprintf(stdout,"Done %lu bytes\n", nbytes);
++
+ 	return 1;
+ }
+ 
+diff -r -u file-5.36/src/softmagic.c file-5.36-patched/src/softmagic.c
+--- file-5.36/src/softmagic.c	2019-02-20 02:35:27.000000000 +0000
++++ file-5.36-patched/src/softmagic.c	2019-12-29 01:30:20.086619400 +0000
+@@ -117,26 +117,33 @@
+ file_softmagic(struct magic_set *ms, const struct buffer *b,
+     uint16_t *indir_count, uint16_t *name_count, int mode, int text)
+ {
+-	struct mlist *ml;
+-	int rv, printed_something = 0, need_separator = 0;
+-	uint16_t nc, ic;
+-
+-	if (name_count == NULL) {
+-		nc = 0;
+-		name_count = &nc;
++  struct mlist *ml;
++  int rv, printed_something = 0, need_separator = 0;
++  uint16_t nc, ic;
++
++  if (name_count == NULL) {
++    nc = 0;
++    name_count = &nc;
++  }
++  if (indir_count == NULL) {
++    ic = 0;
++    indir_count = &ic;
++  }
++
++  int iter=0;
++  for (ml = ms->mlist[0]->next; ml != ms->mlist[0]; ml = ml->next)
++    {
++      //fprintf(stdout,"fsm on iter %d\n",iter);
++      if ((rv = match(ms, ml->magic, ml->nmagic, b, 0, mode,
++		      text, 0, indir_count, name_count,
++		      &printed_something, &need_separator, NULL, NULL)) != 0)
++	{
++	  return rv;
+ 	}
+-	if (indir_count == NULL) {
+-		ic = 0;
+-		indir_count = &ic;
+-	}
+-
+-	for (ml = ms->mlist[0]->next; ml != ms->mlist[0]; ml = ml->next)
+-		if ((rv = match(ms, ml->magic, ml->nmagic, b, 0, mode,
+-		    text, 0, indir_count, name_count,
+-		    &printed_something, &need_separator, NULL, NULL)) != 0)
+-			return rv;
++      iter++;
++    }
+ 
+-	return 0;
++  return 0;
+ }
+ 
+ #define FILE_FMTDEBUG
+@@ -192,263 +199,270 @@
+     int *printed_something, int *need_separator, int *returnval,
+     int *found_match)
+ {
+-	uint32_t magindex = 0;
+-	unsigned int cont_level = 0;
+-	int found_matchv = 0; /* if a match is found it is set to 1*/
+-	int returnvalv = 0, e;
+-	int firstline = 1; /* a flag to print X\n  X\n- X */
+-	struct buffer bb;
+-	int print = (ms->flags & MAGIC_NODESC) == 0;
++  uint32_t magindex = 0;
++  unsigned int cont_level = 0;
++  int found_matchv = 0; /* if a match is found it is set to 1*/
++  int returnvalv = 0, e;
++  int firstline = 1; /* a flag to print X\n  X\n- X */
++  struct buffer bb;
++  int print = (ms->flags & MAGIC_NODESC) == 0;
++
++  /*
++   * returnval can be 0 if a match is found, but there was no
++   * annotation to be printed.
++   */
++  if (returnval == NULL)
++    returnval = &returnvalv;
++  if (found_match == NULL)
++    found_match = &found_matchv;
++
++  if (file_check_mem(ms, cont_level) == -1)
++    return -1;
++
++  for (magindex = 0; magindex < nmagic; magindex++) {
++    // Slow matchers on irix
++    if( magindex == 9743 || magindex == 9745 || magindex == 12181 || magindex == 12356 )
++      {
++	continue;
++      }
++    int flush = 0;
++    struct magic *m = &magic[magindex];
++    //fprintf(stdout,"Checking match %d type %s-%s\n",
++    //	    magindex, m->desc, m->mimetype);
++
++    if (m->type != FILE_NAME)
++      if ((IS_STRING(m->type) &&
++#define FLT (STRING_BINTEST | STRING_TEXTTEST)
++	   ((text && (m->str_flags & FLT) == STRING_BINTEST) ||
++	    (!text && (m->str_flags & FLT) == STRING_TEXTTEST))) ||
++	  (m->flag & mode) != mode) {
++      flush:
++	/* Skip sub-tests */
++	while (magindex < nmagic - 1 &&
++	       magic[magindex + 1].cont_level != 0)
++	  magindex++;
++	cont_level = 0;
++	continue; /* Skip to next top-level test*/
++      }
++
++    if (msetoffset(ms, m, &bb, b, offset, cont_level) == -1)
++      goto flush;
++    ms->line = m->lineno;
++
++    /* if main entry matches, print it... */
++    switch (mget(ms, m, b, CAST(const unsigned char *, bb.fbuf),
++		 bb.flen, offset, cont_level,
++		 mode, text, flip, indir_count, name_count,
++		 printed_something, need_separator, returnval, found_match))
++      {
++      case -1:
++	return -1;
++      case 0:
++	flush = m->reln != '!';
++	break;
++      default:
++	if (m->type == FILE_INDIRECT) {
++	  *found_match = 1;
++	  *returnval = 1;
++	}
+ 
++	switch (magiccheck(ms, m)) {
++	case -1:
++	  return -1;
++	case 0:
++	  flush++;
++	  break;
++	default:
++	  flush = 0;
++	  break;
++	}
++	break;
++      }
++    if (flush) {
++      /*
++       * main entry didn't match,
++       * flush its continuations
++       */
++      goto flush;
++    }
++
++    if (*m->desc)
++      *found_match = 1;
++
++    if ((e = handle_annotation(ms, m, firstline)) != 0)
++      {
++	*need_separator = 1;
++	*printed_something = 1;
++	*returnval = 1;
++	return e;
++      }
++
++    /*
++     * If we are going to print something, we'll need to print
++     * a blank before we print something else.
++     */
++    if (print && *m->desc) {
++      *need_separator = 1;
++      *printed_something = 1;
++      *returnval = 1;
++      if (print_sep(ms, firstline) == -1)
++	return -1;
++      if (mprint(ms, m) == -1)
++	return -1;
++    }
++
++    switch (moffset(ms, m, &bb, &ms->c.li[cont_level].off)) {
++    case -1:
++    case 0:
++      goto flush;
++    default:
++      break;
++    }
++
++    /* and any continuations that match */
++    if (file_check_mem(ms, ++cont_level) == -1)
++      return -1;
++
++    while (magindex + 1 < nmagic &&
++	   magic[magindex + 1].cont_level != 0) {
++      m = &magic[++magindex];
++      ms->line = m->lineno; /* for messages */
++
++      if (cont_level < m->cont_level)
++	continue;
++      if (cont_level > m->cont_level) {
+ 	/*
+-	 * returnval can be 0 if a match is found, but there was no
+-	 * annotation to be printed.
++	 * We're at the end of the level
++	 * "cont_level" continuations.
+ 	 */
+-	if (returnval == NULL)
+-		returnval = &returnvalv;
+-	if (found_match == NULL)
+-		found_match = &found_matchv;
+-
+-	if (file_check_mem(ms, cont_level) == -1)
+-		return -1;
+-
+-	for (magindex = 0; magindex < nmagic; magindex++) {
+-		int flush = 0;
+-		struct magic *m = &magic[magindex];
+-
+-		if (m->type != FILE_NAME)
+-		if ((IS_STRING(m->type) &&
+-#define FLT (STRING_BINTEST | STRING_TEXTTEST)
+-		     ((text && (m->str_flags & FLT) == STRING_BINTEST) ||
+-		      (!text && (m->str_flags & FLT) == STRING_TEXTTEST))) ||
+-		    (m->flag & mode) != mode) {
+-flush:
+-			/* Skip sub-tests */
+-			while (magindex < nmagic - 1 &&
+-			    magic[magindex + 1].cont_level != 0)
+-				magindex++;
+-			cont_level = 0;
+-			continue; /* Skip to next top-level test*/
+-		}
+-
+-		if (msetoffset(ms, m, &bb, b, offset, cont_level) == -1)
+-			goto flush;
+-		ms->line = m->lineno;
+-
+-		/* if main entry matches, print it... */
+-		switch (mget(ms, m, b, CAST(const unsigned char *, bb.fbuf),
+-		    bb.flen, offset, cont_level,
+-		    mode, text, flip, indir_count, name_count,
+-		    printed_something, need_separator, returnval, found_match))
+-		{
+-		case -1:
+-			return -1;
+-		case 0:
+-			flush = m->reln != '!';
+-			break;
+-		default:
+-			if (m->type == FILE_INDIRECT) {
+-				*found_match = 1;
+-				*returnval = 1;
+-			}
+-
+-			switch (magiccheck(ms, m)) {
+-			case -1:
+-				return -1;
+-			case 0:
+-				flush++;
+-				break;
+-			default:
+-				flush = 0;
+-				break;
+-			}
+-			break;
+-		}
+-		if (flush) {
+-			/*
+-			 * main entry didn't match,
+-			 * flush its continuations
+-			 */
+-			goto flush;
+-		}
+-
+-		if (*m->desc)
+-			*found_match = 1;
+-
+-		if ((e = handle_annotation(ms, m, firstline)) != 0)
+-		{
+-			*need_separator = 1;
+-			*printed_something = 1;
+-			*returnval = 1;
+-			return e;
+-		}
+-
+-		/*
+-		 * If we are going to print something, we'll need to print
+-		 * a blank before we print something else.
+-		 */
+-		if (print && *m->desc) {
+-			*need_separator = 1;
+-			*printed_something = 1;
+-			*returnval = 1;
+-			if (print_sep(ms, firstline) == -1)
+-				return -1;
+-			if (mprint(ms, m) == -1)
+-				return -1;
+-		}
+-
+-		switch (moffset(ms, m, &bb, &ms->c.li[cont_level].off)) {
+-		case -1:
+-		case 0:
+-			goto flush;
+-		default:
+-			break;
+-		}
+-
+-		/* and any continuations that match */
+-		if (file_check_mem(ms, ++cont_level) == -1)
+-			return -1;
+-
+-		while (magindex + 1 < nmagic &&
+-		    magic[magindex + 1].cont_level != 0) {
+-			m = &magic[++magindex];
+-			ms->line = m->lineno; /* for messages */
+-
+-			if (cont_level < m->cont_level)
+-				continue;
+-			if (cont_level > m->cont_level) {
+-				/*
+-				 * We're at the end of the level
+-				 * "cont_level" continuations.
+-				 */
+-				cont_level = m->cont_level;
+-			}
+-			if (msetoffset(ms, m, &bb, b, offset, cont_level) == -1)
+-				goto flush;
+-			if (m->flag & OFFADD) {
+-				ms->offset +=
+-				    ms->c.li[cont_level - 1].off;
+-			}
++	cont_level = m->cont_level;
++      }
++      if (msetoffset(ms, m, &bb, b, offset, cont_level) == -1)
++	goto flush;
++      if (m->flag & OFFADD) {
++	ms->offset +=
++	  ms->c.li[cont_level - 1].off;
++      }
+ 
+ #ifdef ENABLE_CONDITIONALS
+-			if (m->cond == COND_ELSE ||
+-			    m->cond == COND_ELIF) {
+-				if (ms->c.li[cont_level].last_match == 1)
+-					continue;
+-			}
++      if (m->cond == COND_ELSE ||
++	  m->cond == COND_ELIF) {
++	if (ms->c.li[cont_level].last_match == 1)
++	  continue;
++      }
+ #endif
+-			switch (mget(ms, m, b, CAST(const unsigned char *,
+-			    bb.fbuf), bb.flen, offset,
+-			    cont_level, mode, text, flip, indir_count,
+-			    name_count, printed_something, need_separator,
+-			    returnval, found_match)) {
+-			case -1:
+-				return -1;
+-			case 0:
+-				if (m->reln != '!')
+-					continue;
+-				flush = 1;
+-				break;
+-			default:
+-				if (m->type == FILE_INDIRECT) {
+-					*found_match = 1;
+-					*returnval = 1;
+-				}
+-				flush = 0;
+-				break;
+-			}
+-
+-			switch (flush ? 1 : magiccheck(ms, m)) {
+-			case -1:
+-				return -1;
+-			case 0:
++      switch (mget(ms, m, b, CAST(const unsigned char *,
++				  bb.fbuf), bb.flen, offset,
++		   cont_level, mode, text, flip, indir_count,
++		   name_count, printed_something, need_separator,
++		   returnval, found_match)) {
++      case -1:
++	return -1;
++      case 0:
++	if (m->reln != '!')
++	  continue;
++	flush = 1;
++	break;
++      default:
++	if (m->type == FILE_INDIRECT) {
++	  *found_match = 1;
++	  *returnval = 1;
++	}
++	flush = 0;
++	break;
++      }
++
++      switch (flush ? 1 : magiccheck(ms, m)) {
++      case -1:
++	return -1;
++      case 0:
+ #ifdef ENABLE_CONDITIONALS
+-				ms->c.li[cont_level].last_match = 0;
++	ms->c.li[cont_level].last_match = 0;
+ #endif
+-				break;
+-			default:
++	break;
++      default:
+ #ifdef ENABLE_CONDITIONALS
+-				ms->c.li[cont_level].last_match = 1;
++	ms->c.li[cont_level].last_match = 1;
+ #endif
+-				if (m->type == FILE_CLEAR)
+-					ms->c.li[cont_level].got_match = 0;
+-				else if (ms->c.li[cont_level].got_match) {
+-					if (m->type == FILE_DEFAULT)
+-						break;
+-				} else
+-					ms->c.li[cont_level].got_match = 1;
+-
+-				if (*m->desc)
+-					*found_match = 1;
+-
+-				if ((e = handle_annotation(ms, m, firstline))
+-				    != 0) {
+-					*need_separator = 1;
+-					*printed_something = 1;
+-					*returnval = 1;
+-					return e;
+-				}
+-				if (print && *m->desc) {
+-					/*
+-					 * This continuation matched.  Print
+-					 * its message, with a blank before it
+-					 * if the previous item printed and
+-					 * this item isn't empty.
+-					 */
+-					/*
+-					 * If we are going to print something,
+-					 * make sure that we have a separator
+-					 * first.
+-					 */
+-					if (!*printed_something) {
+-						*printed_something = 1;
+-						if (print_sep(ms, firstline)
+-						    == -1)
+-							return -1;
+-					}
+-					/* space if previous printed */
+-					if (*need_separator
+-					    && (m->flag & NOSPACE) == 0) {
+-						if (file_printf(ms, " ") == -1)
+-							return -1;
+-					}
+-					*returnval = 1;
+-					*need_separator = 0;
+-					if (mprint(ms, m) == -1)
+-						return -1;
+-					*need_separator = 1;
+-				}
+-
+-				switch (moffset(ms, m, &bb,
+-				    &ms->c.li[cont_level].off)) {
+-				case -1:
+-				case 0:
+-					flush = 1;
+-					cont_level--;
+-					break;
+-				default:
+-					break;
+-				}
+-
+-				/*
+-				 * If we see any continuations
+-				 * at a higher level,
+-				 * process them.
+-				 */
+-				if (file_check_mem(ms, ++cont_level) == -1)
+-					return -1;
+-				break;
+-			}
+-		}
+-		if (*printed_something) {
+-			firstline = 0;
+-		}
+-		if ((ms->flags & MAGIC_CONTINUE) == 0 && *found_match) {
+-			return *returnval; /* don't keep searching */
+-		}
+-		cont_level = 0;
++	if (m->type == FILE_CLEAR)
++	  ms->c.li[cont_level].got_match = 0;
++	else if (ms->c.li[cont_level].got_match) {
++	  if (m->type == FILE_DEFAULT)
++	    break;
++	} else
++	  ms->c.li[cont_level].got_match = 1;
++
++	if (*m->desc)
++	  *found_match = 1;
++
++	if ((e = handle_annotation(ms, m, firstline))
++	    != 0) {
++	  *need_separator = 1;
++	  *printed_something = 1;
++	  *returnval = 1;
++	  return e;
++	}
++	if (print && *m->desc) {
++	  /*
++	   * This continuation matched.  Print
++	   * its message, with a blank before it
++	   * if the previous item printed and
++	   * this item isn't empty.
++	   */
++	  /*
++	   * If we are going to print something,
++	   * make sure that we have a separator
++	   * first.
++	   */
++	  if (!*printed_something) {
++	    *printed_something = 1;
++	    if (print_sep(ms, firstline)
++		== -1)
++	      return -1;
++	  }
++	  /* space if previous printed */
++	  if (*need_separator
++	      && (m->flag & NOSPACE) == 0) {
++	    if (file_printf(ms, " ") == -1)
++	      return -1;
++	  }
++	  *returnval = 1;
++	  *need_separator = 0;
++	  if (mprint(ms, m) == -1)
++	    return -1;
++	  *need_separator = 1;
++	}
++
++	switch (moffset(ms, m, &bb,
++			&ms->c.li[cont_level].off)) {
++	case -1:
++	case 0:
++	  flush = 1;
++	  cont_level--;
++	  break;
++	default:
++	  break;
+ 	}
+-	return *returnval;  /* This is hit if -k is set or there is no match */
++
++	/*
++	 * If we see any continuations
++	 * at a higher level,
++	 * process them.
++	 */
++	if (file_check_mem(ms, ++cont_level) == -1)
++	  return -1;
++	break;
++      }
++    }
++    if (*printed_something) {
++      firstline = 0;
++    }
++    if ((ms->flags & MAGIC_CONTINUE) == 0 && *found_match) {
++      return *returnval; /* don't keep searching */
++    }
++    cont_level = 0;
++  }
++  return *returnval;  /* This is hit if -k is set or there is no match */
+ }
+ 
+ private int
+Only in file-5.36-patched: stamp-h1
+Only in file-5.36-patched/tests: .deps
+Only in file-5.36-patched/tests: Makefile

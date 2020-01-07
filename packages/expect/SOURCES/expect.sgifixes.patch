@@ -1,0 +1,11 @@
+--- expect5.45.4/exp_command.c~	2019-11-23 11:16:16.059992840 +0000
++++ expect5.45.4/exp_command.c	2019-11-23 11:22:44.365505560 +0000
+@@ -1161,7 +1161,7 @@
+     /* if stty finds dev(stderr) != dev(stdout) */
+ 
+     /* save error fd while we're setting up new one */
+-    errorfd = fcntl(2,F_DUPFD_CLOEXEC,3);
++    errorfd = fcntl(2,F_DUPFD,3);
+     /* and here is the macro to restore it */
+ #define restore_error_fd {close(2);fcntl(errorfd,F_DUPFD,2);}
+ 

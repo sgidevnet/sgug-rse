@@ -1,0 +1,11 @@
+--- neofetch-6.0.0/neofetch   2019-12-10 07:31:55.000000000 +0000
++++ neofetch-6.0.0-patched/neofetch 2019-12-05 16:20:56.358810880 +0000
+@@ -1394,7 +1394,8 @@
+         ;;
+ 
+         "IRIX")
+-            tot versions -b && ((packages-=3))
++            has "rpm"        && tot rpm -qa
++            has "versions"   && tot versions -b && ((packages-=3))
+         ;;
+     esac

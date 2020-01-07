@@ -1,0 +1,27 @@
+diff -r -u -w unrar/rar.hpp unrar-patched/rar.hpp
+--- unrar/rar.hpp	2018-06-24 16:10:31.000000000 +0000
++++ unrar-patched/rar.hpp	2019-10-14 23:14:28.479315320 +0000
+@@ -1,6 +1,10 @@
+ #ifndef _RAR_RARCOMMON_
+ #define _RAR_RARCOMMON_
+ 
++#if defined(__sgi)
++#include <cstdlib>
++#endif
++
+ #include "raros.hpp"
+ #include "rartypes.hpp"
+ #include "os.hpp"
+diff -r -u -w unrar/rartypes.hpp unrar-patched/rartypes.hpp
+--- unrar/rartypes.hpp	2018-06-24 16:10:31.000000000 +0000
++++ unrar-patched/rartypes.hpp	2019-10-14 23:13:57.615224240 +0000
+@@ -1,7 +1,9 @@
+ #ifndef _RAR_TYPES_
+ #define _RAR_TYPES_
+ 
++#define __c99
+ #include <stdint.h>
++#undef __c99
+ 
+ typedef uint8_t          byte;   // Unsigned 8 bits.
+ typedef uint16_t         ushort; // Preferably 16 bits, but can be more.

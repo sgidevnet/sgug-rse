@@ -1,0 +1,67 @@
+Only in libpipeline-1.5.1-patched: Makefile
+Only in libpipeline-1.5.1-patched: config.h
+Only in libpipeline-1.5.1-patched: config.log
+Only in libpipeline-1.5.1-patched: config.status
+Only in libpipeline-1.5.1-patched/gl/lib: .deps
+Only in libpipeline-1.5.1-patched/gl/lib: Makefile
+Only in libpipeline-1.5.1-patched/gl/lib/glthread: .deps
+Only in libpipeline-1.5.1-patched/gl/lib/glthread: .dirstamp
+Only in libpipeline-1.5.1-patched/lib: .deps
+Only in libpipeline-1.5.1-patched/lib: Makefile
+Only in libpipeline-1.5.1-patched/lib: libpipeline.pc
+diff -r -u -w libpipeline-1.5.1/lib/pipeline.c libpipeline-1.5.1-patched/lib/pipeline.c
+--- libpipeline-1.5.1/lib/pipeline.c	2019-01-05 10:53:11.000000000 +0000
++++ libpipeline-1.5.1-patched/lib/pipeline.c	2019-10-13 23:03:57.226081400 +0000
+@@ -853,7 +853,11 @@
+ 					error (FATAL, errno, "fork failed");
+ 				if (pid == 0)
+ 					pipecmd_exec (child);
++#if defined(__sgi)
++				debug ("Started \"%s\", pid %ld\n",
++#else
+ 				debug ("Started \"%s\", pid %d\n",
++#endif
+ 				       child->name, pid);
+ 
+ 				while (waitpid (pid, &status, 0) < 0) {
+@@ -862,7 +866,11 @@
+ 					error (FATAL, errno, "waitpid failed");
+ 				}
+ 
++#if defined(__sgi)
++				debug ("  \"%s\" (%ld) -> %d\n",
++#else
+ 				debug ("  \"%s\" (%d) -> %d\n",
++#endif
+ 				       child->name, pid, status);
+ 
+ 				if (WIFSIGNALED (status)) {
+@@ -1615,7 +1623,11 @@
+ 		       errno == EINTR)
+ 			;
+ 
++#if defined(__sgi)
++		debug ("Started \"%s\", pid %ld\n", p->commands[i]->name, pid);
++#else
+ 		debug ("Started \"%s\", pid %d\n", p->commands[i]->name, pid);
++#endif
+ 	}
+ 
+ 	if (p->ncommands == 0)
+@@ -1684,7 +1696,11 @@
+ 			if (p->pids[i] == -1)
+ 				continue;
+ 
++#if defined(__sgi)
++			debug ("  \"%s\" (%ld) -> %d\n",
++#else
+ 			debug ("  \"%s\" (%d) -> %d\n",
++#endif
+ 			       p->commands[i]->name, p->pids[i],
+ 			       p->statuses[i]);
+ 
+Only in libpipeline-1.5.1-patched: libtool
+Only in libpipeline-1.5.1-patched/man: Makefile
+Only in libpipeline-1.5.1-patched: stamp-h1
+Only in libpipeline-1.5.1-patched/tests: .deps
+Only in libpipeline-1.5.1-patched/tests: Makefile

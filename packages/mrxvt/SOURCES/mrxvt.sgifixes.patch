@@ -1,0 +1,122 @@
+diff -u -r -w mrxvt-0.5.4/src/init.c mrxvt-0.5.4-patched/src/init.c
+--- mrxvt-0.5.4/src/init.c	2008-06-13 20:08:13.000000000 +0000
++++ mrxvt-0.5.4-patched/src/init.c	2019-07-19 07:34:24.638524560 +0000
+@@ -812,7 +812,7 @@
+     {
+ 	char fifo_name[FILENAME_MAX];
+ 
+-	sprintf( fifo_name, "/tmp/.mrxvt-%d", getpid() );
++	sprintf( fifo_name, "/tmp/.mrxvt-%ld", getpid() );
+ 	r->fbuf_ptr = r->fifo_buf;
+ 	r->fifo_name = STRDUP( fifo_name );
+     }
+diff -u -r -w mrxvt-0.5.4/src/logging.c mrxvt-0.5.4-patched/src/logging.c
+--- mrxvt-0.5.4/src/logging.c	2008-02-17 22:04:50.000000000 +0000
++++ mrxvt-0.5.4-patched/src/logging.c	2019-07-19 07:34:24.641920720 +0000
+@@ -28,6 +28,8 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  *----------------------------------------------------------------------*/
+ 
++#include <utmpx.h>
++
+ #include "../config.h"
+ #include "rxvt.h"
+ 
+diff -u -r -w mrxvt-0.5.4/src/misc.c mrxvt-0.5.4-patched/src/misc.c
+--- mrxvt-0.5.4/src/misc.c	2008-02-17 22:04:50.000000000 +0000
++++ mrxvt-0.5.4-patched/src/misc.c	2019-07-19 07:34:24.670926080 +0000
+@@ -297,14 +297,14 @@
+ 
+ 		case 'p':
+ 		    /* Pid of process in current tab */
+-		    j += snprintf( dst + j, maxLen - j, "%d",
++		    j += snprintf( dst + j, maxLen - j, "%ld",
+ 			    PVTS(r, page)->cmd_pid );
+ 		    i++;
+ 		    break;
+ 
+ 		case 'P':
+ 		    /* PID of mrxvt */
+-		    j += snprintf( dst + j, maxLen - j, "%d", getpid() );
++		    j += snprintf( dst + j, maxLen - j, "%ld", getpid() );
+ 		    i++;
+ 		    break;
+ 
+diff -u -r -w mrxvt-0.5.4/src/rxvt.h mrxvt-0.5.4-patched/src/rxvt.h
+--- mrxvt-0.5.4/src/rxvt.h	2008-08-04 08:41:35.000000000 +0000
++++ mrxvt-0.5.4-patched/src/rxvt.h	2019-07-21 11:37:10.849435840 +0000
+@@ -448,6 +448,9 @@
+ # ifdef OS_OSF
+ #  define LASTLOG_FILE	    "/var/adm/lastlog"
+ # endif
++# ifdef __sgi
++#  define LASTLOG_FILE      "/var/adm/lastlog"
++# endif
+ # if !defined(LASTLOG_FILE) && defined(_PATH_LASTLOG)
+ #  define LASTLOG_FILE     _PATH_LASTLOG
+ # endif
+diff -u -r -w mrxvt-0.5.4/src/scrollbar-sgi.c mrxvt-0.5.4-patched/src/scrollbar-sgi.c
+--- mrxvt-0.5.4/src/scrollbar-sgi.c	2008-02-17 22:04:50.000000000 +0000
++++ mrxvt-0.5.4-patched/src/scrollbar-sgi.c	2019-07-21 11:42:35.170141520 +0000
+@@ -481,7 +481,7 @@
+ 	    /* src x, y, width, height */
+ 	    0, 0, SGI_ARROW_WIDTH, SGI_ARROW_HEIGHT,
+ 	    /* dst x, y */
+-	    ((SB_WIDTH_SGI)>>1)-(SGI_ARROW_WIDTH>>1)+1,
++	    ((SB_WIDTH_SGI)>>1)-(SGI_ARROW_WIDTH>>1),
+ 	    SGI_BEVEL_SIZE);
+ 	/* bottom button */
+ 	XCopyArea (r->Xdisplay, r->scrollBar.sgi_downArrowLow,
+@@ -489,8 +489,8 @@
+ 	    /* src x, y, width, height */
+ 	    0, 0, SGI_ARROW_WIDTH, SGI_ARROW_HEIGHT,
+ 	    /* dst x, y */
+-	    ((SB_WIDTH_SGI)>>1)-(SGI_ARROW_WIDTH>>1)+1,
+-	    new_height - SGI_ARROW_HEIGHT - SGI_BEVEL_SIZE);
++	    ((SB_WIDTH_SGI)>>1)-(SGI_ARROW_WIDTH>>1),
++	    new_height - SGI_ARROW_HEIGHT - SGI_BEVEL_SIZE + 1);
+     }
+     else    {
+ 	/* (AVTS(r)->nscrolled > 0) */
+@@ -533,7 +533,8 @@
+ 	    r->scrollBar.win, r->scrollBar.gc,
+ 	    0, 0,
+ 	    SCROLLER_DIMPLE_WIDTH, SCROLLER_DIMPLE_HEIGHT,
+-	    ((SB_WIDTH_SGI)>>1)-(SCROLLER_DIMPLE_WIDTH>>1)+1,
++//	    ((SB_WIDTH_SGI)>>1)-(SCROLLER_DIMPLE_WIDTH>>1)+1,
++	    ((SB_WIDTH_SGI)>>1)-(SCROLLER_DIMPLE_WIDTH>>1),
+ 	    r->scrollBar.top + ((scroller_len-SCROLLER_DIMPLE_HEIGHT)>>1));
+     
+ 	/* top button */
+@@ -543,7 +544,7 @@
+ 	    /* src x, y, width, height */
+ 	    0, 0, SGI_ARROW_WIDTH, SGI_ARROW_HEIGHT,
+ 	    /* dst x, y */
+-	    ((SB_WIDTH_SGI)>>1)-(SGI_ARROW_WIDTH>>1)+1,
++	    ((SB_WIDTH_SGI)>>1)-(SGI_ARROW_WIDTH>>1),
+ 	    SGI_BEVEL_SIZE);
+ 
+ 	/* bottom button */
+@@ -553,8 +554,8 @@
+ 	    /* src x, y, width, height */
+ 	    0, 0, SGI_ARROW_WIDTH, SGI_ARROW_HEIGHT,
+ 	    /* dst x, y */
+-	    ((SB_WIDTH_SGI)>>1)-(SGI_ARROW_WIDTH>>1)+1,
+-	    new_height - SGI_ARROW_HEIGHT - SGI_BEVEL_SIZE);
++	    ((SB_WIDTH_SGI)>>1)-(SGI_ARROW_WIDTH>>1),
++	    new_height - SGI_ARROW_HEIGHT - SGI_BEVEL_SIZE + 1);
+     }
+ 
+     /* bottom line of top button */
+diff -u -r -w mrxvt-0.5.4/src/tabbar.c mrxvt-0.5.4-patched/src/tabbar.c
+--- mrxvt-0.5.4/src/tabbar.c	2008-06-30 07:20:48.000000000 +0000
++++ mrxvt-0.5.4-patched/src/tabbar.c	2019-07-19 07:34:24.684982640 +0000
+@@ -1295,7 +1295,7 @@
+ 		 */
+ 		char	proc_cwd[32];		/* 16 is enough */
+ 
+-		sprintf( proc_cwd, "/proc/%d/cwd", AVTS(r)->cmd_pid );
++		sprintf( proc_cwd, "/proc/%ld/cwd", AVTS(r)->cmd_pid );
+ 		if( (len = readlink( proc_cwd, child_cwd, PATH_MAX-1) ) > 0 )
+ 		    /* readlink does not null terminate */
+ 		    child_cwd[len] = 0;

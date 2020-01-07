@@ -1,0 +1,18 @@
+diff -r -u -w nettle-3.4/testsuite/cxx-test.cxx nettle-3.4-patched/testsuite/cxx-test.cxx
+--- nettle-3.4/testsuite/cxx-test.cxx	2017-11-19 13:36:48.000000000 +0000
++++ nettle-3.4-patched/testsuite/cxx-test.cxx	2018-09-16 11:09:45.460955160 +0000
+@@ -1,8 +1,14 @@
+ /* For FILE, used by gmp.h */
+ #include <cstdio>
+ 
++#if defined(__sgi)
++#define __c99
++#endif
+ #include "testutils.h"
+ #include "md5.h"
++#if defined(__sgi)
++#undef __c99
++#endif
+ 
+ /* Test C++ linkage */
+ void
