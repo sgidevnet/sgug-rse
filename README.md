@@ -18,12 +18,14 @@ NOTE: Unlike `didbsng` - sgug-rse _must not_ use a "personal .rpmmacros" file - 
 
 (1) Download the artifacts for the latest version from the github releases tab (assuming they aren't too big).
 
-You'll find three archives:
+You'll find three main archives - and there might be "fix" archives too that need to be extracted:
 
 ```
 sgug-rse-selfhoster-0.0.1alpha.tar.gz
 sgug-rse-srpms-0.0.1alpha.tar.gz
 sgug-rse-rpms-0.0.1alpha.tar.gz
+
+sgug-rse-blahfix-0.0.Xalpha.tar.gz
 ```
 
 (2) Extract the selfhoster archive under /usr as root (important, sgug-rse _installation_ files are root owned and managed):
@@ -44,12 +46,16 @@ mkdir -p ~/rpmbuild/SRPMS
 mkdir -p ~/rpmbuild/RPMS
 ```
 
-(4) As your user extract the SRPMs and RPMs in the right place:
+(4) As your user extract the SRPMs and RPMs in the right place.
+
+This should include any fixes:
 
 ```
 cd ~/rpmbuild
 gunzip -dc /path/to/sgug-rse-srpms-0.0.1alpha.tar.gz | tar xf -
 gunzip -dc /path/to/sgug-rse-rpms-0.0.1alpha.tar.gz | tar xf -
+# Optional
+gunzip -dc /path/to/sgug-rse-blahfix-0.0.Xalpha.tar.gz | tar xf -
 ```
 
 (5) You'll need to clone this repo (sgug-rse) -
