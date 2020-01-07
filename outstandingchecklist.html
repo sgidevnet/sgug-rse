@@ -1,0 +1,1219 @@
+<html>
+  <head><title>DIDBSNG Package Progress</title></head>
+  <body>
+    <H1>DIDBSNG Missing Functionality</H1>
+    <p>The following have been identified as "missing" for building some of the packages listed below. Possibly either they get added to regular didbs (to make sure they work) and/or they are just introduced as SRPM/RPM packages.</p>
+    <ul>
+      <li>chrpath</li>
+      <li>ldconfig_scriplets</li>
+      <li>redhat_rpm_config (some packages use macro invocations to turn libtool launchers into re-linked executables) - this also might be where debug info is extracted into separate packages</li>
+    </ul>
+    <H1>DIDBSNG Package Progress</H1>
+    <p>A list of the packages we are trying to get building under an "RPM" based environment and their status.</p>
+    <ul>
+        <li>SRPM/SPEC Found = <br><br>Found existing SRPM/SPEC file for it</li><br>
+        <li>SPEC Builds OK = <pre>rpmbuild -ba BLAH.spec --nocheck</pre></li>
+        <li>First RPMs Install OK = <pre>rpm -ivh BLAH-version.didbsng.mips.rpm</pre></li>
+        <li>SPEC DIDBS Patched = <br><br>Checked if didbs patches moved over</li><br>
+        <li>didbsngshell OK? = <pre>didbsngshell<br>/usr/didbsng/bin/blah</pre></li>
+        <li>didbsngshell Builds OK? <br><br>(launch didbsngshell, build using gcc in there)</li><br>
+        <li>Active Deps OK?<br><br>(put back original deps, does it still build OK within didbsngshell?)</li><br>
+        <li>Notes/make check<br><br>A place to note blocking issues / glaring problems</li>
+    </ul>
+    <table width="100%" border="1">
+      <tr>
+        <th></th>
+        <th>SRPM/SPEC Found?</th>
+        <th>SPEC Builds OK?</th>
+        <th>First RPMs Install OK?</th>
+        <th>SPEC DIDBS Patched?</th>
+        <th>didbsngshell OK?</th>
+        <th>didbsngshell Builds OK?</th>
+        <th>Active Deps OK?</th>
+        <th>Notes/make check</th>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">libdicl<br>didbs:&nbsp;0.1.15<br>didbsng:&nbsp;0.1.15</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>texinfo<br>didbs:&nbsp;6.6<br>didbsng:&nbsp;6.6</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>texinfo-tex not happy as needs tex, but not reqd sub-package for now.</td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">gettext<br>didbs:&nbsp;0.19.8.1<br>didbsng:&nbsp;0.19.8.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>libiconv<br>didbs:&nbsp;1.16<br>didbsng:&nbsp;1.16</td>
+        <td bgcolor="#00ff00">(RHEL)</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>make<br>didbs:&nbsp;4.2.1<br>didbsng:&nbsp;4.2.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#ffcc00">needed?</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#ffcc00">bzip2<br>didbs:&nbsp;1.0.6<br>didbsng:&nbsp;1.0.8</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#ffcc00">needed?</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>flex<br>didbs:&nbsp;2.6.4<br>didbsng:&nbsp;2.6.4</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">less-551<br>didbs:&nbsp;530<br>didbsng:&nbsp;551</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">pkg-config<br>didbs:&nbsp;0.29.2<br>didbsng:&nbsp;0.29.2</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">tar<br>didbs:&nbsp;1.30<br>didbsng:&nbsp;1.30</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#ffcc00">expat<br>didbs:&nbsp;2.2.6<br>didbsng:&nbsp;2.2.8</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#ffcc00">needed?</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">gzip<br>didbs:&nbsp;1.9<br>didbsng:&nbsp;1.9</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>unzip<br>didbs:&nbsp;6.0<br>didbsng:&nbsp;6.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>xz<br>didbs:&nbsp;5.2.4<br>didbsng:&nbsp;5.2.4</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>libdb<br>didbs:&nbsp;5.3.28<br>didbsng:&nbsp;5.3.28</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>patch<br>didbs:&nbsp;2.7.6<br>didbsng:&nbsp;2.7.6</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">help2man<br>didbs:&nbsp;1.47.10<br>didbsng:&nbsp;1.47.10</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">libffi<br>didbs:&nbsp;3.2.1<br>didbsng:&nbsp;3.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">libjpeg<br>didbs:&nbsp;jpeg9c<br>didbsng:&nbsp;jpeg9c</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>libpipeline<br>didbs:&nbsp;1.5.1<br>didbsng:&nbsp;1.5.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#ffcc00">needed?</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>libxml2<br>didbs:&nbsp;2.9.9<br>didbsng:&nbsp;2.9.9</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>libXpm<br>didbs:&nbsp;3.5.12<br>didbsng:&nbsp;3.5.12</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>m4<br>didbs:&nbsp;1.4.18<br>didbsng:&nbsp;1.4.18</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>openssl<br>didbs:&nbsp;1.1.1d<br>didbsng:&nbsp;1.1.1d</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>perl(WWW::Curl::Easy) needed for openssh-perl install</td>
+      </tr>
+      <tr>
+        <td>readline<br>didbs:&nbsp;8.0<br>didbsng:&nbsp;8.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <th></th>
+        <th>SRPM/SPEC Found?</th>
+        <th>SPEC Builds OK?</th>
+        <th>First RPMs Install OK?</th>
+        <th>SPEC DIDBS Patched?</th>
+        <th>didbsngshell OK?</th>
+        <th>didbsngshell Builds OK?</th>
+        <th>Active Deps OK?</th>
+        <th>Notes/make check</th>
+      </tr>
+      <tr>
+        <td>rsync<br>didbs:&nbsp;3.1.3<br>didbsng:&nbsp;3.1.3</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>sed<br>didbs:&nbsp;4.5<br>didbsng:&nbsp;4.5</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>xosview<br>didbs:&nbsp;1.20<br>didbsng:&nbsp;1.21</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>zlib<br>didbs:&nbsp;1.2.11<br>didbsng:&nbsp;1.2.11</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>bison<br>didbs:&nbsp;3.4.1<br>didbsng:&nbsp;3.4.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#ffcc00">needed?</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="ffcc00">ca-certificates<br>didbs:&nbsp;self<br>didbsng:&nbsp;fedora</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>It's a bit janky, but preprocessed tarball of the certs to bypass need for python.</td>
+      </tr>
+      <tr>
+        <td>gmp<br>didbs:&nbsp;6.1.2<br>didbsng:&nbsp;6.1.2</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">libpng<br>didbs:&nbsp;1.6.34<br>didbsng:&nbsp;1.6.34</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">libtiff<br>didbs:&nbsp;4.0.9<br>didbsng:&nbsp;4.0.9</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#ffcc00">xloadimage<br>didbs:&nbsp;2005-02-27<br>didbsng:&nbsp;4.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Version sync not needed</td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">isl<br>didbs:&nbsp;0.18<br>didbsng:&nbsp;0.18</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">mpfr<br>didbs:&nbsp;4.0.1<br>didbsng:&nbsp;4.0.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>mrxvt<br>didbs:&nbsp;0.5.4<br>didbsng:&nbsp;0.5.4</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">nettle<br>didbs:&nbsp;3.4<br>didbsng:&nbsp;3.4</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#ffcc00">gawk<br>didbs:&nbsp;3.1.8<br>didbsng:&nbsp;5.0.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#ffcc00">needed?</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>libmpc<br>didbs:&nbsp;1.1.0<br>didbsng:&nbsp;1.1.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">file<br>didbs:&nbsp;5.36<br>didbsng:&nbsp;5.36</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">curl<br>didbs:&nbsp;7.61.0<br>didbsng:&nbsp;7.61.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Removed deps with issues on IRIX.</td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">diffutils<br>didbs:&nbsp;3.6<br>didbsng:&nbsp;3.6</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>grep<br>didbs:&nbsp;3.3<br>didbsng:&nbsp;3.3</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>findutils<br>didbs:&nbsp;4.6.0<br>didbsng:&nbsp;4.6.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <th></th>
+        <th>SRPM/SPEC Found?</th>
+        <th>SPEC Builds OK?</th>
+        <th>First RPMs Install OK?</th>
+        <th>SPEC DIDBS Patched?</th>
+        <th>didbsngshell OK?</th>
+        <th>didbsngshell Builds OK?</th>
+        <th>Active Deps OK?</th>
+        <th>Notes/make check</th>
+      </tr>
+      <tr>
+        <td>ncurses<br>didbs:&nbsp;6.1<br>didbsng:&nbsp;6.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>bash<br>didbs:&nbsp;5.0<br>didbsng:&nbsp;5.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00">see note</td>
+        <td></td>
+        <td></td>
+        <td>Note: currently --disable-nls and --without-curses due to problems seem with "exit 0"</td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">emacs<br>didbs:&nbsp;23.3<br>didbsng:&nbsp;23.3</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>No working patch for recent emacs. Punted to post self-hosting.</td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">sqlite<br>didbs:&nbsp;ac322<br>didbsng:&nbsp;sep322</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">tcsh<br>didbs:&nbsp;6.20.00<br>didbsng:&nbsp;6.20.00</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">vim<br>didbs:&nbsp;8.1<br>didbsng:&nbsp;8.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">coreutils<br>didbs:&nbsp;8.30<br>didbsng:&nbsp;8.30</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>neofetch</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>autoconf<br>didbs:&nbsp;2.69<br>didbsng:&nbsp;2.69</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#ffcc00">docbook5-schemas<br>didbs:&nbsp;4.5<br>didbsng:&nbsp;5.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Not same exact version as didbs, but should be ok</td>
+      </tr>
+      <tr>
+        <td>docbook5-style-xsl<br>didbs:&nbsp;1.79.2<br>didbsng:&nbsp;1.79.2</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>perl&nbsp;(bootstrap)<br>didbs:&nbsp;5.3.0<br>didbsng:&nbsp;5.3.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#ffcc00"></td>
+        <td></td>
+        <td></td>
+        <td>Hopefully fixed vendorlib and vendorarch (testing needed).</td>
+      </tr>
+      <tr>
+        <td>perl&nbsp;(nobootstrap)</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Not yet attempted</td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">unrar<br>didbs:&nbsp;5.65<br>didbsng:&nbsp;5.6.5</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#bbbbbb">perl-Getopt-ArgvFile<br>didbs:&nbsp;1.11<br>didbsng:&nbsp;1.11</td>
+        <td bgcolor="#bbbbbb"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Punted to post self-hosting.</td>
+      </tr>
+      <tr>
+        <td bgcolor="#bbbbbb">perl-XML-Parser<br>didbs:&nbsp;2.44<br>didbsng:&nbsp;2.44</td>
+        <td bgcolor="#bbbbbb"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Punted to post self-hosting.</td>
+      </tr>
+      <tr>
+        <td>automake<br>didbs:&nbsp;1.16.1<br>didbsng:&nbsp;1.16.1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">groff<br>didbs:&nbsp;1.22.4<br>didbsng:&nbsp;1.22.4</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <th></th>
+        <th>SRPM/SPEC Found?</th>
+        <th>SPEC Builds OK?</th>
+        <th>First RPMs Install OK?</th>
+        <th>SPEC DIDBS Patched?</th>
+        <th>didbsngshell OK?</th>
+        <th>didbsngshell Builds OK?</th>
+        <th>Active Deps OK?</th>
+        <th>Notes/make check</th>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">libarchive<br>didbs:&nbsp;3.3.2<br>didbsng:&nbsp;3.3.2</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">uuid<br>didbs:&nbsp;1.3.0<br>didbsng:&nbsp;1.3.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Fedora orig libuuid project is autotools broken. Switched to the util-linux derived uuid library similar to didbs.</td>
+      </tr>
+      <tr>
+        <td>libxslt<br>didbs:&nbsp;1.1.33<br>didbsng:&nbsp;1.1.33</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">openssh<br>didbs:&nbsp;8.1p1<br>didbsng:&nbsp;8.1p1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Dep missing of /usr/sbin/useradd and probably other issues (missing init.d). Currently unresolvable symbol in ssh client, too.</td>
+      </tr>
+      <tr>
+        <td>libtool<br>didbs:&nbsp;2.4.6<br>didbsng:&nbsp;2.4.6</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">man-db<br>didbs:&nbsp;2.8.5<br>didbsng:&nbsp;2.8.5</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>man-db ok, cron bits missing dependencies.</td>
+      </tr>
+      <tr>
+        <td>libunistring<br>didbs:&nbsp;0.9.10<br>didbsng:&nbsp;0.9.10</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>wget<br>didbs:&nbsp;1.20.3<br>didbsng:&nbsp;1.20.3</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>which<br>didbs:&nbsp;2.21<br>didbsng:&nbsp;2.21</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">tcl<br>didbs:&nbsp;8.6.9<br>didbsng:&nbsp;8.6.9</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>rxvt-unicode<br>didbs:&nbsp;9.22<br>didbsng:&nbsp;9.22</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#bbbbbb"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Punted to post self-hosting.</td>
+      </tr>
+      <tr>
+        <td>xman<br>didbs:&nbsp;1.1.4<br>didbsng:&nbsp;???</td>
+        <td bgcolor="#bbbbbb"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Punted to post self-hosting.</td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">tk<br>didbs:&nbsp;8.6.9<br>didbsng:&nbsp;8.6.9</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>expect<br>didbs:&nbsp;5.45.4<br>didbsng:&nbsp;5.45.4</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">git<br>didbs:&nbsp;2.22.0<br>didbsng:&nbsp;2.22.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td>Traditional fedora RPM build is very complex -&gt; simplified build now.</td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">dejagnu<br>didbs:&nbsp;1.6.2<br>didbsng:&nbsp;1.6.2</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>binutils<br>didbs:&nbsp;2.23.2<br>didbsng:&nbsp;2.23.2</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>gcc<br>didbs:&nbsp;9.2.0<br>didbsng:&nbsp;9.2.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>boost<br>didbs:&nbsp;1.69<br>didbsng:&nbsp;1.69</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Builds OK, install missing libicu-devel.</td>
+      </tr>
+      <tr>
+        <td bgcolor="#ff0000">gdb<br>didbs:&nbsp;7.6.2<br>didbsng:&nbsp;8.3.50</td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>libdwarf-20191002<br>didbs:&nbsp;20191002<br>didbsng:&nbsp;20191002</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>popt<br>didbs:&nbsp;1.16<br>didbsng:&nbsp;1.16</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#00ff00">lua<br>didbs:&nbsp;5.3.5<br>didbsng:&nbsp;5.3.5</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>elfutils<br>didbs:&nbsp;0.177<br>didbsng:&nbsp;0.177</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td bgcolor="#bbbbbb">pax-utils<br>didbs:&nbsp;1.2.4<br>didbsng:&nbsp;1.2.3</td>
+        <td bgcolor="#bbbbbb"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Punted to post self-hosting, but may be retired anyway.</td>
+      </tr>
+      <tr>
+        <td>rpm<br>didbs:&nbsp;4.15.0<br>didbsng:&nbsp;4.15.0</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>
+    <H1>DIDBSNG Additional Package Progress</H1>
+    <table width="100%" border="1">
+      <tr>
+        <th></th>
+        <th>SRPM/SPEC Found?</th>
+        <th>SPEC Builds OK?</th>
+        <th>First RPMs Install OK?</th>
+        <th>SPEC DIDBS Patched?</th>
+        <th>didbsngshell OK?</th>
+        <th>didbsngshell Builds OK?</th>
+        <th>Active Deps OK?</th>
+        <th>Notes/make check</th>
+      </tr>
+      <tr>
+        <td>perl-libintl-perl-1.31-4.fc31.src.rpm</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>perl-WWW-Curl-4.17-20.fc31.src.rpm</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#bbbbbb"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Punted for now, not yet needed.</td>
+      </tr>
+      <tr>
+        <td>perl-generators-1.11-4.fc31.src.rpm</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>perl-File-Which-1.23-4.fc31.src.rpm</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>perl-File-HomeDir-1.004-6.fc31.src.rpm</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>perl-Fedora-VSP-0.001-16.fc31.src.rpm</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>chkconfig-1.11-5.fc31.src.rpm<br><i>alternatives</i></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Everything exception alternatives is broken (and probably not useful anyway).</td>
+      </tr>
+      <tr>
+        <td>docbook-dtds</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>docbook-style-xsl</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>sgml-common</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>bash-completion</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#ffcc00"></td>
+        <td></td>
+        <td></td>
+        <td>Not yet active, probably need equiv to /etc/bashrc.</td>
+      </tr>
+      <tr>
+        <td>libtasn1</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>p11-kit</td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td bgcolor="#00ff00"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>
+  </body>
+</html>
+    
