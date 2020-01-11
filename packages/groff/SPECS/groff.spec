@@ -1,7 +1,3 @@
-# This is necessary as groff configure will fail with --as-needed
-# on C++ testing
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
-
 %{!?with_x:%global with_x 1}
 
 Summary: A document formatting system
