@@ -1,6 +1,3 @@
-# This is necessary as tcl config/link will fail with --as-needed
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
-
 %define majorver 8.6
 %define	vers %{majorver}.9
 #%{!?sdt:%define sdt 1}
