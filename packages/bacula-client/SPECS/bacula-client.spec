@@ -18,7 +18,6 @@ to find and recover lost or damaged files.
 
 %prep
 %setup -n bacula-%{version}
-%patch0 -p1 -b .libtool-irix-fix
 
 %build
 export SHELL=%{_bindir}/sh
