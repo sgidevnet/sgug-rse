@@ -11,6 +11,7 @@ Source1:        trust-extract-compat
 Source2:        p11-kit-client.service
 
 Patch100:       p11-kit.sgifixes.patch
+Patch101:       p11-kit.sgifixpselect.patch
 
 BuildRequires:  gcc
 BuildRequires:  libtasn1-devel >= 2.3
@@ -26,6 +27,7 @@ p11-kit provides a way to load and enumerate PKCS#11 modules, as well
 as a standard configuration setup for installing PKCS#11 modules in
 such a way that they're discoverable.
 
+# Here's a terminator
 
 %package devel
 Summary:        Development files for %{name}
@@ -78,7 +80,7 @@ export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-export LDFLAGS="-L%{_libdir} -ldicl-0.1 -lpthread"
+export LIBS="-ldicl-0.1"
 # These paths are the source paths that  come from the plan here:
 # https://fedoraproject.org/wiki/Features/SharedSystemCertificates:SubTasks
 #configure --disable-static --enable-doc --with-trust-paths=%{_sysconfdir}/pki/ca-trust/source:%{_datadir}/pki/ca-trust-source --disable-silent-rules

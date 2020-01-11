@@ -1,0 +1,50 @@
+--- p11-kit-0.23.16.1/p11-kit/server.c~	2020-01-11 11:07:44.741841560 +0000
++++ p11-kit-0.23.16.1/p11-kit/server.c	2020-01-11 11:25:07.385445240 +0000
+@@ -384,7 +384,11 @@
+ static int
+ server_loop (Server *server,
+ 	     bool foreground,
++#if defined(__sgi)
++	     struct timeval *timeout)
++#else
+ 	     struct timespec *timeout)
++#endif
+ {
+ 	int ret;
+ 	int cfd;
+@@ -466,7 +470,11 @@
+ 		FD_ZERO (&rd_set);
+ 		FD_SET (server->socket, &rd_set);
+ 
++#if defined(__sgi)
++		ret = select (server->socket + 1, &rd_set, NULL, NULL, timeout);
++#else
+ 		ret = pselect (server->socket + 1, &rd_set, NULL, NULL, timeout, &emptyset);
++#endif
+ 		if (ret == -1 && errno == EINTR)
+ 			continue;
+ 
+@@ -561,7 +569,11 @@
+ 	bool foreground = false;
+ 	bool csh_opt = false;
+ 	bool kill_opt = false;
++#if defined(__sgi)
++	struct timeval *timeout = NULL, ts;
++#else
+ 	struct timespec *timeout = NULL, ts;
++#endif
+ 	char *name = NULL;
+ 	char *provider = NULL;
+ 	Server *server = NULL;
+@@ -628,7 +640,11 @@
+ 			break;
+ 		case opt_timeout:
+ 			ts.tv_sec = atoi (optarg);
++#if defined(__sgi)
++			ts.tv_usec = 0;
++#else
+ 			ts.tv_nsec = 0;
++#endif
+ 			timeout = &ts;
+ 			break;
+ 		case opt_name:
