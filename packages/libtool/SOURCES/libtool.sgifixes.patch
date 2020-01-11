@@ -1,6 +1,6 @@
-diff -r -u -w libtool-2.4.6/m4/libtool.m4 libtool-2.4.6-patched/m4/libtool.m4
+diff -u -r libtool-2.4.6/m4/libtool.m4 libtool-2.4.6-patched/m4/libtool.m4
 --- libtool-2.4.6/m4/libtool.m4	2015-01-20 16:15:19.000000000 +0000
-+++ libtool-2.4.6-patched/m4/libtool.m4	2019-12-01 16:11:18.641181680 +0000
++++ libtool-2.4.6-patched/m4/libtool.m4	2020-01-11 21:11:55.134925240 +0000
 @@ -6910,13 +6910,16 @@
  	    # necessary to make sure instantiated templates are included
  	    # in the archive.
@@ -13,7 +13,8 @@ diff -r -u -w libtool-2.4.6/m4/libtool.m4 libtool-2.4.6-patched/m4/libtool.m4
  	        _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations -o $lib'
 +		_LT_TAGVAR(inherit_rpath, $1)=yes
  	      else
- 	        _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` -o $lib'
+-	        _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` -o $lib'
++	        _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-soname $wl$soname -o $lib'
 +		_LT_TAGVAR(inherit_rpath, $1)=no
  	      fi
  	    fi
