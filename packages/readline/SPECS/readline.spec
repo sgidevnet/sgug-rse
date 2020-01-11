@@ -10,8 +10,8 @@ Source: ftp://ftp.gnu.org/gnu/readline/readline-%{version}.tar.gz
 # Patches are converted to apply with '-p1'
 
 # Other patches
-# Remove RPATH, use CFLAGS
-Patch101: readline-8.0-shlib.patch
+# use CFLAGS
+Patch101: readline-8.0-shlib.sgi.patch
 
 #BuildRequires: gcc
 BuildRequires: ncurses-devel

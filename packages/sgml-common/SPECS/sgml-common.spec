@@ -62,7 +62,7 @@ but that don't need to be included in main package.
 automakedir=`ls -1d %{_prefix}/share/automake* | head -n +1`
 for file in COPYING INSTALL install-sh missing mkinstalldirs; do
    rm $file
-   cp -p $automakedir/$file .
+   cp $automakedir/$file .
 done
 
 %build

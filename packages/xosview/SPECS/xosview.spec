@@ -30,7 +30,7 @@ etc. Xosview runs under the X Window System.
 %patch50 -p1
 
 %build
-make PLATFORM=irix65 %{?_smp_mflags} OPTFLAGS="%{optflags}"
+make PLATFORM=irix65 %{?_smp_mflags} OPTFLAGS="%{optflags}" LDFLAGS="%{build_ldflags}"
 
 %install
 make PLATFORM=irix65 install PREFIX=%{buildroot}%{_prefix} INSTALL="install -p"

@@ -1,3 +1,6 @@
+# This is necessary as openssh link will fail with --as-needed
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 # Do we want SELinux & Audit
 #%if 0%{?!noselinux:1}
 #%global WITH_SELINUX 1
@@ -449,6 +452,7 @@ CFLAGS="$CFLAGS -fPIC"
 %else
 CFLAGS="$CFLAGS -fpic"
 %endif
+LDFLAGS="$RPM_LD_FLAGS"
 SAVE_LDFLAGS="$LDFLAGS"
 LDFLAGS="$LDFLAGS -pie -z relro -z now"
 

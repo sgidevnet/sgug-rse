@@ -65,11 +65,17 @@ Group: Development/Libraries
 The make-devel package contains gnumake.h.
 
 %prep
+export SHELL=%{_bindir}/sh
+export SHELL_PATH="$SHELL"
+export CONFIG_SHELL="$SHELL"
 %autosetup -p1
 
 rm -f tests/scripts/features/parallelism.orig
 
 %build
+export SHELL=%{_bindir}/sh
+export SHELL_PATH="$SHELL"
+export CONFIG_SHELL="$SHELL"
 # Since we made a change to configure.ac (and configure) touch
 # the files to avoid rebuild problems with automake versioning.
 # Specifically make expects 1.15 but some systems use 1.16.1.
@@ -82,6 +88,9 @@ touch `find . -name Makefile.in`
 make %{?_smp_mflags}
 
 %install
+export SHELL=%{_bindir}/sh
+export SHELL_PATH="$SHELL"
+export CONFIG_SHELL="$SHELL"
 rm -rf ${RPM_BUILD_ROOT}
 make DESTDIR=$RPM_BUILD_ROOT install
 ln -sf make ${RPM_BUILD_ROOT}/%{_bindir}/gmake

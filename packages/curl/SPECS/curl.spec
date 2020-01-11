@@ -219,8 +219,7 @@ export SHELL="%{_bindir}/sh"
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
-export CFLAGS="-R%{_libdir} $CFLAGS"
-export LDFLAGS="-rpath %{_libdir} $LDFLAGS"
+
 mkdir build-{full,minimal}
 export common_configure_opts=" \
     --cache-file=../config.cache \
@@ -284,8 +283,7 @@ export SHELL="%{_bindir}/sh"
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
-export CFLAGS="-R%{_libdir} $CFLAGS"
-export LDFLAGS="-rpath %{_libdir} $LDFLAGS"
+
 # we have to override LD_LIBRARY_PATH because we eliminated rpath
 LD_LIBRARYN32_PATH="$RPM_BUILD_ROOT%{_libdir}:$LD_LIBRARYN32_PATH"
 export LD_LIBRARYN32_PATH
@@ -306,8 +304,7 @@ export SHELL="%{_bindir}/sh"
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
-export CFLAGS="-R%{_libdir} $CFLAGS"
-export LDFLAGS="-rpath %{_libdir} $LDFLAGS"
+
 # install and rename the library that will be packaged as libcurl-minimal
 make DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p" install -C build-minimal/lib
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/libcurl.{la,so}

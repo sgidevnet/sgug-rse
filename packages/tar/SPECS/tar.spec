@@ -62,6 +62,9 @@ awk 'stop = false; /^2014-07-27/ { stop = true; exit }; { print }' \
 
 
 %build
+export SHELL=%{_bindir}/sh
+export SHELL_PATH="$SHELL"
+export CONFIG_SHELL="$SHELL"
 %configure \
     %{!?with_selinux:--without-selinux} \
     --with-lzma="xz --format=lzma" \

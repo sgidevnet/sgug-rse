@@ -1,3 +1,6 @@
+# IRIX This is necessary as vim configure will fail with --as-needed
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 %global perl_version    5.30.0
 %global perl_epoch      4
 %global perl_arch_stem -thread-multi
@@ -2706,6 +2709,8 @@ positive or negative, though POSIX only requires support for positive values,
 so dates before the system's epoch may not work on all operating systems.
 %endif
 
+# Here's a terminator
+
 %package Time-Piece
 Summary:        Time objects from localtime and gmtime
 License:        (GPL+ or Artistic) and BSD
@@ -2981,7 +2986,29 @@ cp %{_topdir}/SOURCES/perl.irix6_gcc_config.sh config.sh
 perl -pi -e "s|DIDBSINSTALLPREFIX|%{_prefix}|g" config.sh
 LIBDIR_REGEXP="s|%{_prefix}/lib/|%{_prefix}/%{_lib}/|g"
 perl -pi -e "$LIBDIR_REGEXP" config.sh
+CCFLAGS_REGEXP="s|^ccflags=.*$|ccflags='$RPM_OPT_FLAGS'|g"
+perl -pi -e "$CCFLAGS_REGEXP" config.sh
+LDFLAGS_REGEXP="s|^ldflags=.*$|ldflags='$RPM_LD_FLAGS -L%{_libdir}'|g"
+perl -pi -e "$LDFLAGS_REGEXP" config.sh
+CCDLFLAGS_REGEXP="s|^ccdlflags=.*$|ccdlflags='-Wl,--enable-new-dtags $RPM_LD_FLAGS'|g"
+perl -pi -e "$CCDLFLAGS_REGEXP" config.sh
+LDDLFLAGS_REGEXP="s|^lddlflags=.*$|lddlflags='-shared $RPM_LD_FLAGS -L%{_libdir}'|g"
+perl -pi -e "$LDDLFLAGS_REGEXP" config.sh
+OPTFLAGS_REGEXP="s|^optimize=.*$|optimize='%{optflags}'|g"
+perl -pi -e "$OPTFLAGS_REGEXP" config.sh
 /usr/bin/env sh Configure -S \
+        -Doptimize=" " \
+        -Dccflags="$RPM_OPT_FLAGS" \
+        -Dldflags="$RPM_LD_FLAGS" \
+        -Dccdlflags="-Wl,--enable-new-dtags $RPM_LD_FLAGS" \
+        -Dlddlflags="-shared $RPM_LD_FLAGS" \
+        -Dshrpdir="%{_libdir}" \
+        -DDEBUGGING=-g \
+        -Dversion=%{perl_version} \
+        -Dmyhostname=localhost \
+        -Dperladmin=root@localhost \
+        -Dcc='%{__cc}' \
+        -Dcf_by='SGUG' \
         -Dprefix=%{_prefix} \
 %if %{without perl_enables_groff}
         -Dman1dir="%{_mandir}/man1" \
@@ -3027,7 +3054,7 @@ export BUILD_BZIP2 BZIP2_LIB
 %global soname libperl.so.%{perl_abi}
 test -L %soname || ln -s libperl.so %soname
 
-LD_LIBRARYN32_PATH=/usr/didbs/current/lib32:$LD_LIBRARYN32_PATH make %{?_smp_mflags}
+LD_LIBRARYN32_PATH=%{_libdir}:$LD_LIBRARYN32_PATH make %{?_smp_mflags}
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT

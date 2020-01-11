@@ -34,6 +34,8 @@ prints the matching lines. GNU's grep utilities include grep, egrep and fgrep.
 
 GNU grep is needed by many scripts, so it shall be installed on every system.
 
+# Here's a terminating quote.
+
 %prep
 %setup -q
 %patch0 -p1 -b .man-fix-gs

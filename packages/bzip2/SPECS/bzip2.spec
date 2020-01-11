@@ -72,14 +72,14 @@ sed -i "s|^libdir=|libdir=%{_libdir}|" bzip2.pc
 %endif
 
 make -f Makefile-libbz2_so CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" \
-    CFLAGS="$RPM_OPT_FLAGS -D_FILE_OFFSET_BITS=64 -fpic -fPIC $O3 -R%{_libdir}" \
-    LDFLAGS="%{__global_ldflags} -rpath %{_libdir}" \
+    CFLAGS="$RPM_OPT_FLAGS -D_FILE_OFFSET_BITS=64 -fpic -fPIC $O3" \
+    LDFLAGS="$RPM_LD_FLAGS" \
     %{?_smp_mflags} all
 
 rm -f *.o
 make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" \
-    CFLAGS="$RPM_OPT_FLAGS -D_FILE_OFFSET_BITS=64 $O3 -R%{_libdir}" \
-    LDFLAGS="%{__global_ldflags} -rpath %{_libdir}" \
+    CFLAGS="$RPM_OPT_FLAGS -D_FILE_OFFSET_BITS=64 $O3" \
+    LDFLAGS="$RPM_LD_FLAGS" \
     %{?_smp_mflags} all
 
 %install

@@ -1,3 +1,6 @@
+# This is necessary as libxslt configure will fail with --as-needed
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 Name:           libxslt
 Summary:        Library providing the Gnome XSLT engine
 Version:        1.1.33

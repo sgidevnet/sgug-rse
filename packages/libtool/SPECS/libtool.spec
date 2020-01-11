@@ -16,7 +16,7 @@ Source:  http://ftp.gnu.org/gnu/libtool/libtool-%{version}.tar.xz
 
 # ~> downstream
 # ~> remove possibly once #1158915 gets fixed somehow
-Patch0:  libtool-2.4.5-rpath.patch
+#Patch0:  libtool-2.4.5-rpath.patch
 
 # ~> downstream (TODO)
 Patch1: libtool-2.4.6-am-1.16-test.patch
@@ -110,7 +110,7 @@ export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
 export M4=%{_bindir}/m4
 %setup -n libtool-%{version} -q
-%patch0 -p1 -b .rpath
+#%patch0 -p1 -b .rpath
 %patch1 -p1 -b .test
 #%patch2 -p1 -b .gcc-specs
 #%patch3 -p1 -b .ltdl-hardening

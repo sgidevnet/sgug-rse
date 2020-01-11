@@ -1,6 +1,7 @@
+
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.18
+Version: 0.1.17
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -26,7 +27,7 @@ to develop programs that use libdicl library.
 %setup -q
 
 %build
-export CFLAGS="-R%{_libdir}"
+
 %{configure}
 make %{?_smp_mflags}
 

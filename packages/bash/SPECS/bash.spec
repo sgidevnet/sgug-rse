@@ -129,9 +129,6 @@ rm y.tab.*
 %build
 autoconf
 
-#export CFLAGS="$CFLAGS -I%{_includedir}/libdicl-0.1"
-#export LDFLAGS="-rpath %{_libdir} -liconv -ltinfo -lintl -ldicl-0.1"
-
 # DH
 #%configure --with-bash-malloc=no --with-afs
 # Don't enable nls or curses, error when "exit 0" simple script run.

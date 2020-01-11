@@ -1,3 +1,6 @@
+# IRIX This is necessary as vim configure will fail with --as-needed
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 %define patchlevel 2102
 %define WITH_SELINUX 0
 %define desktop_file 0

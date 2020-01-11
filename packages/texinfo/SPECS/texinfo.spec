@@ -20,9 +20,9 @@ Patch4: texinfo-6.5-fix-info-dir.patch
 # Patch5: fixes issues detected by static analysis
 Patch5: texinfo-6.5-covscan-fixes.patch
 
-BuildRequires: gcc
+#BuildRequires: gcc
 #BuildRequires: perl-generators
-BuildRequires: zlib-devel, ncurses-devel, help2man, perl(Data::Dumper)
+#BuildRequires: zlib-devel, ncurses-devel, help2man, perl(Data::Dumper)
 #BuildRequires: perl(Locale::Messages), perl(Unicode::EastAsianWidth), perl(Text::Unidecode)
 BuildRequires: perl(Storable)
 
@@ -104,18 +104,19 @@ install -Dpm0755 -t %{buildroot}%{_sbindir} contrib/fix-info-dir
 export ALL_TESTS=yes
 %make_build check
 
+# SGUGFIXME - see if these can be enabled at some point
 #%post tex
 #%{_bindir}/texconfig-sys rehash 2> /dev/null || :
 
 #%postun tex
 #%{_bindir}/texconfig-sys rehash 2> /dev/null || :
 
-%transfiletriggerin -n info -- %{_infodir}
-[ -f %{_infodir}/dir ] && create_arg="" || create_arg="--create"
-%{_sbindir}/fix-info-dir $create_arg %{_infodir}/dir &>/dev/null
+#%transfiletriggerin -n info -- %{_infodir}
+#[ -f %{_infodir}/dir ] && create_arg="" || create_arg="--create"
+#%{_sbindir}/fix-info-dir $create_arg %{_infodir}/dir &>/dev/null
 
-%transfiletriggerpostun -n info -- %{_infodir}
-[ -f %{_infodir}/dir ] && %{_sbindir}/fix-info-dir --delete %{_infodir}/dir &>/dev/null
+#%transfiletriggerpostun -n info -- %{_infodir}
+#[ -f %{_infodir}/dir ] && %{_sbindir}/fix-info-dir --delete %{_infodir}/dir &>/dev/null
 
 %files -f %{name}.lang -f %{name}_document.lang
 %doc AUTHORS ChangeLog NEWS README TODO

@@ -45,7 +45,6 @@ export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-export LDFLAGS="-L%{_libdir}"
 export LIBS="-ldicl-0.1"
 %autosetup
 
@@ -54,7 +53,6 @@ export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-export LDFLAGS="-L%{_libdir}"
 export LIBS="-ldicl-0.1"
 %configure
 %make_build
@@ -64,7 +62,6 @@ export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-export LDFLAGS="-L%{_libdir}"
 export LIBS="-ldicl-0.1"
 %make_install
 

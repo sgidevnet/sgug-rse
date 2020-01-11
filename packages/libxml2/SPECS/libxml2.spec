@@ -89,18 +89,23 @@ microseconds when parsing, do not link to them for generic purpose packages.
 #at parse time or later once the document has been modified.
 
 %prep
-export LDFLAGS="-rpath %{_libdir}"
+
 %autosetup -p1
 find doc -type f -executable -print -exec chmod 0644 {} ';'
 
 %build
-export LDFLAGS="-rpath %{_libdir}"
+# Rewrite the default catalogs to our intended paths
+perl -pi -e "s|/etc/sgml/catalog|%{_prefix}/etc/sgml/catalog|g" catalog.c
+perl -pi -e "s|/etc/sgml/catalog|%{_prefix}/etc/sgml/catalog|g" xmlcatalog.c
+
+perl -pi -e "s|/etc/xml/catalog|%{_prefix}/etc/xml/catalog|g" catalog.c
+perl -pi -e "s|/etc/xml/catalog|%{_prefix}/etc/xml/catalog|g" xmlcatalog.c
+
 %global _configure_disable_silent_rules 1
 %configure
 make %{?_smp_mflags}
 
 %install
-export LDFLAGS="-rpath %{_libdir}"
 make install DESTDIR=$RPM_BUILD_ROOT
 
 # multiarch crazyness on timestamp differences or Makefile/binaries for examples

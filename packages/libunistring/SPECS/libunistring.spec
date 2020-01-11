@@ -27,7 +27,7 @@ Development files for programs using libunistring.
 %setup -q
 
 %build
-%configure --disable-static --disable-rpath
+%configure --disable-static
 make %{?_smp_mflags}
 
 %install

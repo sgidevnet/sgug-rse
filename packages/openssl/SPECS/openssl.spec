@@ -1,3 +1,6 @@
+# Avoid linking problems deu to --as-needed
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 # For the curious:
 # 0.9.5a soversion = 0
 # 0.9.6  soversion = 1
@@ -255,8 +258,8 @@ sslarch=linux-generic64
 # Also add -DPURIFY to make using valgrind with openssl easier as we do not
 # want to depend on the uninitialized memory as a source of entropy anyway.
 #RPM_OPT_FLAGS="$RPM_OPT_FLAGS -Wa,--noexecstack -Wa,--generate-missing-build-notes=yes -DPURIFY $RPM_LD_FLAGS"
-export RPM_LD_FLAGS="$RPM_LDFLAGS -rpath %{_libdir}"
-export RPM_OPT_FLAGS="$RPM_OPT_FLAGS -Wa,--noexecstack -DPURIFY $RPM_LD_FLAGS -R%{_libdir}"
+export RPM_LD_FLAGS="$RPM_LD_FLAGS"
+export RPM_OPT_FLAGS="$RPM_OPT_FLAGS -Wa,--noexecstack -DPURIFY $RPM_LD_FLAGS"
 
 #export HASHBANGPERL=/usr/bin/perl
 export HASHBANGPERL=%{_bindir}/perl

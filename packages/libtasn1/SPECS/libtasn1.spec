@@ -68,7 +68,7 @@ export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-export LDFLAGS="-L%{_libdir} -ldicl-0.1 $LDFLAGS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 autoreconf -v -f --install
 %configure --disable-static --disable-silent-rules
 # libtasn1 likes to regenerate docs

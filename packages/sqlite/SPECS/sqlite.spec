@@ -1,3 +1,6 @@
+# This is necessary as glib configure will fail with --as-necessary
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 # bcond default logic is nicely backwards...
 %bcond_without tcl
 %bcond_with static
@@ -135,13 +138,14 @@ rm -f %{name}-doc-%{docver}/sqlite.css~ || :
 autoconf # Rerun with new autoconf to add support for aarm64
 
 %build
-export CFLAGS="$RPM_OPT_FLAGS $RPM_LD_FLAGS -DSQLITE_ENABLE_COLUMN_METADATA=1 \
+export CFLAGS="$RPM_OPT_FLAGS -DSQLITE_ENABLE_COLUMN_METADATA=1 \
                -DSQLITE_DISABLE_DIRSYNC=1 -DSQLITE_ENABLE_FTS3=3 \
                -DSQLITE_ENABLE_RTREE=1 -DSQLITE_SECURE_DELETE=1 \
                -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 -DSQLITE_ENABLE_DBSTAT_VTAB=1 \
                -DSQLITE_ENABLE_FTS3_PARENTHESIS=1 -DSQLITE_ENABLE_JSON1=1 \
                -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS \
                -Wall -fno-strict-aliasing"
+export LIBS="-lpthread"
 %configure %{!?with_tcl:--disable-tcl} \
            --enable-fts5 \
            --enable-threadsafe \
@@ -150,8 +154,8 @@ export CFLAGS="$RPM_OPT_FLAGS $RPM_LD_FLAGS -DSQLITE_ENABLE_COLUMN_METADATA=1 \
            %{?with_tcl:TCLLIBDIR=%{tcl_sitearch}/sqlite3}
 
 # rpath removal
-sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+#sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+#sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 
 make %{?_smp_mflags}
 

@@ -232,7 +232,6 @@ mkdir build-motif && cd build-motif
 ln -s ../configure .
 
 export CPPFLAGS="$CPPFLAGS -I/usr/Motif-2.1/include -I%{_includedir}"
-export LDFLAGS="-Wl,-z,relro -L%{_libdir} -rpath %{_libdir}"
 export LIBS="-lXpm -ljpeg -ltiff -ltinfo"
 
 #configure --with-dbus --with-gif --with-jpeg --with-png --with-rsvg \
@@ -252,7 +251,6 @@ mkdir build-lucid && cd build-lucid
 ln -s ../configure .
 
 export CPPFLAGS="$CPPFLAGS -I%{_includedir}"
-export LDFLAGS="-Wl,-z,relro -L%{_libdir} -rpath %{_libdir}"
 export LIBS="-ljpeg -ltiff -ltinfo"
 
 #configure --with-dbus --with-gif --with-jpeg --with-png --with-rsvg \

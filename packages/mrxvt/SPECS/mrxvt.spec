@@ -21,8 +21,7 @@ Mrxvt (previously materm) is based on 2.7.11 CVS of rxvt and aterm.
 export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
-export LDFLAGS="-L%{_libdir} -lgcc_s"
-export LD_LIBRARYN32_PATH=%{_libdir}:$LD_LIBRARYN32_PATH
+
 %setup -q 
 #%patch1 -p0 -b .no-scroll-with-buffer-mrxvt-0.5.3
 %patch2 -p1
@@ -32,8 +31,7 @@ sed -i 's|\r||' share/scripts/mrxvt.vbs
 export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
-export LDFLAGS="-L%{_libdir} -lgcc_s"
-export LD_LIBRARYN32_PATH=%{_libdir}:$LD_LIBRARYN32_PATH
+
 #configure \
 #           --enable-everything \
 #           --disable-debug
@@ -48,8 +46,7 @@ make %{?_smp_mflags}
 export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
-export LDFLAGS="-L%{_libdir} -lgcc_s"
-export LD_LIBRARYN32_PATH=%{_libdir}:$LD_LIBRARYN32_PATH
+
 rm -rf $RPM_BUILD_ROOT
 make DESTDIR=$RPM_BUILD_ROOT INSTALL="%{__install} -p" install 
 

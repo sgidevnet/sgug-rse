@@ -317,8 +317,6 @@ export SHELL="%{_bindir}/sh"
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
-export CFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 $CFLAGS"
-export LIBS="-lgen -ldicl-0.1 -llzma -lintl -lpthread"
 %autosetup -n %{name}-%{srcver} %{?with_int_bdb:-a 1} -p1
 
 # Rewrite hardcoded paths to /bin/sh that cause us problems on irix
@@ -337,8 +335,8 @@ export SHELL="%{_bindir}/sh"
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
-export CFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 $CFLAGS"
-export LIBS="-lgen -ldicl-0.1 -llzma -lintl -lpthread"
+export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
+export LIBS="-lgen -ldicl-0.1 -llzma -lintl"
 
 autoreconf -i -f
 
@@ -387,8 +385,6 @@ export SHELL="%{_bindir}/sh"
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
-export CFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 $CFLAGS"
-export LIBS="-lgen -ldicl-0.1 -llzma -lintl -lpthread"
 
 %make_install
 

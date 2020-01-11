@@ -56,13 +56,13 @@ basis reduction, transitive closures on maps (which may encode infinite
 graphs), dependence analysis and bounds on piecewise step-polynomials.
 
 %prep
-export LDFLAGS="-rpath %{_libdir}"
+
 %global docdir isl-%{version}
 #setup -a 1 -q -n isl -c
 %setup -q -n isl -c
 
 %build
-export LDFLAGS="-rpath %{_libdir}"
+
 #cd isl-%{oldversion}
 #configure
 #make %{?_smp_mflags} V=1
@@ -73,7 +73,7 @@ cd isl-%{version}
 make %{?_smp_mflags} V=1
 
 %install
-export LDFLAGS="-rpath %{_libdir}"
+
 #cd isl-%{oldversion}
 #make_install INSTALL="install -p" install-libLTLIBRARIES
 #cd ..

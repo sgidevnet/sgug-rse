@@ -39,6 +39,8 @@ emphasizes speed over simplicity/elegance in its operations.
 Install the gmp package if you need a fast arbitrary precision
 library.
 
+# Here's a terminator
+
 %package c++
 Summary: C++ bindings for the GNU MP arbitrary precision library
 Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
@@ -89,8 +91,8 @@ fi
 
 %configure --enable-cxx
 
+#    -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \ #
 sed -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
-    -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
     -e 's|-lstdc++ -lm|-lstdc++|' \
     -i libtool
 export LD_LIBRARY_PATH=`pwd`/.libs

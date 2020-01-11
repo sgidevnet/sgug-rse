@@ -1,19 +1,19 @@
 Summary:       A library of functions for manipulating PNG image format files
 Name:          libpng
 Epoch:         2
-Version:       1.6.37
+Version:       1.6.34
 Release:       2%{?dist}
 License:       zlib
 URL:           http://www.libpng.org/pub/png/
 
-Source0:       https://github.com/glennrp/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
+Source0:       https://github.com/glennrp/%{name}/archive/v%{version}/%{name}-%{version}.tar.xz
 Source1:       pngusr.dfa
 Patch0:        libpng-multilib.patch
 Patch1:        libpng-fix-arm-neon.patch
 
 #BuildRequires: gcc
-#BuildRequires: zlib-devel
-#BuildRequires: autoconf automake libtool
+BuildRequires: zlib-devel
+BuildRequires: autoconf automake libtool
 
 %description
 The libpng package contains a library of functions for creating and

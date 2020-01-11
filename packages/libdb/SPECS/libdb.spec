@@ -1,6 +1,8 @@
 %define __soversion_major 5
 %define __soversion %{__soversion_major}.3
 
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 Summary: The Berkeley DB database library for C
 Name: libdb
 Version: 5.3.28
@@ -266,6 +268,8 @@ cd ..
 CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 CFLAGS="$CFLAGS -DSHAREDSTATEDIR='\"%{_sharedstatedir}\"' -DSQLITE_ENABLE_COLUMN_METADATA=1 -DSQLITE_DISABLE_DIRSYNC=1 -DSQLITE_ENABLE_FTS3=3 -DSQLITE_ENABLE_RTREE=1 -DSQLITE_SECURE_DELETE=1 -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 -I../../../lang/sql/sqlite/ext/fts3/"
 export CFLAGS
+LDFLAGS="$RPM_LD_FLAGS -lpthread"
+export LDFLAGS
 
 # Build the old db-185 libraries.
 make -C db.1.85/PORT/%{_os} OORG="$CFLAGS"
@@ -288,9 +292,9 @@ pushd dist/dist-tls
 	--enable-tcl --with-tcl=%{_libdir} \
 	--enable-cxx --enable-sql \
 	--enable-test \
-	--disable-rpath \
   --with-tcl=%{_libdir}/tcl8.6
 
+#	--disable-rpath \#
 #	--enable-java \#
 
 # Remove libtool predep_objects and postdep_objects wonkiness so that

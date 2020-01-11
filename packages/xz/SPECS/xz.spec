@@ -80,16 +80,11 @@ commands that deal with the older LZMA format.
 
 
 %prep
-export CFLAGS="%optflags -R%{_libdir}"
-export LDFLAGS="$LDFLAGS -L%{_libdir} -rpath %{_libdir}"
-export LIBS="$LIBS -lgcc_s -lm"
 %autosetup
 
 
 %build
-export CFLAGS="%optflags -R%{_libdir}"
-export LDFLAGS="$LDFLAGS -L%{_libdir} -rpath %{_libdir}"
-export LIBS="$LIBS -liconv -lgcc_s -lm"
+export CFLAGS="$RPM_OPT_FLAGS"
 
 %ifarch %{power64}
   CFLAGS="$CFLAGS -O3"
@@ -108,9 +103,6 @@ export LIBS="$LIBS -liconv -lgcc_s -lm"
 
 
 %install
-export CFLAGS="%optflags -R%{_libdir}"
-export LDFLAGS="$LDFLAGS -L%{_libdir} -rpath %{_libdir}"
-export LIBS="$LIBS -lgcc_s -lm"
 %make_install
 rm -f %{buildroot}%{_libdir}/*.la
 

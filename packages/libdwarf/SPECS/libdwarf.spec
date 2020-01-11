@@ -43,14 +43,10 @@ to access DWARF debug information.
 
 
 %prep
-export CFLAGS="$CFLAGS -R%{_libdir}"
-export LDFLAGS="-rpath %{_libdir} -L%{_libdir} $LDFLAGS"
 %autosetup -p1
 
 
 %build
-export CFLAGS="$CFLAGS -R%{_libdir}"
-export LDFLAGS="-rpath %{_libdir} -L%{_libdir} $LDFLAGS"
 %configure --enable-shared
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 #sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
@@ -58,8 +54,6 @@ export LDFLAGS="-rpath %{_libdir} -L%{_libdir} $LDFLAGS"
 
 
 %install
-export CFLAGS="$CFLAGS -R%{_libdir}"
-export LDFLAGS="-rpath %{_libdir} -L%{_libdir} $LDFLAGS"
 %make_install
 mkdir %{buildroot}%{_includedir}/libdwarf
 mv %{buildroot}%{_includedir}/*.h %{buildroot}%{_includedir}/libdwarf

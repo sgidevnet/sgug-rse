@@ -1,3 +1,6 @@
+# This is necessary as glib configure will fail with --as-needed
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 Summary: A tool for determining compilation options
 Name: pkgconfig
 Version: 0.29.2

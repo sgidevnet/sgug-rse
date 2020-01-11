@@ -186,7 +186,7 @@ export PERL_PATH=%{_bindir}/perl
 export TCLTK_PATH=%{_bindir}/wish
 export CC=gcc
 export CXX=g++
-export LDFLAGS="$LDFLAGS -L%{_libdir} -lgcc_s -lm"
+
 %autosetup -p1 -n %{name}-%{version}%{?rcrev}
 
 %configure ac_cv_prog_DIFF=diff ac_cv_func_getdelim=no ac_cv_func_getline=no ac_cv_func_get_current_dir_name=no ac_cv_func_strsignal=no ac_cv_func_vfork=no ac_cv_func_euidaccess=no ac_cv_func_getloadavg=no
@@ -202,7 +202,6 @@ export PERL_PATH=%{_bindir}/perl
 export TCLTK_PATH=%{_bindir}/wish
 export CC=gcc
 export CXX=g++
-export LDFLAGS="$LDFLAGS -L%{_libdir} -lgcc_s -lm"
 
 %make_build all
 
@@ -216,7 +215,7 @@ export PERL_PATH=%{_bindir}/perl
 export TCLTK_PATH=%{_bindir}/wish
 export CC=gcc
 export CXX=g++
-export LDFLAGS="$LDFLAGS -L%{_libdir} -lgcc_s -lm"
+
 %make_install
 
 # Unnecessary bits for now

@@ -43,7 +43,7 @@ Provides: flex-static
 %description devel
 
 This package contains the library with default implementations of
-`main' and `yywrap' functions that the client binary can choose to use
+'main' and 'yywrap' functions that the client binary can choose to use
 instead of implementing their own.
 
 %package doc

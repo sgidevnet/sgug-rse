@@ -243,7 +243,7 @@ Patch0: gcc9-hack.patch
 Patch1: gcc9-i386-libgomp.patch
 Patch2: gcc9-sparc-config-detection.patch
 Patch3: gcc9-libgomp-omp_h-multilib.patch
-Patch4: gcc9-libtool-no-rpath.patch
+#Patch4: gcc9-libtool-no-rpath.patch
 Patch5: gcc9-isl-dl.patch
 Patch6: gcc9-libstdc++-docs.patch
 Patch7: gcc9-no-add-needed.patch
@@ -302,6 +302,8 @@ chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 %description
 The gcc package contains the GNU Compiler Collection version 9.
 You'll need this package in order to compile C code.
+
+# Here's a terminator
 
 %package -n libgcc
 Summary: GCC version 9 shared support library
@@ -632,6 +634,7 @@ This package contains GNU Atomic static libraries.
 Summary: The C Preprocessor
 #Requires: filesystem >= 3
 Provides: %{_prefix}/lib/cpp
+Provides: %{_bindir}/cpp
 Autoreq: true
 
 %description -n cpp
@@ -757,7 +760,6 @@ export CONFIG_SHELL="$SHELL"
 export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
-#export LDFLAGS="$LDFLAGS -L%{_libdir} -lgcc_s -lm"
 
 #setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
 %setup -q -n gcc-%{version}-%{DATE}
@@ -765,7 +767,7 @@ export PERL=%{_bindir}/perl
 %patch1 -p0 -b .i386-libgomp~
 %patch2 -p0 -b .sparc-config-detection~
 %patch3 -p0 -b .libgomp-omp_h-multilib~
-%patch4 -p0 -b .libtool-no-rpath~
+#%patch4 -p0 -b .libtool-no-rpath~
 %if %{build_isl}
 %patch5 -p0 -b .isl-dl~
 %endif
@@ -788,7 +790,7 @@ export PERL=%{_bindir}/perl
 
 %patch2001 -p1 -b .sgifixes
 
-echo 'sgugver-0.1.8-mips3-ng' > gcc/DEV-PHASE
+echo 'sgugver-0.1.9-mips3-ng' > gcc/DEV-PHASE
 
 cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
 
@@ -824,7 +826,6 @@ export CONFIG_SHELL="$SHELL"
 export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
-#export LDFLAGS="$LDFLAGS -L%{_libdir} -lgcc_s -lm"
 
 # Undo the broken autoconf change in recent Fedora versions
 export CONFIG_SITE=NONE
@@ -1038,6 +1039,7 @@ CC="$CC" CXX="$CXX" CFLAGS="$OPT_FLAGS" \
 	--enable-languages=c,c++,lto \
         --enable-lto --enable-tls=no \
         --with-bugurl=http://sgi.sh/ \
+        --with-stage1-ldflags='-static-libstdc++ -static-libgcc -Wl,-rpath -Wl,%{_libdir}' \
 	$CONFIGURE_OPTS
 
 #	../configure --enable-bootstrap \ #
@@ -1151,7 +1153,7 @@ export CONFIG_SHELL="$SHELL"
 export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
-#export LDFLAGS="$LDFLAGS -L%{_libdir} -lgcc_s -lm"
+
 rm -rf %{buildroot}
 
 %if %{build_offload_nvptx}

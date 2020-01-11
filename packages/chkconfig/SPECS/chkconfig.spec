@@ -51,8 +51,8 @@ perl -pi -e "s|/usr/share/locale|%{_prefix}/share/locale|g" alternatives.c
 export SHELL=%{_bindir}/bash
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
-export RPM_OPT_FLAGS="$RPM_OPT_FLAGS -I%{_includedir}/libdicl-0.1"
-export RPM_LD_FLAGS="$RPM_LD_FLAGS -L%{_libdir} -ldicl-0.1 -lintl"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export RPM_LD_FLAGS="-ldicl-0.1 -lintl $RPM_LD_FLAGS"
 V=1 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS" LDFLAGS="$RPM_LD_FLAGS" %{?_smp_mflags}
 
 %check

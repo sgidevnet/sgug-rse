@@ -25,10 +25,8 @@ arbitrarily high precision and correct rounding of the result. It is
 built upon and follows the same principles as Mpfr.
 
 %prep
-#export LDFLAGS="$LDFLAGS -L%{_libdir}"
 export LIBS="-lgcc_s -lm"
-export CFLAGS="$CFLAGS -R%{_libdir}"
-export LDFLAGS="-L%{_libdir} -rpath %{_libdir}"
+
 %if 0%{?bootstrap}
 %setup -q -n mpc-%{version} -a 1
 %else
@@ -36,17 +34,16 @@ export LDFLAGS="-L%{_libdir} -rpath %{_libdir}"
 %endif
 
 %build
-#export LDFLAGS="$LDFLAGS -L%{_libdir}"
+
 export LIBS="-lgcc_s -lm"
-export CFLAGS="$CFLAGS -R%{_libdir}"
-export LDFLAGS="-L%{_libdir} -rpath %{_libdir}"
+
 #autoreconf -f -i
 %configure --disable-static
 make %{?_smp_mflags}
 
 export CPPFLAGS="%{optflags} -std=gnu99"
 export CFLAGS="%{optflags} -std=gnu99"
-export CFLAGS="$CFLAGS -R%{_libdir}"
+
 export EGREP=egrep
 
 #%if 0%{?bootstrap}
@@ -60,10 +57,9 @@ export EGREP=egrep
 make check
 
 %install
-#export LDFLAGS="$LDFLAGS -L%{_libdir}"
+
 export LIBS="-lgcc_s -lm"
-export CFLAGS="$CFLAGS -R%{_libdir}"
-export LDFLAGS="-L%{_libdir} -rpath %{_libdir}"
+
 #%if 0%{?bootstrap}
 #make_install -C mpc-%{bootstrap_version}
 #

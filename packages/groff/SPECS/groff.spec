@@ -1,3 +1,7 @@
+# This is necessary as groff configure will fail with --as-needed
+# on C++ testing
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+
 %{!?with_x:%global with_x 1}
 
 Summary: A document formatting system
@@ -117,6 +121,7 @@ export BASH_PROG=%{_bindir}/bash
 export PERL=%{_bindir}/perl
 export GREP="%{_bindir}/grep"
 export EGREP="%{_bindir}/grep -E"
+
 %configure \
     --docdir=%{_pkgdocdir} \
     --with-appresdir=%{_datadir}/X11/app-defaults \

@@ -78,21 +78,15 @@ standard output.
 
 
 %prep
-export LDFLAGS="$LDFLAGS -L%{_libdir}"
-export LIBS="$LIBS -lgcc_s -lm"
 %autosetup -p1
 
 
 %build
-export LDFLAGS="$LDFLAGS -L%{_libdir}"
-export LIBS="$LIBS -lgcc_s -lm"
 %configure --disable-static LT_SYS_LIBRARY_PATH=%_libdir
 %make_build
 
 
 %install
-export LDFLAGS="$LDFLAGS -L%{_libdir}"
-export LIBS="$LIBS -lgcc_s -lm"
 make install DESTDIR=$RPM_BUILD_ROOT
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
