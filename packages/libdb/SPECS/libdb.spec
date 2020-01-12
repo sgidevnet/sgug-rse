@@ -1,8 +1,6 @@
 %define __soversion_major 5
 %define __soversion %{__soversion_major}.3
 
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
-
 Summary: The Berkeley DB database library for C
 Name: libdb
 Version: 5.3.28
@@ -268,11 +266,9 @@ cd ..
 CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 CFLAGS="$CFLAGS -DSHAREDSTATEDIR='\"%{_sharedstatedir}\"' -DSQLITE_ENABLE_COLUMN_METADATA=1 -DSQLITE_DISABLE_DIRSYNC=1 -DSQLITE_ENABLE_FTS3=3 -DSQLITE_ENABLE_RTREE=1 -DSQLITE_SECURE_DELETE=1 -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 -I../../../lang/sql/sqlite/ext/fts3/"
 export CFLAGS
-LDFLAGS="$RPM_LD_FLAGS -lpthread"
-export LDFLAGS
 
 # Build the old db-185 libraries.
-make -C db.1.85/PORT/%{_os} OORG="$CFLAGS"
+make -C db.1.85/PORT/%{_os} OORG="$CFLAGS" %{?_smp_mflags}
 
 test -d dist/dist-tls || mkdir dist/dist-tls
 # Static link db_dump185 with old db-185 libraries.
@@ -283,6 +279,9 @@ test -d dist/dist-tls || mkdir dist/dist-tls
 #for dir in dist lang/sql/sqlite lang/sql/jdbc lang/sql/odbc; do
 #  cp /usr/lib/rpm/redhat/config.{guess,sub} "$dir"
 #done
+
+# Reduced link flags otherwise errors
+export LDFLAGS="-lpthread -Wl,-z -Wl,relro -Wl,-z -Wl,now -Wl,-rpath -Wl,%{_libdir}"
 
 pushd dist/dist-tls
 %define _configure ../configure
@@ -301,9 +300,9 @@ pushd dist/dist-tls
 # building without -nostdlib doesn't include them twice.  Because we
 # already link with g++, weird stuff happens if you don't let the
 # compiler handle this.
-perl -pi -e 's/^predep_objects=".*$/predep_objects=""/' libtool
-perl -pi -e 's/^postdep_objects=".*$/postdep_objects=""/' libtool
-perl -pi -e 's/-shared -nostdlib/-shared/' libtool
+#perl -pi -e 's/^predep_objects=".*$/predep_objects=""/' libtool
+#perl -pi -e 's/^postdep_objects=".*$/postdep_objects=""/' libtool
+#perl -pi -e 's/-shared -nostdlib/-shared/' libtool
 
 make %{?_smp_mflags}
 
