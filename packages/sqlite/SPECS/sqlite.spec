@@ -32,12 +32,12 @@ Patch8: sqlite-3.18.0-sync2-dirsync.patch
 
 Patch10: sqlite3.sgifixes.patch
 
-#BuildRequires:  gcc
-#BuildRequires: ncurses-devel readline-devel glibc-devel
-#BuildRequires: autoconf
+BuildRequires:  gcc
+BuildRequires: ncurses-devel readline-devel
+BuildRequires: autoconf
 %if %{with tcl}
-#BuildRequires: /usr/bin/tclsh
-#BuildRequires: tcl-devel
+BuildRequires: tcl
+BuildRequires: tcl-devel
 %{!?tcl_version: %global tcl_version 8.6}
 %{!?tcl_sitearch: %global tcl_sitearch %{_libdir}/tcl%{tcl_version}}
 %endif
