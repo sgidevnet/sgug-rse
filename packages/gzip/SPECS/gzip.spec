@@ -21,8 +21,8 @@ URL: http://www.gzip.org/
 # zless) of another tools, because gzip "extends" the tools by its
 # wrappers much more than it "requires" them.
 # DH
-#Requires: coreutils 
-#BuildRequires: texinfo, gcc, autoconf, automake, less
+Requires: coreutils 
+BuildRequires: texinfo, gcc, autoconf, automake, less
 #Conflicts: filesystem < 3
 Provides: /bin/gunzip
 Provides: /bin/gzip
