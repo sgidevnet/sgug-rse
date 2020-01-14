@@ -35,10 +35,10 @@
 %endif
 
 # Hardening flags for EL-6
-%if 0%{?rhel} == 6
-%global build_cflags        %{build_cflags} -fPIC -pie
-%global build_ldflags       -Wl,-z,relro -Wl,-z,now
-%endif
+#if 0%{?rhel} == 6
+#global build_cflags        %{build_cflags} -fPIC -pie
+#global build_ldflags       -Wl,-z,relro -Wl,-z,now
+#endif
 
 # Define for release candidates
 #global rcrev   .rc0
