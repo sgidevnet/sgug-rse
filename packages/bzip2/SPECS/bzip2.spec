@@ -15,7 +15,7 @@ Patch1: bzip2-cflags.patch
 Patch2: bzip2-ldflags.patch
 
 #DH
-#BuildRequires: gcc
+BuildRequires: gcc
 
 %description
 Bzip2 is a freely available, patent-free, high quality data compressor.
