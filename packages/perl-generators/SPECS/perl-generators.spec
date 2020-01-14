@@ -6,7 +6,7 @@ License:        GPL+
 URL:            http://jplesnik.fedorapeople.org/generators
 Source0:        %{url}/generators-%{version}.tar.gz
 BuildArch:      noarch
-#BuildRequires:  coreutils
+BuildRequires:  coreutils
 BuildRequires:  make
 BuildRequires:  perl-interpreter >= 4:5.22.0-351
 %if !%{defined perl_bootstrap}
