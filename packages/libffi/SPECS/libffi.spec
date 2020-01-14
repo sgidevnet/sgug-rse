@@ -19,11 +19,11 @@ Patch3:		libffi-3.1-aarch64-fix-exec-stack.patch
 
 Patch10:        libffi-3.2.1_irix.patch
 
-#BuildRequires: gcc
-#%if %{without bootstrap}
-#BuildRequires: gcc-c++
-#BuildRequires: dejagnu
-#%endif
+BuildRequires: gcc
+%if %{without bootstrap}
+BuildRequires: gcc-c++
+BuildRequires: dejagnu
+%endif
 
 %description
 Compilers for high level languages generate code that follow certain
