@@ -1039,7 +1039,7 @@ CC="$CC" CXX="$CXX" CFLAGS="$OPT_FLAGS" \
 	--enable-languages=c,c++,lto \
         --enable-lto --enable-tls=no \
         --with-bugurl=http://sgi.sh/ \
-        --with-stage1-ldflags='-static-libstdc++ -static-libgcc -Wl,-rpath -Wl,%{_libdir}' \
+        --with-stage1-ldflags='-static-libstdc++ -static-libgcc -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32' \
 	$CONFIGURE_OPTS
 
 #	../configure --enable-bootstrap \ #
