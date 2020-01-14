@@ -50,12 +50,12 @@ Requires: autoconf, automake, sed, tar, findutils
 #BuildRequires: texinfo
 %endif
 BuildRequires: autoconf, automake, m4
-#BuildRequires: help2man
+BuildRequires: help2man
 
 # make sure we can configure all supported langs
-#BuildRequires: libstdc++-devel, gcc-gfortran
+BuildRequires: libstdc++-devel
 
-#BuildRequires: gcc, gcc-c++
+BuildRequires: gcc, gcc-c++
 BuildRequires: bash
 
 
