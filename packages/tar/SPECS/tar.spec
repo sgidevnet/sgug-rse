@@ -22,8 +22,8 @@ Patch9:  tar-1.28-document-exclude-mistakes.patch
 Patch50:  tar.sgifixexclashes.patch
 
 # DH
-#BuildRequires:  gcc
-#BuildRequires: autoconf automake texinfo gettext libacl-devel
+BuildRequires:  gcc
+BuildRequires: autoconf automake texinfo gettext
 
 #%if %{with check}
 ## cover needs of tar's testsuite
