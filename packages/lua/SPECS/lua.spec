@@ -45,7 +45,7 @@ Patch9:         CVE-2019-6706-use-after-free-lua_upvaluejoin.patch
 
 Patch20:        lua.sgifixes.patch
 
-#BuildRequires:  automake autoconf libtool readline-devel ncurses-devel
+BuildRequires:  automake autoconf libtool readline-devel ncurses-devel
 Requires:       lua-libs = %{version}-%{release}
 
 %description
