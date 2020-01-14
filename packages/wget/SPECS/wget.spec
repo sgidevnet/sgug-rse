@@ -14,6 +14,7 @@ Provides: bundled(gnulib)
 # needed for test suite
 #BuildRequires: perl-HTTP-Daemon, python3
 #BuildRequires: gnutls-devel, pkgconfig, texinfo, gettext, autoconf, libidn2-devel, libuuid-devel, perl-podlators, libpsl-devel, libmetalink-devel, gpgme-devel, gcc, zlib-devel
+BuildRequires: pkgconfig, texinfo, gettext, autoconf, uuid-devel, perl-podlators, gcc, zlib-devel
 
 %description
 GNU Wget is a file retrieval utility which can use either the HTTP or
