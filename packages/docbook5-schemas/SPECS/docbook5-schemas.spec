@@ -4,6 +4,8 @@ Release: 20%{?dist}
 
 Summary: Norman Walsh's schemas (DTD, Relax NG, W3C schema) for Docbook 5.X
 
+# Here's a terminator
+
 License: Freely redistributable without restriction
 URL: http://www.oasis-open.org/docbook/
 
@@ -12,12 +14,12 @@ Provides: docbook5-rng = %{version}-%{release}
 Provides: docbook5-sch = %{version}-%{release}
 Provides: docbook5-xsd = %{version}-%{release}
 
-#Requires(post): libxml2 >= 2.4.8
-#Requires(postun): libxml2 >= 2.4.8
-#Requires: xml-common >= 0.6.3-24
-#BuildRequires: perl-generators
-#BuildRequires: unzip
-#BuildRequires: libxml2 >= 2.4.8
+Requires(post): libxml2 >= 2.4.8
+Requires(postun): libxml2 >= 2.4.8
+Requires: xml-common >= 0.6.3-24
+BuildRequires: perl-generators
+BuildRequires: unzip
+BuildRequires: libxml2 >= 2.4.8
 
 BuildArch: noarch
 
