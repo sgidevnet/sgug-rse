@@ -34,7 +34,7 @@ Patch22: patch-2.7.6-CVE-2018-17942.patch
 Patch23: patch-2.7.6-failed_assertion.patch
 #Patch100: patch-selinux.patch
 
-#BuildRequires: gcc
+BuildRequires: gcc
 #BuildRequires: libselinux-devel
 #BuildRequires: libattr-devel
 #BuildRequires: ed
