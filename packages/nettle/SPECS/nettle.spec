@@ -31,7 +31,7 @@ Source0:	%{name}-%{version}.tar.gz
 
 Patch10:        nettle.sgifixes.patch
 
-#BuildRequires:  gcc
+BuildRequires:  gcc
 BuildRequires:  gmp-devel, m4
 BuildRequires:	libtool, automake, autoconf, gettext-devel
 %if %{with fips}
