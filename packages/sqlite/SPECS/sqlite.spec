@@ -1,6 +1,3 @@
-# This is necessary as glib configure will fail with --as-necessary
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
-
 # bcond default logic is nicely backwards...
 %bcond_without tcl
 %bcond_with static
