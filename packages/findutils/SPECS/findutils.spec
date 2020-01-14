@@ -54,13 +54,13 @@ Conflicts: filesystem < 3
 Provides: /bin/find
 Provides: bundled(gnulib)
 
-#BuildRequires: automake
-#BuildRequires: dejagnu
-#BuildRequires: gettext-devel
-#BuildRequires: gcc
-#BuildRequires: git
+BuildRequires: automake
+BuildRequires: dejagnu
+BuildRequires: gettext-devel
+BuildRequires: gcc
+BuildRequires: git
 #BuildRequires: libselinux-devel
-#BuildRequires: texinfo
+BuildRequires: texinfo
 
 %description
 The findutils package contains programs which will help you locate
