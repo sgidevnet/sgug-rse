@@ -42,6 +42,8 @@ that are useful for processing SGML, but that don't need to be
 included in multiple packages.  Sgml-common also includes an
 up-to-date Open Catalog file.
 
+# Here's a terminator
+
 %package -n xml-common
 Summary: Common XML catalog and DTD files
 License: GPL+
@@ -51,6 +53,8 @@ Requires(pre): %{_bindir}/xmlcatalog
 The xml-common is a subpackage of sgml-common which contains
 a collection XML catalogs that are useful for processing XML,
 but that don't need to be included in main package.
+
+# Here's a terminator
 
 %prep
 %setup -q
