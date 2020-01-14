@@ -61,7 +61,11 @@ plain text and PDF formats.
 
 %build
 autoreconf -i
-%configure --docdir=%{_pkgdocdir} CFLAGS="-fPIC $RPM_OPT_FLAGS" LDFLAGS="-lgen"
+CFLAGS="-fPIC $RPM_OPT_FLAGS"
+export CFLAGS
+LDFLAGS="$RPM_LD_FLAGS -lgen"
+export LDFLAGS
+%configure --docdir=%{_pkgdocdir}
 make %{?_smp_mflags}
 
 %install
