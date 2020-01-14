@@ -10,10 +10,10 @@ License: LGPLv3+ and GFDL
 URL: http://www.multiprecision.org/
 Source0: https://ftp.gnu.org/gnu/mpc/mpc-%{version}.tar.gz
 
-#BuildRequires: gcc
+BuildRequires: gcc
 BuildRequires: gmp-devel >= 5.0.0
 BuildRequires: mpfr-devel >= 3.0.0
-#BuildRequires: texinfo
+BuildRequires: texinfo
 
 %if 0%{?bootstrap}
 Source1: http://www.multiprecision.org/downloads/mpc-%{bootstrap_version}.tar.gz
