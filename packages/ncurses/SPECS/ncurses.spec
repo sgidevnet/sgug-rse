@@ -17,6 +17,7 @@ Patch12: ncurses-kbs.patch
 Patch100: ncurses.sgiinfocmperr.patch
 
 #BuildRequires: gcc gcc-c++ gpm-devel pkgconfig gnupg2
+BuildRequires: gcc gcc-c++ pkgconfig
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
