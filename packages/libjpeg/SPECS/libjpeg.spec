@@ -60,6 +60,8 @@ If you are going to develop programs which will manipulate JPEG images,
 you should install libjpeg-devel.  You'll also need to have the libjpeg
 package installed.
 
+# Here's a terminator
+
 %package -n	%{staticname}
 Summary:	Static libraries for programs which will use the libjpeg library
 Group:		Development/C
@@ -76,6 +78,8 @@ the libjpeg library.
 If you are going to develop programs which will manipulate JPEG images,
 you should install libjpeg-devel.  You'll also need to have the libjpeg
 package installed.
+
+# Here's a terminator
 
 %package -n	jpeg-progs
 Summary:	Programs for manipulating JPEG format image files
