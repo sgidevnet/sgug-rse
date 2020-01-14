@@ -65,7 +65,7 @@ Patch24: unzip-6.0-cve-2018-18384.patch
 Patch25: unzip-6.0-COVSCAN-fix-unterminated-string.patch
 
 URL: http://www.info-zip.org/UnZip.html
-#BuildRequires:  bzip2-devel, gcc
+BuildRequires:  bzip2-devel, gcc
 
 %description
 The unzip utility is used to list, test, or extract files from a zip
