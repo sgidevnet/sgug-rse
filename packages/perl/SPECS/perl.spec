@@ -313,37 +313,37 @@ Patch300:         perl5_30_0_fixes.patch
 # Update some of the bundled modules
 # see http://fedoraproject.org/wiki/Perl/perl.spec for instructions
 
-#BuildRequires:  bash
-#BuildRequires:  bzip2-devel
-#BuildRequires:  coreutils
-#BuildRequires:  findutils
-#BuildRequires:  gcc
+BuildRequires:  bash
+BuildRequires:  bzip2-devel
+BuildRequires:  coreutils
+BuildRequires:  findutils
+BuildRequires:  gcc
 %if %{with gdbm}
 #BuildRequires:  gdbm-devel
 %endif
 # git for PATCH-perl-134329-Use-after-free-in-regcomp.c.patch
-#BuildRequires:  git-core
+BuildRequires:  git-core
 # glibc-common for iconv
 #BuildRequires:  glibc-common
 %if %{with perl_enables_groff}
 # Build-require groff tools for populating %%Config correctly, bug #135101
-#BuildRequires:  groff-base
+BuildRequires:  groff-base
 %endif
-#BuildRequires:  libdb-devel
-#BuildRequires:  make
+BuildRequires:  libdb-devel
+BuildRequires:  make
 %if !%{defined perl_bootstrap}
-#BuildRequires:  perl-interpreter
-#BuildRequires:  perl-generators
+BuildRequires:  perl-interpreter
+BuildRequires:  perl-generators
 %endif
-#BuildRequires:  sed
+BuildRequires:  sed
 %if %{with perl_enables_systemtap}
 #BuildRequires:  systemtap-sdt-devel
 %endif
-#BuildRequires:  tar
+BuildRequires:  tar
 %if %{with perl_enables_tcsh}
-#BuildRequires:  tcsh
+BuildRequires:  tcsh
 %endif
-#BuildRequires:  zlib-devel
+BuildRequires:  zlib-devel
 
 # For tests
 %if %{with test}
@@ -680,6 +680,8 @@ subroutines subsequently defined in that package, or in packages derived from
 that package may be given attributes with the same names as the attribute
 handler subroutines, which will then be called in one of the compilation
 phases (i.e. in a "BEGIN", "CHECK", "INIT", or "END" block).
+
+# Here's a terminator
 
 %if %{dual_life} || %{rebuild_from_scratch}
 %package autodie
