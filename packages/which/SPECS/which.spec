@@ -9,8 +9,8 @@ Source2: which2.csh
 Patch0: which-2.21-coverity-fixes.patch
 Patch10: which.sgifixes.patch
 Url: https://savannah.gnu.org/projects/which/
-#BuildRequires:  gcc
-#BuildRequires: readline-devel
+BuildRequires:  gcc
+BuildRequires: readline-devel
 
 %description
 The which command shows the full pathname of a specified program, if
