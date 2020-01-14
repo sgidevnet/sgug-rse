@@ -23,12 +23,12 @@ Provides:         csh = %{version}
 Provides:         %{_bindir}/csh
 Provides:         %{_bindir}/tcsh
 
-#Requires(post):   coreutils
+Requires(post):   coreutils
 Requires(post):   grep
 Requires(postun): sed
 
-#BuildRequires:    gcc
-#BuildRequires:    git
+BuildRequires:    gcc
+BuildRequires:    git
 BuildRequires:    autoconf
 BuildRequires:    gettext-devel
 BuildRequires:    ncurses-devel
