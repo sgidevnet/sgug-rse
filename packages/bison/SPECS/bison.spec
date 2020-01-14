@@ -6,12 +6,12 @@ License: GPLv3+
 Source: ftp://ftp.gnu.org/pub/gnu/bison/bison-%{version}.tar.xz
 
 # testsuite dependency
-#BuildRequires: gcc-c++
-#BuildRequires: autoconf
-#BuildRequires: flex
+BuildRequires: gcc-c++
+BuildRequires: autoconf
+BuildRequires: flex
 
 URL: http://www.gnu.org/software/bison/
-#BuildRequires: m4 >= 1.4
+BuildRequires: m4 >= 1.4
 #java-1.7.0-openjdk-devel
 Requires: m4 >= 1.4
 
