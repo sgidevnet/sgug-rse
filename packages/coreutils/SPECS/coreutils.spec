@@ -67,20 +67,20 @@ Conflicts: filesystem < 3
 Conflicts: coreutils-single
 
 #BuildRequires: attr
-#BuildRequires: autoconf
-#BuildRequires: automake
-#BuildRequires: gcc
-#BuildRequires: gettext-devel
-#BuildRequires: gmp-devel
+BuildRequires: autoconf
+BuildRequires: automake
+BuildRequires: gcc
+BuildRequires: gettext-devel
+BuildRequires: gmp-devel
 #BuildRequires: hostname
 #BuildRequires: libacl-devel
 #BuildRequires: libattr-devel
 #BuildRequires: libcap-devel
 #BuildRequires: libselinux-devel
 #BuildRequires: libselinux-utils
-#BuildRequires: openssl-devel
+BuildRequires: openssl-devel
 #BuildRequires: strace
-#BuildRequires: texinfo
+BuildRequires: texinfo
 
 %if 23 < 0%{?fedora} || 7 < 0%{?rhel}
 # needed by i18n test-cases
