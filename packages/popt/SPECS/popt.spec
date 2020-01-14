@@ -11,7 +11,7 @@ Patch2:		popt-1.16-man-page.patch
 Patch3:		popt-1.16-help.patch
 Patch4:		popt-1.16-nextarg-memleak.patch
 Patch5:		popt-1.16-glob-error.patch
-#BuildRequires:	gcc gettext
+BuildRequires:	gcc gettext
 
 %description
 Popt is a C library for parsing command line parameters. Popt was
