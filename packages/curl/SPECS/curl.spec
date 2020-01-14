@@ -26,37 +26,37 @@ Patch102: 0102-curl-7.36.0-debug.patch
 Provides: curl-full = %{version}-%{release}
 Provides: webclient
 URL: https://curl.haxx.se/
-#BuildRequires: automake
+BuildRequires: automake
 #BuildRequires: brotli-devel
-#BuildRequires: coreutils
-#BuildRequires: gcc
-#BuildRequires: groff
+BuildRequires: coreutils
+BuildRequires: gcc
+BuildRequires: groff
 #BuildRequires: krb5-devel
 #BuildRequires: libidn2-devel
 #BuildRequires: libmetalink-devel
 #BuildRequires: libnghttp2-devel
 #BuildRequires: libpsl-devel
 #BuildRequires: libssh-devel
-#BuildRequires: make
+BuildRequires: make
 #BuildRequires: openldap-devel
-#BuildRequires: openssh-clients
+BuildRequires: openssh-clients
 #BuildRequires: openssh-server
-#BuildRequires: openssl-devel
-#BuildRequires: perl-interpreter
-#BuildRequires: pkgconfig
+BuildRequires: openssl-devel
+BuildRequires: perl-interpreter
+BuildRequires: pkgconfig
 #BuildRequires: python3-devel
-#BuildRequires: sed
+BuildRequires: sed
 #BuildRequires: stunnel
-#BuildRequires: zlib-devel
+BuildRequires: zlib-devel
 
 # needed to compress content of tool_hugehelp.c after changing curl.1 man page
-#BuildRequires: perl(IO::Compress::Gzip)
+BuildRequires: perl(IO::Compress::Gzip)
 
 # needed for generation of shell completions
-#BuildRequires: perl(Getopt::Long)
-#BuildRequires: perl(Pod::Usage)
-#BuildRequires: perl(strict)
-#BuildRequires: perl(warnings)
+BuildRequires: perl(Getopt::Long)
+BuildRequires: perl(Pod::Usage)
+BuildRequires: perl(strict)
+BuildRequires: perl(warnings)
 
 # gnutls-serv is used by the upstream test-suite
 #BuildRequires: gnutls-utils
@@ -65,17 +65,17 @@ URL: https://curl.haxx.se/
 #BuildRequires: nghttp2
 
 # perl modules used in the test suite
-#BuildRequires: perl(Cwd)
-#BuildRequires: perl(Digest::MD5)
-#BuildRequires: perl(Exporter)
-#BuildRequires: perl(File::Basename)
-#BuildRequires: perl(File::Copy)
-#BuildRequires: perl(File::Spec)
-#BuildRequires: perl(IPC::Open2)
-#BuildRequires: perl(MIME::Base64)
-#BuildRequires: perl(Time::Local)
-#BuildRequires: perl(Time::HiRes)
-#BuildRequires: perl(vars)
+BuildRequires: perl(Cwd)
+BuildRequires: perl(Digest::MD5)
+BuildRequires: perl(Exporter)
+BuildRequires: perl(File::Basename)
+BuildRequires: perl(File::Copy)
+BuildRequires: perl(File::Spec)
+BuildRequires: perl(IPC::Open2)
+BuildRequires: perl(MIME::Base64)
+BuildRequires: perl(Time::Local)
+BuildRequires: perl(Time::HiRes)
+BuildRequires: perl(vars)
 
 # The test-suite runs automatically through valgrind if valgrind is available
 # on the system.  By not installing valgrind into mock's chroot, we disable
