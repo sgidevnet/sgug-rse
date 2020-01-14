@@ -29,6 +29,8 @@ example, vi).
 You should install less because it is a basic utility for viewing text
 files, and you'll use it frequently.
 
+# Here's a terminator
+
 %prep
 %setup -q
 %patch4 -p1 -b .time
