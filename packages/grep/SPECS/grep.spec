@@ -17,9 +17,10 @@ Patch1: grep-3.33-help-align.patch
 
 Patch10: grep.sgifixes.patch
 
-#BuildRequires: gcc
+BuildRequires: gcc
 #BuildRequires: pcre-devel >= 3.9-10, texinfo, gettext
-#BuildRequires: autoconf automake
+BuildRequires: texinfo, gettext
+BuildRequires: autoconf automake
 # https://fedorahosted.org/fpc/ticket/174
 Provides: bundled(gnulib)
 # for backward compatibility (rhbz#1540485)
