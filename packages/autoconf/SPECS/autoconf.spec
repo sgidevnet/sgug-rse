@@ -27,19 +27,19 @@ BuildRequires:      m4 >= 1.4.14
 Requires:           m4 >= 1.4.14
 %if %{with autoconf_enables_emacs}
 Requires:           emacs-filesystem
-#BuildRequires:      emacs
+BuildRequires:      emacs
 %endif
 # the filtering macros are currently in /etc/rpm/macros.perl:
-#BuildRequires:      perl-generators
-#BuildRequires:      perl-macros
-#BuildRequires:      perl(Data::Dumper)
+BuildRequires:      perl-generators
+BuildRequires:      perl-macros
+BuildRequires:      perl(Data::Dumper)
 # from f19, Text::ParseWords is not the part of 'perl' package
-#BuildRequires:      perl(Text::ParseWords)
+BuildRequires:      perl(Text::ParseWords)
 
 # %%configure replaces config.guess/config.sub for us, which confuses autoconf
 # build system and it produces empty man pages for those scripts if help2man is
 # not installed
-#BuildRequires:      help2man
+BuildRequires:      help2man
 BuildRequires:      bash
 
 %if %{with check}
@@ -72,6 +72,7 @@ may be configuring software with an Autoconf-generated script;
 Autoconf is only required for the generation of the scripts, not
 their use.
 
+# Here's a terminator
 
 %prep
 export SHELL=%{_bindir}/bash
