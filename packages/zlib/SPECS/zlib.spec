@@ -24,7 +24,7 @@ Patch0: zlib-1.2.5-minizip-fixuncrypt.patch
 # fixed firefox crash + added test case
 #Patch9: zlib-1.2.11-firefox-crash-fix.patch
 
-#BuildRequires: automake, autoconf, libtool
+BuildRequires: automake, autoconf, libtool
 
 %global __provides_exclude_from ^%{_libdir}/pkgconfig/minizip\\.pc$
 
