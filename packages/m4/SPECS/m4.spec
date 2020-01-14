@@ -10,9 +10,9 @@ Patch0: m4-1.4.18-glibc-change-work-around.patch
 #DH
 Patch1: m4.sgifixes.patch
 URL: http://www.gnu.org/software/m4/
-#BuildRequires: gcc autoconf automake
+BuildRequires: gcc autoconf automake
 %ifarch ppc ppc64
-#BuildRequires: texinfo
+BuildRequires: texinfo
 %endif
 # Gnulib bundled - the library has been granted an exception, see https://fedorahosted.org/fpc/ticket/174
 # Gnulib is not versioned, see m4 ChangeLog for approximate date of Gnulib copy
