@@ -36,6 +36,7 @@ BuildRequires:  gcc
 BuildRequires: libpng-devel
 #BuildRequires: libjpeg-turbo-devel
 #BuildRequires: libjpeg-turbo
+BuildRequires: libjpeg
 BuildRequires: libtiff-devel
 #BuildRequires: libX11-devel
 #BuildRequires: libXau-devel
@@ -78,9 +79,9 @@ BuildRequires: util-linux
 # Emacs doesn't run without dejavu-sans-mono-fonts, rhbz#732422
 #Requires:      desktop-file-utils
 #Requires:      dejavu-sans-mono-fonts
-#Requires(preun): %{_sbindir}/alternatives
-#Requires(posttrans): %{_sbindir}/alternatives
-#Requires:      emacs-common = %{epoch}:%{version}-%{release}
+Requires(preun): %{_sbindir}/alternatives
+Requires(posttrans): %{_sbindir}/alternatives
+Requires:      emacs-common = %{epoch}:%{version}-%{release}
 Provides:      emacs(bin) = %{epoch}:%{version}-%{release}
 
 %define site_lisp %{_datadir}/emacs/site-lisp
