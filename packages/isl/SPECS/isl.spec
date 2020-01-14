@@ -18,9 +18,9 @@ URL: http://isl.gforge.inria.fr/
 
 Release: 9%{?buildid}%{?dist}
 
-#BuildRequires:  gcc
-#BuildRequires: gmp-devel
-#BuildRequires: pkgconfig
+BuildRequires:  gcc
+BuildRequires: gmp-devel
+BuildRequires: pkgconfig
 #Provides: isl = %{oldversion}
 Provides: isl = %{version}
 Provides: libisl.so.%{libmajor}
