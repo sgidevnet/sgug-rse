@@ -8,8 +8,8 @@ URL: http://www.x.org
 Source0: https://www.x.org/pub/individual/lib/%{name}-%{version}.tar.bz2
 
 #BuildRequires: xorg-x11-util-macros
-#BuildRequires: autoconf automake libtool
-#BuildRequires: gettext
+BuildRequires: autoconf automake libtool
+BuildRequires: gettext
 #BuildRequires: pkgconfig(xext) pkgconfig(xt) pkgconfig(xau)
 
 %description
