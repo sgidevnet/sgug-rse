@@ -76,7 +76,7 @@ Requires: coreutils
 Requires: %{_bindir}/db_stat
 %endif
 Requires: popt%{_isa} >= 1.10.2.1
-#Requires: curl
+Requires: curl
 
 %if %{without int_bdb}
 BuildRequires: libdb-devel
