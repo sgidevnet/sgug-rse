@@ -10,6 +10,7 @@ License: Public Domain
 URL: https://core.tcl.tk/expect/index
 Source: http://downloads.sourceforge.net/%{name}/%{name}%{version}.tar.gz
 #Buildrequires: gcc tcl-devel autoconf automake chrpath
+Buildrequires: gcc tcl-devel autoconf automake
 # Patch0: fixes change log file permissions
 Patch0: expect-5.43.0-log_file.patch
 # Patch1: fixes install location, change pkgIndex
