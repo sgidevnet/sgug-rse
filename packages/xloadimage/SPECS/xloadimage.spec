@@ -33,9 +33,10 @@ Patch23:	xloadimage-4.1-png-1.5.patch
 Patch24:	xloadimage-4.1-fix-mem-leak.patch
 Patch25:	xloadimage-4.1-sub-second-delay.patch
 URL:		http://www.frostbytes.com/~jimf/xloadimage.html
-#BuildRequires:  gcc
-#BuildRequires:	libtiff-devel >= 4.0
+BuildRequires:  gcc
+BuildRequires:	libtiff-devel >= 4.0
 #BuildRequires:	libX11-devel, libpng-devel, libjpeg-devel
+BuildRequires:	libpng-devel, libjpeg-devel
 #BuildRequires:	libICE-devel
 
 %description
