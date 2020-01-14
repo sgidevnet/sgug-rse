@@ -40,14 +40,14 @@ Patch8: make-4.2.1-test-driver.patch
 
 # Unfortunately the glob patches configure.ac, so:
 #DH
-#BuildRequires: autoconf, automake
+BuildRequires: autoconf, automake
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires(post): %{_prefix}/sbin/install-info
 Requires(preun): %{_prefix}/sbin/install-info
 #DH
 #BuildRequires: procps
-#BuildRequires: perl-interpreter
+BuildRequires: perl-interpreter
 
 %description
 A GNU tool for controlling the generation of executables and other
