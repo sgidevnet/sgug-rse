@@ -14,8 +14,8 @@ Patch0:        xosview-1.11-app-def.patch
 Patch1:        xosview-1.20-arm.patch
 Patch50:       xosview.sgifixes.patch
 #BuildRequires: desktop-file-utils
-#BuildRequires: gcc-c++
-#BuildRequires: libXpm-devel
+BuildRequires: gcc-c++
+BuildRequires: libXpm-devel
 #BuildRequires: libX11-devel 
 #Requires:      xorg-x11-fonts-misc
 %description
