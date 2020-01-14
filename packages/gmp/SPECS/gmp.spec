@@ -16,9 +16,9 @@ Source3: gmp-mparam.h
 Patch2: gmp-6.0.0-debuginfo.patch
 License: LGPLv3+ or GPLv2+
 BuildRequires: autoconf automake libtool
-#BuildRequires: gcc
-#BuildRequires: gcc-c++
-#BuildRequires: git
+BuildRequires: gcc
+BuildRequires: gcc-c++
+BuildRequires: git
 #autoreconf on arm needs:
 #BuildRequires: perl-Carp
 # Generate the .hmac checksum unless --without fips is used
