@@ -1,0 +1,14 @@
+--- ncurses-6.1-20190803/progs/infocmp.c~	2017-04-05 10:27:51.000000000 +0000
++++ ncurses-6.1-20190803/progs/infocmp.c	2020-01-13 15:00:47.035825680 +0000
+@@ -40,6 +40,11 @@
+ 
+ #include <progs.priv.h>
+ 
++#if defined(__sgi) && !defined(_nc_read_entry2)
++#define _nc_free_termtype2(t) _nc_free_termtype(t)
++#define _nc_read_entry2(n,f,t) _nc_read_entry(n,f,t)
++#endif
++
+ #include <dump_entry.h>
+ 
+ MODULE_ID("$Id: infocmp.c,v 1.143 2017/04/05 09:27:51 tom Exp $")

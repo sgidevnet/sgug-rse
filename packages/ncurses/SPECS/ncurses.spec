@@ -13,6 +13,9 @@ Patch8: ncurses-config.patch
 Patch9: ncurses-libs.patch
 Patch11: ncurses-urxvt.patch
 Patch12: ncurses-kbs.patch
+
+Patch100: ncurses.sgiinfocmperr.patch
+
 #BuildRequires: gcc gcc-c++ gpm-devel pkgconfig gnupg2
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
@@ -121,6 +124,7 @@ The ncurses-static package includes static libraries of the ncurses library.
 %patch9 -p1 -b .libs
 %patch11 -p1 -b .urxvt
 %patch12 -p1 -b .kbs
+%patch100 -p1 -b .sgiinfocmperr
 
 #for f in ANNOUNCE; do
 #    iconv -f iso8859-1 -t utf8 -o ${f}{_,} &&
