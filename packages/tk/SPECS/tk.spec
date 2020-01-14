@@ -10,9 +10,9 @@ Epoch:   1
 License: TCL
 URL: http://tcl.sourceforge.net
 Source0: http://download.sourceforge.net/sourceforge/tcl/%{name}%{version}-src.tar.gz
-Requires: tcl = %{epoch}:%{tclvers}
-#BuildRequires:  gcc
-#BuildRequires: tcl-devel = %{epoch}:%{version}, autoconf
+Requires: tcl >= %{epoch}:%{tclvers}
+BuildRequires:  gcc
+BuildRequires: tcl-devel >= %{epoch}:%{tclvers}, autoconf
 #BuildRequires: libX11-devel
 #BuildRequires: libXft-devel
 # panedwindow.n from itcl conflicts
