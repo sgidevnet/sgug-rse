@@ -1,0 +1,13 @@
+--- binutils-2.23.2/ld/configure.tgt~	2020-01-12 23:25:29.163954920 +0000
++++ binutils-2.23.2/ld/configure.tgt	2020-01-13 06:27:32.438023000 +0000
+@@ -736,6 +736,10 @@
+ NATIVE_LIB_DIRS='/usr/local/lib /lib /usr/lib'
+ case "${target}" in
+ 
++*-*-irix*)
++  NATIVE_LIB_DIRS='DESTSGUGDIR/lib32 /usr/lib32 /lib32'
++  ;;
++
+ *-*-dragonfly*)
+   NATIVE_LIB_DIRS='/usr/lib /usr/pkg/lib /usr/local/lib'
+   ;;

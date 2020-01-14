@@ -253,6 +253,7 @@ Patch04: binutils-2.22.52.0.4-no-config-h-check.patch
 
 Patch60: binutils2_23.sgifixes.patch
 Patch61: binutils.sgirelinkfix.patch
+Patch62: binutils.ldirixn32paths.patch
 
 #----------------------------------------------------------------------------
 
@@ -416,6 +417,10 @@ export LIBTOOL=%{_bindir}/libtool
 
 %patch60 -p1
 %patch61 -p1
+%patch62 -p1
+
+# Fix up SGUG lib32 directory
+perl -pi -e "s|DESTSGUGDIR/lib32|%{_prefix}/lib32|g" ld/configure.tgt
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
