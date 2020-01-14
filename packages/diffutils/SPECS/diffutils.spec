@@ -9,9 +9,9 @@ Patch2: diffutils-i18n.patch
 Patch3: diffutils.sgifixes.patch
 License: GPLv3+
 Provides: bundled(gnulib)
-#BuildRequires:  gcc
-#BuildRequires: help2man
-#BuildRequires: autoconf, automake, texinfo
+BuildRequires:  gcc
+BuildRequires: help2man
+BuildRequires: autoconf, automake, texinfo
 
 %description
 Diffutils includes four utilities: diff, cmp, diff3 and sdiff. Diff
