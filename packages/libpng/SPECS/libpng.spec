@@ -11,7 +11,7 @@ Source1:       pngusr.dfa
 Patch0:        libpng-multilib.patch
 Patch1:        libpng-fix-arm-neon.patch
 
-#BuildRequires: gcc
+BuildRequires: gcc
 BuildRequires: zlib-devel
 BuildRequires: autoconf automake libtool
 
@@ -37,6 +37,8 @@ for developing programs using the PNG (Portable Network Graphics) library.
 If you want to develop programs which will manipulate PNG image format
 files, you should install libpng-devel.  You'll also need to install
 the libpng package.
+
+# Here's a terminator
 
 %package static
 Summary:       Static PNG image format file library
