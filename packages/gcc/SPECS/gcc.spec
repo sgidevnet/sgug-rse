@@ -146,16 +146,17 @@ URL: http://gcc.gnu.org
 #BuildRequires: binutils >= 2.24
 #%endif
 # For irix:
-#BuildRequires: binutils >= 2.23.2
+BuildRequires: binutils >= 2.23.2
 # While gcc doesn't include statically linked binaries, during testing
 # -static is used several times.
 #BuildRequires: glibc-static
 #BuildRequires: zlib-devel, gettext, dejagnu, bison, flex, sharutils
+BuildRequires: zlib-devel, gettext, dejagnu, bison, flex
 #BuildRequires: texinfo, texinfo-tex, /usr/bin/pod2man
 #BuildRequires: systemtap-sdt-devel >= 1.3
-#BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
+BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 #BuildRequires: python2-devel, python3-devel, /usr/bin/python
-#BuildRequires: gcc, gcc-c++
+BuildRequires: gcc, gcc-c++
 #%if %{build_go}
 #BuildRequires: hostname, procps
 #%endif
