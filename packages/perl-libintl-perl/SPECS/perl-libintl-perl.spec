@@ -15,14 +15,14 @@ Source0:        https://cpan.metacpan.org/authors/id/G/GU/GUIDO/libintl-perl-%{v
 Provides:       perl-libintl = %{version}-%{release}
 Obsoletes:      perl-libintl < 1.25
 
-#BuildRequires:  coreutils
+BuildRequires:  coreutils
 BuildRequires:  findutils
-#BuildRequires:  gcc
+BuildRequires:  gcc
 #BuildRequires:  glibc-common
 BuildRequires:  make
 BuildRequires:  perl-interpreter
 BuildRequires:  perl-devel
-#BuildRequires:  perl-generators
+BuildRequires:  perl-generators
 BuildRequires:  perl(Config)
 BuildRequires:  perl(ExtUtils::MakeMaker)
 BuildRequires:  perl(File::Find)
