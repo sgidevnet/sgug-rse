@@ -7,8 +7,8 @@ License: GPLv3+
 URL: https://github.com/danielhams/dicl
 Source: https://github.com/danielhams/dicl/releases/download/%{version}/libdicl-%{version}.tar.gz
 
-#BuildRequires: gcc
-#BuildRequires: automake, autoconf, libtool, check-devel
+BuildRequires: gcc
+BuildRequires: automake, autoconf, libtool
 
 %description
 libdicl is a library to provide / patch some of the missing / broken
