@@ -8,9 +8,10 @@ Source: ftp://ftp.gnu.org/gnu/dejagnu/dejagnu-%{version}.tar.gz
 URL: http://www.gnu.org/software/dejagnu/
 Requires: expect
 BuildArch: noarch
-#BuildRequires:  gcc
-#BuildRequires:  gcc-c++
+BuildRequires:  gcc
+BuildRequires:  gcc-c++
 #BuildRequires: expect screen texinfo
+BuildRequires: expect texinfo
 
 Patch10: dejagnu.sgifixes.patch
 
