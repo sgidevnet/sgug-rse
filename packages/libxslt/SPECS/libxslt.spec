@@ -11,9 +11,10 @@ BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  libtool
 BuildRequires:  make
-#BuildRequires:  gcc
+BuildRequires:  gcc
 #BuildRequires:  %{_bindir}/libgcrypt-config
 #BuildRequires:  pkgconfig(libxml-2.0) >= 2.6.27
+BuildRequires:  libxml2-devel
 
 # Fedora specific patches
 Patch0:         multilib.patch
