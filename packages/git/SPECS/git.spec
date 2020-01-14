@@ -77,27 +77,27 @@ Source99:       print-failed-test-output
 Patch1:         git.sgifixes01.patch
 
 #BuildRequires:  desktop-file-utils
-#BuildRequires:  emacs
-#BuildRequires:  expat-devel
-#BuildRequires:  findutils
-#BuildRequires:  gawk
-#BuildRequires:  gcc
-#BuildRequires:  gettext
+BuildRequires:  emacs
+BuildRequires:  expat-devel
+BuildRequires:  findutils
+BuildRequires:  gawk
+BuildRequires:  gcc
+BuildRequires:  gettext
 #BuildRequires:  gnupg2
-#BuildRequires:  libcurl-devel
-#BuildRequires:  make
-#BuildRequires:  openssl-devel
+BuildRequires:  libcurl-devel
+BuildRequires:  make
+BuildRequires:  openssl-devel
 #BuildRequires:  pcre2-devel
 #BuildRequires:  perl(Error)
-#BuildRequires:  perl(Test)
-#BuildRequires:  perl-generators
+BuildRequires:  perl(Test)
+BuildRequires:  perl-generators
 BuildRequires:  perl
 #BuildRequires:  pkgconfig(bash-completion)
 BuildRequires:  sed
 
-#BuildRequires:  tcl
-#BuildRequires:  tk
-#BuildRequires:  zlib-devel >= 1.2
+BuildRequires:  tcl
+BuildRequires:  tk
+BuildRequires:  zlib-devel >= 1.2
 
 %if %{with tests}
 # Test suite requirements
