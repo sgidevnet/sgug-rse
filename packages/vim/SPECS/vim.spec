@@ -1,6 +1,3 @@
-# IRIX This is necessary as vim configure will fail with --as-needed
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
-
 %define patchlevel 2102
 %define WITH_SELINUX 0
 %define desktop_file 0
@@ -119,6 +116,8 @@ order to run.
 
 If you are installing vim-enhanced or vim-X11, you'll also need
 to install the vim-common package.
+
+# Here's a terminator
 
 %package spell
 Summary: The dictionaries for spell checking. This package is optional
@@ -298,8 +297,7 @@ perl -pi -e "s|lib64 lib|lib64 lib32 lib|g" configure
 # --disable-gpm - disabling support for General Purpose Mouse - Linux mouse daemon
 
 export CPPFLAGS="-I%{_includedir} $CPPFLAGS"
-export LDFLAGS="-L%{_libdir} $LDFLAGS"
-export LIBS="-lintl -ltinfo -liconv"
+export LDFLAGS="$LDFLAGS -L%{_libdir} -ltinfo"
 export LUA_PREFIX=%{_prefix}
 
 perl -pi -e "s/vimrc/virc/"  os_unix.h
