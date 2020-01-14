@@ -37,9 +37,9 @@ Patch10: gettext.sgifixes.patch
 BuildRequires: autoconf >= 2.62
 BuildRequires: automake
 BuildRequires: libtool
-# BuildRequires: bison
+BuildRequires: bison
 
-#BuildRequires: gcc-c++
+BuildRequires: gcc-c++
 %if %{with java}
 # libintl.jar requires gcj >= 4.3 to build
 BuildRequires: gcc-java, libgcj
@@ -52,11 +52,11 @@ BuildRequires: zip, unzip
 %endif
 %endif
 # for po-mode.el
-#BuildRequires: emacs
+BuildRequires: emacs
 # for autosetup
-#BuildRequires: git
+BuildRequires: git
 # ensure 'ARCHIVE_FORMAT=dirxz'
-#BuildRequires: xz
+BuildRequires: xz
 # for documentation
 #BuildRequires: teckit
 #BuildRequires: texlive-dvips
@@ -64,12 +64,12 @@ BuildRequires: zip, unzip
 #BuildRequires: texinfo-tex
 #BuildRequires: texlive-xetex
 # following suggested by DEPENDENCIES:
-#BuildRequires: ncurses-devel
-#BuildRequires: libxml2-devel
+BuildRequires: ncurses-devel
+BuildRequires: libxml2-devel
 #BuildRequires: glib2-devel
 #BuildRequires: libacl-devel
 #BuildRequires: libcroco-devel
-#BuildRequires: libunistring-devel
+BuildRequires: libunistring-devel
 # for the tests
 #BuildRequires: glibc-langpack-de
 #BuildRequires: glibc-langpack-en
