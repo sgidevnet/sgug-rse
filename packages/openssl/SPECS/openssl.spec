@@ -72,15 +72,14 @@ Patch100: openssl111d.sgifixes.patch
 
 License: OpenSSL
 URL: http://www.openssl.org/
-#BuildRequires: gcc
-#BuildRequires: coreutils, perl-interpreter, sed, zlib-devel, /usr/bin/cmp
+BuildRequires: gcc
+BuildRequires: coreutils, perl-interpreter, sed, zlib-devel
 #BuildRequires: lksctp-tools-devel
-#BuildRequires: /usr/bin/rename
-#BuildRequires: /usr/bin/pod2man
+BuildRequires: perl-podlators
 #BuildRequires: /usr/sbin/sysctl
-#BuildRequires: perl(Test::Harness), perl(Test::More), perl(Math::BigInt)
-#BuildRequires: perl(Module::Load::Conditional), perl(File::Temp)
-#BuildRequires: perl(Time::HiRes)
+BuildRequires: perl(Test::Harness), perl(Test::More), perl(Math::BigInt)
+BuildRequires: perl(Module::Load::Conditional), perl(File::Temp)
+BuildRequires: perl(Time::HiRes)
 Requires: coreutils
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
