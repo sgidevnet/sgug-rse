@@ -15,8 +15,9 @@ Patch4:        libtiff-CVE-2018-19210.patch
 
 Patch10:       libtiff.fastinstalltest.patch
 
-#BuildRequires: gcc, gcc-c++
+BuildRequires: gcc, gcc-c++
 #BuildRequires: zlib-devel libjpeg-devel jbigkit-devel
+BuildRequires: zlib-devel libjpeg-devel
 BuildRequires: libtool automake autoconf pkgconfig
 
 %description
@@ -41,6 +42,8 @@ using the libtiff library.
 If you need to develop programs which will manipulate TIFF format
 image files, you should install this package.  You'll also need to
 install the libtiff package.
+
+# Here's a terminator
 
 %package static
 Summary:     Static TIFF image format file library
