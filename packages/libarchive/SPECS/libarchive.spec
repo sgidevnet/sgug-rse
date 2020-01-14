@@ -14,24 +14,24 @@ Source0:        https://libarchive.org/downloads/%{name}-%{version}.tar.gz
 #Patch0:         libarchive-fix-zstd-test.patch
 Patch1:         libarchive.sgifixes.patch
 
-#BuildRequires:  automake
-#BuildRequires:  bison
-#BuildRequires:  bzip2-devel
+BuildRequires:  automake
+BuildRequires:  bison
+BuildRequires:  bzip2-devel
 #BuildRequires:  e2fsprogs-devel
-#BuildRequires:  gcc
+BuildRequires:  gcc
 #BuildRequires:  libacl-devel
 #BuildRequires:  libattr-devel
-#BuildRequires:  libxml2-devel
+BuildRequires:  libxml2-devel
 #BuildRequires:  libzstd-devel
 #BuildRequires:  lz4-devel
 # According to libarchive maintainer, linking against liblzo violates
 # LZO license.
 # See https://github.com/libarchive/libarchive/releases/tag/v3.3.0
 #BuildRequires:  lzo-devel
-#BuildRequires:  openssl-devel
+BuildRequires:  openssl-devel
 #BuildRequires:  sharutils
-#BuildRequires:  xz-devel
-#BuildRequires:  zlib-devel
+BuildRequires:  xz-devel
+BuildRequires:  zlib-devel
 
 %description
 Libarchive is a programming library that can create and read several different
