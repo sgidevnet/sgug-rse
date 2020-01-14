@@ -276,18 +276,18 @@ Requires: binutils-gold >= %{version}
 %endif
 
 # Perl, sed and touch are all used in the %%prep section of this spec file.
-#BuildRequires: gcc, perl, sed, coreutils
+BuildRequires: gcc, perl, sed, coreutils
 
 %if %{without bootstrap}
-#BuildRequires: gettext, flex, zlib-devel
+BuildRequires: gettext, flex, zlib-devel
 %endif
 
 %if %{with docs}
-#BuildRequires: texinfo >= 4.0
+BuildRequires: texinfo >= 4.0
 # BZ 920545: We need pod2man in order to build the manual pages.
 #BuildRequires: /usr/bin/pod2man
 %else
-#BuildRequires: findutils
+BuildRequires: findutils
 %endif
 
 # Required for: ld-bootstrap/bootstrap.exp bootstrap with --static
