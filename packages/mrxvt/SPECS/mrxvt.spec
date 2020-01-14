@@ -4,9 +4,11 @@ Version: 0.5.4
 Release: 25%{?dist} 
 URL: http://materm.sourceforge.net/wiki/Main/HomePage
 License: GPLv2+
-#BuildRequires:  gcc
+BuildRequires:  gcc
 #BuildRequires: imake pkgconfig ncurses-devel libXft-devel libXaw-devel libXext-devel desktop-file-utils 
+BuildRequires: pkgconfig ncurses-devel
 #BuildRequires: libpng-devel libjpeg-devel libutempter-devel 
+BuildRequires: libpng-devel libjpeg-devel
 
 Source0: http://downloads.sourceforge.net/materm/%{name}-%{version}.tar.gz
 #Source1: http://littlehat.homelinux.org:8000/FEDORA/mrxvt/current/0.5.3/%{name}.desktop
