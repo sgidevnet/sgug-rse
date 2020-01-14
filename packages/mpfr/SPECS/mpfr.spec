@@ -5,7 +5,7 @@ Release: 5%{?dist}
 URL: http://www.mpfr.org/
 # GFDL (mpfr.texi, mpfr.info and fdl.texi)
 License: LGPLv3+ and GPLv3+ and GFDL
-#BuildRequires: autoconf libtool gmp-devel gcc
+BuildRequires: autoconf libtool gmp-devel gcc
 Requires: gmp >= 4.2.3
 
 Source0: http://www.mpfr.org/%{name}-%{version}/%{name}-%{version}.tar.xz
