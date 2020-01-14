@@ -11,7 +11,7 @@ License: TCL
 URL: http://tcl.sourceforge.net/
 Source0: http://downloads.sourceforge.net/sourceforge/tcl/tcl-core%{version}-src.tar.gz
 Buildrequires: autoconf
-#BuildRequires:  gcc
+BuildRequires:  gcc
 BuildRequires: zlib-devel
 Provides: tcl(abi) = %{majorver}
 Obsoletes: tcl-tcldict <= %{vers}
