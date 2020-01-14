@@ -21,8 +21,9 @@ Source: ftp://ftp.gnu.org/gnu/groff/groff-%{version}.tar.gz
 Patch10: groff.sgifixes.patch
 
 #Requires: coreutils, groff-base = %{version}-%{release}
-#BuildRequires: gcc, gcc-c++
+BuildRequires: gcc, gcc-c++
 #BuildRequires: git, netpbm-progs, perl-generators, psutils, ghostscript
+BuildRequires: git, perl-generators
 Provides: nroff-i18n = %{version}-%{release}
 Provides: bundled(gnulib)
 
@@ -40,6 +41,8 @@ Groff can also be used to format man pages. If you are going to use
 groff with the X Window System, you will also need to install the
 groff-x11 package.
 
+# Here's a terminator
+
 %package base
 Summary: Parts of the groff formatting system required to display manual pages
 
@@ -47,6 +50,8 @@ Summary: Parts of the groff formatting system required to display manual pages
 The groff-base package contains only necessary parts of groff formatting
 system which are required to display manual pages, and the groff's default
 display device (PostScript).
+
+# Here's a terminator
 
 %package perl
 Summary: Parts of the groff formatting system that require Perl
