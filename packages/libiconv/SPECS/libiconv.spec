@@ -8,9 +8,10 @@ License:	LGPL v2+
 Group:		Libraries
 Source0:	http://ftp.gnu.org/gnu/libiconv/%{name}-%{version}.tar.gz
 URL:		http://www.haible.de/bruno/packages-libcharset.html
-#BuildRequires:	autoconf >= 2.60
-#BuildRequires:	automake
-#BuildRequires:	libtool
+BuildRequires:	autoconf >= 2.60
+BuildRequires:	automake
+BuildRequires:	libtool
+BuildRequires:  gcc
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %ifarch x86_64
 Provides:	libiconv.so.2()(64bit)
