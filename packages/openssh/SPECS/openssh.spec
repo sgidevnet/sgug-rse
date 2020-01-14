@@ -235,16 +235,17 @@ BuildRequires: gnome-libs-devel
 BuildRequires: openldap-devel
 %endif
 #BuildRequires: autoconf, automake, perl-interpreter, perl-generators, zlib-devel
+BuildRequires: autoconf, automake, perl-interpreter, perl-generators, zlib-devel
 #BuildRequires: audit-libs-devel >= 2.0.5
 #BuildRequires: util-linux, groff
 #BuildRequires: pam-devel
 #BuildRequires: fipscheck-devel >= 1.3.0
-#BuildRequires: openssl-devel >= 0.9.8j
-#BuildRequires: perl-podlators
+BuildRequires: openssl-devel >= 0.9.8j
+BuildRequires: perl-podlators
 #BuildRequires: systemd-devel
-#BuildRequires: gcc
-#BuildRequires: p11-kit-devel
-#Recommends: p11-kit
+BuildRequires: gcc
+BuildRequires: p11-kit-devel
+Recommends: p11-kit
 
 %if %{kerberos5}
 BuildRequires: krb5-devel
