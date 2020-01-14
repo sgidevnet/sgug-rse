@@ -8,6 +8,7 @@ Source: https://github.com/libexpat/libexpat/archive/R_%{unversion}.tar.gz#/expa
 URL: https://libexpat.github.io/
 License: MIT
 #BuildRequires: autoconf, libtool, xmlto, gcc-c++
+BuildRequires: autoconf, libtool, gcc-c++
 BuildRequires: bash
 
 %description
