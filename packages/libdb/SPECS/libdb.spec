@@ -60,12 +60,12 @@ Patch100: db185.sgifixes.patch
 
 URL: http://www.oracle.com/database/berkeley-db/
 License: BSD and LGPLv2 and Sleepycat
-#BuildRequires: gcc gcc-c++
-#BuildRequires: perl-interpreter libtool
-#BuildRequires: tcl-devel >= 8.5.2-3
+BuildRequires: gcc gcc-c++
+BuildRequires: perl-interpreter libtool
+BuildRequires: tcl-devel >= 8.5.2-3
 #BuildRequires: java-devel >= 1:1.6.0
 #BuildRequires: chrpath
-#BuildRequires: zlib-devel
+BuildRequires: zlib-devel
 Conflicts: filesystem < 3
 
 %description
