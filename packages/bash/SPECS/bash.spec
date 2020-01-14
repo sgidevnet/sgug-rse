@@ -87,10 +87,10 @@ Source3: dot-bash_logout
 Patch200: bash.sgifixes.patch
 
 # DH
-#BuildRequires:  gcc
-#BuildRequires: texinfo bison
-#BuildRequires: ncurses-devel
-#BuildRequires: autoconf, gettext
+BuildRequires:  gcc
+BuildRequires: texinfo bison
+BuildRequires: ncurses-devel
+BuildRequires: autoconf, gettext
 # Required for bash tests
 #BuildRequires: glibc-all-langpacks
 #Requires: filesystem >= 3
