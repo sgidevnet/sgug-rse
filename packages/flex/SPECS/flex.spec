@@ -16,8 +16,8 @@ Patch0: flex-rh1389575.patch
 
 Patch10: flex.sgifixes.patch
 
-#Requires: m4
-#BuildRequires: gettext gettext-devel bison m4 help2man gcc gcc-c++ automake libtool
+Requires: m4
+BuildRequires: gettext gettext-devel bison m4 help2man gcc gcc-c++ automake libtool
 
 %description
 The flex program generates scanners.  Scanners are programs which can
