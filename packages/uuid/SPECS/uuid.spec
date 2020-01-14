@@ -8,8 +8,8 @@ Source: https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v2.34/util-li
 
 Patch0: libuuid.sgifixes.patch
 
-#BuildRequires: gcc
-#BuildRequires: automake, autoconf, libtool, check-devel
+BuildRequires: gcc
+BuildRequires: automake, autoconf, libtool
 
 %description
 uuid library from the util-linux package.
