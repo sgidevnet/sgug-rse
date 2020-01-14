@@ -42,15 +42,15 @@ Requires:   autoconf >= 2.65
 Requires:   perl(Thread::Queue)
 Requires:   perl(threads)
 
-#BuildRequires:  autoconf >= 2.65
-#BuildRequires:  coreutils
-#BuildRequires:  findutils
-#BuildRequires:  help2man
-#BuildRequires:  make
-#BuildRequires:  perl-generators
-#BuildRequires:  perl-interpreter
-#BuildRequires:  perl(Thread::Queue)
-#BuildRequires:  perl(threads)
+BuildRequires:  autoconf >= 2.65
+BuildRequires:  coreutils
+BuildRequires:  findutils
+BuildRequires:  help2man
+BuildRequires:  make
+BuildRequires:  perl-generators
+BuildRequires:  perl-interpreter
+BuildRequires:  perl(Thread::Queue)
+BuildRequires:  perl(threads)
 BuildRequires:  bash
 BuildRequires:  m4
 
@@ -72,7 +72,7 @@ BuildRequires: java-devel-openjdk
 BuildRequires: libtool
 BuildRequires: ncompress
 BuildRequires: sharutils
-BuildREquires: texlive-dvips
+BuildRequires: texlive-dvips
 BuildRequires: texinfo-tex
 BuildRequires: vala
 %if !0%{?rhel:1}
@@ -89,7 +89,7 @@ BuildRequires: lzip
 %global __provides_exclude %{?__provides_exclude:%__provides_exclude|}^perl\\(Automake::
 
 %description
-Automake is a tool for automatically generating `Makefile.in'
+Automake is a tool for automatically generating 'Makefile.in'
 files compliant with the GNU Coding Standards.
 
 You should install Automake if you are developing software and would
