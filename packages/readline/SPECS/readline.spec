@@ -13,7 +13,7 @@ Source: ftp://ftp.gnu.org/gnu/readline/readline-%{version}.tar.gz
 # use CFLAGS
 Patch101: readline-8.0-shlib.sgi.patch
 
-#BuildRequires: gcc
+BuildRequires: gcc
 BuildRequires: ncurses-devel
 
 %description
