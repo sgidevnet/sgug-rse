@@ -14,8 +14,8 @@ Source:         ftp://ftp.gnu.org/gnu/help2man/help2man-%{version}.tar.xz
 
 %{!?with_nls:BuildArch: noarch}
 
-#BuildRequires:  gcc
-#BuildRequires:  perl-generators
+BuildRequires:  gcc
+BuildRequires:  perl-generators
 BuildRequires:  perl(Getopt::Long)
 BuildRequires:  perl(POSIX)
 BuildRequires:  perl(Text::ParseWords)
