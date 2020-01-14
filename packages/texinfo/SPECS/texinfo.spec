@@ -20,10 +20,10 @@ Patch4: texinfo-6.5-fix-info-dir.patch
 # Patch5: fixes issues detected by static analysis
 Patch5: texinfo-6.5-covscan-fixes.patch
 
-#BuildRequires: gcc
-#BuildRequires: perl-generators
-#BuildRequires: zlib-devel, ncurses-devel, help2man, perl(Data::Dumper)
-#BuildRequires: perl(Locale::Messages), perl(Unicode::EastAsianWidth), perl(Text::Unidecode)
+BuildRequires: gcc
+BuildRequires: perl-generators
+BuildRequires: zlib-devel, ncurses-devel, help2man, perl(Data::Dumper)
+BuildRequires: perl(Locale::Messages), perl(Unicode::EastAsianWidth), perl(Text::Unidecode)
 BuildRequires: perl(Storable)
 
 # Texinfo perl packages are not installed in default perl library dirs
