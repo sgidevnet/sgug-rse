@@ -9,8 +9,9 @@ URL: http://libpipeline.nongnu.org/
 Source: http://download.savannah.gnu.org/releases/libpipeline/libpipeline-%{version}.tar.gz
 Patch0: libpipeline.sgifixes.patch
 
-#BuildRequires: gcc
+BuildRequires: gcc
 #BuildRequires: libtool, check-devel
+BuildRequires: libtool
 
 # FPC exception for gnulib - copylib - https://fedorahosted.org/fpc/ticket/174
 Provides: bundled(gnulib) = %{gnulib_ver}
