@@ -67,15 +67,15 @@ Provides:         gawk(abi) = %{gawk_api_major}.%{gawk_api_minor}
 # filesystem. More info: https://fedoraproject.org/wiki/Features/UsrMove
 #Requires:         filesystem >= 3
 
-#BuildRequires:    git
-#BuildRequires:    gcc
-#BuildRequires:    grep
+BuildRequires:    git
+BuildRequires:    gcc
+BuildRequires:    grep
 #BuildRequires:    ghostscript
 
 # Extending GAWK possibilities:
 #BuildRequires:    libsigsegv-devel
-#BuildRequires:    mpfr-devel
-#BuildRequires:    readline-devel
+BuildRequires:    mpfr-devel
+BuildRequires:    readline-devel
 
 # Documentation (gawk-doc):
 #BuildRequires:    texinfo-tex
@@ -97,12 +97,12 @@ Provides:         gawk(abi) = %{gawk_api_major}.%{gawk_api_minor}
 #
 # INFO: Upstream explicitly wishes that we do not use 'yacc' instead of bison.
 #       For more info, see: https://bugzilla.redhat.com/show_bug.cgi?id=1176993
-#BuildRequires:    bison
+BuildRequires:    bison
 
 # After patching the awkgram.y, and running autoreconf, we now need additional
 # packages to correctly finish the build. These should not be needed in the
 # future, once upstream fixes their requirement on 'aclocal-1.15'.
-#BuildRequires:    automake
+BuildRequires:    automake
 
 # =============================================================================
 
