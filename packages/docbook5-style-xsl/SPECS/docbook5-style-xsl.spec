@@ -4,6 +4,8 @@ Release: 8%{?dist}
 
 Summary: Norman Walsh's XSL stylesheets for DocBook 5.X
 
+# Here's a terminator
+
 # Package is licensed as MIT/X (http://wiki.docbook.org/topic/DocBookLicense),
 # some .js files under ./slides/browser/ are licensed MPLv1.1
 License: MIT and MPLv1.1
@@ -11,10 +13,10 @@ URL: https://github.com/docbook/xslt10-stylesheets
 
 Provides: docbook-xsl-ns = %{version}
 # xml-common was using /usr/share/xml until 0.6.3-8.
-#Requires: xml-common >= 0.6.3-8
+Requires: xml-common >= 0.6.3-8
 # libxml2 required because of usage of /usr/bin/xmlcatalog
-#Requires(post): libxml2 >= 2.4.8
-#Requires(postun): libxml2 >= 2.4.8
+Requires(post): libxml2 >= 2.4.8
+Requires(postun): libxml2 >= 2.4.8
 Conflicts: passivetex < 1.21
 
 BuildArch: noarch
@@ -33,6 +35,7 @@ information see W3C page about XSL.
 %if 0%{?rhel} >= 7
 %package extensions
 Summary: Norman Walsh's XSL stylesheets extensions for DocBook 5.X
+# Here's a terminator
 # Package is licensed as MIT/X (http://wiki.docbook.org/topic/DocBookLicense),
 # some .js files under ./slides/browser/ are licensed MPLv1.1
 License: MIT and ASL 2.0
