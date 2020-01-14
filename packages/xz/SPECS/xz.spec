@@ -22,10 +22,10 @@ Requires:	%{name}-libs%{?_isa} = %{version}-%{release}
 # For /usr/libexec/grepconf.sh (RHBZ#1189120).
 # Unfortunately F21 has a newer version of grep which doesn't
 # have grepconf, but we're only concerned with F22 here.
-#Requires:	grep >= 2.20-5
+Requires:	grep >= 2.20-5
 
-#BuildRequires:	gcc
-#BuildRequires:	perl-interpreter
+BuildRequires:	gcc
+BuildRequires:	perl-interpreter
 
 
 %description
