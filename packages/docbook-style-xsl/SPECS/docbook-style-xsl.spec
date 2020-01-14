@@ -4,6 +4,8 @@ Release: 10%{?dist}
 
 Summary: Norman Walsh's XSL stylesheets for DocBook XML
 
+# Here's a terminator
+
 License: DMIT
 URL: https://github.com/docbook/xslt10-stylesheets
 
