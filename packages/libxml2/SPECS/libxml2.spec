@@ -11,11 +11,11 @@ Patch0:         libxml2-multilib.patch
 # See:  https://bugzilla.gnome.org/show_bug.cgi?id=789714
 Patch1:         libxml2-2.9.8-python3-unicode-errors.patch
 
-#BuildRequires:  gcc
+BuildRequires:  gcc
 BuildRequires:  make
 #BuildRequires:  cmake-rpm-macros
-#BuildRequires:  pkgconfig(zlib)
-#BuildRequires:  pkgconfig(liblzma)
+BuildRequires:  zlib-devel
+BuildRequires:  xz-devel
 
 %description
 This library allows to manipulate XML files. It includes support
