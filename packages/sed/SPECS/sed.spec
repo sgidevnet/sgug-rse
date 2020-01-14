@@ -17,7 +17,8 @@ Patch2: sed-gnulib.patch
 Patch10: sed.sgifixes.patch
 
 #BuildRequires: glibc-devel, libselinux-devel, libacl-devel, automake, autoconf, gcc
-#BuildRequires: perl-Getopt-Long
+BuildRequires: automake, autoconf, gcc
+BuildRequires: perl-Getopt-Long
 
 Provides: %{_prefix}/bin/sed
 
