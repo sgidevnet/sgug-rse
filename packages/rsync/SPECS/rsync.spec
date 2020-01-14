@@ -20,9 +20,10 @@ Source4: rsyncd.conf
 Source5: rsyncd.sysconfig
 Source6: rsyncd@.service
 
-#BuildRequires:  gcc
+BuildRequires:  gcc
 #BuildRequires: libacl-devel, libattr-devel, autoconf, popt-devel, systemd
-#Requires: zlib
+BuildRequires: autoconf, popt-devel
+Requires: zlib
 #Added virtual provide for zlib due to https://fedoraproject.org/wiki/Bundled_Libraries?rd=Packaging:Bundled_Libraries
 Provides: bundled(zlib) = 1.2.8
 License: GPLv3+
