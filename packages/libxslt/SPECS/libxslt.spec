@@ -1,3 +1,5 @@
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+
 Name:           libxslt
 Summary:        Library providing the Gnome XSLT engine
 Version:        1.1.33
@@ -67,6 +69,7 @@ developing applications that use %{name}.
 #chmod 644 python/tests/*
 
 %build
+
 autoreconf -vfi
 #export PYTHON=%{__python2}
 #%configure --disable-static --disable-silent-rules --with-python

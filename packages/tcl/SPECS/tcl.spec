@@ -1,3 +1,5 @@
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+
 %define majorver 8.6
 %define	vers %{majorver}.9
 #%{!?sdt:%define sdt 1}
@@ -77,6 +79,8 @@ chmod -x generic/tclStrToD.c
 pushd unix
 autoreconf
 
+export CFLAGS="-pthread $RPM_OPT_FLAGS"
+
 %configure \
 --enable-threads \
 --enable-symbols \
@@ -85,7 +89,7 @@ autoreconf
 #--enable-dtrace \ #
 #%endif
 
-make %{?_smp_mflags} CFLAGS="%{optflags}" TCL_LIBRARY=%{_datadir}/%{name}%{majorver}
+make %{?_smp_mflags} CFLAGS="$CFLAGS" TCL_LIBRARY=%{_datadir}/%{name}%{majorver}
 
 %check
 %{?_without_check: %define _without_check 1}

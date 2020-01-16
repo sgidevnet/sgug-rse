@@ -1,3 +1,5 @@
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+
 Summary: A tool for determining compilation options
 Name: pkgconfig
 Version: 0.29.2
@@ -132,7 +134,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Aug  9 2005 Matthias Clasen <mclasen@redhat.com> 1:0.18.1-4
 - Fix a segfault which curiously hits only bigendian platforms
 
-* Sun Jul 11 2005 Matthias Clasen <mclasen@redhat.com> 1:0.18.1-3
+* Sun Jul 10 2005 Matthias Clasen <mclasen@redhat.com> 1:0.18.1-3
 - Remove unncessary dependencies
 
 * Fri Jul  8 2005 Matthias Clasen <mclasen@redhat.com> 1:0.18.1-2

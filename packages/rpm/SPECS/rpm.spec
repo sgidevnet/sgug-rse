@@ -1,3 +1,5 @@
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+
 # build against xz?
 %bcond_without xz
 # just for giggles, option to build with internal Berkeley DB
