@@ -8,7 +8,9 @@ Source: https://github.com/danielhams/daceps/releases/download/%{version}/librar
 
 BuildRequires: gcc
 BuildRequires: automake, autoconf, libtool, pkgconfig
-BuildRequires: dacepslibone
+BuildRequires: dacepslibone-devel
+
+Requires: dacepslibone
 
 %description
 The is an example autotools library from daceps to demonstrate packaging

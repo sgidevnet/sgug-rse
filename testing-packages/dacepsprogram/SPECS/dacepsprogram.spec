@@ -8,7 +8,9 @@ Source: https://github.com/danielhams/daceps/releases/download/%{version}/progra
 
 BuildRequires: gcc
 BuildRequires: automake, autoconf, libtool, pkgconfig
-BuildRequires: dacepslibone, dacepslibtwo
+BuildRequires: dacepslibone-devel, dacepslibtwo-devel
+
+Requires: dacepslibone, dacepslibtwo
 
 %description
 The is an example autotools program from daceps to demonstrate packaging
