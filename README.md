@@ -21,9 +21,9 @@ NOTE: Unlike `didbsng` - sgug-rse _must not_ use a "personal .rpmmacros" file - 
 You'll find three main archives - and there might be "fix" archives too that need to be extracted:
 
 ```
-sgug-rse-selfhoster-0.0.1alpha.tar.gz
-sgug-rse-srpms-0.0.1alpha.tar.gz
-sgug-rse-rpms-0.0.1alpha.tar.gz
+sgug-rse-selfhoster-0.0.3alpha.tar.gz
+sgug-rse-srpms-0.0.3alpha.tar.gz
+sgug-rse-rpms-0.0.3alpha.tar.gz
 
 sgug-rse-blahfix-0.0.Xalpha.tar.gz
 ```
@@ -33,7 +33,7 @@ sgug-rse-blahfix-0.0.Xalpha.tar.gz
 ```
 su - (enter root password)
 cd /usr
-gunzip -dc /path/to/sgug-rse-selfhoster-0.0.1alpha.tar.gz |tar xf -
+gunzip -dc /path/to/sgug-rse-selfhoster-0.0.3alpha.tar.gz |tar xf -
 (log out of root)
 ```
 
@@ -52,8 +52,8 @@ This should include any fixes:
 
 ```
 cd ~/rpmbuild
-gunzip -dc /path/to/sgug-rse-srpms-0.0.1alpha.tar.gz | tar xf -
-gunzip -dc /path/to/sgug-rse-rpms-0.0.1alpha.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-srpms-0.0.3alpha.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-rpms-0.0.3alpha.tar.gz | tar xf -
 # Optional
 gunzip -dc /path/to/sgug-rse-blahfix-0.0.Xalpha.tar.gz | tar xf -
 ```
@@ -85,3 +85,9 @@ cd ~user/sgug-rse.git
 ./sgugshell.sh
 rpm -ivh ~/rpmbuild/RPMS/mips/m4*.rpm
 ```
+
+## Bugs
+
+There will be bugs, I'm afraid. This platform is relatively new, much as the GCC underpinning it is. Please do file an issue for things you find - it helps a lot to double check there isn't already one for the problem you have.
+
+Feel free to contact us on the forums or in discord and we may be able to help.
