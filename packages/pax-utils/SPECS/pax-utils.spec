@@ -53,11 +53,12 @@ export CONFIG_SHELL="$SHELL"
 
 rm -f $RPM_BUILD_ROOT%{_bindir}/dumpelf
 rm -f $RPM_BUILD_ROOT%{_bindir}/pspax
-rm -f $RPM_BUILD_ROOT%{_bindir}/scanelf
 rm -f $RPM_BUILD_ROOT%{_bindir}/scanmacho
 rm -f $RPM_BUILD_ROOT%{_bindir}/symtree
 
-rm -rf $RPM_BUILD_ROOT%{_mandir}/*
+rm -rf $RPM_BUILD_ROOT%{_mandir}/man1/dumpelf*
+rm -rf $RPM_BUILD_ROOT%{_mandir}/man1/pspax*
+rm -rf $RPM_BUILD_ROOT%{_mandir}/man1/scanmacho*
 
 
 %if %{with check}
@@ -74,12 +75,12 @@ make check
 #%{_bindir}/dumpelf
 %{_bindir}/lddtree
 #%{_bindir}/pspax
-#%{_bindir}/scanelf
+%{_bindir}/scanelf
 #%{_bindir}/scanmacho
 #%{_bindir}/symtree
 #%{_mandir}/man1/dumpelf.1*
 #%{_mandir}/man1/pspax.1*
-#%{_mandir}/man1/scanelf.1*
+%{_mandir}/man1/scanelf.1*
 #%{_mandir}/man1/scanmacho.1*
 
 %changelog
