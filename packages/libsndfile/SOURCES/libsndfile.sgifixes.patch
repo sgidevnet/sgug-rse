@@ -1,0 +1,279 @@
+diff -r -u -w libsndfile-1.0.28/src/ALAC/alac_codec.h libsndfile-1.0.28-patched/src/ALAC/alac_codec.h
+--- libsndfile-1.0.28/src/ALAC/alac_codec.h	2016-04-01 22:08:52.000000000 +0000
++++ libsndfile-1.0.28-patched/src/ALAC/alac_codec.h	2018-12-17 10:10:57.738615000 +0000
+@@ -48,7 +48,7 @@
+ 	{
+ 		int32_t			mPredictor [ALAC_FRAME_LENGTH] ;
+ 		uint16_t		mShiftBuffer [ALAC_FRAME_LENGTH] ;
+-	} ;
++	} anony;
+ 	uint32_t			mNumChannels ;
+ } ALAC_DECODER ;
+ 
+diff -r -u -w libsndfile-1.0.28/src/ALAC/alac_decoder.c libsndfile-1.0.28-patched/src/ALAC/alac_decoder.c
+--- libsndfile-1.0.28/src/ALAC/alac_decoder.c	2016-11-14 09:07:53.000000000 +0000
++++ libsndfile-1.0.28-patched/src/ALAC/alac_decoder.c	2018-12-17 10:11:04.706377240 +0000
+@@ -110,7 +110,7 @@
+ 
+ 		RequireAction (p->mConfig.compatibleVersion <= kALACVersion, return kALAC_IncompatibleVersion ;) ;
+ 		RequireAction ((p->mConfig.bitDepth >= 8 && p->mConfig.bitDepth <= 32), return kALAC_BadBitWidth ;) ;
+-		RequireAction ((p->mMixBufferU != NULL) && (p->mMixBufferV != NULL) && (p->mPredictor != NULL),
++		RequireAction ((p->mMixBufferU != NULL) && (p->mMixBufferV != NULL) && (p->anony.mPredictor != NULL),
+ 						status = kALAC_MemFullError ; goto Exit ;) ;
+ 	}
+ 	else
+@@ -247,18 +247,18 @@
+ 
+ 					// decompress
+ 					set_ag_params (&agParams, p->mConfig.mb, (pb * pbFactorU) / 4, p->mConfig.kb, numSamples, numSamples, p->mConfig.maxRun) ;
+-					status = dyn_decomp (&agParams, bits, p->mPredictor, numSamples, chanBits, &bits1) ;
++					status = dyn_decomp (&agParams, bits, p->anony.mPredictor, numSamples, chanBits, &bits1) ;
+ 					RequireNoErr (status, goto Exit ;) ;
+ 
+ 					if (modeU == 0)
+ 					{
+-						unpc_block (p->mPredictor, p->mMixBufferU, numSamples, &coefsU [0], numU, chanBits, denShiftU) ;
++						unpc_block (p->anony.mPredictor, p->mMixBufferU, numSamples, &coefsU [0], numU, chanBits, denShiftU) ;
+ 					}
+ 					else
+ 					{
+ 						// the special "numActive == 31" mode can be done in-place
+-						unpc_block (p->mPredictor, p->mPredictor, numSamples, NULL, 31, chanBits, 0) ;
+-						unpc_block (p->mPredictor, p->mMixBufferU, numSamples, &coefsU [0], numU, chanBits, denShiftU) ;
++						unpc_block (p->anony.mPredictor, p->anony.mPredictor, numSamples, NULL, 31, chanBits, 0) ;
++						unpc_block (p->anony.mPredictor, p->mMixBufferU, numSamples, &coefsU [0], numU, chanBits, denShiftU) ;
+ 					}
+ 				}
+ 				else
+@@ -300,7 +300,7 @@
+ 					//Assert (shift <= 16) ;
+ 
+ 					for (i = 0 ; i < numSamples ; i++)
+-						p->mShiftBuffer [i] = (uint16_t) BitBufferRead (&shiftBits, (uint8_t) shift) ;
++						p->anony.mShiftBuffer [i] = (uint16_t) BitBufferRead (&shiftBits, (uint8_t) shift) ;
+ 				}
+ 
+ 				// convert 32-bit integers into output buffer
+@@ -318,14 +318,14 @@
+ 					case 24:
+ 						out32 = sampleBuffer + channelIndex ;
+ 						if (bytesShifted != 0)
+-							copyPredictorTo24Shift (p->mMixBufferU, p->mShiftBuffer, out32, numChannels, numSamples, bytesShifted) ;
++							copyPredictorTo24Shift (p->mMixBufferU, p->anony.mShiftBuffer, out32, numChannels, numSamples, bytesShifted) ;
+ 						else
+ 							copyPredictorTo24 (p->mMixBufferU, out32, numChannels, numSamples) ;
+ 						break ;
+ 					case 32:
+ 						out32 = sampleBuffer + channelIndex ;
+ 						if (bytesShifted != 0)
+-							copyPredictorTo32Shift (p->mMixBufferU, p->mShiftBuffer, out32, numChannels, numSamples, bytesShifted) ;
++							copyPredictorTo32Shift (p->mMixBufferU, p->anony.mShiftBuffer, out32, numChannels, numSamples, bytesShifted) ;
+ 						else
+ 							copyPredictorTo32 (p->mMixBufferU, out32, numChannels, numSamples) ;
+ 						break ;
+@@ -408,34 +408,34 @@
+ 
+ 					// decompress and run predictor for "left" channel
+ 					set_ag_params (&agParams, p->mConfig.mb, (pb * pbFactorU) / 4, p->mConfig.kb, numSamples, numSamples, p->mConfig.maxRun) ;
+-					status = dyn_decomp (&agParams, bits, p->mPredictor, numSamples, chanBits, &bits1) ;
++					status = dyn_decomp (&agParams, bits, p->anony.mPredictor, numSamples, chanBits, &bits1) ;
+ 					RequireNoErr (status, goto Exit ;) ;
+ 
+ 					if (modeU == 0)
+ 					{
+-						unpc_block (p->mPredictor, p->mMixBufferU, numSamples, &coefsU [0], numU, chanBits, denShiftU) ;
++						unpc_block (p->anony.mPredictor, p->mMixBufferU, numSamples, &coefsU [0], numU, chanBits, denShiftU) ;
+ 					}
+ 					else
+ 					{
+ 						// the special "numActive == 31" mode can be done in-place
+-						unpc_block (p->mPredictor, p->mPredictor, numSamples, NULL, 31, chanBits, 0) ;
+-						unpc_block (p->mPredictor, p->mMixBufferU, numSamples, &coefsU [0], numU, chanBits, denShiftU) ;
++						unpc_block (p->anony.mPredictor, p->anony.mPredictor, numSamples, NULL, 31, chanBits, 0) ;
++						unpc_block (p->anony.mPredictor, p->mMixBufferU, numSamples, &coefsU [0], numU, chanBits, denShiftU) ;
+ 					}
+ 
+ 					// decompress and run predictor for "right" channel
+ 					set_ag_params (&agParams, p->mConfig.mb, (pb * pbFactorV) / 4, p->mConfig.kb, numSamples, numSamples, p->mConfig.maxRun) ;
+-					status = dyn_decomp (&agParams, bits, p->mPredictor, numSamples, chanBits, &bits2) ;
++					status = dyn_decomp (&agParams, bits, p->anony.mPredictor, numSamples, chanBits, &bits2) ;
+ 					RequireNoErr (status, goto Exit ;) ;
+ 
+ 					if (modeV == 0)
+ 					{
+-						unpc_block (p->mPredictor, p->mMixBufferV, numSamples, &coefsV [0], numV, chanBits, denShiftV) ;
++						unpc_block (p->anony.mPredictor, p->mMixBufferV, numSamples, &coefsV [0], numV, chanBits, denShiftV) ;
+ 					}
+ 					else
+ 					{
+ 						// the special "numActive == 31" mode can be done in-place
+-						unpc_block (p->mPredictor, p->mPredictor, numSamples, NULL, 31, chanBits, 0) ;
+-						unpc_block (p->mPredictor, p->mMixBufferV, numSamples, &coefsV [0], numV, chanBits, denShiftV) ;
++						unpc_block (p->anony.mPredictor, p->anony.mPredictor, numSamples, NULL, 31, chanBits, 0) ;
++						unpc_block (p->anony.mPredictor, p->mMixBufferV, numSamples, &coefsV [0], numV, chanBits, denShiftV) ;
+ 					}
+ 				}
+ 				else
+@@ -488,8 +488,8 @@
+ 
+ 					for (i = 0 ; i < (numSamples * 2) ; i += 2)
+ 					{
+-						p->mShiftBuffer [i + 0] = (uint16_t) BitBufferRead (&shiftBits, (uint8_t) shift) ;
+-						p->mShiftBuffer [i + 1] = (uint16_t) BitBufferRead (&shiftBits, (uint8_t) shift) ;
++						p->anony.mShiftBuffer [i + 0] = (uint16_t) BitBufferRead (&shiftBits, (uint8_t) shift) ;
++						p->anony.mShiftBuffer [i + 1] = (uint16_t) BitBufferRead (&shiftBits, (uint8_t) shift) ;
+ 					}
+ 				}
+ 
+@@ -508,12 +508,12 @@
+ 					case 24:
+ 						out32 = sampleBuffer + channelIndex ;
+ 						unmix24 (p->mMixBufferU, p->mMixBufferV, out32, numChannels, numSamples,
+-									mixBits, mixRes, p->mShiftBuffer, bytesShifted) ;
++									mixBits, mixRes, p->anony.mShiftBuffer, bytesShifted) ;
+ 						break ;
+ 					case 32:
+ 						out32 = sampleBuffer + channelIndex ;
+ 						unmix32 (p->mMixBufferU, p->mMixBufferV, out32, numChannels, numSamples,
+-									mixBits, mixRes, p->mShiftBuffer, bytesShifted) ;
++									mixBits, mixRes, p->anony.mShiftBuffer, bytesShifted) ;
+ 						break ;
+ 				}
+ 
+diff -r -u -w libsndfile-1.0.28/src/alac.c libsndfile-1.0.28-patched/src/alac.c
+--- libsndfile-1.0.28/src/alac.c	2017-04-01 08:18:02.000000000 +0000
++++ libsndfile-1.0.28-patched/src/alac.c	2018-12-17 10:10:36.198449800 +0000
+@@ -56,7 +56,7 @@
+ 	union
+ 	{	ALAC_DECODER decoder ;
+ 		ALAC_ENCODER encoder ;
+-	} ;
++	} anony;
+ 
+ 	char enctmpname [512] ;
+ 	FILE *enctmp ;
+@@ -169,7 +169,7 @@
+ 	plac = psf->codec_data ;
+ 
+ 	if (psf->file.mode == SFM_WRITE)
+-	{	ALAC_ENCODER *penc = &plac->encoder ;
++	{	ALAC_ENCODER *penc = &plac->anony.encoder ;
+ 		SF_CHUNK_INFO chunk_info ;
+ 		sf_count_t readcount ;
+ 		uint8_t kuki_data [1024] ;
+@@ -268,14 +268,14 @@
+ 	/* Read in the ALAC cookie data and pass it to the init function. */
+ 	kuki_size = alac_kuki_read (psf, info->kuki_offset, u.kuki, sizeof (u.kuki)) ;
+ 
+-	if ((error = alac_decoder_init (&plac->decoder, u.kuki, kuki_size)) != ALAC_noErr)
++	if ((error = alac_decoder_init (&plac->anony.decoder, u.kuki, kuki_size)) != ALAC_noErr)
+ 	{	psf_log_printf (psf, "*** alac_decoder_init() returned %s. ***\n", alac_error_string (error)) ;
+ 		return SFE_INTERNAL ;
+ 		} ;
+ 
+ 
+-	if (plac->decoder.mNumChannels != (unsigned) psf->sf.channels)
+-	{	psf_log_printf (psf, "*** Initialized decoder has %u channels, but it should be %d. ***\n", plac->decoder.mNumChannels, psf->sf.channels) ;
++	if (plac->anony.decoder.mNumChannels != (unsigned) psf->sf.channels)
++	{	psf_log_printf (psf, "*** Initialized decoder has %u channels, but it should be %d. ***\n", plac->anony.decoder.mNumChannels, psf->sf.channels) ;
+ 		return SFE_INTERNAL ;
+ 		} ;
+ 
+@@ -357,7 +357,7 @@
+ 		return SFE_ALAC_FAIL_TMPFILE ;
+ 		} ;
+ 
+-	alac_encoder_init (&plac->encoder, psf->sf.samplerate, psf->sf.channels, alac_format_flags, ALAC_FRAME_LENGTH) ;
++	alac_encoder_init (&plac->anony.encoder, psf->sf.samplerate, psf->sf.channels, alac_format_flags, ALAC_FRAME_LENGTH) ;
+ 
+ 	return 0 ;
+ } /* alac_writer_init */
+@@ -402,7 +402,7 @@
+ 
+ static int
+ alac_decode_block (SF_PRIVATE *psf, ALAC_PRIVATE *plac)
+-{	ALAC_DECODER *pdec = &plac->decoder ;
++{	ALAC_DECODER *pdec = &plac->anony.decoder ;
+ 	uint32_t	packet_size ;
+ 	BitBuffer	bit_buffer ;
+ 
+@@ -437,7 +437,7 @@
+ 
+ static int
+ alac_encode_block (ALAC_PRIVATE *plac)
+-{	ALAC_ENCODER *penc = &plac->encoder ;
++{	ALAC_ENCODER *penc = &plac->anony.encoder ;
+ 	uint32_t num_bytes = 0 ;
+ 
+ 	alac_encode (penc, plac->partial_block_frames, plac->buffer, plac->byte_buffer, &num_bytes) ;
+diff -r -u -w libsndfile-1.0.28/src/common.c libsndfile-1.0.28-patched/src/common.c
+--- libsndfile-1.0.28/src/common.c	2017-04-02 07:33:16.000000000 +0000
++++ libsndfile-1.0.28-patched/src/common.c	2018-12-17 10:10:36.204042440 +0000
+@@ -1236,9 +1236,16 @@
+ ** bodgy something up instead.
+ */
+ 
+-typedef SF_CUES_VAR (0) SF_CUES_0 ;
++//typedef SF_CUES_VAR (0) SF_CUES_0 ;
+ 
+-#define SF_CUES_VAR_SIZE(count)	(sizeof (SF_CUES_0) + count * sizeof (SF_CUE_POINT))
++//#define SF_CUES_VAR_SIZE(count)	(sizeof (SF_CUES_0) + count * sizeof (SF_CUE_POINT))
++
++size_t SF_CUES_VAR_SIZE( uint32_t cue_count )
++{
++  size_t ret = (sizeof(SF_CUES_VAR(2)) - sizeof(SF_CUES_VAR(1))) +
++    (cue_count * sizeof(SF_CUE_POINT));
++  return ret;
++}
+ 
+ SF_CUES *
+ psf_cues_alloc (uint32_t cue_count)
+diff -r -u -w libsndfile-1.0.28/src/common.h libsndfile-1.0.28-patched/src/common.h
+--- libsndfile-1.0.28/src/common.h	2017-04-01 10:40:45.000000000 +0000
++++ libsndfile-1.0.28-patched/src/common.h	2018-12-17 10:10:36.208214200 +0000
+@@ -79,7 +79,9 @@
+ ** Visibility control
+ */
+ 
+-#if defined (SNDFILE_EXPORTS) && !defined (_WIN32)
++#if defined(__sgi)
++#	define SNDFILE_API
++#elif defined (SNDFILE_EXPORTS) && !defined (_WIN32)
+ #	define SNDFILE_API	__attribute__ ((visibility ("default")))
+ #else
+ #	define SNDFILE_API
+diff -r -u -w libsndfile-1.0.28/src/test_broadcast_var.c libsndfile-1.0.28-patched/src/test_broadcast_var.c
+--- libsndfile-1.0.28/src/test_broadcast_var.c	2016-04-01 22:08:53.000000000 +0000
++++ libsndfile-1.0.28-patched/src/test_broadcast_var.c	2018-12-17 10:10:36.210190520 +0000
+@@ -30,9 +30,7 @@
+ 
+ typedef SF_BROADCAST_INFO_VAR (BCAST_MAX) SF_BROADCAST_INFO_512 ;
+ 
+-static void
+-fill_coding_history (SF_BROADCAST_INFO_512 * bi)
+-{	static const char *lines [] =
++static const char *lines [] =
+ 	{	"Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.",
+ 		"Donec dignissim erat\nvehicula libero condimentum\ndictum porta augue faucibus.",
+ 		"Maecenas nec turpis\nsit amet quam\nfaucibus adipiscing.",
+@@ -47,6 +45,10 @@
+ 		"Sed ligula neque,\ngravida semper vulputate laoreet,\ngravida eu tellus.",
+ 		"Donec dolor dolor,\nscelerisque in consequat ornare,\ntempor nec nisl."
+ 	} ;
++
++static void
++fill_coding_history (SF_BROADCAST_INFO_512 * bi)
++{
+ 	int k ;
+ 
+ 	bi->coding_history [0] = 0 ;
+@@ -89,7 +91,8 @@
+ static void
+ test_broadcast_var_zero (void)
+ {	SF_PRIVATE	sf_private, *psf ;
+-	SF_BROADCAST_INFO_VAR (0) bi ;
++  //	SF_BROADCAST_INFO_VAR (0) bi ;
++	SF_BROADCAST_INFO_512 bi ;
+ 
+ 	psf = &sf_private ;
+ 	memset (psf, 0, sizeof (sf_private)) ;
