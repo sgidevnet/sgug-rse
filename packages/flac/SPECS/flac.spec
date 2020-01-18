@@ -125,7 +125,7 @@ make check
 #ldconfig_scriptlets libs
 
 %files
-%doc flac-doc/*
+#doc flac-doc/*
 %{_bindir}/flac
 %{_bindir}/metaflac
 %{_mandir}/man1/*
