@@ -1,0 +1,11 @@
+--- libAfterImage-1.20/Makefile.in~	2020-01-18 02:27:52.663659920 +0000
++++ libAfterImage-1.20/Makefile.in	2020-01-18 02:44:04.558955520 +0000
+@@ -371,7 +371,7 @@
+ 	$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
+ 
+ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
+-	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
++	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) $(USER_LD_FLAGS) -o $(LIB_SHARED).$(LIBVER) \
+ 	 $(LIB_OBJS) $(LIBRARIES)
+ 
+ install.man:
