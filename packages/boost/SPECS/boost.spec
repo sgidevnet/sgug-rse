@@ -475,7 +475,7 @@ data specific to individual threads.
 %package devel
 Summary: The Boost C++ headers and shared development libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: libicu-devel%{?_isa}
+#Requires: libicu-devel%{?_isa}
 %if %{with quadmath}
 Requires: libquadmath-devel%{?_isa}
 %endif
@@ -786,7 +786,8 @@ using python : %{python2_version} : /usr/bin/python2 : /usr/include/python%{pyth
 %endif
 EOF
 
-./bootstrap.sh --with-toolset=gcc --with-icu
+#./bootstrap.sh --with-toolset=gcc --with-icu
+./bootstrap.sh --with-toolset=gcc
 
 # N.B. When we build the following with PCH, parts of boost (math
 # library in particular) end up being built second time during
