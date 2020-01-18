@@ -1,0 +1,20 @@
+--- emacs-23.3/configure.in~	2020-01-18 03:08:43.437720280 +0000
++++ emacs-23.3/configure.in	2020-01-18 03:11:18.138582680 +0000
+@@ -2189,7 +2189,7 @@
+   AC_CHECK_HEADER(gif_lib.h,
+ # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
+ # Earlier versions can crash Emacs.
+-    [AC_CHECK_LIB(gif, EGifPutExtensionLast, HAVE_GIF=yes, try_libungif=yes)])
++    [AC_CHECK_LIB(gif, EGifPutExtension, HAVE_GIF=yes, try_libungif=yes)])
+ 
+   if test "$HAVE_GIF" = yes; then
+       ac_gif_lib_name="-lgif"
+@@ -2197,7 +2197,7 @@
+ 
+ # If gif_lib.h but no libgif, try libungif.
+   if test x"$try_libungif" = xyes; then
+-    AC_CHECK_LIB(ungif, EGifPutExtensionLast, HAVE_GIF=yes)
++    AC_CHECK_LIB(ungif, EGifPutExtension, HAVE_GIF=yes)
+ 
+     if test "$HAVE_GIF" = yes; then
+       AC_DEFINE(LIBGIF, -lungif, [Compiler option to link with the gif library (if not -lgif).])

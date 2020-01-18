@@ -1,0 +1,82 @@
+--- emacs-23.3/src/image.c~	2011-11-26 03:20:20.000000000 +0000
++++ emacs-23.3/src/image.c	2020-01-18 03:26:17.361467800 +0000
+@@ -7350,7 +7350,8 @@
+ 	}
+ 
+       /* Open the GIF file.  */
+-      gif = fn_DGifOpenFileName (SDATA (file));
++      int err;
++      gif = fn_DGifOpenFileName (SDATA (file), &err);
+       if (gif == NULL)
+ 	{
+ 	  image_error ("Cannot open `%s'", file, Qnil);
+@@ -7366,7 +7367,8 @@
+       memsrc.len = SBYTES (specified_data);
+       memsrc.index = 0;
+ 
+-      gif = fn_DGifOpen (&memsrc, gif_read_from_memory);
++      int err;
++      gif = fn_DGifOpen (&memsrc, gif_read_from_memory, &err);
+       if (!gif)
+ 	{
+ 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);
+@@ -7379,7 +7381,8 @@
+   if (!check_image_size (f, gif->SWidth, gif->SHeight))
+     {
+       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
+-      fn_DGifCloseFile (gif);
++      int err;
++      fn_DGifCloseFile (gif, &err);
+       UNGCPRO;
+       return 0;
+     }
+@@ -7389,7 +7392,8 @@
+   if (rc == GIF_ERROR)
+     {
+       image_error ("Error reading `%s'", img->spec, Qnil);
+-      fn_DGifCloseFile (gif);
++      int err;
++      fn_DGifCloseFile (gif, &err);
+       UNGCPRO;
+       return 0;
+     }
+@@ -7400,7 +7404,8 @@
+     {
+       image_error ("Invalid image number `%s' in image `%s'",
+ 		   image, img->spec);
+-      fn_DGifCloseFile (gif);
++      int err;
++      fn_DGifCloseFile (gif, &err);
+       UNGCPRO;
+       return 0;
+     }
+@@ -7422,7 +7427,8 @@
+   if (!check_image_size (f, width, height))
+     {
+       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
+-      fn_DGifCloseFile (gif);
++      int err;
++      fn_DGifCloseFile (gif, &err);
+       UNGCPRO;
+       return 0;
+     }
+@@ -7430,7 +7436,8 @@
+   /* Create the X image and pixmap.  */
+   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
+     {
+-      fn_DGifCloseFile (gif);
++      int err;
++      fn_DGifCloseFile (gif, &err);
+       UNGCPRO;
+       return 0;
+     }
+@@ -7537,7 +7544,8 @@
+ 				Fcons (make_number (gif->ImageCount),
+ 				       img->data.lisp_val));
+ 
+-  fn_DGifCloseFile (gif);
++  int err;
++  fn_DGifCloseFile (gif,&err);
+ 
+   /* Maybe fill in the background field while we have ximg handy. */
+   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))

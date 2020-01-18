@@ -24,6 +24,8 @@ Source9:       %{name}.appdata.xml
 
 Patch100:       emacs.sgifixes.patch
 Patch101:       emacs.sgifixcalloc.patch
+Patch102:       emacs.fixoldgifdetect.patch
+Patch103:       emacs.moregiffixes.patch
 
 BuildRequires:  gcc
 #BuildRequires: atk-devel
@@ -31,7 +33,7 @@ BuildRequires:  gcc
 #BuildRequires: freetype-devel
 #BuildRequires: fontconfig-devel
 #BuildRequires: dbus-devel
-#BuildRequires: giflib-devel
+BuildRequires: giflib-devel
 #BuildRequires: glibc-devel
 BuildRequires: libpng-devel
 #BuildRequires: libjpeg-turbo-devel
@@ -183,6 +185,8 @@ packages that add functionality to Emacs.
 #%patch2 -p1 -b .system-crypto-policies
 %patch100 -p1 -b .sgifixes
 %patch101 -p1 -b .sgifixcalloc
+%patch102 -p1 -b .fixoldgifdetect
+%patch103 -p1 -b .moregiffixes
 autoconf
 
 # We prefer our emacs.desktop file
@@ -239,7 +243,7 @@ export LIBS="-lXpm -ljpeg -ltiff -ltinfo"
 #           --with-tiff --with-xft --with-xpm --with-x-toolkit=gtk3 --with-gpm=no \
 #           --with-xwidgets --with-modules
 
-%configure --without-gif --with-jpeg --with-png \
+%configure --with-gif --with-jpeg --with-png \
            --with-tiff --with-xpm --with-x-toolkit=motif --with-gpm=no \
            --with-xwidgets
 
@@ -257,7 +261,7 @@ export LIBS="-ljpeg -ltiff -ltinfo"
 #configure --with-dbus --with-gif --with-jpeg --with-png --with-rsvg \
 #           --with-tiff --with-xft --with-xpm --with-x-toolkit=lucid --with-gpm=no \
 #           --with-modules
-%configure --without-gif --with-jpeg --with-png \
+%configure --with-gif --with-jpeg --with-png \
            --with-tiff --with-xpm --with-x-toolkit=lucid --with-gpm=no
 #make %{?_smp_mflags} bootstrap
 %{setarch} make %{?_smp_mflags}
