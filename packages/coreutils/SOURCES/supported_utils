@@ -26,7 +26,6 @@
 %{_bindir}/rmdir
 %{_bindir}/sleep
 %{_bindir}/sort
-%{_bindir}/stty
 %{_bindir}/sync
 %{_bindir}/mktemp
 %{_bindir}/touch

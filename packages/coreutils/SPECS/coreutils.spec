@@ -230,8 +230,12 @@ grep LC_TIME %name.lang | cut -d'/' -f1-6 | sed -e 's/) /) %%dir /g' >>%name.lan
 # (sb) Deal with Installed (but unpackaged) file(s) found
 rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 
+# Remove stty tool which doesn't do what we want under irix
+rm -f $RPM_BUILD_ROOT%{_bindir}/stty
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/stty.1.gz
+
 %files -f supported_utils
-%exclude %{_bindir}/*.single
+#exclude %{_bindir}/*.single
 %dir %{_libexecdir}/coreutils
 %{_libexecdir}/coreutils/*.so
 
