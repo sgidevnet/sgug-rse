@@ -1,0 +1,15 @@
+--- aterm-1.0.1/configure~	2020-01-18 01:52:33.621747920 +0000
++++ aterm-1.0.1/configure	2020-01-18 01:54:27.457296000 +0000
+@@ -4565,9 +4565,9 @@
+   CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
+ fi
+ 
+-if test "x$GCC" = "xyes"; then
+-   LDFLAGS="$LDFLAGS -rdynamic"
+-fi
++#if test "x$GCC" = "xyes"; then
++#   LDFLAGS="$LDFLAGS -rdynamic"
++#fi
+ 
+ export CFLAGS
+ export LDFLAGS
