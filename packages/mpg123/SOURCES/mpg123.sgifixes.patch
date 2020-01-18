@@ -1,0 +1,13 @@
+diff -r -u -w mpg123-1.25.10/src/resolver.c mpg123-1.25.10-patched/src/resolver.c
+--- mpg123-1.25.10/src/resolver.c	2018-02-27 10:26:38.000000000 +0000
++++ mpg123-1.25.10-patched/src/resolver.c	2018-12-17 11:14:15.018618320 +0000
+@@ -37,6 +37,9 @@
+ #endif
+ #include <unistd.h>
+ #include "debug.h"
++#if defined(__sgi)
++#include <sys/resource.h>
++#endif
+ 
+ int split_url(mpg123_string *url, mpg123_string *auth, mpg123_string *host, mpg123_string *port, mpg123_string *path)
+ {
