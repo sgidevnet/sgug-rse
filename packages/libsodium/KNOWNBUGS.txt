@@ -1,0 +1,1 @@
+sodium_utils2 and sodium_utils3 fail - looks like the signal handling isn't working as they expect, needs better test cases + checking to see if mipspro handles this as expected, or it's a gcc/binutils thing.

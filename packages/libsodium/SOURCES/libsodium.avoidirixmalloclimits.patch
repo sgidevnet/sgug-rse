@@ -1,0 +1,24 @@
+--- libsodium-1.0.18/test/default/sodium_utils2.c.orig	2020-01-19 00:33:52.179659440 +0000
++++ libsodium-1.0.18/test/default/sodium_utils2.c	2020-01-19 00:42:16.590986800 +0000
+@@ -44,15 +44,21 @@
+     size_t       size;
+     unsigned int i;
+ 
++    /* irix will happily return a ptr for the full SIZE_MAX */
++#if !defined(__sgi)
+     if (sodium_malloc(SIZE_MAX - 1U) != NULL) {
+         return 1;
+     }
++#endif
+     if (sodium_malloc(0U) == NULL) {
+         return 1;
+     }
++    /* irix will happily return a ptr for the full SIZE_MAX */
++#if !defined(__sgi)
+     if (sodium_allocarray(SIZE_MAX / 2U + 1U, SIZE_MAX / 2U) != NULL) {
+         return 1;
+     }
++#endif
+     sodium_free(sodium_allocarray(0U, 0U));
+     sodium_free(sodium_allocarray(0U, 1U));
+     sodium_free(sodium_allocarray(1U, 0U));
