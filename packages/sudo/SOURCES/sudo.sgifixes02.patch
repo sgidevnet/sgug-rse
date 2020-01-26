@@ -1,0 +1,39 @@
+--- sudo-1.8.29/lib/util/getentropy.c~	2019-10-28 12:27:38.000000000 +0000
++++ sudo-1.8.29/lib/util/getentropy.c	2020-01-25 20:54:05.779239680 +0000
+@@ -20,6 +20,13 @@
+  * http://man.openbsd.org/getentropy.2
+  */
+ 
++#if defined(__sgi)
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <errno.h>
++#endif
++
+ #include <config.h>
+ 
+ #ifndef HAVE_GETENTROPY
+@@ -470,11 +477,22 @@
+ 				};
+ 
+ 				for (m = 0; m < sizeof mm/sizeof(mm[0]); m++) {
++#if defined(__sgi)
++				  int mmapfd;
++				  if( (mmapfd = open("/dev/zero", O_RDWR)) == -1 ) {
++				    printf ("open for simulated anon memmap failed %d %s\n",
++					    errno,
++					    strerror(errno));
++				    mm[m].p = MAP_FAILED;
++				  }
++				  close(mmapfd);
++#else
+ 					HX(mm[m].p = mmap(NULL,
+ 					    mm[m].npg * pgs,
+ 					    PROT_READ|PROT_WRITE,
+ 					    MAP_PRIVATE|MAP_ANON, -1,
+ 					    (off_t)0), mm[m].p);
++#endif
+ 					if (mm[m].p != MAP_FAILED) {
+ 						size_t mo;
+ 

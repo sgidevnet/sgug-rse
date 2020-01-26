@@ -1,0 +1,57 @@
+--- sudo-1.8.29/lib/util/arc4random.h~	2019-10-28 12:27:38.000000000 +0000
++++ sudo-1.8.29/lib/util/arc4random.h	2020-01-25 20:51:26.717942560 +0000
+@@ -25,6 +25,13 @@
+  * Stub functions for portability.
+  */
+ 
++#if defined(__sgi)
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <errno.h>
++#endif
++
+ #include <sys/mman.h>
+ 
+ #include <signal.h>
+@@ -86,6 +93,31 @@
+ static inline int
+ _rs_allocate(struct _rs **rsp, struct _rsx **rsxp)
+ {
++  int mmapfd;
++#if defined(__sgi)
++  if( (mmapfd = open("/dev/zero", O_RDWR)) == -1 ) {
++    printf ("open for simulated anon memmap failed %d %s\n",
++	    errno,
++	    strerror(errno));
++    return -1;
++  }
++
++  if ((*rsp = (void *)mmap(NULL, sizeof(**rsp), PROT_READ|PROT_WRITE,
++			   MAP_PRIVATE, mmapfd, 0)) == MAP_FAILED) {
++    close(mmapfd);
++    return (-1);
++  }
++
++  if ((*rsxp = (void *)mmap(NULL, sizeof(**rsxp), PROT_READ|PROT_WRITE,
++			    MAP_PRIVATE, mmapfd, 0)) == MAP_FAILED) {
++    munmap((void *)*rsp, sizeof(**rsp));
++    *rsp = NULL;
++    close(mmapfd);
++    return (-1);
++  }
++  close(mmapfd);
++#else
++
+ 	if ((*rsp = (void *)mmap(NULL, sizeof(**rsp), PROT_READ|PROT_WRITE,
+ 	    MAP_ANON|MAP_PRIVATE, -1, 0)) == MAP_FAILED)
+ 		return (-1);
+@@ -96,7 +128,7 @@
+ 		*rsp = NULL;
+ 		return (-1);
+ 	}
+-
++#endif
+ #ifdef MADV_WIPEONFORK
+ 	if (madvise (*rsp, sizeof(**rsp), MADV_WIPEONFORK) == 0 &&
+ 	    madvise (*rsxp, sizeof(**rsxp), MADV_WIPEONFORK) == 0) {
