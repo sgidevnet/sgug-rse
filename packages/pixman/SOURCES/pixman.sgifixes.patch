@@ -1,0 +1,63 @@
+--- pixman-0.38.4/test/utils.c.orig	2020-01-25 19:01:43.815963360 +0000
++++ pixman-0.38.4/test/utils.c	2020-01-25 19:04:57.794171600 +0000
+@@ -1,5 +1,12 @@
+ #define _GNU_SOURCE
+ 
++#if defined(__sgi)
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <errno.h>
++#endif
++
+ #include "utils.h"
+ #include <math.h>
+ #include <signal.h>
+@@ -392,7 +399,7 @@
+ }
+ 
+ /* This is apparently necessary on at least OS X */
+-#ifndef MAP_ANONYMOUS
++#if !defined(MAP_ANONYMOUS) && !defined(__sgi)
+ #define MAP_ANONYMOUS MAP_ANON
+ #endif
+ 
+@@ -410,18 +417,37 @@
+     uint8_t *trailing_protected;
+     uint8_t *payload;
+     uint8_t *addr;
++    int mmapfd;
+ 
+     if (len < 0)
+ 	abort();
+     
++#if defined(__sgi)
++    if( (mmapfd = open("/dev/zero", O_RDWR)) == -1 ) {
++      printf ("open for simulated anon memmap failed %d %s\n",
++	      errno,
++	      strerror(errno));
++      return NULL;
++    }
++    addr = mmap (NULL, n_bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE,
++		 mmapfd, 0);
++    if (addr == MAP_FAILED)
++    {
++      close(mmapfd);
++      printf ("mmap failed on %lld %u\n", (long long int)len, n_bytes);
++      return NULL;
++    }
++    close(mmapfd);
++#else
+     addr = mmap (NULL, n_bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS,
+ 		 -1, 0);
+-
+     if (addr == MAP_FAILED)
+     {
+ 	printf ("mmap failed on %lld %u\n", (long long int)len, n_bytes);
+ 	return NULL;
+     }
++#endif
++
+ 
+     initial_page = (uint8_t *)(((uintptr_t)addr + page_mask) & ~page_mask);
+     leading_protected = initial_page + page_size;
