@@ -67,6 +67,7 @@ Patch911: revert-arm64.patch
 Patch912: 0001-Revert-Improve-ARM-detection.patch
 
 Patch2000: rpm.sgifixes.patch
+Patch2001: rpm.sgifixesldn32path.patch
 
 # Partially GPL/LGPL dual-licensed and some bits with BSD
 # SourceLicense: (GPLv2+ and LGPLv2+ with exceptions) and BSD
