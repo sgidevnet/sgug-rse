@@ -1,0 +1,13 @@
+--- imlib2-1.5.1/src/bin/imlib2_conv.c~	2018-03-16 15:29:59.000000000 +0000
++++ imlib2-1.5.1/src/bin/imlib2_conv.c	2020-01-22 07:03:57.065475520 +0000
+@@ -59,7 +59,9 @@
+              char               *p, *q;
+ 
+              /* max length of 8 for format name. seems reasonable. */
+-             p = strndup(dot, 8);
++             /* p = strndup(dot, 8); */
++	     p = (char*)malloc(9);
++	     strncpy(p,dot,8);
+              /* Imlib2 only recognizes lowercase formats. convert it. */
+              for (q = p; *q; q++)
+                 *q = tolower(*q);
