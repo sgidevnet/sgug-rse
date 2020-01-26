@@ -319,7 +319,7 @@ BuildRequires:  coreutils
 BuildRequires:  findutils
 BuildRequires:  gcc
 %if %{with gdbm}
-#BuildRequires:  gdbm-devel
+BuildRequires:  gdbm-devel
 %endif
 # git for PATCH-perl-134329-Use-after-free-in-regcomp.c.patch
 BuildRequires:  git-core
@@ -2951,11 +2951,11 @@ rm -rf cpan/Compress-Raw-Zlib/zlib-src
 rm -rf cpan/Compress-Raw-Bzip2/bzip2-src
 sed -i '/\(bzip2\|zlib\)-src/d' MANIFEST
 
-#%if !%{with gdbm}
+%if !%{with gdbm}
 # Do not install anything requiring NDBM_File if NDBM is not available.
 rm -rf 'cpan/Memoize/Memoize/NDBM_File.pm'
 sed -i '\|cpan/Memoize/Memoize/NDBM_File.pm|d' MANIFEST
-#%endif
+%endif
 
 
 %build
