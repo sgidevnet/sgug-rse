@@ -7,7 +7,7 @@
 # run internal testsuite?
 %bcond_with check
 # build with plugins?
-%bcond_with plugins
+%bcond_without plugins
 # build with libarchive? (needed for rpm2archive)
 %bcond_without libarchive
 # build with libimaevm.so
@@ -121,11 +121,11 @@ BuildRequires: lmdb-devel
 # Couple of patches change makefiles so, require for now...
 BuildRequires: automake libtool
 
-%if %{with plugins}
-BuildRequires: libselinux-devel
-BuildRequires: dbus-devel
-BuildRequires: audit-libs-devel
-%endif
+#%if %{with plugins}
+#BuildRequires: libselinux-devel
+#BuildRequires: dbus-devel
+#BuildRequires: audit-libs-devel
+#%endif
 
 %if %{with libimaevm}
 BuildRequires: ima-evm-utils-devel >= 1.0
@@ -508,21 +508,21 @@ make check || (cat tests/rpmtests.log; exit 0)
 %files plugin-syslog
 %{_libdir}/rpm-plugins/syslog.so
 
-%files plugin-selinux
-%{_libdir}/rpm-plugins/selinux.so
+#%files plugin-selinux
+#%{_libdir}/rpm-plugins/selinux.so
 
-%files plugin-systemd-inhibit
-%{_libdir}/rpm-plugins/systemd_inhibit.so
-%{_mandir}/man8/rpm-plugin-systemd-inhibit.8*
+#%files plugin-systemd-inhibit
+#%{_libdir}/rpm-plugins/systemd_inhibit.so
+#%{_mandir}/man8/rpm-plugin-systemd-inhibit.8*
 
-%files plugin-ima
-%{_libdir}/rpm-plugins/ima.so
+#%files plugin-ima
+#%{_libdir}/rpm-plugins/ima.so
 
 %files plugin-prioreset
 %{_libdir}/rpm-plugins/prioreset.so
 
-%files plugin-audit
-%{_libdir}/rpm-plugins/audit.so
+#%files plugin-audit
+#%{_libdir}/rpm-plugins/audit.so
 # with plugins
 %endif
 
