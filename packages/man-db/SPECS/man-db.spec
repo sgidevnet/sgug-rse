@@ -30,8 +30,7 @@ Provides: bundled(gnulib) = %{gnulib_ver}
 Requires: coreutils, grep, groff-base, gzip, less
 BuildRequires: gcc
 #BuildRequires: systemd
-#BuildRequires: gdbm-devel, gettext, groff, less, libpipeline-devel, zlib-devel
-BuildRequires: gettext, groff, less, libpipeline-devel, zlib-devel
+BuildRequires: gdbm-devel, gettext, groff, less, libpipeline-devel, zlib-devel
 #BuildRequires: po4a, perl-interpreter, perl-version
 BuildRequires: perl-interpreter, perl-version
 
