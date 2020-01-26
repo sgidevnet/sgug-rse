@@ -1,0 +1,11 @@
+--- freetype-2.10.0/ft2demos-2.10.0/graph/x11/rules.mk~	2019-02-23 09:12:35.000000000 +0000
++++ freetype-2.10.0/ft2demos-2.10.0/graph/x11/rules.mk	2020-01-22 06:26:53.530573680 +0000
+@@ -83,7 +83,7 @@
+ ifneq ($(X11_PATH),)
+ 
+   X11_INCLUDE := $(subst /,$(COMPILER_SEP),$(X11_PATH:%=%/include))
+-  X11_LIB     := $(subst /,$(COMPILER_SEP),$(X11_PATH:%=%/lib64) \
++  X11_LIB     := $(subst /,$(COMPILER_SEP),$(X11_PATH:%=%/lib32) \
+                                            $(X11_PATH:%=%/lib))
+ 
+   # The GRAPH_LINK variable is expanded each time an executable is linked

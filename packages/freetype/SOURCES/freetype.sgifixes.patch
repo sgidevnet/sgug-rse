@@ -1,0 +1,22 @@
+--- freetype-2.10.0/ft2demos-2.10.0/src/ftbench.c~	2019-02-23 09:12:35.000000000 +0000
++++ freetype-2.10.0/ft2demos-2.10.0/src/ftbench.c	2020-01-22 06:09:00.022215560 +0000
+@@ -20,6 +20,10 @@
+ #include <time.h>
+ #include <ft2build.h>
+ 
++#if defined(__sgi)
++#include <sys/time.h>
++#endif
++
+ #include FT_FREETYPE_H
+ #include FT_GLYPH_H
+ #include FT_CACHE_H
+@@ -181,6 +185,8 @@
+ 
+ #ifdef _POSIX_CPUTIME
+     clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &tv );
++#elif defined(__sgi)
++    clock_gettime( CLOCK_SGI_CYCLE, &tv );
+ #else
+     clock_gettime( CLOCK_REALTIME, &tv );
+ #endif /* _POSIX_CPUTIME */
