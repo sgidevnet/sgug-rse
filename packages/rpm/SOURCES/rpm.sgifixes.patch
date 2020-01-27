@@ -721,15 +721,6 @@ diff -N -r -u -w rpm-4.15.0/scripts/perl.req rpm-4.15.0-patched/scripts/perl.req
  
  # RPM (and its source code) is covered under two separate licenses.
  
-diff -N -r -u -w rpm-4.15.0/scripts/pkgconfigdeps.sh rpm-4.15.0-patched/scripts/pkgconfigdeps.sh
---- rpm-4.15.0/scripts/pkgconfigdeps.sh	2019-06-26 15:17:31.453985000 +0000
-+++ rpm-4.15.0-patched/scripts/pkgconfigdeps.sh	2019-10-25 19:04:48.456044560 +0000
-@@ -1,4 +1,4 @@
--#!/bin/bash
-+#!/usr/bin/env bash
- 
- pkgconfig=/usr/bin/pkg-config
- test -x $pkgconfig || {
 diff -N -r -u -w rpm-4.15.0/scripts/pythondeps.sh rpm-4.15.0-patched/scripts/pythondeps.sh
 --- rpm-4.15.0/scripts/pythondeps.sh	2019-06-26 15:17:31.453985000 +0000
 +++ rpm-4.15.0-patched/scripts/pythondeps.sh	2019-10-25 19:06:16.185045240 +0000

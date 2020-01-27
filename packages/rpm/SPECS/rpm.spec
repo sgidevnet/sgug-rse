@@ -328,6 +328,10 @@ perl -pi -e "s|/bin/sh|%{_prefix}/bin/sh|g" cliutils.c
 perl -pi -e "s|/bin/sh|%{_prefix}/bin/sh|g" build/parseScript.c
 perl -pi -e "s|/bin/sh|%{_prefix}/bin/sh|g" macros.in
 
+# Rewrite pkgconfigdeps
+perl -pi -e "s|/bin/bash|%{_prefix}/bin/bash|g" scripts/pkgconfigdeps.sh
+perl -pi -e "s|/usr/bin/pkg-config|%{_prefix}/bin/pkg-config|g" scripts/pkgconfigdeps.sh
+
 %if %{with int_bdb}
 ln -s db-%{bdbver} db
 %endif
