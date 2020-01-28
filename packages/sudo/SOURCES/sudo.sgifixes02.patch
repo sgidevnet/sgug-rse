@@ -1,5 +1,5 @@
 --- sudo-1.8.29/lib/util/getentropy.c~	2019-10-28 12:27:38.000000000 +0000
-+++ sudo-1.8.29/lib/util/getentropy.c	2020-01-25 20:54:05.779239680 +0000
++++ sudo-1.8.29/lib/util/getentropy.c	2020-01-28 11:02:00.952200000 +0000
 @@ -20,6 +20,13 @@
   * http://man.openbsd.org/getentropy.2
   */
@@ -14,7 +14,7 @@
  #include <config.h>
  
  #ifndef HAVE_GETENTROPY
-@@ -470,11 +477,22 @@
+@@ -470,11 +477,28 @@
  				};
  
  				for (m = 0; m < sizeof mm/sizeof(mm[0]); m++) {
@@ -27,6 +27,12 @@
 +				    mm[m].p = MAP_FAILED;
 +				  }
 +				  close(mmapfd);
++
++					HX(mm[m].p = mmap(NULL,
++					    mm[m].npg * pgs,
++					    PROT_READ|PROT_WRITE,
++					    MAP_PRIVATE, -1,
++					    (off_t)0), mm[m].p);
 +#else
  					HX(mm[m].p = mmap(NULL,
  					    mm[m].npg * pgs,
