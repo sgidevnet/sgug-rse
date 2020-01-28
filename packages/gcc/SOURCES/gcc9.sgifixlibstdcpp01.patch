@@ -1,0 +1,11 @@
+--- gcc-9.2.0-20190812/libstdc++-v3/configure~	2019-07-03 22:09:13.000000000 +0000
++++ gcc-9.2.0-20190812/libstdc++-v3/configure	2020-01-27 16:59:12.404335920 +0000
+@@ -22370,7 +22370,7 @@
+ $as_echo_n "checking for ld that supports -Wl,-z,relro... " >&6; }
+     cxx_z_relo=`$LD -v --help 2>/dev/null | grep "z relro"`
+     if test -n "$cxx_z_relo"; then
+-      OPT_LDFLAGS="-Wl,-z,relro"
++      OPT_LDFLAGS="-Wl,-z,relro $OPT_LDFLAGS"
+       ac_ld_relro=yes
+     fi
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ld_relro" >&5

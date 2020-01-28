@@ -1,0 +1,11 @@
+--- gcc-9.2.0-20190812/libstdc++-v3/acinclude.m4~	2019-07-03 22:09:13.000000000 +0000
++++ gcc-9.2.0-20190812/libstdc++-v3/acinclude.m4	2020-01-27 16:58:56.006404480 +0000
+@@ -276,7 +276,7 @@
+     AC_MSG_CHECKING([for ld that supports -Wl,-z,relro])
+     cxx_z_relo=`$LD -v --help 2>/dev/null | grep "z relro"`
+     if test -n "$cxx_z_relo"; then
+-      OPT_LDFLAGS="-Wl,-z,relro"
++      OPT_LDFLAGS="-Wl,-z,relro $OPT_LDFLAGS"
+       ac_ld_relro=yes
+     fi
+     AC_MSG_RESULT($ac_ld_relro)

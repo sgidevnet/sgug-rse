@@ -258,6 +258,8 @@ Patch11: gcc9-d-shared-libphobos.patch
 #Patch1002: nvptx-tools-glibc.patch
 
 Patch2001: gcc.sgifixes.patch
+Patch2002: gcc9.sgifixlibstdcpp01.patch
+Patch2003: gcc9.sgifixlibstdcpp02.patch
 
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
@@ -790,6 +792,8 @@ export PERL=%{_bindir}/perl
 #cd ..
 
 %patch2001 -p1 -b .sgifixes
+%patch2002 -p1 -b .sgifixlibstdcpp01
+%patch2003 -p1 -b .sgifixlibstdcpp02
 
 echo 'sgugver-0.1.9-mips3-ng' > gcc/DEV-PHASE
 

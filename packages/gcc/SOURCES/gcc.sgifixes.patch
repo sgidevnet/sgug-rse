@@ -3431,7 +3431,7 @@ diff -N -r -u -w gcc-9.2.0/libstdc++-v3/configure.host gcc-9.2.0-patched/libstdc
 +    # libstdc++.so relies on emutls on IRIX, which only works with the
 +    # real functions implemented in libpthread.so, not with the stubs in
 +    # libc, so always pass -lpthread.
-+    OPT_LDFLAGS="${OPT_LDFLAGS} -lpthread"
++    OPT_LDFLAGS="${OPT_LDFLAGS} -Wl,--no-as-needed -lpthread -Wl,--as-needed"
 +    ;;
    mingw32*)
      case "$host" in
