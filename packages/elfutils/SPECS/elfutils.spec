@@ -86,6 +86,7 @@ Provides: elfutils-devel%{depsuffix} = %{version}-%{release}
 %endif
 Requires: elfutils-libs%{depsuffix} = %{version}-%{release}
 Requires: elfutils-libelf-devel%{depsuffix} = %{version}-%{release}
+Requires: libdicl-devel >= 0.1.15
 
 %description devel
 The elfutils-devel package contains the libraries to create

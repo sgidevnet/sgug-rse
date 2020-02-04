@@ -69,6 +69,12 @@ Patch912: 0001-Revert-Improve-ARM-detection.patch
 Patch2000: rpm.sgifixes.patch
 Patch2001: rpm.sgifixesldn32path.patch
 
+# Ugly work around - building RPM requires libdicl-0.1.16
+# But we need libdicl-0.1.17 for libtasn and pkcs11
+# So only force the build-time dep
+BuildRequires: libdicl-devel = 0.1.16
+Requires: libdicl >= 0.1.16
+
 # Partially GPL/LGPL dual-licensed and some bits with BSD
 # SourceLicense: (GPLv2+ and LGPLv2+ with exceptions) and BSD
 License: GPLv2+
@@ -77,6 +83,7 @@ Requires: coreutils
 %if %{without int_bdb}
 # db recovery tools, rpmdb_util symlinks
 Requires: %{_bindir}/db_stat
+Requires: libdb
 %endif
 Requires: popt%{_isa} >= 1.10.2.1
 Requires: curl
@@ -132,6 +139,9 @@ BuildRequires: automake libtool
 BuildRequires: ima-evm-utils-devel >= 1.0
 %endif
 
+Requires: rpm-libs = %{version}-%{release}
+Requires: libdb, zlib, lua, popt, openssl-libs, xz-libs, gettext-libs
+
 %description
 The RPM Package Manager (RPM) is a powerful command line driven
 package management system capable of installing, uninstalling,
@@ -172,6 +182,7 @@ Requires: %{name}-libs%{_isa} = %{version}-%{release}
 Requires: %{name}-build-libs%{_isa} = %{version}-%{release}
 Requires: %{name}-sign-libs%{_isa} = %{version}-%{release}
 Requires: popt-devel%{_isa}
+Requires: libdicl-devel >= 0.1.16
 
 %description devel
 This package contains the RPM C library and header files. These
@@ -190,6 +201,7 @@ Requires: rpm = %{version}-%{release}
 Requires: elfutils >= 0.128 binutils
 Requires: findutils sed grep gawk diffutils file patch >= 2.5
 Requires: tar unzip gzip bzip2 cpio xz
+Requires: rpm-build-libs = %{version}-%{release}
 %if %{with zstd}
 Requires: zstd
 %endif

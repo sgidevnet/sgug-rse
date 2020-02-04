@@ -33,14 +33,18 @@
 # Extract the API major & minor versions, so we can export them below.
 # Ensure that the major version is >= 3, since that patch is not yet
 # in the tarball.
-%global gawk_api_major %%(x=`tar -xf %{SOURCE0} gawk-%{version}/gawkapi.h --to-stdout 2>/dev/null | \
-                          grep -i -e "gawk_api_major.*[[:digit:]]" | \
-                          grep -o -e "[[:digit:]]"`; \
-			  [ "$x" -lt 3 ] && x=3; echo $x)
 
-%global gawk_api_minor %%(tar -xf %{SOURCE0} gawk-%{version}/gawkapi.h --to-stdout 2>/dev/null | \
-                          grep -i -e "gawk_api_minor.*[[:digit:]]" | \
-                          grep -o -e "[[:digit:]]" || :)
+#global gawk_api_major %%(x=`tar -xf %{SOURCE0} gawk-%{version}/gawkapi.h --to-stdout 2>/dev/null |
+#                          grep -i -e "gawk_api_major.*[[:digit:]]" |
+#                          grep -o -e "[[:digit:]]"`;
+#			  [ "$x" -lt 3 ] && x=3; echo $x)
+%global gawk_api_major 2
+
+#global gawk_api_minor %%(tar -xf %{SOURCE0} gawk-%{version}/gawkapi.h --to-stdout 2>/dev/null |
+#                          grep -i -e "gawk_api_minor.*[[:digit:]]" |
+#                          grep -o -e "[[:digit:]]" || :)
+
+%global gawk_api_minor 0
 
 # =============================================================================
 
@@ -183,6 +187,8 @@ However, this way of displaying information is less convenient for printing or
 displaying images. Therefore, this doc subpackage can provide you with HTML, PDF
 and PS versions of those documents, which might be useful when you need to
 access them regularly, and/or when you do not have access to Internet.
+
+# Here's a terminator
 
 # === BUILD INSTRUCTIONS ======================================================
 

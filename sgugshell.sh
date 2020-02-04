@@ -1,13 +1,12 @@
 #!/usr/sgug/bin/bash
 
-
 SGUG_ROOT=/usr/sgug
 SGUG_BIN=$SGUG_ROOT/bin
 SGUG_LIB=$SGUG_ROOT/lib32
 
 export PATH=$SGUG_BIN:/usr/bin:/bin:/usr/sbin:/usr/bsd
 # Explicit library paths
-#export LD_LIBRARYN32_PATH=$SGUG_LIB:/usr/lib32:/lib32:/usr/lib:/lib
+export LD_LIBRARYN32_PATH=$SGUG_LIB:/usr/lib32:/lib32:/usr/lib:/lib
 # Without /usr/lib or /lib
 #export LD_LIBRARYN32_PATH=$SGUG_LIB:/usr/lib32:/lib32
 # Use this when sgug stuff has validated RPATH to reference the libs

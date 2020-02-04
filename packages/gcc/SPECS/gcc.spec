@@ -1975,6 +1975,10 @@ tar cf - testlogs-%{_target_platform}-%{version}-%{release} | xz -9e \
   | uuencode testlogs-%{_target_platform}.tar.xz || :
 rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 
+# Regenerate gcc headers for people that aren't on 6.5.30
+%post
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/install-tools/mkheaders
+
 #%post go
 #%{_sbindir}/update-alternatives --install \
 #  %{_prefix}/bin/go go %{_prefix}/bin/go.gcc 92 \

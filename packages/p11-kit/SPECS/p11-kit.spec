@@ -21,6 +21,8 @@ BuildRequires:  libffi-devel
 # Work around for https://bugzilla.redhat.com/show_bug.cgi?id=1497147
 # Remove this once it is fixed
 #BuildRequires:  pkgconfig(glib-2.0)
+BuildRequires:  libdicl-devel
+Requires:       libdicl
 
 %description
 p11-kit provides a way to load and enumerate PKCS#11 modules, as well
@@ -32,6 +34,7 @@ such a way that they're discoverable.
 %package devel
 Summary:        Development files for %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       libdicl-devel
 
 %description devel
 The %{name}-devel package contains libraries and header files for

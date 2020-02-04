@@ -33,19 +33,10 @@ manipulating and saving JPEG format image files.
 Install the libjpeg package if you need to manipulate JPEG files. You
 should also install the jpeg-progs package.
 
-%package -n	%{libname}
-Summary:	A library for manipulating JPEG image format files
-Group:		System/Libraries
-Provides:	%{name} = %{version}-%{release}
-
-%description -n %{libname}
-This package contains the library needed to run programs dynamically
-linked with libjpeg.
-
 %package -n	%{develname}
 Summary:	Development tools for programs which will use the libjpeg library
 Group:		Development/C
-Requires:	%{libname} = %{version}
+Requires:	%{name} = %{version}
 Provides:	jpeg-devel = %{version}-%{release}
 Provides:	jpeg%{major}-devel = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
@@ -84,7 +75,7 @@ package installed.
 %package -n	jpeg-progs
 Summary:	Programs for manipulating JPEG format image files
 Group:		Graphics
-Requires:	%{libname} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Provides:	jpeg-progs = %{version}-%{release}
 Provides:	libjpeg-progs = %{version}-%{release}
 
@@ -139,7 +130,7 @@ find %{buildroot} -name "*.la" -delete
 #install -m 755 jpegexiforient %{buildroot}%{_bindir}
 #install -m 755 exifautotran %{buildroot}%{_bindir}
 
-%files -n %{libname}
+%files
 %doc README change.log coderules.txt filelist.txt install.txt jconfig.txt libjpeg.txt structure.txt usage.txt wizard.txt
 %{_libdir}/libjpeg.so.%{major}*
 

@@ -30,7 +30,7 @@ Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	%name = %version-%release
 Requires:	%{name}-tools = %{version}-%{release}
 Requires:	pkgconfig
-
+Requires:       libdicl-devel
 
 %package tools
 Summary:	Some ASN.1 tools

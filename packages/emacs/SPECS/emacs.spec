@@ -364,6 +364,10 @@ install -p -m 0644 macros.emacs %{buildroot}%{_rpmconfigdir}/macros.d/
 # Installing emacs-terminal binary
 install -p -m 755 %SOURCE7 %{buildroot}%{_bindir}/emacs-terminal
 
+# Rewrite the paths in it
+perl -pi -e "s|/usr/bin/emacs|%{_bindir}/emacs|g" %{buildroot}%{_bindir}/emacs-terminal
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" %{buildroot}%{_bindir}/emacs-terminal
+
 # After everything is installed, remove info dir
 rm -f %{buildroot}%{_infodir}/dir
 

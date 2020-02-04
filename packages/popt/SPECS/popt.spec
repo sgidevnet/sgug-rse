@@ -12,6 +12,8 @@ Patch3:		popt-1.16-help.patch
 Patch4:		popt-1.16-nextarg-memleak.patch
 Patch5:		popt-1.16-glob-error.patch
 BuildRequires:	gcc gettext
+BuildRequires:  libdicl-devel
+Requires:       libdicl
 
 %description
 Popt is a C library for parsing command line parameters. Popt was
@@ -26,6 +28,7 @@ shell-like rules.
 %package devel
 Summary:	Development files for the popt library
 Requires:	%{name}%{?_isa} = %{version}-%{release}, pkgconfig
+Requires:       libdicl-devel
 
 %description devel
 The popt-devel package includes header files and libraries necessary
