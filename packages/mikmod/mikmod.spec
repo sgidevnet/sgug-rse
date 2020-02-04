@@ -27,8 +27,6 @@ Install the mikmod package if you need a MOD music file player.
 %autosetup
 
 %build
-#%configure --with-libmikmod-prefix=/usr/sgug --with-libmikmod-exec-prefix=/usr/sgug --disable-libmikmodtest --libdir=/usr/sgug
-#%configure --disable-libmikmodtest --exec-prefix=/usr/sgug
 %configure 
 %make_build
 
