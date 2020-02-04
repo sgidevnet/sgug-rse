@@ -1,0 +1,24 @@
+--- ddd-3.3.12/ddd/ddd.C~	2020-02-03 12:45:15.858134320 +0000
++++ ddd-3.3.12/ddd/ddd.C	2020-02-03 14:01:29.201125440 +0000
+@@ -162,6 +162,10 @@
+ #include <Xm/RepType.h>		// XmRepTypeInstallTearOffModelConverter()
+ #endif
+ 
++#if defined(__sgi)
++#include <X11/SGIScheme.h>
++#endif
++
+ #if HAVE_X11_XMU_EDITRES_H
+ #include <X11/Xmu/Editres.h>
+ #endif
+@@ -2174,6 +2178,10 @@
+ 	}
+     }
+ 
++#if defined(__sgi)
++    SgiUseSchemes("all");
++#endif
++
+     if (!restart_session().empty())
+     {
+ 	// A session is given in $DDD_SESSION: override everything.
