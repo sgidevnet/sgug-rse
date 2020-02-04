@@ -1,5 +1,27 @@
 #!/usr/sgug/bin/bash
 
+unset PKG_CONFIG_PATH
+unset LDFLAGS
+unset CFLAGS
+unset CPPFLAGS
+unset PERL
+unset M4
+unset SED
+unset GREP
+unset BISON
+unset YACC
+unset SHELL
+unset CONFIG_SHELL
+unset LD_LIBRARY_PATH
+unset LD_LIBRARYN32_PATH
+unset LD_LIBRARYN64_PATH
+unset GCC_ROOT
+unset CC
+unset CXX
+unset LD
+unset AR
+unset RANLIB
+
 SGUG_ROOT=/usr/sgug
 SGUG_BIN=$SGUG_ROOT/bin
 SGUG_LIB=$SGUG_ROOT/lib32
