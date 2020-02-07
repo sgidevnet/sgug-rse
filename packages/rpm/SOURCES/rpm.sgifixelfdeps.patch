@@ -1,0 +1,12 @@
+--- rpm-4.15.0/tools/elfdeps.c~	2019-06-26 15:17:31.462985000 +0000
++++ rpm-4.15.0/tools/elfdeps.c	2020-02-07 09:37:54.544789560 +0000
+@@ -198,7 +198,8 @@
+ {
+     Elf_Data *data = NULL;
+     while ((data = elf_getdata(scn, data)) != NULL) {
+-	for (int i = 0; i < (shdr->sh_size / shdr->sh_entsize); i++) {
++      size_t sh_entsize = gelf_fsize(ei->elf, ELF_T_DYN, 1, EV_CURRENT);
++	for (int i = 0; i < (shdr->sh_size / sh_entsize); i++) {
+ 	    const char *s = NULL;
+ 	    GElf_Dyn dyn_mem, *dyn;
+ 

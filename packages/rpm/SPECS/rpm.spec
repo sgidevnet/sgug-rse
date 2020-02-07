@@ -68,6 +68,7 @@ Patch912: 0001-Revert-Improve-ARM-detection.patch
 
 Patch2000: rpm.sgifixes.patch
 Patch2001: rpm.sgifixesldn32path.patch
+Patch2002: rpm.sgifixelfdeps.patch
 
 # Ugly work around - building RPM requires libdicl-0.1.16
 # But we need libdicl-0.1.17 for libtasn and pkcs11
