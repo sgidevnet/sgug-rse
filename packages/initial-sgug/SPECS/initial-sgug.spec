@@ -1,5 +1,5 @@
-Summary: Test vpkg with didbs tools
-Name: initial-didbsng
+Summary: Bootstrap vpkg for sgug
+Name: initial-sgug
 Epoch: 1
 Version: 0.2.0
 Release: 1%{?dist}
@@ -11,7 +11,13 @@ Provides: /bin/env
 Provides: /usr/bin/env
 Provides: /sbin/cpio
 Provides: cpio
-Provides: /usr/didbsng/sbin/install-info
+Provides: /usr/sgug/sbin/install-info
+
+# Base platform shared libraries
+Provides: libc.so.1
+Provides: libm.so
+
+# X11 libraries that are used
 
 %description
 This is a virtual RPM package.  It contains no actual files.
