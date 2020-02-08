@@ -7,8 +7,8 @@ License:        GPLv2 and LGPLv2+
 URL:            http://mikmod.sourceforge.net/
 Source0:        http://downloads.sourceforge.net/mikmod/%{name}-%{version}.tar.gz
 
-#BuildRequires:  gcc
-#BuildRequires:  ncurses-devel
+BuildRequires:  gcc
+BuildRequires:  ncurses-devel
 BuildRequires:  libmikmod-devel
 
 %description
