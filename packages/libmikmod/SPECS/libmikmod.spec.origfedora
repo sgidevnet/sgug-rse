@@ -9,7 +9,7 @@ Patch0:         libmikmod-64bit.patch
 Patch1:         libmikmod-multilib.patch
 Patch2:         libmikmod-cflags.patch
 BuildRequires:  gcc
-#BuildRequires:  alsa-lib-devel pulseaudio-libs-devel
+BuildRequires:  alsa-lib-devel pulseaudio-libs-devel
 
 %description
 libmikmod is a library used by the mikmod MOD music file player for
@@ -20,7 +20,7 @@ XM, ULT and IT.
 Summary:        Header files and documentation for compiling mikmod applications
 Provides:       mikmod-devel = %{version}-%{release}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-#Requires:       pulseaudio-libs-devel%{?_isa}
+Requires:       pulseaudio-libs-devel%{?_isa}
 
 %description devel
 This package includes the header files you will need to compile
@@ -30,7 +30,7 @@ applications for mikmod.
 %autosetup -p1
 
 %build
-%configure --enable-dl --enable-sgi --disable-simd
+%configure --enable-dl --enable-alsa --disable-simd
 %make_build
 
 %install
@@ -38,7 +38,7 @@ applications for mikmod.
 rm -f %{buildroot}%{_infodir}/dir %{buildroot}%{_libdir}/*.a
 find %{buildroot} -name '*.la' -print -delete
 
-#%ldconfig_scriptlets
+%ldconfig_scriptlets
 
 %files
 %doc AUTHORS NEWS README TODO
