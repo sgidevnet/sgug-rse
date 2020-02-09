@@ -1,3 +1,5 @@
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+
 %bcond_with jar
 %bcond_with java
 
@@ -318,10 +320,10 @@ rm -rf ${RPM_BUILD_ROOT}%{_datadir}/doc/gettext/examples
 rm -rf htmldoc
 mkdir htmldoc
 # DHLIBASPRINTF
-#mv ${RPM_BUILD_ROOT}%{_datadir}/doc/gettext/* ${RPM_BUILD_ROOT}/%{_datadir}/doc/libasprintf/* htmldoc
-mv ${RPM_BUILD_ROOT}%{_datadir}/doc/gettext/* htmldoc
+mv ${RPM_BUILD_ROOT}%{_datadir}/doc/gettext/* ${RPM_BUILD_ROOT}/%{_datadir}/doc/libasprintf/* htmldoc
+#mv ${RPM_BUILD_ROOT}%{_datadir}/doc/gettext/* htmldoc
 # DHLIBASPRINTF
-#rm -r ${RPM_BUILD_ROOT}%{_datadir}/doc/libasprintf
+rm -r ${RPM_BUILD_ROOT}%{_datadir}/doc/libasprintf
 rm -r ${RPM_BUILD_ROOT}%{_datadir}/doc/gettext
 
 ## note libintl.jar does not build with gcj < 4.3
@@ -353,7 +355,7 @@ rm -rf ${RPM_BUILD_ROOT}%{_datadir}/%{name}/intl
 
 # remove unbundled support libraries
 # DHLIBASPRINTF
-#rm ${RPM_BUILD_ROOT}%{_libdir}/libasprintf.a
+rm ${RPM_BUILD_ROOT}%{_libdir}/libasprintf.a
 rm ${RPM_BUILD_ROOT}%{_libdir}/libgettextpo.a
 rm ${RPM_BUILD_ROOT}%{_libdir}/libintl.a
 
@@ -370,6 +372,8 @@ rm ${RPM_BUILD_ROOT}%{_libdir}/libintl.a
 %find_lang %{name}-tools
 cat %{name}-*.lang > %{name}.lang
 
+# Ensure needed libraries are picked up by elfdeps
+chmod a+x ${RPM_BUILD_ROOT}%{_libdir}/libintl*.so*
 
 %check
 # this takes quite a lot of time to run
@@ -442,12 +446,12 @@ make check LIBUNISTRING=-lunistring
 %{_datadir}/aclocal/*
 %{_includedir}/libintl.h
 #DHLIBASPRINTF
-#%{_includedir}/autosprintf.h
+%{_includedir}/autosprintf.h
 %{_includedir}/gettext-po.h
 #DHLIBASPRINTF
-#%{_infodir}/autosprintf*
+%{_infodir}/autosprintf*
 #DHLIBASPRINTF
-#%{_libdir}/libasprintf.so
+%{_libdir}/libasprintf.so
 %{_libdir}/libgettextpo.so
 #%{_libdir}/preloadable_libintl.so
 %{_mandir}/man1/autopoint.1*
@@ -461,7 +465,7 @@ make check LIBUNISTRING=-lunistring
 
 %files libs
 #DHLIBASPRINTF
-#%{_libdir}/libasprintf.so.0*
+%{_libdir}/libasprintf.so.0*
 %{_libdir}/libgettextpo.so.0*
 %{_libdir}/libgettextlib-0.*.so
 %{_libdir}/libgettextsrc-0.*.so
