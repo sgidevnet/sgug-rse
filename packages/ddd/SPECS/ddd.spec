@@ -29,7 +29,7 @@ BuildRequires: ncurses-devel
 #BuildRequires: elfutils-libelf-devel, xterm 
 BuildRequires: elfutils-libelf-devel
 #BuildRequires: desktop-file-utils, gdb, xorg-x11-utils, readline-devel, texinfo, autoconf, automake, libtool
-BuildRequires: gdb, readline-devel, texinfo, autoconf, automake, libtool
+BuildRequires: gdb, readline-devel, texinfo, autoconf, automake, libtool, libXpm-devel
 
 %description
 The Data Display Debugger (DDD) is a popular GUI for command-line
