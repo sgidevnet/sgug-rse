@@ -1,3 +1,5 @@
+%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+
 #% define beta_tag rc2
 %define patchleveltag .7
 %define baseversion 5.0
@@ -130,10 +132,12 @@ rm y.tab.*
 autoconf
 
 # DH
-#%configure --with-bash-malloc=no --with-afs
+#configure --with-bash-malloc=no --with-afs
 # Don't enable nls or curses, error when "exit 0" simple script run.
 # No clue where this is coming from yet.
-#configure --with-bash-malloc --enable-job-control --enable-nls --with-curses
+#export CFLAGS="-O0 -g"
+#export CXXFLAGS="$CFLAGS"
+#configure --with-bash-malloc --enable-job-control --enable-nls --with-curses --with-installed-readline
 %configure --with-bash-malloc --enable-job-control --disable-nls --without-curses
 
 # Recycles pids is neccessary. When bash's last fork's pid was X
