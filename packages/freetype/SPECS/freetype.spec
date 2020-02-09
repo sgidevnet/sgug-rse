@@ -85,7 +85,7 @@ pushd ft2demos-%{version}
 popd
 
 %patch3 -p1 -b .libtool
-%patch4 -p1 -b .multilib
+#%patch4 -p1 -b .multilib
 %patch5 -p1 -b .internal-outline
 
 %patch6 -p1 -b .undefined-pcf-glyph
