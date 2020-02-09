@@ -51,7 +51,7 @@ Patch13: findutils-4.6.0-covscan.patch
 Patch100: findutils.sgifixes.patch
 
 Conflicts: filesystem < 3
-Provides: /bin/find
+Provides: %{_bindir}/find
 Provides: bundled(gnulib)
 
 BuildRequires: automake
