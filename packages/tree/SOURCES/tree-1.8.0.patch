@@ -1,0 +1,14 @@
+diff -Naur tree-1.8.0.orig/Makefile tree-1.8.0/Makefile
+--- tree-1.8.0.orig/Makefile	2018-01-18 15:02:20.000000000 +0000
++++ tree-1.8.0/Makefile	2020-02-03 12:36:53.026447976 +0000
+@@ -29,6 +29,10 @@
+ 
+ # Uncomment options below for your particular OS:
+ 
++# IRIX defaults
++CFLAGS=-ggdb -pedantic -Wall -DLINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
++OBJS+=strverscmp.o
++
+ # Linux defaults:
+ CFLAGS=-ggdb -pedantic -Wall -DLINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+ #CFLAGS=-O4 -Wall  -DLINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
