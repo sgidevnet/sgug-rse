@@ -22,6 +22,7 @@ Source: %{?source_url}%{name}-%{version}.tar.bz2
 Patch1: elfutils-0.177-pt-gnu-prop.patch
 
 Patch10: elfutils.sgifixes.patch
+Patch11: elfutils.sgisuppressbuildid.patch
 
 Requires: elfutils-libelf%{depsuffix} = %{version}-%{release}
 Requires: elfutils-libs%{depsuffix} = %{version}-%{release}
@@ -194,6 +195,7 @@ export PERL="%{_bindir}/perl"
 # Apply patches
 %patch1 -p1 -b .pt-gnu-prop
 %patch10 -p1 -b .sgifixes
+%patch11 -p1 -b .sgisuppressbuildid
 
 # In case the above patches added any new test scripts, make sure they
 # are executable.
