@@ -55,6 +55,8 @@ library.
 rm -vrf %{buildroot}%{_docdir}/readline
 rm -vf %{buildroot}%{_infodir}/dir*
 
+chmod a+x $RPM_BUILD_ROOT%{_libdir}/lib*.so*
+
 #%ldconfig_scriptlets
 
 %files
