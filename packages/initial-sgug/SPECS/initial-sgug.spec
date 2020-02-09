@@ -16,8 +16,29 @@ Provides: /usr/sgug/sbin/install-info
 # Base platform shared libraries
 Provides: libc.so.1
 Provides: libm.so
+Provides: libmx.so
+Provides: libpthread.so
+Provides: libdl.so
+Provides: libgen.so
+Provides: libnsl.so
+Provides: libcrypt.so
 
 # X11 libraries that are used
+Provides: libX11.so.1
+Provides: libXt.so
+Provides: libXaw.so.2
+Provides: libXext.so
+
+# Motif
+Provides: libXm.so.1
+Provides: libXm.so.2
+Provides: libXmu.so
+
+# Audio
+Provides: libaudio.so
+
+# Hacks while working on getting everything rebuilt
+#Provides: libgcc_s.so.1
 
 %description
 This is a virtual RPM package.  It contains no actual files.
