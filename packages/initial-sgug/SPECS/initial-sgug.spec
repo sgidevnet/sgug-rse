@@ -22,6 +22,7 @@ Provides: libdl.so
 Provides: libgen.so
 Provides: libnsl.so
 Provides: libcrypt.so
+Provides: librpcsvc.so
 
 # X11 libraries that are used
 Provides: libX11.so.1
