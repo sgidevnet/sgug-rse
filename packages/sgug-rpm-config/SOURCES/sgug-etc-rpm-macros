@@ -28,11 +28,14 @@
 
 %build_cflags %{optflags}
 %build_cxxflags %{optflags}
-%build_ldflags -Wl,-z,relro -Wl,--as-needed -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
 
-# Note: --as-needed might be buggy with irix binutils 2.23.2
-# If problems, this seemed to work ok during bootstrap:
-#build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
+# LD FLAGS AND ISSUES
+# If we ever get around to figuring out how to fix --as-needed so it
+# doesn't break various packages, we can flick this over to optimised.
+# For now, packages have to _opt in_ to the optimised flags.
+%sgug_regular_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+%sgug_optimised_ldflags -Wl,-z,relro -Wl,--as-needed -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+%build_ldflags %{sgug_regular_ldflags}
 
 %__global_ldflags %{build_ldflags}
 
