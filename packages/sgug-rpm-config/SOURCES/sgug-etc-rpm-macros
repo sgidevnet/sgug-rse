@@ -43,7 +43,7 @@
 
 %_hardened_ldflags %{nil}
 
-%dist .sgugalpha
+%dist .sgugbeta
 
 %_pkgdocdir %{_docdir}/%{name}
 %_docdir_fmt %%{NAME}
