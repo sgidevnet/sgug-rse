@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary:	The ASN.1 library used in GNUTLS
 Name:		libtasn1
 Version:	4.14

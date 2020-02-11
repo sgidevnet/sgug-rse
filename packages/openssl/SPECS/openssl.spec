@@ -1,5 +1,3 @@
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-
 # For the curious:
 # 0.9.5a soversion = 0
 # 0.9.6  soversion = 1

@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           neofetch
 Version:        6.0.0
 Release:        4%{?dist}

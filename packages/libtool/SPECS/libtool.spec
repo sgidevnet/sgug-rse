@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # See the bug #429880
 %global gcc_major  %(gcc -dumpversion || echo "666")
 # See rhbz#1193591

@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %global major_version 5.3
 # Normally, this is the same as version, but... not always.
 # No tests yet for 5.3.5

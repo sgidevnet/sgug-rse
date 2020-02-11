@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: The GNU macro processor
 Name: m4
 Version: 1.4.18

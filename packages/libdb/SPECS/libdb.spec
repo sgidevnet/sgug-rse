@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %define __soversion_major 5
 %define __soversion %{__soversion_major}.3
 

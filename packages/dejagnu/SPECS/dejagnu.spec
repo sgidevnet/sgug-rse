@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: A front end for testing other programs
 Name: dejagnu
 Version: 1.6.2

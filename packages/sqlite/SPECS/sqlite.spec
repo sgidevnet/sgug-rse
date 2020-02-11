@@ -1,5 +1,3 @@
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-
 # bcond default logic is nicely backwards...
 %bcond_without tcl
 %bcond_with static

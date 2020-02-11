@@ -1,5 +1,3 @@
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-
 %define _hardened_build 1
 Summary: GUI for several command-line debuggers
 Name: ddd

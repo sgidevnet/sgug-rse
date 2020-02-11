@@ -1,5 +1,3 @@
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-
 #% define beta_tag rc2
 %define patchleveltag .7
 %define baseversion 5.0

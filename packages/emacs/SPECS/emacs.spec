@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %global _hardened_build 1
 
 # This file is encoded in UTF-8.  -*- coding: utf-8 -*-

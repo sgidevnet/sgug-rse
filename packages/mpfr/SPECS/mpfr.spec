@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: A C library for multiple-precision floating-point computations
 Name: mpfr
 Version: 4.0.1

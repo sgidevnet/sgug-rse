@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # -*- coding: utf-8 -*-
 
 Summary: A GNU stream text editor

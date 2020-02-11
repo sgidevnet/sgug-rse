@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # Support for documentation installation As the %%doc macro erases the
 # target directory ($RPM_BUILD_ROOT%%{_docdir}/%%{name}), manually
 # installed documentation must be saved into a temporary dedicated

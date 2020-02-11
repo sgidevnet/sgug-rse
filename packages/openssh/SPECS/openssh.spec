@@ -1,5 +1,3 @@
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-
 # Do we want SELinux & Audit
 #%if 0%{?!noselinux:1}
 #%global WITH_SELINUX 1

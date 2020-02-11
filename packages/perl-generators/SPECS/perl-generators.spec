@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           perl-generators
 Version:        1.11
 Release:        4%{?dist}

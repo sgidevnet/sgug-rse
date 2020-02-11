@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %global api_version 1.16
 
 # do not mangle shebang in files which are part of bootstraped project

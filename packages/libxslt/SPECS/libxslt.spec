@@ -1,5 +1,3 @@
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-
 Name:           libxslt
 Summary:        Library providing the Gnome XSLT engine
 Version:        1.1.33

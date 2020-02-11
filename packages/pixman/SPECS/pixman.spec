@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %define gitdate 20070827
 %define gitrev 8ff7213f39edc1b2b8b60d6b0cc5d5f14ca1928d
 

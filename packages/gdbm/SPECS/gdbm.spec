@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %bcond_with largefile
 
 Summary: A GNU set of database routines which use extensible hashing

@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # Recent so-version, so we do not bump accidentally.
 %global nettle_so_ver 6
 %global hogweed_so_ver 4

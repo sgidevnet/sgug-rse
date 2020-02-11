@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # Expected failures in mock, hangs in koji
 %bcond_with tests
 # The *.py files we ship are not python scripts, #813651

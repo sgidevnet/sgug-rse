@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %define debug_package %{nil}
 # $Revision: 1.4 $, $Date: 2017/03/27 17:07:55 $
 Summary:	Character set conversion library

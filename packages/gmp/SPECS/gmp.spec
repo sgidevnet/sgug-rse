@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 #
 # Important for %%{ix86}:
 # This rpm has to be build on a CPU with sse2 support like Pentium 4 !

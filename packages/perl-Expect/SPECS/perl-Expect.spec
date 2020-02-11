@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:		perl-Expect
 Version:	1.35
 Release:	10%{?dist}

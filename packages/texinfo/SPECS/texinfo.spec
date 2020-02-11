@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %global tex_texinfo %{_datadir}/texmf/tex/texinfo
 
 Summary: Tools needed to create Texinfo format documentation files

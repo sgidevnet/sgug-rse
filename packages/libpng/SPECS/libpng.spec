@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary:       A library of functions for manipulating PNG image format files
 Name:          libpng
 Epoch:         2

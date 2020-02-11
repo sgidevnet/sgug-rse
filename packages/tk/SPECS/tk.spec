@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %define majorver 8.6
 %define vers %{majorver}.9.1
 %define tclvers %{majorver}.9

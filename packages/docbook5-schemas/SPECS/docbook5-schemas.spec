@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name: docbook5-schemas
 Version: 5.0
 Release: 20%{?dist}

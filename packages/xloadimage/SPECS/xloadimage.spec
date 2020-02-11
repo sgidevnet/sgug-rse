@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:		xloadimage
 Summary: 	Image viewer and processor
 Version:	4.1

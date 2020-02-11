@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           libxml2
 Version:        2.9.9
 Release:        3%{?dist}

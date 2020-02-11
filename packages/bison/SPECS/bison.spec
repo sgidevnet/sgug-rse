@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: A GNU general-purpose parser generator
 Name: bison
 Version: 3.4.1

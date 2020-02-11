@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name: docbook-style-xsl
 Version: 1.79.2
 Release: 10%{?dist}

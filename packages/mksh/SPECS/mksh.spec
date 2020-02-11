@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 #%if 0%{?fedora} < 17 && 0%{?rhel} < 7
 #global _bindir   /bin
 #%endif

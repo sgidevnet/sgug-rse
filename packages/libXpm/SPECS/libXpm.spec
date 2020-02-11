@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: X.Org X11 libXpm runtime library
 Name: libXpm
 Version: 3.5.12
