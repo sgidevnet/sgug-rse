@@ -1,0 +1,408 @@
+diff -Naur tf-50b8.orig/src/command.c tf-50b8/src/command.c
+--- tf-50b8.orig/src/command.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/command.c	2020-02-11 07:56:09.809751016 +0000
+@@ -522,7 +522,7 @@
+ 		    Stringadd(libfile, *path++);
+ 		}
+ 		if (!is_absolute_path(libfile->data)) {
+-		    wprintf("invalid directory in TFPATH: %S", libfile);
++		    tfwprintf("invalid directory in TFPATH: %S", libfile);
+ 		} else {
+ 		    Sappendf(libfile, "/%s", args);
+ 		    file = tfopen(expand_filename(libfile->data), "r");
+@@ -530,7 +530,7 @@
+ 	    } while (!file && *path);
+ 	} else {
+ 	    if (!is_absolute_path(TFLIBDIR)) {
+-		wprintf("invalid TFLIBDIR: %s", TFLIBDIR);
++		tfwprintf("invalid TFLIBDIR: %s", TFLIBDIR);
+ 	    } else {
+ 		Sprintf(libfile, "%s/%s", TFLIBDIR, args);
+ 		file = tfopen(expand_filename(libfile->data), "r");
+@@ -587,7 +587,7 @@
+                 i = line->len - 1;
+                 while (i > 0 && is_space(line->data[i])) i--;
+                 if (line->data[i] == '\\')
+-                    wprintf("whitespace following final '\\'");
++                    tfwprintf("whitespace following final '\\'");
+             }
+         } else {
+             last_cmd_line = 0;
+diff -Naur tf-50b8.orig/src/expand.c tf-50b8/src/expand.c
+--- tf-50b8.orig/src/expand.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/expand.c	2020-02-11 07:56:18.889260616 +0000
+@@ -773,7 +773,7 @@
+ 		    int i;
+ 		    for (i = 0; i < sizeof(upper) && val->name[i]; i++)
+ 			upper[i] = ucase(val->name[i]);
+-		    wprintf("\"%%{%s}\" is a variable substitution, "
++		    tfwprintf("\"%%{%s}\" is a variable substitution, "
+ 			"and is not the same as special substitution "
+ 			"\"%%{%.*s}\".", val->name, i, upper);
+ 		}
+@@ -1363,14 +1363,14 @@
+ 		++ip; /* skip ')' */
+ 		eat_space(prog);
+ 		if (is_end_of_statement(ip)) {
+-		    wprintf("\"%2.2s\" following \"/%s (...)\" "
++		    tfwprintf("\"%2.2s\" following \"/%s (...)\" "
+ 			"sends blank line to server, "
+ 			"which is probably not what was intended.",
+ 			ip, keyword_label(block));
+ 		}
+                 block = (block == WHILE) ? DO : THEN;
+             } else if (*ip) {
+-                wprintf("statement starting with %s in /%s "
++                tfwprintf("statement starting with %s in /%s "
+                     "condition sends text to server, "
+                     "which is probably not what was intended.",
+                     error_text(prog), keyword_label(block));
+@@ -1503,7 +1503,7 @@
+ 		comefrom(prog, jump_point, prog->len);
+ 		eat_space(prog);
+ 		if (block == ELSE && is_end_of_statement(ip)) {
+-		    wprintf("\"%2.2s\" following \"/%s\" "
++		    tfwprintf("\"%2.2s\" following \"/%s\" "
+ 			"sends blank line to server, "
+ 			"which is probably not what was intended.",
+ 			ip, keyword_label(block));
+@@ -2206,7 +2206,7 @@
+     result = 1;
+     if (sub_warn & (!sub_warned || pedantic)) {
+         sub_warned = 1;
+-        wprintf("\"%%%.*s\" substitution in expression is legal, "
++        tfwprintf("\"%%%.*s\" substitution in expression is legal, "
+ 	    "but can be confusing.  Try using \"{%.*s}\" instead.",
+             ip-contents, contents,
+             (ip-bracket)-(contents+bracket), contents+bracket);
+diff -Naur tf-50b8.orig/src/expr.c tf-50b8/src/expr.c
+--- tf-50b8.orig/src/expr.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/expr.c	2020-02-11 07:56:31.030301416 +0000
+@@ -291,7 +291,7 @@
+         if (!parsenumber(val->sval->data, NULL, TYPE_NUM, parsed)) {
+ #if 0
+             if (pedantic)
+-                wprintf("%s",
++                tfwprintf("%s",
+                     "non-numeric string value used in numeric context");
+ #endif
+             return NULL;
+@@ -699,14 +699,14 @@
+         case '+':
+         case '*':
+         case '/':
+-	    wprintf("invalid operation %s on absolute time values.",
++	    tfwprintf("invalid operation %s on absolute time values.",
+ 		oplabel(op));
+         default:   break;
+         }
+ 	if (op == '-') /* atime - atime => dtime */
+ 	    promoted_type = TYPE_DTIME;
+     } else if (n == 1 && val[0]->type == TYPE_ATIME && op == '-') {
+-	wprintf("invalid operation %s on absolute time value.", oplabel(op));
++	tfwprintf("invalid operation %s on absolute time value.", oplabel(op));
+ 	promoted_type = TYPE_ATIME;
+     }
+ 
+@@ -717,7 +717,7 @@
+ 	    (val[1]->type & TYPE_REGMATCH && valint(val[0]) == 1) ||
+ 	    ((val[0]->type & TYPE_REGMATCH) && (val[1]->type & TYPE_REGMATCH)))
+ 	{
+-	    wprintf("regmatch() may return >= 1 for success.");
++	    tfwprintf("regmatch() may return >= 1 for success.");
+ 	}
+     }
+ 
+@@ -1486,7 +1486,7 @@
+           }
+ 
+         case FN_read:
+-            wprintf("read() is deprecated.  Use tfread() instead.");
++            tfwprintf("read() is deprecated.  Use tfread() instead.");
+             oldblock = block;  /* condition and evalflag are already correct */
+             block = 0;
+             Sstr = Stringnew(NULL, -1, 0);
+@@ -1895,13 +1895,13 @@
+ 	    (keyword(val->name) || find_builtin_cmd(val->name) ||
+ 	    find_macro(val->name)))
+ 	{
+-	    wprintf("possibly missing '%%;' or ')' before /%s", val->name);
++	    tfwprintf("possibly missing '%%;' or ')' before /%s", val->name);
+ 	}
+     } else if (*ip == '$') {
+         static int warned = 0;
+         ++ip;
+         if ((!warned || pedantic) && *ip == '[') {
+-            wprintf("$[...] substitution in expression is legal, but redundant.  Try using (...) instead.");
++            tfwprintf("$[...] substitution in expression is legal, but redundant.  Try using (...) instead.");
+             warned = 1;
+         }
+         dollarsub(prog, NULL);
+diff -Naur tf-50b8.orig/src/macro.c tf-50b8/src/macro.c
+--- tf-50b8.orig/src/macro.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/macro.c	2020-02-11 07:56:58.409363816 +0000
+@@ -275,7 +275,7 @@
+             break;
+         case 'B':
+ 	    if (warn_def_B)
+-		wprintf("/def -B is deprecated.  See /help keys.");
++		tfwprintf("/def -B is deprecated.  See /help keys.");
+             if (spec->keyname) FREE(spec->keyname);
+             if (spec->bind) FREE(spec->bind);
+             spec->keyname = STRDUP(ptr);
+@@ -769,7 +769,7 @@
+     if (!*macro->name && (macro->trig.str || macro->flags & MACRO_HOOK) &&
+ 	macro->shots == 0 && pedantic)
+     {
+-        wprintf("new macro (#%d) does not have a name.", macro->num);
++        tfwprintf("new macro (#%d) does not have a name.", macro->num);
+     }
+     return macro->num;
+ }
+@@ -794,7 +794,7 @@
+             FREE(p->bind);
+             p->bind = STRDUP(code);
+             if (!*code) {
+-                wprintf("no code for key \"%s\"", p->keyname);
++                tfwprintf("no code for key \"%s\"", p->keyname);
+             } else if (bind_key_macro(p)) {
+ 		/* bind_key_macro can't return -1 here */
+                 do_hook(H_REDEF, "!Redefined %s %s", "%s %s",
+@@ -916,7 +916,7 @@
+         }
+         spec->bind = STRDUP(spec->bind);
+         if (!*spec->bind)
+-            wprintf("no code for key \"%s\".", spec->keyname);
++            tfwprintf("no code for key \"%s\".", spec->keyname);
+     }
+ 
+     if (!spec->bind) spec->bind = STRNDUP("", 0);
+diff -Naur tf-50b8.orig/src/output.c tf-50b8/src/output.c
+--- tf-50b8.orig/src/output.c	2007-01-13 19:44:19.000000000 +0000
++++ tf-50b8/src/output.c	2020-02-11 07:57:08.448848616 +0000
+@@ -476,12 +476,12 @@
+ 	if ((str = getvar("TERMCAP")) && (len = strlen(str)) > 0) {
+ 	    is_csh = ((shell = getenv("SHELL")) && smatch("*csh", shell) == 0);
+ 	    if (str[len-1] != ':') {
+-		wprintf("unsetting invalid TERMCAP variable%s.",
++		tfwprintf("unsetting invalid TERMCAP variable%s.",
+ 		    is_csh ?  ", which appears to have been corrupted by your "
+ 		    "broken *csh shell" : "");
+ 		unsetvar(ffindglobalvar("TERMCAP"));
+ 	    } else if (len == 1023 && (!getenv("TF_FORCE_TERMCAP")) && is_csh) {
+-		wprintf("unsetting the TERMCAP environment variable because "
++		tfwprintf("unsetting the TERMCAP environment variable because "
+ 		    "it looks like it has been truncated by your broken *csh "
+ 		    "shell.  To force TF to use TERMCAP, restart TF with the "
+ 		    "TF_FORCE_TERMCAP environment variable set.");
+@@ -491,9 +491,9 @@
+     }
+ 
+     if (!TERM || !*TERM) {
+-        wprintf("TERM undefined.");
++        tfwprintf("TERM undefined.");
+     } else if (tgetent(termcap_entry, TERM) <= 0) {
+-        wprintf("\"%s\" terminal unsupported.", TERM);
++        tfwprintf("\"%s\" terminal unsupported.", TERM);
+     } else {
+         if (columns <= 0) columns = tgetnum("co");
+         if (lines   <= 0) lines   = tgetnum("li");
+@@ -1468,7 +1468,7 @@
+ int ch_status_int(Var *var)
+ {
+     if (warn_status)
+-	wprintf("the default value of %s has "
++	tfwprintf("the default value of %s has "
+ 	    "changed between tf version 4 and 5.", var->val.name);
+     return 1;
+ }
+@@ -1540,7 +1540,7 @@
+     }
+ 
+     if (totwidth > columns) {
+-        wprintf("total status width (%d) is wider than screen (%d)",
++        tfwprintf("total status width (%d) is wider than screen (%d)",
+ 	    totwidth, columns);
+     }
+ 
+@@ -1625,7 +1625,7 @@
+ int ch_status_fields(Var *var)
+ {
+     if (warn_status) {
+-	wprintf("setting status_fields directly is deprecated, "
++	tfwprintf("setting status_fields directly is deprecated, "
+ 	    "and may clobber useful new features introduced in version 5.  "
+ 	    "The recommended way to change "
+ 	    "status fields is with /status_add, /status_rm, or /status_edit. "
+diff -Naur tf-50b8.orig/src/pattern.c tf-50b8/src/pattern.c
+--- tf-50b8.orig/src/pattern.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/pattern.c	2020-02-11 07:57:16.452497416 +0000
+@@ -132,7 +132,7 @@
+     if (warn_curly_re && (s = estrchr(pattern, '{', '\\')) &&
+ 	(is_digit(s[1]) || s[1] == ','))
+     {
+-	wprintf("regexp contains '{', which has a new meaning in version 5.0.  "
++	tfwprintf("regexp contains '{', which has a new meaning in version 5.0.  "
+ 	    "(This warning can be disabled with '/set warn_curly_re=off'.)");
+     }
+     for (s = pattern; *s; s++) {
+@@ -249,7 +249,7 @@
+         char *s = pat->str;
+         while (*s == '(' || *s == '^') s++;
+         if (strncmp(s, ".*", 2) == 0)
+-            wprintf("leading \".*\" in a regexp is inefficient.");
++            tfwprintf("leading \".*\" in a regexp is inefficient.");
+ #endif
+ 	if ((pat->ri = tf_reg_compile(pat->str, 1))) goto ok;
+ 	break;
+diff -Naur tf-50b8.orig/src/socket.c tf-50b8/src/socket.c
+--- tf-50b8.orig/src/socket.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/socket.c	2020-02-11 07:57:25.317682216 +0000
+@@ -960,7 +960,7 @@
+ 	if (setsockopt(sock->fd, SOL_SOCKET, SO_KEEPALIVE, (void*)&flags,
+ 	    sizeof(flags)) < 0)
+ 	{
+-	    wprintf("setsockopt KEEPALIVE: %s", strerror(errno));
++	    tfwprintf("setsockopt KEEPALIVE: %s", strerror(errno));
+ 	}
+     }
+     return 1;
+@@ -1545,7 +1545,7 @@
+ 	if (setsockopt(xsock->fd, SOL_SOCKET, SO_KEEPALIVE, (void*)&flags,
+ 	    sizeof(flags)) < 0)
+ 	{
+-	    wprintf("setsockopt KEEPALIVE: %s", strerror(errno));
++	    tfwprintf("setsockopt KEEPALIVE: %s", strerror(errno));
+ 	}
+     }
+ 
+diff -Naur tf-50b8.orig/src/tfio.c tf-50b8/src/tfio.c
+--- tf-50b8.orig/src/tfio.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/tfio.c	2020-02-11 07:55:45.614496616 +0000
+@@ -123,7 +123,7 @@
+         } else {
+ 
+ #if !(HAVE_GETPWNAM && HAVE_PWD_H)
+-            wprintf("\"~user\" filename expansion is not supported.");
++            tfwprintf("\"~user\" filename expansion is not supported.");
+ #else
+             struct passwd *pw;
+             Stringncpy(buffer, user, str - user);
+@@ -716,7 +716,7 @@
+ }
+ 
+ /* print a formatted warning message */
+-void wprintf(const char *fmt, ...)
++void tfwprintf(const char *fmt, ...)
+ {
+     va_list ap;
+     va_start(ap, fmt);
+@@ -821,7 +821,7 @@
+             eprintf("keyboard can only be read from a command line command.");
+             return NULL;
+         }
+-        if (read_depth) wprintf("nested keyboard read");
++        if (read_depth) tfwprintf("nested keyboard read");
+         oldtfout = tfout;
+         oldtfin = tfin;
+         tfout = tfscreen;
+diff -Naur tf-50b8.orig/src/tfio.h tf-50b8/src/tfio.h
+--- tf-50b8.orig/src/tfio.h	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/tfio.h	2020-02-11 07:54:27.293359816 +0000
+@@ -153,7 +153,7 @@
+                      format_printf(2, 3);
+ extern void   eprefix(String *buffer);
+ extern void   eprintf(const char *fmt, ...) format_printf(1, 2);
+-extern void   wprintf(const char *fmt, ...) format_printf(1, 2);
++extern void   tfwprintf(const char *fmt, ...) format_printf(1, 2);
+ extern char   igetchar(void);
+ extern int    handle_tfopen_func(const char *name, const char *mode);
+ extern TFILE *find_tfile(const char *handle);
+diff -Naur tf-50b8.orig/src/util.c tf-50b8/src/util.c
+--- tf-50b8.orig/src/util.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/util.c	2020-02-11 07:55:22.947375016 +0000
+@@ -351,7 +351,7 @@
+ 		/* XXX handle backslash-newline */
+ #endif
+             } else if ((*str)[1] && pedantic) {
+-                wprintf("the only legal escapes within this quoted "
++                tfwprintf("the only legal escapes within this quoted "
+ 		    "string are \\\\ and \\%c.  \\\\%c is the correct way to "
+ 		    "write a literal \\%c inside a quoted string.",
+ 		    quote, (*str)[1], (*str)[1]);
+@@ -673,7 +673,7 @@
+         Stringfree(path);
+ #endif
+     } else {
+-        wprintf("Can't figure out name of mail file.");
++        tfwprintf("Can't figure out name of mail file.");
+     }
+ }
+ 
+diff -Naur tf-50b8.orig/src/variable.c tf-50b8/src/variable.c
+--- tf-50b8.orig/src/variable.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/variable.c	2020-02-11 07:54:56.912260616 +0000
+@@ -112,7 +112,7 @@
+     var = newvar(name);
+     var->node = hash_insert((void*)var, var_table);
+     if (setting_nearest && pedantic) {
+-	wprintf("variable '%s' was not previously defined in any "
++	tfwprintf("variable '%s' was not previously defined in any "
+ 	    "scope, so it has been created in the global scope.", name);
+     }
+     return var;
+@@ -296,7 +296,7 @@
+ 	!(var = hfindglobalvar(name, idval->u.hash)))
+     {
+         if (patmatch(&looks_like_special_sub, NULL, name)) {
+-            wprintf("\"%s\" in an expression is a variable reference, "
++            tfwprintf("\"%s\" in an expression is a variable reference, "
+ 		"and is not the same as special substitution \"{%s}\".",
+ 		name, name);
+         }
+@@ -354,7 +354,7 @@
+     var->val.name = STRDUP(name);
+ 
+     if (patmatch(&looks_like_special_sub, NULL, name)) {
+-	wprintf("\"%s\" conflicts with the name of a special "
++	tfwprintf("\"%s\" conflicts with the name of a special "
+ 	    "substitution, so it will not be accessible with a \"%%%s\" or "
+ 	    "\"{%s}\" substitution.", name, name, name);
+     }
+@@ -599,7 +599,7 @@
+ 	if (!**pp)
+ 	    return 0; /* no value */
+ 	if (**pp == '=')
+-	    wprintf("'=' following space is part of value.");
++	    tfwprintf("'=' following space is part of value.");
+ 	return 1; /* valid value */
+     } else if (**pp == '=') {
+ 	(*pp)++;
+@@ -962,13 +962,13 @@
+ 
+ static int obsolete_prompt(Var *var)
+ {
+-    wprintf("%s is obsolete.  Use prompt_wait instead.", var->val.name);
++    tfwprintf("%s is obsolete.  Use prompt_wait instead.", var->val.name);
+     return 1;
+ }
+ 
+ static int undocumented_var(Var *var)
+ {
+-    wprintf("%s is undocumented, possibly unstable, and may be removed in a "
++    tfwprintf("%s is undocumented, possibly unstable, and may be removed in a "
+ 	"future version.", var->val.name);
+     return 1;
+ }
+diff -Naur tf-50b8.orig/src/world.c tf-50b8/src/world.c
+--- tf-50b8.orig/src/world.c	2007-01-13 18:12:39.000000000 +0000
++++ tf-50b8/src/world.c	2020-02-11 07:54:48.608916616 +0000
+@@ -166,7 +166,7 @@
+     if (pass && *pass && loadfile && (loadfile->mode & (S_IROTH | S_IRGRP)) &&
+         !loadfile->warned)
+     {
+-        wprintf("file contains passwords and is readable by others.");
++        tfwprintf("file contains passwords and is readable by others.");
+         loadfile->warned++;
+     }
+ # endif /* __CYGWIN32__ */
