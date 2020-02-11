@@ -72,7 +72,9 @@ autoheader
 automake --force-missing --add-missing
 autoconf
 export CXXFLAGS="${RPM_OPT_FLAGS} -fpermissive"
-%configure --with-readline --disable-dependency-tracking --x-includes=/usr/include/X11 --x-libraries=/usr/lib32
+# Ugly workaround to get the correct libXpm linked in (from rse)
+export LDFLAGS="-L%{_libdir} -lXpm $RPM_LD_FLAGS -L/usr/Motif-2.1/lib32"
+%configure --with-readline --disable-dependency-tracking --x-includes=/usr/include/X11 --x-libraries=/usr/lib32 --with-xpm-includes=%{_includedir} --with-xpm-libraries=%{_libdir} --with-termlib=tinfo
 make %{?_smp_mflags}
 
 %install
