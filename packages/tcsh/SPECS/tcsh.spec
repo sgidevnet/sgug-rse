@@ -60,6 +60,8 @@ Patch200: tcsh-6.20.00-tcsh-posix-status.patch
 # ---------------------    some point in the future:
 
 Patch500: tcsh.sgifixes.patch
+Patch501: tcsh.sgifixncurses01.patch
+Patch502: tcsh.sgifixncurses02.patch
 
 %description
 Tcsh is an enhanced but completely compatible version of csh, the C shell. Tcsh
