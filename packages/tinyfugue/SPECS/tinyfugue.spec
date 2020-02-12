@@ -16,7 +16,7 @@ BuildRequires: coreutils
 BuildRequires: gcc
 BuildRequires: make
 BuildRequires: ncurses-devel
-#BuildRequires: pcre-devel
+BuildRequires: pcre-devel
 BuildRequires: openssl-devel
 BuildRequires: sed
 
