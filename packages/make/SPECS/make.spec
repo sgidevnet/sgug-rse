@@ -63,6 +63,7 @@ makefile.
 %package devel
 Summary: Header file for externally visible definitions
 Group: Development/Libraries
+Requires: make
 
 %description devel
 The make-devel package contains gnumake.h.
