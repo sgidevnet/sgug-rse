@@ -96,6 +96,9 @@ BuildRequires: autoconf, gettext
 #Requires: filesystem >= 3
 Provides: %{_bindir}/sh
 Provides: %{_bindir}/bash
+# On Irix you'll get all kinds of broken behaviour without ncurses
+# supporting definitions
+Requires: ncurses-term
 
 %description
 The GNU Bourne Again shell (Bash) is a shell or command language
