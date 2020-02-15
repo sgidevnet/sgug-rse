@@ -67,12 +67,16 @@ Patch912: 0001-Revert-Improve-ARM-detection.patch
 Patch2000: rpm.sgifixes.patch
 Patch2001: rpm.sgifixesldn32path.patch
 Patch2002: rpm.sgifixelfdeps.patch
+Patch2003: rpm.sgistriplibs.patch
 
 # Ugly work around - building RPM requires libdicl-0.1.16
 # But we need libdicl-0.1.17 for libtasn and pkcs11
 # So only force the build-time dep
 BuildRequires: libdicl-devel = 0.1.16
 Requires: libdicl >= 0.1.16
+
+# Ensure we have the sgug macros, too
+Requires: sgug-rpm-config
 
 # Partially GPL/LGPL dual-licensed and some bits with BSD
 # SourceLicense: (GPLv2+ and LGPLv2+ with exceptions) and BSD
@@ -213,6 +217,7 @@ Suggests: gdb-minimal
 # "just work" while allowing for alternatives, depend on a virtual
 # provide, typically coming from redhat-rpm-config.
 #Requires: system-rpm-config
+Requires: perl-macros
 
 %description build
 The rpm-build package contains the scripts and executable programs
