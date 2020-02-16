@@ -14,18 +14,18 @@ The modifications from the original fedora `.spec` files fall under the license 
 
 ## How to get this working
 
-NOTE: Unlike `didbsng` - sgug-rse _must not_ use a "personal .rpmmacros" file - and if you had one from didbsng - you must remove it before proceeding below.
+NOTE: While we are not yet out of beta, it is recommended to remove any previous sgug-rse installation before extracting this new one. We don't yet support in-place upgrades using RPMs.
 
 (1) Download the artifacts for the latest version from the github releases tab (assuming they aren't too big).
 
 You'll find three main archives - and there might be "fix" archives too that need to be extracted:
 
 ```
-sgug-rse-selfhoster-0.0.3alpha.tar.gz
-sgug-rse-srpms-0.0.3alpha.tar.gz
-sgug-rse-rpms-0.0.3alpha.tar.gz
+sgug-rse-selfhoster-0.0.4beta.tar.gz
+sgug-rse-srpms-0.0.4beta.tar.gz
+sgug-rse-rpms-0.0.4beta.tar.gz
 
-sgug-rse-blahfix-0.0.Xalpha.tar.gz
+sgug-rse-blahfix-0.0.Xbeta.tar.gz
 ```
 
 (2) Extract the selfhoster archive under /usr as root (important, sgug-rse _installation_ files are root owned and managed):
@@ -33,7 +33,7 @@ sgug-rse-blahfix-0.0.Xalpha.tar.gz
 ```
 su - (enter root password)
 cd /usr
-gunzip -dc /path/to/sgug-rse-selfhoster-0.0.3alpha.tar.gz |tar xf -
+gunzip -dc /path/to/sgug-rse-selfhoster-0.0.4beta.tar.gz |tar xf -
 (log out of root)
 ```
 
@@ -52,10 +52,10 @@ This should include any fixes:
 
 ```
 cd ~/rpmbuild
-gunzip -dc /path/to/sgug-rse-srpms-0.0.3alpha.tar.gz | tar xf -
-gunzip -dc /path/to/sgug-rse-rpms-0.0.3alpha.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-srpms-0.0.4beta.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-rpms-0.0.4beta.tar.gz | tar xf -
 # Optional
-gunzip -dc /path/to/sgug-rse-blahfix-0.0.Xalpha.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-blahfix-0.0.Xbeta.tar.gz | tar xf -
 ```
 
 (5) You'll need to clone this repo (sgug-rse) -
@@ -66,13 +66,15 @@ git clone https://github.com/sgidevnet/sgug-rse.git sgug-rse.git
 ```
 Adjust that path as appropriate for where you wish the repo to live.
 
+(Of course you can fork the repo and clone from your own copy!)
+
 (6) Now you can build a package with:
 
 ```
 cd ~/sgug-rse.git
 ./sgugshell.sh
 cd ~/rpmbuild/SPECS
-rpm -ivh ../SRPMS/m4-1.4.18-11.sgugalpha.src.rpm
+rpm -ivh ../SRPMS/m4-1.4.18-11.sgugbeta.src.rpm
 cp -r ~/sgug-rse.git/packages/m4/* ~/rpmbuild/
 rpmbuild -ba m4.spec --nocheck
 ```
