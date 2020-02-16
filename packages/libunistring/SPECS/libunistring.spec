@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # This spec file has been automatically updated
 Version:	0.9.10
 Release: 6%{?dist}

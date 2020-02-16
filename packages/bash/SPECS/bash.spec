@@ -96,6 +96,9 @@ BuildRequires: autoconf, gettext
 #Requires: filesystem >= 3
 Provides: %{_bindir}/sh
 Provides: %{_bindir}/bash
+# On Irix you'll get all kinds of broken behaviour without ncurses
+# supporting definitions
+Requires: ncurses-term
 
 %description
 The GNU Bourne Again shell (Bash) is a shell or command language
@@ -130,10 +133,12 @@ rm y.tab.*
 autoconf
 
 # DH
-#%configure --with-bash-malloc=no --with-afs
+#configure --with-bash-malloc=no --with-afs
 # Don't enable nls or curses, error when "exit 0" simple script run.
 # No clue where this is coming from yet.
-#configure --with-bash-malloc --enable-job-control --enable-nls --with-curses
+#export CFLAGS="-O0 -g"
+#export CXXFLAGS="$CFLAGS"
+#configure --with-bash-malloc --enable-job-control --enable-nls --with-curses --with-installed-readline
 %configure --with-bash-malloc --enable-job-control --disable-nls --without-curses
 
 # Recycles pids is neccessary. When bash's last fork's pid was X

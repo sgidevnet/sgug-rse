@@ -1,6 +1,3 @@
-# IRIX This is necessary as vim configure will fail with --as-needed
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
-
 #global		snap r9671
 
 # TODO:

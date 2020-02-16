@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary:        The Ogg bitstream file format library
 Name:           libogg
 Epoch:          2

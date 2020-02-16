@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # === GLOBAL MACROS ===========================================================
 
 # According to Fedora Package Guidelines, it is advised that packages that can
@@ -60,6 +63,8 @@ Patch200: tcsh-6.20.00-tcsh-posix-status.patch
 # ---------------------    some point in the future:
 
 Patch500: tcsh.sgifixes.patch
+Patch501: tcsh.sgifixncurses01.patch
+Patch502: tcsh.sgifixncurses02.patch
 
 %description
 Tcsh is an enhanced but completely compatible version of csh, the C shell. Tcsh

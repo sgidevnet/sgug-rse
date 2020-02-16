@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # python3 is not available on RHEL <= 7
 %bcond_with python3
 

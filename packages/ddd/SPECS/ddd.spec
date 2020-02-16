@@ -1,5 +1,3 @@
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-
 %define _hardened_build 1
 Summary: GUI for several command-line debuggers
 Name: ddd
@@ -29,7 +27,7 @@ BuildRequires: ncurses-devel
 #BuildRequires: elfutils-libelf-devel, xterm 
 BuildRequires: elfutils-libelf-devel
 #BuildRequires: desktop-file-utils, gdb, xorg-x11-utils, readline-devel, texinfo, autoconf, automake, libtool
-BuildRequires: gdb, readline-devel, texinfo, autoconf, automake, libtool
+BuildRequires: gdb, readline-devel, texinfo, autoconf, automake, libtool, libXpm-devel
 
 %description
 The Data Display Debugger (DDD) is a popular GUI for command-line
@@ -72,7 +70,9 @@ autoheader
 automake --force-missing --add-missing
 autoconf
 export CXXFLAGS="${RPM_OPT_FLAGS} -fpermissive"
-%configure --with-readline --disable-dependency-tracking --x-includes=/usr/include/X11 --x-libraries=/usr/lib32
+# Ugly workaround to get the correct libXpm linked in (from rse)
+export LDFLAGS="-L%{_libdir} -lXpm $RPM_LD_FLAGS -L/usr/Motif-2.1/lib32"
+%configure --with-readline --disable-dependency-tracking --x-includes=/usr/include/X11 --x-libraries=/usr/lib32 --with-xpm-includes=%{_includedir} --with-xpm-libraries=%{_libdir} --with-termlib=tinfo
 make %{?_smp_mflags}
 
 %install

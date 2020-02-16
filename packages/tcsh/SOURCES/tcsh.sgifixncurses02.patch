@@ -1,0 +1,11 @@
+--- tcsh-6.20.00/configure	2016-11-24 15:06:40.000000000 +0000
++++ tcsh-6.20.00-patched/configure	2020-02-11 12:33:45.786699640 +0000
+@@ -4284,7 +4284,7 @@
+   return 0;
+ }
+ _ACEOF
+-for ac_lib in '' termlib termcap curses ncurses; do
++for ac_lib in '' tinfo termlib termcap curses ncurses; do
+   if test -z "$ac_lib"; then
+     ac_res="none required"
+   else

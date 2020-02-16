@@ -1,7 +1,10 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.16
+Version: 0.1.17
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl

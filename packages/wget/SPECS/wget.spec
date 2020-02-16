@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: A utility for retrieving files using the HTTP or FTP protocols
 Name: wget
 Version: 1.20.3

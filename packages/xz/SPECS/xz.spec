@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # Not needed for f21+ and probably RHEL8+
 %{!?_licensedir:%global license %%doc}
 

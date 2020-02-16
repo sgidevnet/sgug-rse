@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %global DATE 20190812
 %global SVNREV 274959
 %global gcc_version 9.2.0

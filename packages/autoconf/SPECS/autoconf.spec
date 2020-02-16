@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # Enable Emacs support
 %bcond_with autoconf_enables_emacs
 # Run extended test

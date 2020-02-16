@@ -1,0 +1,11 @@
+--- tcsh-6.20.00/configure.ac	2016-11-24 15:04:52.000000000 +0000
++++ tcsh-6.20.00-patched/configure.ac	2020-02-11 12:33:34.642321360 +0000
+@@ -317,7 +317,7 @@
+ dnl Checks for libraries
+ AC_SEARCH_LIBS(crypt, crypt)
+ AC_SEARCH_LIBS(getspnam, sec)
+-AC_SEARCH_LIBS([tgetent], [termlib termcap curses ncurses], [], [
++AC_SEARCH_LIBS([tgetent], [tinfo termlib termcap curses ncurses], [], [
+    AC_MSG_ERROR([unable to find the tgetent() function])
+ ])
+ AC_SEARCH_LIBS(gethostbyname, nsl)

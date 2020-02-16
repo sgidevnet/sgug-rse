@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %bcond_with bootstrap
 
 %global multilib_arches %{ix86} ppc ppc64 ppc64p7 s390 s390x x86_64

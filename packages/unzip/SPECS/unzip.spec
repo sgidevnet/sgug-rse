@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 
 # Settings for EL <= 7
 %if 0%{?rhel} && 0%{?rhel} <= 7

@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: A library for editing typed command lines
 Name: readline
 Version: 8.0
@@ -54,6 +57,8 @@ library.
 
 rm -vrf %{buildroot}%{_docdir}/readline
 rm -vf %{buildroot}%{_infodir}/dir*
+
+chmod a+x $RPM_BUILD_ROOT%{_libdir}/lib*.so*
 
 #%ldconfig_scriptlets
 

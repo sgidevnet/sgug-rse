@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %global cache %{_prefix}/var/cache/man
 %global gnulib_ver 20140202
 

@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: The GNU versions of find utilities (find and xargs)
 Name: findutils
 Version: 4.6.0
@@ -51,7 +54,7 @@ Patch13: findutils-4.6.0-covscan.patch
 Patch100: findutils.sgifixes.patch
 
 Conflicts: filesystem < 3
-Provides: /bin/find
+Provides: %{_bindir}/find
 Provides: bundled(gnulib)
 
 BuildRequires: automake

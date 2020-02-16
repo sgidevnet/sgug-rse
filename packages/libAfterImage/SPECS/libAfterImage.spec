@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           libAfterImage
 Version:        1.20
 Release:        22%{?dist}

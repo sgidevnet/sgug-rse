@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %{!?with_xfree86:%define with_xfree86 1}
 
 Summary: A free and portable font rendering engine
@@ -85,7 +88,7 @@ pushd ft2demos-%{version}
 popd
 
 %patch3 -p1 -b .libtool
-%patch4 -p1 -b .multilib
+#%patch4 -p1 -b .multilib
 %patch5 -p1 -b .internal-outline
 
 %patch6 -p1 -b .undefined-pcf-glyph

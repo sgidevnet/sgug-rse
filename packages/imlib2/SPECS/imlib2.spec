@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary:        Image loading, saving, rendering, and manipulation library
 Name:           imlib2
 Version:        1.5.1

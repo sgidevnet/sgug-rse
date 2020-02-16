@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # -*- coding: utf-8 -*-
 Summary: A GNU tool which simplifies the build process for users
 Name: make
@@ -60,6 +63,7 @@ makefile.
 %package devel
 Summary: Header file for externally visible definitions
 Group: Development/Libraries
+Requires: make
 
 %description devel
 The make-devel package contains gnumake.h.
@@ -83,7 +87,7 @@ touch `find . -name configure`
 touch `find . -name aclocal.m4`
 touch `find . -name Makefile.in`
 
-#ac_cv_lib_elf_elf_begin=no %configure
+#ac_cv_lib_elf_elf_begin=no #configure
 %configure %{configure_args}
 make %{?_smp_mflags}
 

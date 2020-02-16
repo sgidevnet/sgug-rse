@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           perl-Fedora-VSP
 Version:        0.001
 Release:        16%{?dist}

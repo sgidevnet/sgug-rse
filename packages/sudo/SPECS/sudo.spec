@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: Allows restricted root access for specified users
 Name: sudo
 Version: 1.8.29

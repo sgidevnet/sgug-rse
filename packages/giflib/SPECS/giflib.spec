@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:          giflib
 Summary:       A library and utilities for processing GIFs
 Version:       5.2.1

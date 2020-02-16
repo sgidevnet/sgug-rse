@@ -1,0 +1,56 @@
+%_prefix /usr/sgug
+%_sysconfdir /usr/sgug/etc
+%_localstatedir /usr/sgug/var
+
+%_lib lib32
+
+%_libdir /usr/sgug/lib32
+%_infodir /usr/sgug/info
+%_mandir /usr/sgug/man
+%_docdir /usr/sgug/share/doc
+%_defaultdocdir /usr/sgug/share/doc
+
+# Some things needed during bootstrapping BEGIN
+# not always active
+#_var /usr/sgug/var
+#_dbpath %{_var}/lib/rpm
+# needed during bootstrapping END
+
+%_buildshell /usr/sgug/bin/sh
+
+# This is what it _should_ be - but until running actual RPM
+# from within the chroot, this just causes problem as RPM tries to find existing
+# content there.
+#_rpmconfigdir /usr/sgug/lib/rpm
+
+# Needed when installing perl/python
+#_rpmmacrodir /usr/sgug/lib/rpm/macros.d
+
+%build_cflags %{optflags}
+%build_cxxflags %{optflags}
+
+# LD FLAGS AND ISSUES
+# If we ever get around to figuring out how to fix --as-needed so it
+# doesn't break various packages, we can flick this over to optimised.
+# For now, packages have to _opt in_ to the optimised flags.
+%sgug_regular_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+%sgug_optimised_ldflags -Wl,-z,relro -Wl,--as-needed -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
+%build_ldflags %{sgug_regular_ldflags}
+
+%__global_ldflags %{build_ldflags}
+
+%_install_script_path %{_bindir}:%{_sbindir}:/sbin:/bin:/usr/sbin:/usr/bin
+
+%_hardened_ldflags %{nil}
+
+%dist .sgugbeta
+
+%_pkgdocdir %{_docdir}/%{name}
+%_docdir_fmt %%{NAME}
+
+# For initial perl build...
+%perl_bootstrap 1
+
+%__perl %{_bindir}/perl
+%perl_vendorlib	%{_prefix}/share/perl5/vendor_perl
+%perl_vendorarch %{_libdir}/perl5/vendor_perl

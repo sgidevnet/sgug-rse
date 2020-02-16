@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 #Todo: stop using local copy of libdnet, once system distributed version 
 #supports sctp (grep sctp /usr/include/dnet.h)
 

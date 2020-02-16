@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: A GNU collection of diff utilities
 Name: diffutils
 Version: 3.6

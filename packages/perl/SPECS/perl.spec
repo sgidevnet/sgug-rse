@@ -1,6 +1,3 @@
-# IRIX This is necessary as vim configure will fail with --as-needed
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir}
-
 %global perl_version    5.30.0
 %global perl_epoch      4
 %global perl_arch_stem -thread-multi

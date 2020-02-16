@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: A lightweight multi-tabbed terminal emulator for X
 Name: mrxvt 
 Version: 0.5.4

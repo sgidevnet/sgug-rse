@@ -1,5 +1,3 @@
-%global build_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-
 %define majorver 8.6
 %define	vers %{majorver}.9
 #%{!?sdt:%define sdt 1}

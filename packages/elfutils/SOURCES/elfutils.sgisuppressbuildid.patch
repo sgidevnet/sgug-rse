@@ -1,0 +1,18 @@
+--- elfutils-0.177/libdwelf/dwelf_elf_gnu_build_id.c~	2019-08-14 11:12:33.000000000 +0000
++++ elfutils-0.177/libdwelf/dwelf_elf_gnu_build_id.c	2020-02-07 15:03:57.855593240 +0000
+@@ -146,6 +146,7 @@
+ ssize_t
+ dwelf_elf_gnu_build_id (Elf *elf, const void **build_idp)
+ {
++  /*
+   GElf_Addr build_id_elfaddr;
+   int build_id_len;
+   int result = find_elf_build_id (NULL, ET_NONE, elf, build_idp,
+@@ -154,5 +155,7 @@
+     return build_id_len;
+ 
+   return result;
++  */
++  return -1;
+ }
+ INTDEF(dwelf_elf_gnu_build_id)

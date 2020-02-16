@@ -11425,24 +11425,6 @@ diff -N -r -u -w elfutils-0.177/libelf/elf_update.c elfutils-0.177-patched/libel
  
  
  int64_t
-diff -N -r -u -w elfutils-0.177/libelf/gelf_getshdr.c elfutils-0.177-patched/libelf/gelf_getshdr.c
---- elfutils-0.177/libelf/gelf_getshdr.c	2019-08-14 11:12:33.000000000 +0000
-+++ elfutils-0.177-patched/libelf/gelf_getshdr.c	2019-11-16 14:35:48.807656080 +0000
-@@ -78,6 +78,14 @@
-       COPY (sh_addralign);
-       COPY (sh_entsize);
- 
-+#if defined(__sgi)
-+      if (shdr->sh_entsize == 0)
-+	{
-+	  __libelf_seterrno (ELF_E_INVALID_OPERAND);
-+	  goto out;
-+	}
-+#endif
-+
-       result = dst;
-     }
-   else
 diff -N -r -u -w elfutils-0.177/m4/Makefile.in elfutils-0.177-patched/m4/Makefile.in
 --- elfutils-0.177/m4/Makefile.in	2019-08-14 11:12:37.000000000 +0000
 +++ elfutils-0.177-patched/m4/Makefile.in	2019-11-16 13:33:27.744799120 +0000

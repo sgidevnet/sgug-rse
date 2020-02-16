@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           libid3tag
 Version:        0.15.1b
 Release:        31%{?dist}

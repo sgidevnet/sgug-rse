@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 %define major 9
 %define libname libjpeg.so
 %define develname libjpeg-devel

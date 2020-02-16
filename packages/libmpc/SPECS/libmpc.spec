@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 # build compat-libmpc for bootstrapping purposes
 %define bootstrap 1
 %define bootstrap_version 0.9

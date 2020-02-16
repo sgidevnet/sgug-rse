@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary:       An X Window System utility for monitoring system resources
 Name:          xosview
 Version:       1.21
