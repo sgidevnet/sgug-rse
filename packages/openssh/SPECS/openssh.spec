@@ -275,7 +275,7 @@ Requires: openssh = %{version}-%{release}
 %package server
 Summary: An open source SSH server daemon
 Requires: openssh = %{version}-%{release}
-Requires(pre): /usr/sbin/useradd
+#Requires(pre): /usr/sbin/useradd
 #Requires: pam >= 1.0.1-3
 #Requires: fipscheck-lib%{_isa} >= 1.3.0
 #Requires: crypto-policies >= 20180306-1
@@ -627,13 +627,21 @@ perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_libexecdir}/%{name
 #popd
 #%endif
 %pre
-getent group ssh_keys >/dev/null || groupadd -r ssh_keys || :
+#Separate ssh_keys group is a RH-ism
+#getent group ssh_keys >/dev/null || groupadd -r ssh_keys || :
 
 %pre server
-getent group sshd >/dev/null || groupadd -g %{sshd_uid} -r sshd || :
-getent passwd sshd >/dev/null || \
-  useradd -c "Privilege-separated SSH" -u %{sshd_uid} -g sshd \
-  -s /sbin/nologin -r -d /var/empty/sshd sshd 2> /dev/null || :
+#IRIX has no getent nor groupadd
+#getent group sshd >/dev/null || groupadd -g %{sshd_uid} -r sshd || :
+#getent passwd sshd >/dev/null || \
+grep "sshd:x:%{sshd_uid}:" /etc/group >/dev/null || echo "sshd:x:%{sshd_uid}:" >> /etc/group || :
+grep "sshd:x:74:74" /etc/passwd >/dev/null || \
+#  useradd -c "Privilege-separated SSH" -u %{sshd_uid} -g sshd \
+#  -s /sbin/nologin -r -d /var/empty/sshd sshd 2> /dev/null || :
+  /usr/sysadm/privbin/addUserAccount -l sshd -u %{sshd_uid} \
+  -g %{sshd_gid} -G "Privilege-separated SSH" -S /bin/false \
+  -H /var/empty/sshd 2> /dev/null || :
+
 
 #%post server
 #%systemd_post sshd.service sshd.socket

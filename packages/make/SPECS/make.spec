@@ -87,7 +87,7 @@ touch `find . -name configure`
 touch `find . -name aclocal.m4`
 touch `find . -name Makefile.in`
 
-#ac_cv_lib_elf_elf_begin=no %configure
+#ac_cv_lib_elf_elf_begin=no #configure
 %configure %{configure_args}
 make %{?_smp_mflags}
 
