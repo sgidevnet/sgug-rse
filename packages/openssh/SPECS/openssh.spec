@@ -634,6 +634,8 @@ perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_libexecdir}/%{name
 
 %pre server
 #IRIX has no getent nor groupadd
+#getent group sshd >/dev/null || groupadd -g %{sshd_uid} -r sshd || :
+#getent passwd sshd >/dev/null || \
 grep "sshd:x:%{sshd_uid}:" /etc/group >/dev/null || echo "sshd:x:%{sshd_uid}:" >> /etc/group || :
 grep "sshd:x:74:74" /etc/passwd >/dev/null || \
 #  useradd -c "Privilege-separated SSH" -u %{sshd_uid} -g sshd \
