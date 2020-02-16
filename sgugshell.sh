@@ -39,4 +39,6 @@ export MANPATH=$SGUG_ROOT/man:/usr/share/catman/a_man:/usr/share/catman/g_man:/u
 export LC_ALL=C
 
 export PS1='[sgugshell \u@\h \W]\$ '
+# If ~/.sgug_bashrc exists, source it.
+[ -e $HOME/.sgug_bashrc ] && source $HOME/.sgug_bashrc
 exec bash --norc -i
