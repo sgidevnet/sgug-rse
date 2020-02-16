@@ -629,11 +629,13 @@ perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_libexecdir}/%{name
 #popd
 #%endif
 %pre
-getent group ssh_keys >/dev/null || groupadd -r ssh_keys || :
+#Separate ssh_keys group is a RH-ism
+#getent group ssh_keys >/dev/null || groupadd -r ssh_keys || :
 
 %pre server
-getent group sshd >/dev/null || groupadd -g %{sshd_uid} -r sshd || :
-getent passwd sshd >/dev/null || \
+#IRIX has no getent nor groupadd
+grep "sshd:x:%{sshd_uid}:" /etc/group >/dev/null || echo "sshd:x:%{sshd_uid}:" >> /etc/group || :
+grep "sshd:x:74:74" /etc/passwd >/dev/null || \
 #  useradd -c "Privilege-separated SSH" -u %{sshd_uid} -g sshd \
 #  -s /sbin/nologin -r -d /var/empty/sshd sshd 2> /dev/null || :
   /usr/sysadm/privbin/addUserAccount -l sshd -u %{sshd_uid} \
