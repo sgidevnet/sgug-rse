@@ -4,14 +4,14 @@
 Summary: A system tool for maintaining the /etc/rc*.d hierarchy
 Name: chkconfig
 Version: 1.11
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv2
 URL: https://github.com/fedora-sysv/chkconfig
 Source: https://github.com/fedora-sysv/chkconfig/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz
 #BuildRequires: newt-devel gettext popt-devel libselinux-devel beakerlib gcc
 Conflicts: initscripts <= 5.30-1
-BuildRequires: libdicl-devel
-Requires:      libdicl
+BuildRequires: libdicl-devel >= 0.1.19
+Requires:      libdicl >= 0.1.19
 
 Patch0:        chkconfig.sgifixes.patch
 
@@ -21,11 +21,11 @@ information for system services.  Chkconfig manipulates the numerous
 symbolic links in /etc/rc.d, to relieve system administrators of some 
 of the drudgery of manually editing the symbolic links.
 
-#%package -n ntsysv
+#%%package -n ntsysv
 #Summary: A tool to set the stop/start of system services in a runlevel
 #Requires: chkconfig = %{version}-%{release}
 
-#%description -n ntsysv
+#%%description -n ntsysv
 #Ntsysv provides a simple interface for setting which system services
 #are started or stopped in various runlevels (instead of directly
 #manipulating the numerous symbolic links in /etc/rc.d). Unless you
@@ -100,12 +100,12 @@ rm $RPM_BUILD_ROOT%{_mandir}/man8/ntsysv*
 #/etc/rc[0-6].d
 #/etc/rc.d/rc[0-6].d
 %{_mandir}/*/chkconfig*
-#%{_prefix}/lib/systemd/systemd-sysv-install
+#%%{_prefix}/lib/systemd/systemd-sysv-install
 
-#%files -n ntsysv
-#%defattr(-,root,root)
-#%{_sbindir}/ntsysv
-#%{_mandir}/*/ntsysv.8*
+#%%files -n ntsysv
+#%%defattr(-,root,root)
+#%%{_sbindir}/ntsysv
+#%%{_mandir}/*/ntsysv.8*
 
 %files -n alternatives
 %license COPYING
@@ -117,6 +117,9 @@ rm $RPM_BUILD_ROOT%{_mandir}/man8/ntsysv*
 %dir %{_prefix}/var/lib/alternatives
 
 %changelog
+* Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 1.11-6
+- Rebuild due to libdicl upgrade to 0.1.19
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.11-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

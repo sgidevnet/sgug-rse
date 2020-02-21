@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 6
+%global rel 7
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -69,11 +69,8 @@ Patch2001: rpm.sgifixesldn32path.patch
 Patch2002: rpm.sgifixelfdeps.patch
 Patch2003: rpm.sgistriplibs.patch
 
-# Ugly work around - building RPM requires libdicl-0.1.16
-# But we need libdicl-0.1.17 for libtasn and pkcs11
-# So only force the build-time dep
-BuildRequires: libdicl-devel = 0.1.16
-Requires: libdicl >= 0.1.16
+BuildRequires: libdicl-devel >= 0.1.19
+Requires: libdicl >= 0.1.19
 
 # Ensure we have the sgug macros, too
 Requires: sgug-rpm-config
@@ -606,6 +603,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-7
+- Rebuild due to libdicl upgrade to 0.1.19
+
 * Wed Oct 23 2019 Peter Robinson <pbrobinson@fedoraproject.org> 4.15.0-6
 - Revert armv8 detection improvements
 

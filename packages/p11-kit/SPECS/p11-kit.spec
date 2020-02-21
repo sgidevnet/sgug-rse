@@ -3,7 +3,7 @@
 
 # This spec file has been automatically updated
 Version:	0.23.16.1
-Release: 2%{?dist}
+Release:        3%{?dist}
 Name:           p11-kit
 Summary:        Library for loading and sharing PKCS#11 modules
 
@@ -24,8 +24,8 @@ BuildRequires:  libffi-devel
 # Work around for https://bugzilla.redhat.com/show_bug.cgi?id=1497147
 # Remove this once it is fixed
 #BuildRequires:  pkgconfig(glib-2.0)
-BuildRequires:  libdicl-devel
-Requires:       libdicl
+BuildRequires:  libdicl-devel >= 0.1.19
+Requires:       libdicl >= 0.1.19
 
 %description
 p11-kit provides a way to load and enumerate PKCS#11 modules, as well
@@ -37,7 +37,7 @@ such a way that they're discoverable.
 %package devel
 Summary:        Development files for %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       libdicl-devel
+Requires:       libdicl-devel >= 0.1.19
 
 %description devel
 The %{name}-devel package contains libraries and header files for
@@ -47,6 +47,7 @@ developing applications that use %{name}.
 %package trust
 Summary:            System trust module from %{name}
 Requires:           %{name}%{?_isa} = %{version}-%{release}
+Requires:           libdicl-devel >= 0.1.19
 Requires(post):     %{_sbindir}/update-alternatives
 Requires(postun):   %{_sbindir}/update-alternatives
 Conflicts:          nss < 3.14.3-9
@@ -85,7 +86,7 @@ export CONFIG_SHELL="$SHELL"
 export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
 export LIBS="-ldicl-0.1"
 # These paths are the source paths that  come from the plan here:
 # https://fedoraproject.org/wiki/Features/SharedSystemCertificates:SubTasks
@@ -170,6 +171,9 @@ fi
 
 
 %changelog
+* Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 0.23.16.1-3
+- Rebuild due to libdicl upgrade to 0.1.19
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.23.16.1-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

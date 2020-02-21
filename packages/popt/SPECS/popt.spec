@@ -4,7 +4,7 @@
 Summary:	C library for parsing command line parameters
 Name:		popt
 Version:	1.16
-Release:	18%{?dist}
+Release:	19%{?dist}
 License:	MIT
 URL:		http://www.rpm5.org/
 Source:		http://www.rpm5.org/files/%{name}/%{name}-%{version}.tar.gz
@@ -15,8 +15,8 @@ Patch3:		popt-1.16-help.patch
 Patch4:		popt-1.16-nextarg-memleak.patch
 Patch5:		popt-1.16-glob-error.patch
 BuildRequires:	gcc gettext
-BuildRequires:  libdicl-devel
-Requires:       libdicl
+BuildRequires:  libdicl-devel >= 0.1.19
+Requires:       libdicl >= 0.1.19
 
 %description
 Popt is a C library for parsing command line parameters. Popt was
@@ -81,7 +81,7 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/popt.d
 %check
 make check
 
-#%ldconfig_scriptlets
+#%%ldconfig_scriptlets
 
 %files -f %{name}.lang
 %license COPYING
@@ -100,6 +100,9 @@ make check
 %{_libdir}/libpopt.a
 
 %changelog
+* Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-19
+- Rebuild due to libdicl upgrade to 0.1.19
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.16-18
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
