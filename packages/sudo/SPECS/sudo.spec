@@ -4,13 +4,13 @@
 Summary: Allows restricted root access for specified users
 Name: sudo
 Version: 1.8.29
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: ISC
 URL: http://www.courtesan.com/sudo/
 Source0: https://www.sudo.ws/dist/%{name}-%{version}.tar.gz
 Source1: sudoers
 #Requires: pam
-Recommends: vim-minimal
+Requires: vim-minimal
 Requires(post): coreutils
 
 #BuildRequires: pam-devel
