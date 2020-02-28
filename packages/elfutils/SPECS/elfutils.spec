@@ -4,7 +4,7 @@
 Name: elfutils
 Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
 Version: 0.177
-%global baserelease 1
+%global baserelease 2
 URL: http://elfutils.org/
 %global source_url ftp://sourceware.org/pub/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
@@ -30,9 +30,9 @@ Patch11: elfutils.sgisuppressbuildid.patch
 Requires: elfutils-libelf%{depsuffix} = %{version}-%{release}
 Requires: elfutils-libs%{depsuffix} = %{version}-%{release}
 
-Requires: libdicl >= 0.1.15
+Requires: libdicl >= 0.1.19
 
-BuildRequires: libdicl-devel >= 0.1.15
+BuildRequires: libdicl-devel >= 0.1.19
 
 BuildRequires: gettext
 BuildRequires: bison >= 1.875
@@ -340,6 +340,9 @@ fi
 %endif
 
 %changelog
+* Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 0.177-2
+- Rebuild due to libdicl upgrade to 0.1.19
+
 * Wed Aug 14 2019 Mark Wielaard <mjw@fedoraproject.org> - 0.177-1
 - New upstream release.
   - elfclassify: New tool to analyze ELF objects.

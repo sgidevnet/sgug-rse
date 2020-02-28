@@ -4,7 +4,7 @@
 Summary:	The ASN.1 library used in GNUTLS
 Name:		libtasn1
 Version:	4.14
-Release:	2%{?dist}
+Release:	3%{?dist}
 
 # The libtasn1 library is LGPLv2+, utilities are GPLv3+
 License:	GPLv3+ and LGPLv2+
@@ -20,9 +20,9 @@ BuildRequires:	gcc
 BuildRequires:	bison, pkgconfig, help2man
 BuildRequires:	autoconf, automake, libtool
 #BuildRequires:	valgrind-devel
-BuildRequires:  libdicl-devel
+BuildRequires:  libdicl-devel >= 0.1.19
 
-Requires:       libdicl
+Requires:       libdicl >= 0.1.19
 # Wildcard bundling exception https://fedorahosted.org/fpc/ticket/174
 Provides: bundled(gnulib) = 20130324
 
@@ -70,7 +70,7 @@ export CONFIG_SHELL="$SHELL"
 export SHELL=%{_bindir}/sh
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 autoreconf -v -f --install
 %configure --disable-static --disable-silent-rules
@@ -111,6 +111,9 @@ make check
 
 
 %changelog
+* Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 4.14-3
+- Rebuild due to libdicl upgrade to 0.1.19
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.14-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
