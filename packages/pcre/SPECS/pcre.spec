@@ -44,8 +44,6 @@ Patch3:     pcre-8.42-Declare-POSIX-regex-function-names-as-macros-to-PCRE.patch
 # upstream bug #2400, in upstream after 8.43
 Patch4:     pcre-8.43-Fix-omission-of-LF-from-list-in-the-C-wrapper.patch
 
-Patch100:	pcre0843.irix.patch
-
 BuildRequires:  readline-devel
 BuildRequires:  autoconf
 BuildRequires:  automake
@@ -60,6 +58,9 @@ BuildRequires:  make
 BuildRequires:  bash
 BuildRequires:  diffutils
 BuildRequires:  grep
+BuildRequires:  libdicl-devel >= 0.1.19
+
+Requires:       libdicl >= 0.1.19
 
 %description
 PCRE, Perl-compatible regular expression, library has its own native API, but
@@ -125,6 +126,8 @@ Requires:   %{name}%{_isa} = %{version}-%{release}
 Utilities demonstrating PCRE capabilities like pcregrep or pcretest.
 
 %prep
+export CFLAGS="-g -O0"
+export CXXFLAGS="-g -O0"
 %setup -q -n %{name}-%{myversion}
 # Get rid of rpath
 %patch0 -p1
@@ -133,7 +136,6 @@ Utilities demonstrating PCRE capabilities like pcregrep or pcretest.
 %patch3 -p1
 %patch4 -p1
 
-%patch100 -p1
 # Because of rpath patch
 libtoolize --copy --force
 autoreconf -vif
@@ -149,6 +151,10 @@ autoreconf -vif
 %ifarch ppc64
 %global optflags %{optflags} -fno-strict-aliasing
 %endif
+#export CFLAGS="-g -O0"
+#export CXXFLAGS="-g -O0"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1"
 %configure \
 %ifarch s390 s390x sparc64 sparcv9 riscv64
     --disable-jit \
