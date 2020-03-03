@@ -1,0 +1,90 @@
+diff -Naur pcre-8.43.orig/Makefile.am pcre-8.43/Makefile.am
+--- pcre-8.43.orig/Makefile.am	2016-03-02 13:56:27.000000000 +0000
++++ pcre-8.43/Makefile.am	2020-02-10 13:06:53.181543365 +0000
+@@ -442,46 +442,46 @@
+ 
+ endif # WITH_PCRE8
+ 
+-## There's a C++ library as well.
+-if WITH_PCRE_CPP
+-
+-lib_LTLIBRARIES += libpcrecpp.la
+-libpcrecpp_la_SOURCES = \
+-  pcrecpp_internal.h \
+-  pcrecpp.cc \
+-  pcre_scanner.cc \
+-  pcre_stringpiece.cc
+-libpcrecpp_la_CXXFLAGS = $(VISIBILITY_CXXFLAGS) $(AM_CXXFLAGS)
+-libpcrecpp_la_LDFLAGS = $(EXTRA_LIBPCRECPP_LDFLAGS)
+-libpcrecpp_la_LIBADD = libpcre.la
+-
+-TESTS += pcrecpp_unittest
+-noinst_PROGRAMS += pcrecpp_unittest
+-pcrecpp_unittest_SOURCES = pcrecpp_unittest.cc
+-pcrecpp_unittest_CXXFLAGS = $(AM_CXXFLAGS)
+-pcrecpp_unittest_LDADD = libpcrecpp.la
+-
+-TESTS += pcre_scanner_unittest
+-noinst_PROGRAMS += pcre_scanner_unittest
+-pcre_scanner_unittest_SOURCES = pcre_scanner_unittest.cc
+-pcre_scanner_unittest_CXXFLAGS = $(AM_CXXFLAGS)
+-pcre_scanner_unittest_LDADD = libpcrecpp.la
+-
+-TESTS += pcre_stringpiece_unittest
+-noinst_PROGRAMS += pcre_stringpiece_unittest
+-pcre_stringpiece_unittest_SOURCES = pcre_stringpiece_unittest.cc
+-pcre_stringpiece_unittest_CXXFLAGS = $(AM_CXXFLAGS)
+-pcre_stringpiece_unittest_LDADD = libpcrecpp.la
+-
+-if WITH_GCOV
+-libpcrecpp_la_CXXFLAGS += $(GCOV_CXXFLAGS)
+-pcrecpp_unittest_LDADD += $(GCOV_LIBS)
+-pcre_scanner_unittest_LDADD += $(GCOV_LIBS)
+-pcre_stringpiece_unittest_LDADD += $(GCOV_LIBS)
+-endif # WITH_GCOV
+-
+-endif # WITH_PCRE_CPP
+-
++# ## There's a C++ library as well.
++# if WITH_PCRE_CPP
++# 
++# lib_LTLIBRARIES += libpcrecpp.la
++# libpcrecpp_la_SOURCES = \
++#   pcrecpp_internal.h \
++#   pcrecpp.cc \
++#   pcre_scanner.cc \
++#   pcre_stringpiece.cc
++# libpcrecpp_la_CXXFLAGS = $(VISIBILITY_CXXFLAGS) $(AM_CXXFLAGS)
++# libpcrecpp_la_LDFLAGS = $(EXTRA_LIBPCRECPP_LDFLAGS)
++# libpcrecpp_la_LIBADD = libpcre.la
++# 
++# TESTS += pcrecpp_unittest
++# noinst_PROGRAMS += pcrecpp_unittest
++# pcrecpp_unittest_SOURCES = pcrecpp_unittest.cc
++# pcrecpp_unittest_CXXFLAGS = $(AM_CXXFLAGS)
++# pcrecpp_unittest_LDADD = libpcrecpp.la
++# 
++# TESTS += pcre_scanner_unittest
++# noinst_PROGRAMS += pcre_scanner_unittest
++# pcre_scanner_unittest_SOURCES = pcre_scanner_unittest.cc
++# pcre_scanner_unittest_CXXFLAGS = $(AM_CXXFLAGS)
++# pcre_scanner_unittest_LDADD = libpcrecpp.la
++# 
++# TESTS += pcre_stringpiece_unittest
++# noinst_PROGRAMS += pcre_stringpiece_unittest
++# pcre_stringpiece_unittest_SOURCES = pcre_stringpiece_unittest.cc
++# pcre_stringpiece_unittest_CXXFLAGS = $(AM_CXXFLAGS)
++# pcre_stringpiece_unittest_LDADD = libpcrecpp.la
++# 
++# if WITH_GCOV
++# libpcrecpp_la_CXXFLAGS += $(GCOV_CXXFLAGS)
++# pcrecpp_unittest_LDADD += $(GCOV_LIBS)
++# pcre_scanner_unittest_LDADD += $(GCOV_LIBS)
++# pcre_stringpiece_unittest_LDADD += $(GCOV_LIBS)
++# endif # WITH_GCOV
++# 
++# endif # WITH_PCRE_CPP
++ 
+ ## The main unit tests
+ 
+ # Each unit test is a binary plus a script that runs that binary in various
