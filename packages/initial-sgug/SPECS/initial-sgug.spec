@@ -25,6 +25,7 @@ Provides: libcrypt.so
 Provides: librpcsvc.so
 Provides: libgssapi_krb5.so.2
 Provides: libsocket.so
+Provides: librt.so
 
 # X11 libraries that are used
 Provides: libX11.so.1
