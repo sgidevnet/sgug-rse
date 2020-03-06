@@ -2,7 +2,7 @@ Summary: Bootstrap vpkg for sgug
 Name: initial-sgug
 Epoch: 1
 Version: 0.2.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 
 Provides: /bin/sh
@@ -23,6 +23,8 @@ Provides: libgen.so
 Provides: libnsl.so
 Provides: libcrypt.so
 Provides: librpcsvc.so
+Provides: libgssapi_krb5.so.2
+Provides: libsocket.so
 
 # X11 libraries that are used
 Provides: libX11.so.1
