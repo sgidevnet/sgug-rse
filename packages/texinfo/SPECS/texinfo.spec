@@ -77,7 +77,7 @@ export PERL=%{_bindir}/perl
 
 %build
 export PERL=%{_bindir}/perl
-#%configure --with-external-Text-Unidecode \
+#%%configure --with-external-Text-Unidecode \
 #           --with-external-libintl-perl \
 #           --with-external-Unicode-EastAsianWidth \
 #           --disable-perl-xs
