@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary:        A MOD music file player library
 Name:           libmikmod
 Version:        3.3.11.1
