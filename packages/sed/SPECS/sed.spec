@@ -44,7 +44,7 @@ specified in a script file or from the command line.
 
 %build
 #DH
-#%configure --without-included-regex
+#%%configure --without-included-regex
 %configure
 make %{_smp_mflags}
 install -m 644 -p %{SOURCE1} sedfaq.txt
