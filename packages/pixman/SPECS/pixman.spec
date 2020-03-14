@@ -53,9 +53,6 @@ export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 make %{?_smp_mflags}
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make install INSTALL="%{__install} -p" DESTDIR=%{buildroot}
 
 # Remove static library and libtool pieces
@@ -63,9 +60,6 @@ rm $RPM_BUILD_ROOT%{_libdir}/libpixman-1.a
 rm $RPM_BUILD_ROOT%{_libdir}/libpixman-1.la
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make check
 
 #ldconfig_post

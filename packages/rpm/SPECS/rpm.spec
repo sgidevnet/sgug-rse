@@ -329,10 +329,6 @@ Requires: rpm-libs%{_isa} = %{version}-%{release}
 %endif
 
 %prep
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
 %autosetup -n %{name}-%{srcver} %{?with_int_bdb:-a 1} -p1
 
 # Rewrite hardcoded paths to /bin/sh that cause us problems on irix
@@ -401,11 +397,6 @@ ac_cv_func_getline=yes ./configure \
 #popd
 
 %install
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
-
 %make_install
 
 # We need to build with --enable-python for the self-test suite, but we
