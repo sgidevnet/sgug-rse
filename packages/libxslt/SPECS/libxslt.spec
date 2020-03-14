@@ -70,7 +70,7 @@ developing applications that use %{name}.
 
 autoreconf -vfi
 #export PYTHON=%{__python2}
-#%configure --disable-static --disable-silent-rules --with-python
+#%%configure --disable-static --disable-silent-rules --with-python
 %configure --disable-static --disable-silent-rules --without-python
 %make_build
 
