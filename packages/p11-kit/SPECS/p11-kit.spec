@@ -77,9 +77,6 @@ contains certificate anchors and black lists.
 
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -p1
 
 %build
@@ -95,9 +92,6 @@ export LIBS="-ldicl-0.1"
 make %{?_smp_mflags} V=1
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pkcs11/modules
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
@@ -108,8 +102,8 @@ perl -pi -e "s|/usr/bin/update-ca-trust|%{_bindir}/update-ca-trust|g" $RPM_BUILD
 
 # Install the example conf with %%doc instead
 rm $RPM_BUILD_ROOT%{_sysconfdir}/pkcs11/pkcs11.conf.example
-mkdir -p $RPM_BUILD_ROOT%{_userunitdir}
-install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_userunitdir}
+#mkdir -p $RPM_BUILD_ROOT%{_userunitdir}
+#install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_userunitdir}
 
 # Remove unused server bits
 rm $RPM_BUILD_ROOT%{_libdir}/pkcs11/p11-kit-client.so
