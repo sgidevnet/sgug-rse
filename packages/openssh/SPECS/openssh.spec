@@ -66,7 +66,7 @@
 
 # Do not forget to bump pam_ssh_agent_auth release if you rewind the main package release to 1
 %global openssh_ver 8.1p1
-%global openssh_rel 8
+%global openssh_rel 9
 %global pam_ssh_agent_ver 0.10.3
 %global pam_ssh_agent_rel 7
 
@@ -363,7 +363,7 @@ an X11 passphrase dialog for OpenSSH.
 %setup -q
 
 %if %{pam_ssh_agent}
-pushd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
+cd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
 %patch300 -p2 -b .psaa-build
 %patch301 -p2 -b .psaa-seteuid
 %patch302 -p2 -b .psaa-visibility
@@ -372,7 +372,7 @@ pushd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
 %patch307 -p2 -b .psaa-deref
 # Remove duplicate headers and library files
 rm -f $(cat %{SOURCE5})
-popd
+cd ..
 %endif
 
 #%patch400 -p1 -b .role-mls
@@ -432,9 +432,9 @@ popd
 
 autoreconf
 %if %{pam_ssh_agent}
-pushd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
+cd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
 autoreconf
-popd
+cd ..
 %endif
 
 %build
@@ -533,7 +533,7 @@ make %{_smp_mflags}
 %endif
 
 %if ! %{no_gnome_askpass}
-pushd contrib
+cd contrib
 if [ $gtk2 = yes ] ; then
 	CFLAGS="$CFLAGS %{?__global_ldflags}" \
 	    make gnome-ssh-askpass2
@@ -543,18 +543,18 @@ else
 	    make gnome-ssh-askpass1
 	mv gnome-ssh-askpass1 gnome-ssh-askpass
 fi
-popd
+cd ..
 %endif
 
 %if %{pam_ssh_agent}
-pushd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
+cd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
 LDFLAGS="$SAVE_LDFLAGS"
 %configure --with-selinux \
 	--libexecdir=/%{_libdir}/security \
 	--with-mantype=man \
 	--without-openssl-header-check `# The check is broken`
 make
-popd
+cd ..
 %endif
 
 # Add generation of HMAC checksums of the final stripped binaries
@@ -622,9 +622,9 @@ perl -pi -e "s|$RPM_BUILD_ROOT||g" $RPM_BUILD_ROOT%{_mandir}/man*/*
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_libexecdir}/%{name}/sshd-keygen
 
 #%if %{pam_ssh_agent}
-#pushd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
+#cd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
 #make install DESTDIR=$RPM_BUILD_ROOT
-#popd
+#cd ..
 #%endif
 %pre
 #Separate ssh_keys group is a RH-ism

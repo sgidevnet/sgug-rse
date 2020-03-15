@@ -511,7 +511,8 @@ EOF
 #appstream-util validate-relax --nonet %{buildroot}/%{_datadir}/metainfo/*.appdata.xml
 
 # Don't convert, iconv issues with UTF8 a.t.m.
-#pushd %{buildroot}/%{_datadir}/%{name}/%{vimdir}/tutor
+#OLDPWD=`pwd`
+#cd %{buildroot}/%{_datadir}/%{name}/%{vimdir}/tutor
 #mkdir conv
    #iconv -f CP1252 -t UTF8 tutor.ca > conv/tutor.ca
    #iconv -f CP1252 -t UTF8 tutor.it > conv/tutor.it
@@ -533,7 +534,7 @@ EOF
 #   rm -f tutor.ca tutor.de tutor.es tutor.fr tutor.gr tutor.it tutor.ja.utf-8 tutor.ko.utf-8 tutor.no tutor.pl tutor.sk tutor.ru tutor.sv
 #mv -f conv/* .
 #rmdir conv
-#popd
+#cd $OLDPWD
 
 # Dependency cleanups
 chmod 644 %{buildroot}/%{_datadir}/%{name}/%{vimdir}/doc/vim2html.pl \

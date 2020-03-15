@@ -4,7 +4,7 @@
 Summary: A utility for getting files from remote servers (FTP, HTTP, and others)
 Name: curl
 Version: 7.61.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: MIT
 Source: https://curl.haxx.se/download/%{name}-%{version}.tar.gz
 
@@ -174,9 +174,6 @@ other hand, the package is smaller and requires fewer run-time dependencies to
 be installed.
 
 %prep
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 %setup -q
 
@@ -218,9 +215,6 @@ echo "582" >> tests/data/DISABLED
 sed -e 's/^35$/35,52/' -i tests/data/test323
 
 %build
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 
 mkdir build-{full,minimal}
@@ -282,9 +276,6 @@ make %{?_smp_mflags} V=1 -C build-minimal
 make %{?_smp_mflags} V=1 -C build-full
 
 %check
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 
 # we have to override LD_LIBRARY_PATH because we eliminated rpath
@@ -303,9 +294,6 @@ export OPENSSL_CONF=
 srcdir=../../tests perl -I../../tests ../../tests/runtests.pl -a -p -v '!flaky'
 
 %install
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 
 # install and rename the library that will be packaged as libcurl-minimal

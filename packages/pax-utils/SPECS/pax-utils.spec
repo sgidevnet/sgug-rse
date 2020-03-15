@@ -6,7 +6,7 @@
 Summary: ELF utils that can check files for security relevant properties
 Name: pax-utils
 Version: 1.2.4
-Release: 6%{?dist}
+Release: 7%{?dist}
 # http://packages.gentoo.org/package/app-misc/pax-utils
 URL: https://wiki.gentoo.org/wiki/Hardened/PaX_Utilities
 Source0: https://distfiles.gentoo.org/distfiles/%{name}-%{version}.tar.xz
@@ -33,25 +33,16 @@ PaX helpers for people interested in that.
 # Here's a terminator
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %setup -q
 %patch0 -p1 -b .sgifixups
 sed -i -e 's|#!/usr/bin/python.*|#!%{_bindir}/python3|' lddtree.py
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export gl_cv_func_getopt_posix=no
 %configure --without-python --with-gnu-ld
 make %{?_smp_mflags} V=1
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %make_install
 
 rm -f $RPM_BUILD_ROOT%{_bindir}/dumpelf
@@ -66,9 +57,6 @@ rm -rf $RPM_BUILD_ROOT%{_mandir}/man1/scanmacho*
 
 %if %{with check}
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make check
 %endif
 

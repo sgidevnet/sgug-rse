@@ -4,7 +4,7 @@
 Summary: The GNU Debugger
 Name: gdb
 Version: 7.6.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ and GPLv2+ with exceptions and GPL+ and LGPLv2+ and LGPLv3+ and BSD and Public Domain and GFDL
 URL: http://ftp.gnu.org/gnu/gdb/
 Source: http://ftp.gnu.org/gnu/gdb/gdb-%{version}.tar.gz
@@ -22,16 +22,10 @@ Requires: zlib, readline, ncurses
 The gnu debugger.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %setup
 %patch0 -p1 -b .sgifixups
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %{configure} --enable-werror=no --disable-nls --disable-iconv \
     --disable-gprof --with-system-zlib --with-system-readline \
     --with-curses=ncurses                                     \
@@ -44,15 +38,9 @@ export CONFIG_SHELL="$SHELL"
 make %{?_smp_mflags}
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make check
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make install DESTDIR=$RPM_BUILD_ROOT prefix=%{_prefix} INSTALL='install -p'
 
 rm -rf $RPM_BUILD_ROOT%{_libdir}/charset.alias

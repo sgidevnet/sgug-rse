@@ -9,7 +9,7 @@
 Summary:	A library for manipulating JPEG image format files
 Name:		libjpeg
 Version:	9c
-Release:	1%{?dist}
+Release:	2%{?dist}
 License:	GPL-like
 Group:		System/Libraries
 URL:		http://www.ijg.org/
@@ -92,9 +92,6 @@ any text comments included in a JPEG file.  Wrjpgcom inserts text
 comments into a JPEG file.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 
 %setup -q -n jpeg-9c
 #rm -f jpegtran
@@ -104,9 +101,6 @@ export CONFIG_SHELL="$SHELL"
 #cp %{SOURCE3} exifautotran
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %configure \
     --disable-silent-rules \
     --enable-shared \
@@ -117,9 +111,6 @@ make %{?_smp_mflags}
 #gcc %{optflags} -o jpegexiforient jpegexiforient.c
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/{%{_bindir},%{_libdir},%{_includedir},%{_mandir}/man1}

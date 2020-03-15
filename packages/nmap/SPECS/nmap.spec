@@ -7,7 +7,7 @@ Name: nmap
 Epoch: 2
 Version: 7.70
 #global prerelease TEST5
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: Network exploration tool and security scanner
 URL: http://nmap.org/
 # Uses combination of licenses based on GPL license, but with extra modification
@@ -75,9 +75,6 @@ uses.
 # Here's a terminator
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -p1
 
 #be sure we're not using tarballed copies of some libraries
@@ -87,9 +84,6 @@ export CONFIG_SHELL="$SHELL"
 rm -rf macosx mswin32 libz
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 export CXXFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 
@@ -108,9 +102,6 @@ export CXXFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 sed -i 's/-md/-mf/' nping/docs/nping.1
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 #prevent stripping - replace strip command with 'true'
 make DESTDIR=%{buildroot} STRIP=true install
 

@@ -6,7 +6,7 @@ Summary: A GNU tool which simplifies the build process for users
 Name: make
 Epoch: 1
 Version: 4.2.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://www.gnu.org/software/make/
@@ -74,9 +74,6 @@ The make-devel package contains gnumake.h.
 rm -f tests/scripts/features/parallelism.orig
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 # Since we made a change to configure.ac (and configure) touch
 # the files to avoid rebuild problems with automake versioning.
 # Specifically make expects 1.15 but some systems use 1.16.1.

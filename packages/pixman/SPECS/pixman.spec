@@ -6,7 +6,7 @@
 
 Name:           pixman
 Version:        0.38.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Pixel manipulation library
 
 License:        MIT
@@ -35,18 +35,11 @@ Requires: pkgconfig
 Development library for pixman.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 %autosetup -p1
 # bump up the test suite timeout because arm
 #sed -i 's/120/600/' test/meson.build
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 %configure
 

@@ -3,7 +3,7 @@
 
 Name:           aterm
 Version:        1.0.1
-Release:        29%{?dist}
+Release:        30%{?dist}
 
 Summary:        Afterstep XVT, VT102 emulator for the X Window system
 License:        GPLv2+
@@ -43,9 +43,6 @@ advantage on a machine serving many X sessions.
 %patch10 -p1 -b .sgifixes
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 
 %configure --enable-fading --enable-background-image \
 --enable-next-scroll --enable-utmp --enable-wtmp \

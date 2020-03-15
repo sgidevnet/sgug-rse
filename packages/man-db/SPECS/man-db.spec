@@ -7,7 +7,7 @@
 Summary: Tools for searching and reading man pages
 Name: man-db
 Version: 2.8.5
-Release: 5%{?dist}
+Release: 6%{?dist}
 # GPLv2+ .. man-db
 # GPLv3+ .. gnulib
 License: GPLv2+ and GPLv3+
@@ -45,27 +45,21 @@ manual page names and descriptions. manpath determines search path
 for manual pages. lexgrog directly reads header information in
 manual pages.
 
-%package cron
-Summary: Periodic update of man-db cache
+#%package cron
+#Summary: Periodic update of man-db cache
 
-Requires: %{name} = %{version}-%{release}
-Requires: crontabs
+#Requires: %{name} = %{version}-%{release}
+#Requires: crontabs
 
-BuildArch: noarch
+#BuildArch: noarch
 
-%description cron
-This package provides periodic update of man-db cache.
+#%description cron
+#This package provides periodic update of man-db cache.
 
 %prep
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -p1
 
 %build
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %configure \
     --with-sections="1 1p 8 2 3 3p 3pm 4 5 6 7 9 0p n l p o 1x 2x 3x 4x 5x 6x 7x 8x" \
     --disable-setuid --disable-cache-owner \
@@ -74,15 +68,9 @@ export CONFIG_SHELL="$SHELL"
 make CC="%{__cc} %{optflags}" %{?_smp_mflags} V=1
 
 %check
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make check
 
 %install
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make install DESTDIR=$RPM_BUILD_ROOT prefix=%{_prefix} INSTALL='install -p'
 
 # move the documentation to the relevant place
@@ -98,12 +86,12 @@ rm $RPM_BUILD_ROOT%{_libdir}/man-db/*.la
 install -d -m 0755  $RPM_BUILD_ROOT%{cache}
 
 # install cron script for man-db creation/update
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily
-install -D -p -m 0755 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily/man-db.cron
+#mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily
+#install -D -p -m 0755 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily/man-db.cron
 
 # config for cron script
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-install -D -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/man-db
+#mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
+#install -D -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/man-db
 
 # config for tmpfiles.d
 #install -D -p -m 0644 init/systemd/man-db.conf $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/.
@@ -124,7 +112,7 @@ rm $RPM_BUILD_ROOT%{_prefix}/man/man1/zsoelim.1
 rm -rf $RPM_BUILD_ROOT/lib
 
 # Rewrite a hardcoded bash path
-perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_prefix}/etc/cron.daily/man-db.cron
+#perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_prefix}/etc/cron.daily/man-db.cron
 
 %find_lang %{name}
 %find_lang %{name}-gnulib
@@ -160,7 +148,7 @@ perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_prefix}/etc/cron.d
 %license docs/COPYING
 %doc README man-db-manual.txt man-db-manual.ps ChangeLog NEWS
 %config(noreplace) %{_sysconfdir}/man_db.conf
-%config(noreplace) %{_sysconfdir}/sysconfig/man-db
+#%config(noreplace) %{_sysconfdir}/sysconfig/man-db
 #%config(noreplace) %{_tmpfilesdir}/man-db.conf
 #%{_unitdir}/man-db-cache-update.service
 %{_sbindir}/accessdb
@@ -205,8 +193,8 @@ perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_prefix}/etc/cron.d
 #%lang(tr)       %{_datadir}/man/tr/man*/*
 #%lang(zh_CN)    %{_datadir}/man/zh_CN/man*/*
 
-%files cron
-%config(noreplace) %{_sysconfdir}/cron.daily/man-db.cron
+#%files cron
+#%config(noreplace) %{_sysconfdir}/cron.daily/man-db.cron
 
 %changelog
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.8.4-5

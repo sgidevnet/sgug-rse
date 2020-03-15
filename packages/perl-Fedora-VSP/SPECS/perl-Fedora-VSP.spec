@@ -3,7 +3,7 @@
 
 Name:           perl-Fedora-VSP
 Version:        0.001
-Release:        16%{?dist}
+Release:        17%{?dist}
 Summary:        Perl version normalization for RPM
 License:        GPLv3+
 URL:            https://ppisar.fedorapeople.org/Fedora-VSP/
@@ -36,26 +36,17 @@ This module provides functions for normalizing Perl version strings for
 Red Hat Package (RPM) based Linux distributions.
 
 %prep
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 export PERL_PATH="$PERL"
 %setup -q -n Fedora-VSP-%{version}
 
 %build
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 export PERL_PATH="$PERL"
 $PERL Makefile.PL INSTALLDIRS=vendor
 make %{?_smp_mflags}
 
 %install
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 export PERL_PATH="$PERL"
 make pure_install DESTDIR=%{buildroot}

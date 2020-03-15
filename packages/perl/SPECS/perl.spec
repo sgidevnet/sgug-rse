@@ -86,7 +86,7 @@ License:        GPL+ or Artistic
 Epoch:          %{perl_epoch}
 Version:        %{perl_version}
 # release number must be even higher, because dual-lived modules will be broken otherwise
-Release:        446%{?dist}
+Release:        447%{?dist}
 Summary:        Practical Extraction and Report Language
 Url:            https://www.perl.org/
 Source0:        https://www.cpan.org/src/5.0/perl-%{perl_version}.tar.gz
@@ -3123,13 +3123,13 @@ rm $RPM_BUILD_ROOT%{_mandir}/man3/File::Spec::VMS.3*
 
 # Fix some manpages to be UTF-8
 #mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1/
-#pushd $RPM_BUILD_ROOT%{_mandir}/man1/
+#cd $RPM_BUILD_ROOT%{_mandir}/man1/
 #  for i in perl588delta.1 perldelta.1 ; do
 #    iconv -f MS-ANSI -t UTF-8 $i --output new-$i
 #    rm $i
 #    mv new-$i $i
 #  done
-#popd
+#cd ../..
 
 # for now, remove Bzip2:
 # Why? Now is missing Bzip2 files and provides
@@ -3182,9 +3182,9 @@ sed \
 %check
 %if %{with test}
 %{new_perl} -I/lib regen/lib_cleanup.pl
-pushd t
+cd t
 %{new_perl} -I../lib porting/customized.t --regen
-popd
+cd ..
 %if %{parallel_tests}
     JOBS=$(printf '%%s' "%{?_smp_mflags}" | sed 's/.*-j\([0-9][0-9]*\).*/\1/')
     LC_ALL=C TEST_JOBS=$JOBS make test_harness
@@ -3193,7 +3193,7 @@ popd
 %endif
 %endif
 
-%ldconfig_scriptlets libs
+#ldconfig_scriptlets libs
 
 %files
 # We sub-package modules from perl-interpreter subpackage. Main perl package

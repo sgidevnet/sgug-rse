@@ -3,7 +3,7 @@
 
 # This spec file has been automatically updated
 Version:	0.23.16.1
-Release:        3%{?dist}
+Release:        4%{?dist}
 Name:           p11-kit
 Summary:        Library for loading and sharing PKCS#11 modules
 
@@ -80,9 +80,6 @@ contains certificate anchors and black lists.
 %autosetup -p1
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
 export LIBS="-ldicl-0.1"
 # These paths are the source paths that  come from the plan here:

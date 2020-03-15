@@ -17,7 +17,7 @@
 Summary:    A GNU tool for automatically creating Makefiles
 Name:       automake
 Version:    %{api_version}.1
-Release:    13%{?dist}
+Release:    14%{?dist}
 
 # docs ~> GFDL, sources ~> GPLv2+, mkinstalldirs ~> PD and install-sh ~> MIT
 License:    GPLv2+ and GFDL and Public Domain and MIT
@@ -101,9 +101,6 @@ Makefiles.
 
 
 %prep
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
 export M4=%{_bindir}/m4
@@ -122,9 +119,6 @@ done
 %build
 # disable replacing config.guess and config.sub from redhat-rpm-config
 %global _configure_gnuconfig_hack 0
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
 export M4=%{_bindir}/m4
@@ -135,9 +129,6 @@ cp contrib/multilib/README README.multilib
 
 
 %install
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
 export M4=%{_bindir}/m4

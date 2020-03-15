@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 7
+%global rel 8
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -68,6 +68,7 @@ Patch2000: rpm.sgifixes.patch
 Patch2001: rpm.sgifixesldn32path.patch
 Patch2002: rpm.sgifixelfdeps.patch
 Patch2003: rpm.sgistriplibs.patch
+Patch2004: rpm.sgifixesaddshellvars.patch
 
 BuildRequires: libdicl-devel >= 0.1.19
 Requires: libdicl >= 0.1.19
@@ -268,14 +269,14 @@ BuildArch: noarch
 This package contains API documentation for developing applications
 that will manipulate RPM packages and databases.
 
-%package cron
-Summary: Create daily logs of installed packages.
-BuildArch: noarch
-Requires: crontabs logrotate rpm = %{version}-%{release}
+#%package cron
+#Summary: Create daily logs of installed packages.
+#BuildArch: noarch
+#Requires: crontabs logrotate rpm = %{version}-%{release}
 
-%description cron
-This package contains a cron job which creates daily logs of installed
-packages on a system.
+#%description cron
+#This package contains a cron job which creates daily logs of installed
+#packages on a system.
 
 %if %{with plugins}
 %package plugin-selinux
@@ -347,9 +348,6 @@ ln -s db-%{bdbver} db
 
 %build
 %set_build_flags
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
 export LIBS="-lgen -ldicl-0.1 -llzma -lintl"
@@ -391,28 +389,28 @@ ac_cv_func_getline=yes ./configure \
 
 %make_build
 
-#pushd python
+#cd python
 #py2_build
 #py3_build
-#popd
+#cd ..
 
 %install
 %make_install
 
 # We need to build with --enable-python for the self-test suite, but we
 # actually package the bindings built with setup.py (#531543#c26)
-#pushd python
+#cd python
 #py2_install
 #py3_install
-#popd
+#cd ..
 
 
 # Save list of packages through cron
-mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.daily
-install -m 755 scripts/rpm.daily ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.daily/rpm
+#mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.daily
+#install -m 755 scripts/rpm.daily ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.daily/rpm
 
-mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d
-install -m 644 scripts/rpm.log ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/rpm
+#mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d
+#install -m 644 scripts/rpm.log ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/rpm
 
 mkdir -p ${RPM_BUILD_ROOT}%{_tmpfilesdir}
 echo "r %{_localstatedir}/lib/rpm/__db.*" > ${RPM_BUILD_ROOT}%{_tmpfilesdir}/rpm.conf
@@ -585,9 +583,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %{_libdir}/pkgconfig/%{name}.pc
 %{_includedir}/%{name}/
 
-%files cron
-%{_sysconfdir}/cron.daily/rpm
-%config(noreplace) %{_sysconfdir}/logrotate.d/rpm
+#%files cron
+#%{_sysconfdir}/cron.daily/rpm
+#%config(noreplace) %{_sysconfdir}/logrotate.d/rpm
 
 %files apidocs
 %license COPYING

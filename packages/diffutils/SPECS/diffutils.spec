@@ -4,7 +4,7 @@
 Summary: A GNU collection of diff utilities
 Name: diffutils
 Version: 3.6
-Release: 3%{?dist}
+Release: 4%{?dist}
 URL: http://www.gnu.org/software/diffutils/diffutils.html
 Source: ftp://ftp.gnu.org/gnu/diffutils/diffutils-%{version}.tar.xz
 Patch1: diffutils-cmp-s-empty.patch
@@ -30,9 +30,6 @@ to merge two files interactively.
 Install diffutils if you need to compare text files.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL=%{_bindir}/perl
 export PERL_PATH="$PERL"
 %setup -q
@@ -47,18 +44,12 @@ export PERL_PATH="$PERL"
 autoreconf
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL=%{_bindir}/perl
 export PERL_PATH="$PERL"
 %configure
 make PR_PROGRAM=%{_bindir}/pr %{_smp_mflags} V=1
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL=%{_bindir}/perl
 export PERL_PATH="$PERL"
 %make_install

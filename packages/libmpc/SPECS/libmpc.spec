@@ -8,7 +8,7 @@
 Summary: C library for multiple precision complex arithmetic
 Name: libmpc
 Version: 1.1.0
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: LGPLv3+ and GFDL
 URL: http://www.multiprecision.org/
 Source0: https://ftp.gnu.org/gnu/mpc/mpc-%{version}.tar.gz
@@ -50,10 +50,10 @@ export CFLAGS="%{optflags} -std=gnu99"
 export EGREP=egrep
 
 #%if 0%{?bootstrap}
-#pushd mpc-%{bootstrap_version}
+#cd mpc-%{bootstrap_version}
 #configure --disable-static
 #%make_build
-#popd
+#cd ..
 #%endif
 
 %check

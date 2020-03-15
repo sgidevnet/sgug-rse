@@ -18,7 +18,7 @@
 
 Name:           lua
 Version:        %{major_version}.5
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        Powerful light-weight programming language
 License:        MIT
 URL:            http://www.lua.org/
@@ -85,9 +85,6 @@ This package contains the static version of liblua for %{name}.
 
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %if 0%{?bootstrap}
 %setup -q -a 2 -a 3
 %else
@@ -122,9 +119,6 @@ cd ..
 
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %configure --with-readline --with-compat-module
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 #sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
@@ -137,7 +131,7 @@ make %{?_smp_mflags} LIBS="-lm -ldl"
 # only /usr/bin/lua links with readline now #luac_LDADD="liblua.la -lm -ldl"
 
 %if 0%{?bootstrap}
-pushd lua-%{bootstrap_version}
+cd lua-%{bootstrap_version}
 %configure --with-readline --with-compat-module
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 #sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
@@ -147,7 +141,7 @@ sed -i 's|@pkgdatadir@|%{_datadir}|g' src/luaconf.h.template
 # hack so that only /usr/bin/lua gets linked with readline as it is the
 # only one which needs this and otherwise we get License troubles
 make %{?_smp_mflags} LIBS="-lm -ldl" luac_LDADD="liblua.la -lm -ldl"
-popd
+cd ..
 %endif
 
 %check
@@ -170,9 +164,6 @@ sed -i.orig -e '
 LD_LIBRARY_PATH=$RPM_BUILD_ROOT/%{_libdir} $RPM_BUILD_ROOT/%{_bindir}/lua -e"_U=true" all.lua
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make install DESTDIR=$RPM_BUILD_ROOT
 rm $RPM_BUILD_ROOT%{_libdir}/*.la
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/lua/%{major_version}
@@ -184,14 +175,14 @@ mkdir -p $RPM_BUILD_ROOT%{_datadir}/lua/%{major_version}
 #install -p -m 644 %{SOURCE4} %{buildroot}%{_includedir}/luaconf.h
 
 %if 0%{?bootstrap}
-pushd lua-%{bootstrap_version}
+cd lua-%{bootstrap_version}
 mkdir $RPM_BUILD_ROOT/installdir
 make install DESTDIR=$RPM_BUILD_ROOT/installdir
 cp -a $RPM_BUILD_ROOT/installdir/%{_libdir}/liblua-%{bootstrap_major_version}.so $RPM_BUILD_ROOT%{_libdir}/
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/lua/%{bootstrap_major_version}
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/lua/%{bootstrap_major_version}
 rm -rf $RPM_BUILD_ROOT/installdir
-popd
+cd ..
 %endif
 
 # Install rpm-macro

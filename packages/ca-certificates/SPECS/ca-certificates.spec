@@ -41,7 +41,7 @@ Name: ca-certificates
 Version: 2019.2.32
 # for Rawhide, please always use release >= 2
 # for Fedora release branches, please use release < 2 (1.0, 1.1, ...)
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Public Domain
 
 URL: https://fedoraproject.org/wiki/CA-Certificates
@@ -93,9 +93,6 @@ This package contains the set of CA certificates chosen by the
 Mozilla Foundation for use with the Internet PKI.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 rm -rf %{name}
 mkdir %{name}
 mkdir %{name}/certs
@@ -104,17 +101,14 @@ mkdir %{name}/certs/legacy-disable
 mkdir %{name}/java
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-pushd %{name}/certs
+cd %{name}/certs
  pwd
 # cp %{SOURCE0} .
 # python3 %{SOURCE4} >c2p.log 2>c2p.err
   # Manually processed until we have a python rpm
   tar xf %{SOURCE100}
-popd
-pushd %{name}
+cd ../..
+cd %{name}
  (
    cat <<EOF
 # This is a bundle of X.509 certificates of public Certificate
@@ -179,7 +173,7 @@ if [ $P11FILES -ne 0 ]; then
 fi
 # Append our trust fixes
 cat %{SOURCE3} >> %{p11_format_bundle}
-popd
+cd ..
 
 #manpage
 cp %{SOURCE10} %{name}/update-ca-trust.8.txt
@@ -192,9 +186,6 @@ cp %{SOURCE9} %{name}/ca-legacy.8.txt
 
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 rm -rf $RPM_BUILD_ROOT
 mkdir -p -m 755 $RPM_BUILD_ROOT%{pkidir}/tls/certs
 #mkdir -p -m 755 $RPM_BUILD_ROOT%{pkidir}/java

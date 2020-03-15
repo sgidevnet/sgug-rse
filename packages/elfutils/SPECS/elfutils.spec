@@ -4,7 +4,7 @@
 Name: elfutils
 Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
 Version: 0.177
-%global baserelease 2
+%global baserelease 3
 URL: http://elfutils.org/
 %global source_url ftp://sourceware.org/pub/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
@@ -189,9 +189,6 @@ profiling) of processes.
 %endif
 
 %prep
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 %setup -q
 
@@ -215,9 +212,6 @@ find . -name \*.sh ! -perm -0100 -print | xargs chmod +x
 
 
 trap 'cat config.log' EXIT
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL="%{_bindir}/perl"
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 $CPPFLAGS"
 export LDFLAGS="-ldicl-0.1 -lintl -lc -llzma -lpthread -lgen $RPM_LD_FLAGS"

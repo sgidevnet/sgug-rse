@@ -4,7 +4,7 @@
 Summary: Bacula Client
 Name: bacula-client
 Version: 9.4.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: AGPLv3 with exceptions
 URL: http://www.bacula.org
 Source: http://downloads.sourceforge.net/bacula/bacula-%{version}.tar.gz
@@ -23,13 +23,10 @@ to find and recover lost or damaged files.
 %setup -n bacula-%{version}
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$CONFIG_SHELL"
 export LDFLAGS="-lpthread $RPM_LD_FLAGS"
-#pushd autoconf
+#cd autoconf
 #aclocal -I bacula-macros/ -I gettext-macros/ -I libtool/
-#popd
+#cd ..
 #autoconf -I autoconf/ -o configure autoconf/configure.in
 
 %{configure} --enable-client-only --disable-nls --disable-acl --disable-conio --with-readline=%{_prefix} --with-sqlite3=%{_prefix} --with-openssl=%{_prefix} --with-archivedir=%{_prefix}/tmp --with-working-dir=%{_prefix}/bacula/working --with-subsys-dir=%{_prefix}/var/lock/subsys

@@ -2,7 +2,7 @@
 Summary: GUI for several command-line debuggers
 Name: ddd
 Version: 3.3.12
-Release: 33%{?dist}
+Release: 34%{?dist}
 License: GPLv2+
 URL: http://www.gnu.org/software/ddd/
 #Source0: http://dl.sf.net/ddd/ddd-%{version}.tar.gz
@@ -57,9 +57,6 @@ interface with full editing, history and completion capabilities.
 %patch100 -p1
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="$CPPFLAGS -D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I/usr/Motif-2.1/include -I%{_includedir}"
 export PATH="/usr/bin/X11:$PATH"
 export LDFLAGS="-L/usr/Motif-2.1/lib32 -lXm $RPM_LD_FLAGS"

@@ -9,7 +9,7 @@
 Summary:    A GNU tool for automatically configuring source code
 Name:       autoconf
 Version:    2.69
-Release:    31%{?dist}
+Release:    32%{?dist}
 License:    GPLv2+ and GFDL
 Source0:    http://ftpmirror.gnu.org/autoconf/autoconf-%{version}.tar.xz
 Source1:    config.site
@@ -78,9 +78,6 @@ their use.
 # Here's a terminator
 
 %prep
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
 export M4=%{_bindir}/m4
@@ -92,9 +89,6 @@ export EMACS=%{_bindir}/emacs
 %else
 export EMACS=%{_bindir}/false
 %endif
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
 export M4=%{_bindir}/m4
@@ -112,9 +106,6 @@ make check %{?_smp_mflags}
 
 
 %install
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export PERL=%{_bindir}/perl
 export M4=%{_bindir}/m4

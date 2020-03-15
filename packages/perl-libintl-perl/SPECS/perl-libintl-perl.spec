@@ -4,7 +4,7 @@
 Summary:        Internationalization library for Perl, compatible with gettext
 Name:           perl-libintl-perl
 Version:        1.31
-Release:        4%{?dist}
+Release:        5%{?dist}
 # gettext_xs/gettext_xs.pm:     GPLv3+
 # gettext_xs/Makefile.PL:       LGPLv2+
 # lib/Locale/gettext_xs.pod:    LGPLv2+
@@ -73,9 +73,6 @@ implemented for example in GNU gettext.
 
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL=%{_bindir}/perl
 %setup -q -n libintl-perl-%{version}
 find -type f -exec chmod -x {} \;
@@ -93,17 +90,11 @@ rm .gitignore MANIFEST
 
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL=%{_bindir}/perl
 %{_bindir}/perl Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
 make %{?_smp_mflags}
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL=%{_bindir}/perl
 make pure_install DESTDIR=%{buildroot}
 find %{buildroot} -type f \( -name .packlist -o \
@@ -111,9 +102,6 @@ find %{buildroot} -type f \( -name .packlist -o \
 %{_fixperms} %{buildroot}
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export PERL=%{_bindir}/perl
 make test
 

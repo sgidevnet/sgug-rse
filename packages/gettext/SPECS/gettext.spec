@@ -9,7 +9,7 @@
 Summary: GNU libraries and utilities for producing multi-lingual messages
 Name: gettext
 Version: %{tarversion}
-Release: 2%{?dist}
+Release: 3%{?dist}
 # The following are licensed under LGPLv2+:
 # - libintl and its headers
 # - libasprintf and its headers
@@ -177,14 +177,11 @@ This package contains libraries used internationalization support.
 #think about.
 
 %prep
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -n %{name}-%{tarversion} -S git
 
 # This ridiculous dance below is to get a bugfixed libtool.m4 included...
 # TODO turn this into a patch which will be quicker to apply.
-pushd gettext-runtime/libasprintf
+cd gettext-runtime/libasprintf
 libtoolize -f -i
 aclocal -I ../../m4 -I ../m4 -I gnulib-m4
 autoconf
@@ -193,9 +190,9 @@ touch config.h.in
 touch ChangeLog
 automake --add-missing --copy
 rm -rf autom4te.cache
-popd
+cd ../..
 
-pushd gettext-runtime
+cd gettext-runtime
 libtoolize -f -i
 aclocal -I m4 -I ../m4 -I gnulib-m4
 autoconf
@@ -204,9 +201,9 @@ touch config.h.in
 touch ChangeLog intl/ChangeLog
 automake --add-missing --copy
 rm -rf autom4te.cache
-popd
+cd ..
 
-pushd gettext-tools
+cd gettext-tools
 libtoolize -f -i
 aclocal -I m4 -I ../gettext-runtime/m4 -I ../m4 -I gnulib-m4 -I libgrep/gnulib-m4 -I libgettextpo/gnulib-m4
 autoconf
@@ -215,12 +212,12 @@ touch config.h.in
 touch ChangeLog
 automake --add-missing --copy
 rm -rf autom4te.cache
-popd
+cd ..
 
-#pushd libtextstyle
+#cd libtextstyle
 #libtoolize -f -i
 #./autogen.sh --skip-gnulib
-#popd
+#cd ..
 
 aclocal -I m4
 autoconf
@@ -241,9 +238,6 @@ rm -rf autom4te.cache gettext-runtime/autom4te.cache gettext-tools/autom4te.cach
 
 
 %build
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %if %{with java}
 export JAVAC=gcj
 %if %{with jar}
@@ -281,9 +275,6 @@ export gl_cv_cc_visibility=no
 
 %install
 #export LDFLAGS="$LDFLAGS -L%{_libdir} -lgcc_s -lm"
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 #export INTERNAL_LIB_DIR="$PWD/gettext-tools/intl/.libs"
 #export INTERNAL_GNULIB_DIR="$PWD/gettext-tools/gnulib-lib/.libs"
 #export LDFLAGS="$LDFLAGS -rpath %{_libdir} -L$INTERNAL_LIB_DIR -L$INTERNAL_GNULIB_DIR"

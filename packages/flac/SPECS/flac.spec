@@ -11,7 +11,7 @@
 Summary: An encoder/decoder for the Free Lossless Audio Codec
 Name: flac
 Version: 1.3.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: BSD and GPLv2+ and GFDL
 Source0: https://downloads.xiph.org/releases/flac/flac-%{version}.tar.xz
 Patch0: flac.sgifixes.patch
@@ -79,9 +79,6 @@ This is the input plugin for XMMS to be able to read FLAC files.
 %patch0 -p1 -b .sgifixes
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 # use our libtool to avoid problems with RPATH
 %{_bindir}/sh ./autogen.sh -V
 

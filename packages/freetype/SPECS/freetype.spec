@@ -6,7 +6,7 @@
 Summary: A free and portable font rendering engine
 Name: freetype
 Version: 2.10.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: (FTL or GPLv2+) and BSD and MIT and Public Domain and zlib with acknowledgement
 URL: http://www.freetype.org
 Source:  http://download.savannah.gnu.org/releases/freetype/freetype-%{version}.tar.bz2
@@ -83,9 +83,9 @@ FreeType.
 %patch0  -p1 -b .enable-spr
 %patch1  -p1 -b .enable-valid
 
-pushd ft2demos-%{version}
+cd ft2demos-%{version}
 %patch2  -p1 -b .more-demos
-popd
+cd ..
 
 %patch3 -p1 -b .libtool
 #%patch4 -p1 -b .multilib
@@ -97,9 +97,6 @@ popd
 %patch101 -p1 -b .sgidemosfixes
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 %configure --disable-static \
            --with-zlib=yes \
@@ -113,13 +110,13 @@ make %{?_smp_mflags}
 
 %if %{with_xfree86}
 # Build demos
-pushd ft2demos-%{version}
+cd ft2demos-%{version}
 make TOP_DIR=".." %{?_smp_mflags}
-popd
+cd ..
 %endif
 
 # Convert FTL.txt and example3.cpp to UTF-8
-pushd docs
+cd docs
 iconv -f latin1 -t utf-8 < FTL.TXT > FTL.TXT.tmp && \
 touch -r FTL.TXT FTL.TXT.tmp && \
 mv FTL.TXT.tmp FTL.TXT
@@ -127,7 +124,7 @@ mv FTL.TXT.tmp FTL.TXT
 iconv -f iso-8859-1 -t utf-8 < "tutorial/example3.cpp" > "tutorial/example3.cpp.utf8"
 touch -r tutorial/example3.cpp tutorial/example3.cpp.utf8 && \
 mv tutorial/example3.cpp.utf8 tutorial/example3.cpp
-popd
+cd ..
 
 
 %install

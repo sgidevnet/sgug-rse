@@ -8,7 +8,7 @@
 Summary:          MirBSD enhanced version of the Korn Shell
 Name:             mksh
 Version:          57
-Release:          2%{?dist}
+Release:          3%{?dist}
 # BSD (setmode.c), ISC (strlcpy.c), MirOS (the rest)
 License:          MirOS and ISC and BSD
 URL:              https://www.mirbsd.org/mksh.htm
@@ -17,6 +17,7 @@ Source1:          dot-mkshrc
 Source2:          rtchecks.expected
 %if 0%{?fedora} >= 17 || 0%{?rhel} >= 7
 Conflicts:        filesystem < 3
+Provides:         %{_bindir}/sh
 Provides:         %{_bindir}/lksh, %{_bindir}/mksh
 %endif
 Requires(post):   grep
@@ -90,6 +91,8 @@ install -D -m 644 lksh.1 $RPM_BUILD_ROOT%{_mandir}/man1/lksh.1
 install -D -p -m 644 dot.mkshrc $RPM_BUILD_ROOT%{_sysconfdir}/mkshrc
 install -D -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/skel/.mkshrc
 
+ln -sf mksh %{buildroot}%{_bindir}/sh
+
 %check
 ./mksh rtchecks >rtchecks.got 2>&1
 if ! cmp --quiet rtchecks.got %{SOURCE2}
@@ -129,6 +132,7 @@ done
 
 %files
 %doc dot.mkshrc
+%{_bindir}/sh
 %{_bindir}/%{name}
 %{_bindir}/lksh
 %config(noreplace) %{_sysconfdir}/mkshrc

@@ -5,7 +5,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.2
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -383,9 +383,6 @@ Conflicts: gcc-c++ < 4.0.0
 #----------------------------------------------------------------------------
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export LIBTOOL=%{_bindir}/libtool
 %setup -q -n binutils-%{version}
 #%patch01 -p1
@@ -465,9 +462,6 @@ touch */configure
 #----------------------------------------------------------------------------
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export LIBTOOL=%{_bindir}/libtool
 
 echo target is %{binutils_target}
@@ -619,9 +613,6 @@ fi
 #----------------------------------------------------------------------------
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export LIBTOOL=%{_bindir}/libtool
 cp gas/libtool ld/
 

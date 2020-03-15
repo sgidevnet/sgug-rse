@@ -6,7 +6,7 @@
 Version: %{baseversion}%{patchleveltag}
 Name: bash
 Summary: The GNU Bourne Again shell
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Url: https://www.gnu.org/software/bash
 Source0: https://ftp.gnu.org/gnu/bash/bash-%{baseversion}.tar.gz
@@ -94,7 +94,7 @@ BuildRequires: autoconf, gettext
 # Required for bash tests
 #BuildRequires: glibc-all-langpacks
 #Requires: filesystem >= 3
-Provides: %{_bindir}/sh
+#Provides: %{_bindir}/sh
 Provides: %{_bindir}/bash
 # On Irix you'll get all kinds of broken behaviour without ncurses
 # supporting definitions
@@ -162,7 +162,7 @@ sed -i -e 's,bashref\.info,bash.info,' doc/bashref.info
 mkdir -p %{buildroot}/%{_sysconfdir}
 
 # make manpages for bash builtins as per suggestion in DOC/README
-pushd doc
+cd doc
 sed -e '
 /^\.SH NAME/, /\\- bash built-in commands, see \\fBbash\\fR(1)$/{
 /^\.SH NAME/d
@@ -184,7 +184,7 @@ for i in `cat man.pages` ; do
   echo .so man1/builtins.1 > %{buildroot}%{_mandir}/man1/$i.1
   chmod 0644 %{buildroot}%{_mandir}/man1/$i.1
 done
-popd
+cd ..
 
 # Link bash man page to sh so that man sh works.
 ln -sf bash.1 %{buildroot}%{_mandir}/man1/sh.1
@@ -194,7 +194,7 @@ rm -f %{buildroot}/%{_mandir}/man1/printf.1
 rm -f %{buildroot}/%{_mandir}/man1/true.1
 rm -f %{buildroot}/%{_mandir}/man1/false.1
 
-ln -sf bash %{buildroot}%{_bindir}/sh
+#ln -sf bash %{buildroot}%{_bindir}/sh
 rm -f %{buildroot}%{_infodir}/dir
 mkdir -p %{buildroot}%{_sysconfdir}/skel
 # DH
@@ -304,7 +304,7 @@ done
 #files -f %{name}.lang
 %files
 %config(noreplace) %{_sysconfdir}/skel/.b*
-%{_bindir}/sh
+#%%{_bindir}/sh
 %{_bindir}/bash
 %{_bindir}/alias
 %{_bindir}/bg

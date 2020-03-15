@@ -3,7 +3,7 @@
 
 Name: docbook-style-xsl
 Version: 1.79.2
-Release: 10%{?dist}
+Release: 11%{?dist}
 
 Summary: Norman Walsh's XSL stylesheets for DocBook XML
 
@@ -50,15 +50,12 @@ other formats, such as HTML, FO, and XHMTL.  They are highly customizable.
 
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %setup -c -T -n docbook-xsl-%{version}
 tar jxf %{SOURCE0}
 mv docbook-xsl-nons-%{version}/* .
-pushd ..
+cd ..
 tar jxf %{SOURCE2}
-popd
+cd docbook-xsl-%{version}
 %patch1 -p1 -b .pagesetup
 %patch2 -p1 -b .marginleft
 %patch3 -p1 -b .newmethods
@@ -84,15 +81,8 @@ done
 
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 DESTDIR=$RPM_BUILD_ROOT
 rm -rf $RPM_BUILD_ROOT
 make install BINDIR=$DESTDIR%{_bindir} DESTDIR=$DESTDIR%{_datadir}/sgml/docbook/xsl-stylesheets-%{version}

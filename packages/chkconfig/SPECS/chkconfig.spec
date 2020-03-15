@@ -4,7 +4,7 @@
 Summary: A system tool for maintaining the /etc/rc*.d hierarchy
 Name: chkconfig
 Version: 1.11
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv2
 URL: https://github.com/fedora-sysv/chkconfig
 Source: https://github.com/fedora-sysv/chkconfig/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz
@@ -51,25 +51,16 @@ perl -pi -e "s|/var/lib/alternatives|%{_prefix}/var/lib/alternatives|g" alternat
 perl -pi -e "s|/usr/share/locale|%{_prefix}/share/locale|g" alternatives.c
 
 %build
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export RPM_LD_FLAGS="-ldicl-0.1 -lintl $RPM_LD_FLAGS"
 V=1 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS" LDFLAGS="$RPM_LD_FLAGS" %{?_smp_mflags}
 
 %check
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export LIBS="-ldicl-0.1"
 V=1 make check
 
 %install
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export LIBS="-ldicl-0.1"
 rm -rf $RPM_BUILD_ROOT

@@ -10,7 +10,7 @@
 Summary: A utility for determining file types
 Name: file
 Version: 5.36
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: BSD
 Source0: ftp://ftp.astron.com/pub/file/file-%{version}.tar.gz
 
@@ -92,9 +92,6 @@ file(1) command.
 %endif
 
 %prep
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 
 %autosetup -p1
 
@@ -111,9 +108,6 @@ cp -a python %{py3dir}
 # Fix config.guess to find aarch64 - #925339
 autoreconf -fi
 
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 
 export gl_cv_cc_visibility=no
@@ -133,9 +127,6 @@ CFLAGS="%{optflags}" %{__python3} setup.py build
 %endif
 
 %install
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 
 mkdir -p ${RPM_BUILD_ROOT}%{_bindir}

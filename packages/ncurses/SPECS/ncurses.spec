@@ -5,7 +5,7 @@
 Summary: Ncurses support utilities
 Name: ncurses
 Version: 6.1
-Release: 12.%{revision}%{?dist}
+Release: 13.%{revision}%{?dist}
 License: MIT
 URL: https://invisible-island.net/ncurses/ncurses.html
 Source0: https://invisible-mirror.net/archives/ncurses/current/ncurses-%{version}-%{revision}.tgz
@@ -160,7 +160,7 @@ abi5_options="--with-chtype=long"
 for abi in 6; do
     for char in narrowc widec; do
         mkdir $char$abi
-        pushd $char$abi
+        cd $char$abi
         ln -s ../configure .
 
         [ $abi = 6 -a $char = widec ] && progs=yes || progs=no
@@ -175,7 +175,7 @@ for abi in 6; do
         make %{?_smp_mflags} libs
         [ $progs = yes ] && make %{?_smp_mflags} -C progs
 
-        popd
+        cd ..
     done
 done
 

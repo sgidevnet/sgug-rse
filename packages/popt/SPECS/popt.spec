@@ -4,7 +4,7 @@
 Summary:	C library for parsing command line parameters
 Name:		popt
 Version:	1.16
-Release:	19%{?dist}
+Release:	20%{?dist}
 License:	MIT
 URL:		http://www.rpm5.org/
 Source:		http://www.rpm5.org/files/%{name}/%{name}-%{version}.tar.gz
@@ -47,26 +47,17 @@ The popt-static package includes static libraries of the popt library.
 Install it if you need to link statically with libpopt.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export LIBS="-ldicl-0.1"
 %autosetup
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export LIBS="-ldicl-0.1"
 %configure
 %make_build
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export LIBS="-ldicl-0.1"
 %make_install

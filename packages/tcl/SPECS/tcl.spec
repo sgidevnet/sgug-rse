@@ -5,7 +5,7 @@
 Summary: Tool Command Language, pronounced tickle
 Name: tcl
 Version: %{vers}
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 License: TCL
 URL: http://tcl.sourceforge.net/
@@ -74,7 +74,7 @@ chmod -x generic/tclStrToD.c
 
 %build
 
-pushd unix
+cd unix
 autoreconf
 
 export CFLAGS="-pthread $RPM_OPT_FLAGS"
@@ -123,6 +123,9 @@ find generic unix -name "*.h" -exec cp -p '{}' %{buildroot}/%{_includedir}/%{nam
 # remove buildroot traces
 sed -i -e "s|$PWD/unix|%{_libdir}|; s|$PWD|%{_includedir}/%{name}-private|" %{buildroot}/%{_libdir}/%{name}Config.sh
 rm -rf %{buildroot}/%{_datadir}/%{name}%{majorver}/ldAix
+
+# Ensure shared libraries are writeable for strip
+find %{buildroot}/%{_libdir} -name "*.so" -exec chmod u+w {} \;
 
 #%ldconfig_scriptlets
 
