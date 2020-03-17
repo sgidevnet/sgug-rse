@@ -302,7 +302,8 @@ prec_flags[3]=--enable-quad-precision
 
 %ifarch x86_64
 # Enable SSE2 and AVX support for x86_64
-for((i=0;i<2;i++)); do
+#for((i=0;i<2;i++)); do
+for i in 0 1; do
  prec_flags[i]+=" --enable-sse2 --enable-avx"
 done
 %endif
@@ -310,23 +311,27 @@ done
 # No NEON run time detection, not all ARM SoCs have NEON
 #%ifarch %{arm}
 ## Compile support for NEON instructions
-#for((i=0;i<2;i++)); do
+##for((i=0;i<2;i++)); do
+#for i in 0 1; do
 # prec_flags[i]+=" --enable-neon"
 #done
 #%endif
 
 #%ifarch ppc ppc64
 ## Compile support for Altivec instructions
-#for((i=0;i<2;i++)); do
- #prec_flags[i]+=" --enable-altivec"
+##for((i=0;i<2;i++)); do
+#for i in 0 1; do
+#prec_flags[i]+=" --enable-altivec"
 #done
 #%endif
 
 # Loop over precisions
 %if %{quad}
-for((iprec=0;iprec<4;iprec++))
+#for((iprec=0;iprec<4;iprec++))
+for iprec in 0 1 2 3
 %else
-for((iprec=0;iprec<3;iprec++))
+#for((iprec=0;iprec<3;iprec++))
+for iprec in 0 1 2
 %endif
 do
  mkdir ${prec_name[iprec]}${ver_name[iver]}
@@ -344,7 +349,8 @@ for mpi in %{mpi_list}
 do
  module load mpi/${mpi}-%{_arch}
  # Loop over precisions - no quad precision support with MPI
- for((iprec=0;iprec<3;iprec++))
+# for((iprec=0;iprec<3;iprec++))
+ for iprec in 0 1 2
  do
   mkdir ${mpi}-${prec_name[iprec]}${ver_name[iver]}
   cd ${mpi}-${prec_name[iprec]}${ver_name[iver]}

@@ -5,7 +5,7 @@
 
 Summary: An XML parser library
 Name: expat
-Version: %(echo %{unversion} | sed 's/_/./g')
+Version: 2.2.8
 Release: 2%{?dist}
 Source: https://github.com/libexpat/libexpat/archive/R_%{unversion}.tar.gz#/expat-%{version}.tar.gz
 URL: https://libexpat.github.io/
@@ -42,7 +42,7 @@ Install it if you need to link statically with expat.
 %setup -q -n libexpat-R_%{unversion}/expat
 sed -i 's/install-data-hook/do-nothing-please/' lib/Makefile.am
 rm -f m4/libtool.m4
-./buildconf.sh
+bash ./buildconf.sh
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS -fPIC"

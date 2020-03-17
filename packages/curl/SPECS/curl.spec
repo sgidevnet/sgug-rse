@@ -219,11 +219,11 @@ export PERL="%{_bindir}/perl"
 
 mkdir build-{full,minimal}
 export common_configure_opts=" \
-    --cache-file=../config.cache \
     --disable-static \
     --enable-symbol-hiding \
     --with-ssl --with-ca-bundle=%{_sysconfdir}/pki/tls/certs/ca-bundle.crt"
 
+#    --cache-file=../config.cache \ #
 #     --enable-ipv6 \ #
 #     --enable-threaded-resolver \ #
 #     --with-gssapi \ #

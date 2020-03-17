@@ -34,7 +34,8 @@ sed -i 's|\r||' share/scripts/mrxvt.vbs
 #configure \
 #           --enable-everything \
 #           --disable-debug
-
+# mrxvt & the config cache aren't happy together
+unset CONFIG_SITE
 %configure \
            --enable-sgi-scroll \
            --with-tab-radius=0

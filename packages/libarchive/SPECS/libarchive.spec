@@ -85,7 +85,8 @@ standard output.
 
 
 %build
-%configure --disable-static LT_SYS_LIBRARY_PATH=%_libdir
+#%%configure --disable-static LT_SYS_LIBRARY_PATH=%_libdir
+%configure --disable-static
 %make_build
 
 
@@ -93,37 +94,39 @@ standard output.
 make install DESTDIR=$RPM_BUILD_ROOT
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
+# This only changes binary names in man pages, but doesn't work
+# under mksh (should probably replace with perl -pi -e "s|thing|bsdthing|g"
 # rhbz#1294252
-replace ()
-{
-    filename=$1
-    file=`basename "$filename"`
-    binary=${file%%.*}
-    pattern=${binary##bsd}
-
-    awk "
-        # replace the topic
-        /^.Dt ${pattern^^} 1/ {
-            print \".Dt ${binary^^} 1\";
-            next;
-        }
-        # replace the first occurence of \"$pattern\" by \"$binary\"
-        !stop && /^.Nm $pattern/ {
-            print \".Nm $binary\" ;
-            stop = 1 ;
-            next;
-        }
-        # print remaining lines
-        1;
-    " "$filename" > "$filename.new"
-    mv "$filename".new "$filename"
-}
-
-for manpage in bsdtar.1 bsdcpio.1
-do
-    installed_manpage=`find "$RPM_BUILD_ROOT" -name "$manpage"`
-    replace "$installed_manpage"
-done
+# replace ()
+# {
+#     filename=$1
+#     file=`basename "$filename"`
+#     binary=${file%%.*}
+#     pattern=${binary##bsd}
+#
+#     awk "
+#         # replace the topic
+#         /^.Dt ${pattern^^} 1/ {
+#             print \".Dt ${binary^^} 1\";
+#             next;
+#         }
+#         # replace the first occurence of \"$pattern\" by \"$binary\"
+#         !stop && /^.Nm $pattern/ {
+#             print \".Nm $binary\" ;
+#             stop = 1 ;
+#             next;
+#         }
+#         # print remaining lines
+#         1;
+#     " "$filename" > "$filename.new"
+#     mv "$filename".new "$filename"
+# }
+#
+# for manpage in bsdtar.1 bsdcpio.1
+# do
+#     installed_manpage=`find "$RPM_BUILD_ROOT" -name "$manpage"`
+#     replace "$installed_manpage"
+# done
 
 
 %check

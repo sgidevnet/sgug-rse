@@ -56,8 +56,10 @@ export CPP="%{__cpp}"
 export CXX="%{__cxx}"
 %configure
 make %{?_smp_mflags}
-make check
 #make gzip.info
+
+%check
+make check
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
