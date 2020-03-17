@@ -22,6 +22,8 @@ unset CXX
 unset LD
 unset AR
 unset RANLIB
+unset PYTHONPATH
+unset PYTHONHOME
 
 SGUG_ROOT=/usr/sgug
 SGUG_BIN=$SGUG_ROOT/bin
