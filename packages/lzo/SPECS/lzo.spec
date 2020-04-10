@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           lzo
 Version:        2.10
 Release:        17%{?dist}
