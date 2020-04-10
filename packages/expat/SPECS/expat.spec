@@ -6,7 +6,7 @@
 Summary: An XML parser library
 Name: expat
 Version: 2.2.8
-Release: 2%{?dist}
+Release: 3%{?dist}
 Source: https://github.com/libexpat/libexpat/archive/R_%{unversion}.tar.gz#/expat-%{version}.tar.gz
 URL: https://libexpat.github.io/
 License: MIT
@@ -40,6 +40,9 @@ Install it if you need to link statically with expat.
 
 %prep
 %setup -q -n libexpat-R_%{unversion}/expat
+# Fix up some hardcoded paths
+perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" conftools/get-version.sh
+
 sed -i 's/install-data-hook/do-nothing-please/' lib/Makefile.am
 rm -f m4/libtool.m4
 bash ./buildconf.sh
@@ -81,6 +84,9 @@ make check
 %{_libdir}/lib*.a
 
 %changelog
+* Tue Apr 7 2020 Daniel Hams <daniel.hams@gmail.com> - 2.2.8-2
+- Fix hardcoded path to /bin/sh breaking autoreconf
+
 * Mon Sep 16 2019 Joe Orton <jorton@redhat.com> - 2.2.8-1
 - update to 2.2.8 (#1752167)
 
