@@ -58,10 +58,10 @@ iconv utility.
 
 %prep
 %setup -q
-#%patch1 -p1
-#%if 0%{?fedora} >= 20 || 0%{?centos} >= 7
-#%patch2 -p1
-#%endif
+#%%patch1 -p1
+#%%if 0%{?fedora} >= 20 || 0%{?centos} >= 7
+#%%patch2 -p1
+#%%endif
 
 rm -f po/stamp-po
 
@@ -69,8 +69,8 @@ rm -f po/stamp-po
 #cp `which libtool` libtool
 #cp -f %{_prefix}/usr/share/automake*/config.sub build-aux
 #cp -f /usr/share/automake*/config.sub libcharset/build-aux
-#%{__aclocal} -I m4 -I srcm4
-#%{__autoconf}
+#%%{__aclocal} -I m4 -I srcm4
+#%%{__autoconf}
 aclocal -I m4 -I srcm4
 autoconf
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CPPFLAGS"
@@ -81,7 +81,7 @@ export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CPPFLAGS"
 %install
 rm -rf $RPM_BUILD_ROOT
 
-#%{__make} install DESTDIR=$RPM_BUILD_ROOT
+#%%{__make} install DESTDIR=$RPM_BUILD_ROOT
 %make_install DESTDIR=$RPM_BUILD_ROOT
 #if [ -d $RPM_BUILD_ROOT%{_prefix}/%{_lib} ]; then ln -s %{_lib} $RPM_BUILD_ROOT%{_prefix}/%{_lib}; fi
 
@@ -91,11 +91,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %find_lang %{name}
 
-%clean
+#%%clean
 #rm -rf $RPM_BUILD_ROOT
 
-#%post	-p /sbin/ldconfig
-#%postun	-p /sbin/ldconfig
+#%%post	-p /sbin/ldconfig
+#%%postun	-p /sbin/ldconfig
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
