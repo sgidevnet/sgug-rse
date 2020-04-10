@@ -3,7 +3,7 @@
 
 # This spec file has been automatically updated
 Version:	0.23.16.1
-Release:        4%{?dist}
+Release:        5%{?dist}
 Name:           p11-kit
 Summary:        Library for loading and sharing PKCS#11 modules
 
@@ -47,7 +47,7 @@ developing applications that use %{name}.
 %package trust
 Summary:            System trust module from %{name}
 Requires:           %{name}%{?_isa} = %{version}-%{release}
-Requires:           libdicl-devel >= 0.1.19
+Requires:           libdicl >= 0.1.19
 Requires(post):     %{_sbindir}/update-alternatives
 Requires(postun):   %{_sbindir}/update-alternatives
 Conflicts:          nss < 3.14.3-9
@@ -162,6 +162,9 @@ fi
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.23.16.1-5
+- Fix incorrect dependency from p11-kit-trust on libdicl-devel
+
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 0.23.16.1-3
 - Rebuild due to libdicl upgrade to 0.1.19
 
