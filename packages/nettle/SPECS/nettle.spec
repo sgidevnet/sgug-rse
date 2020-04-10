@@ -82,6 +82,10 @@ applications with nettle.
 #sed 's/ecc-224.c//g' -i Makefile.in
 
 %build
+# Package doesn't work with config.cache
+# it creates a package that doesn't expose the correct Provides:
+# (missing the NETTLE_6 and HOGWEED_4 tags)
+unset CONFIG_SITE
 autoreconf -ifv
 %configure --enable-shared --enable-fat
 make %{?_smp_mflags}
