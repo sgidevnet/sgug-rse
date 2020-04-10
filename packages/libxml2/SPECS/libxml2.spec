@@ -3,7 +3,7 @@
 
 Name:           libxml2
 Version:        2.9.9
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Library providing XML and HTML support
 
 License:        MIT
@@ -173,6 +173,9 @@ gzip -9 -c doc/libxml2-api.xml > doc/libxml2-api.xml.gz
 #%{python3_sitearch}/libxml2mod.so
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.9.9-4
+- Ensure no python pulled in
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.9.9-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

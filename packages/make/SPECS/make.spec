@@ -133,6 +133,9 @@ fi
 %{_includedir}/gnumake.h
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1:4.2.1-15
+- Remove hard coded shell paths, stop multi-configure running
+
 * Fri Sep 28 2018 Patsy Griffin Franklin <pfrankli@redhat.com> 1:4.2.1-9
 - Add -k to make check to insure that all tests are run even if failures
   occur.

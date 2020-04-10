@@ -148,6 +148,9 @@ make -k %{?_smp_mflags} check %{?TESTS_FLAGS: TESTS="%{TESTS_FLAGS}"} \
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-14
+- Remove hard coded shell paths
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.16.1-13
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

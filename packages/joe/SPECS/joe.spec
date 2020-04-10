@@ -73,6 +73,9 @@ cd $PREVWD
 %{_datadir}/applications/j*desktop
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.6-6
+- First sgug-rse release
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.6-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

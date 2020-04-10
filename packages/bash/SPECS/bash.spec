@@ -341,6 +341,9 @@ done
 %{_libdir}/pkgconfig/%{name}.pc
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 5.0.7-4
+- Remove hard coded shell paths, bashisms, no longer provide %{_bindir}/sh
+
 * Fri Aug 02 2019 Kamil Dudka <kdudka@redhat.com> - 5.0.7-3
 - Sanitize public header file <shell.h>
   Resolves: #1736676

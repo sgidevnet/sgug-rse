@@ -110,6 +110,9 @@ Header files and shared object symlinks for MPC is a C library.
 #%endif
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.0-5
+- Remove hard coded shell paths/bashisms
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.0-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

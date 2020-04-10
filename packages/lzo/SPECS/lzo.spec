@@ -99,6 +99,9 @@ make check test
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.10-17
+- First pull into sgug-rse
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.08-16
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

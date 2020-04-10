@@ -496,6 +496,9 @@ export LD_LIBRARYN32_PATH
 #%ldconfig_scriptlets libs
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.1d-3
+- Remove hard coded shell paths/bashisms
+
 * Thu Oct  3 2019 Tomáš Mráz <tmraz@redhat.com> 1.1.1d-2
 - re-enable the stitched AES-CBC-SHA implementations
 - make AES-GCM work in FIPS mode again

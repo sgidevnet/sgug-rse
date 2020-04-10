@@ -119,6 +119,9 @@ fi
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 5.6.5-2
+- Remove hard coded shell paths
+
 * Sat Sep 08 2018 Leigh Scott <leigh123linux@googlemail.com> - 5.6.6-1
 - Update to 5.6.6
 

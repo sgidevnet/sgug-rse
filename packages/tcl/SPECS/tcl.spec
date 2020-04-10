@@ -155,6 +155,9 @@ find %{buildroot}/%{_libdir} -name "*.so" -exec chmod u+w {} \;
 %{_datadir}/%{name}%{majorver}/tclAppInit.c
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1:8.6.8-3
+- Remove hard coded shell paths/bashisms, ensure libraries are stripped
+
 * Thu May 17 2018 Jaroslav Škarvada <jskarvad@redhat.com> - 1:8.6.8-2
 - Reverted _module_build macro check, i.e. always build with systemtap probes
 

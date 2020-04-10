@@ -428,6 +428,9 @@ chmod 755 %{buildroot}%{_datadir}/groff/%{version}/font/devlj4/generate/special.
 %doc %{_pkgdocdir}/pdf/
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.22.4-21
+- Remove hard coded shell paths/bashisms
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.22.3-20
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

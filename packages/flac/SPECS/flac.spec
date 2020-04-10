@@ -150,6 +150,9 @@ make check
 %endif
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.2-2
+- Remove hard coded shell paths
+
 * Tue Aug 06 2019 Miroslav Lichvar <mlichvar@redhat.com> 1.3.3-1
 - update to 1.3.3
 - include soname in file list

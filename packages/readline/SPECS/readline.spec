@@ -4,7 +4,7 @@
 Summary: A library for editing typed command lines
 Name: readline
 Version: 8.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://tiswww.case.edu/php/chet/readline/rltop.html
 Source: ftp://ftp.gnu.org/gnu/readline/readline-%{version}.tar.gz
@@ -88,6 +88,9 @@ chmod a+x $RPM_BUILD_ROOT%{_libdir}/lib*.so*
 %{_libdir}/libhistory.a
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 8.0-4
+- Rewrite .pc to include "tinfo" library from ncurses
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 8.0-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

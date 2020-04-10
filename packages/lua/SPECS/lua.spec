@@ -224,6 +224,9 @@ install -Dpm 0644 %{SOURCE1000} $RPM_BUILD_ROOT/%{macrosdir}/macros.lua
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 5.3.5-7
+- Remove hard coded shell paths, readline link fix, remove bashisms
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 5.3.5-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

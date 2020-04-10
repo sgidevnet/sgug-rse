@@ -67,6 +67,9 @@ make %{?_smp_mflags}
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0.1-30
+- Remove hard coded shell paths
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.1-29
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

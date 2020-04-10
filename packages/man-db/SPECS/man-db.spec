@@ -197,6 +197,9 @@ rm -rf $RPM_BUILD_ROOT/lib
 #%config(noreplace) %{_sysconfdir}/cron.daily/man-db.cron
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.8.5-6
+- Remove hard coded shell paths, disable cron package
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.8.4-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

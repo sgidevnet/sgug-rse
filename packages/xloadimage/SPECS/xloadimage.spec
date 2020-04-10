@@ -123,6 +123,9 @@ cp -a %{buildroot}%{_mandir}/man1/xloadimage.1x %{buildroot}%{_mandir}/man1/xvie
 %{_mandir}/man1/*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.1-28
+- Remove hard coded shell paths/bashisms
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.1-27
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

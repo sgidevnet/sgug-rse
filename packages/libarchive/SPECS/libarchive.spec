@@ -5,7 +5,7 @@
 
 Name:           libarchive
 Version:        3.3.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A library for handling streaming archive formats
 
 License:        BSD
@@ -221,6 +221,9 @@ run_testsuite
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.2-2
+- Remove man page rewriting that doesnt work with mksh
+
 * Fri Aug 30 2019 FeRD (Frank Dana) <ferdnyc@gmail.com> - 3.4.0-1
 - New upstream release, adds RAR5 and ZIPX support (readonly)
 - Drop upstreamed patches

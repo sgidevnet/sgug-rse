@@ -310,6 +310,9 @@ xz NEWS
 %{_libdir}/lib*.a
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 6.1-13
+- Remove hard coded shell paths, avoid use of config.cache
+
 * Wed Aug 07 2019 Miroslav Lichvar <mlichvar@redhat.com> 6.1-12.20190803
 - update to 6.1-20190803
 - verify upstream signatures

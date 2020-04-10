@@ -262,5 +262,8 @@ exit 0
 %{_datadir}/locale
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.22.0-2
+- Remove hard coded shell paths
+
 * Wed Dec 18 2019 Daniel Hams <daniel.hams@gmail.com> - 2.22.0-1
 - Custom build, fedora too complex

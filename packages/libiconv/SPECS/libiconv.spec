@@ -6,7 +6,7 @@
 Summary:	Character set conversion library
 Name:		libiconv
 Version:	1.16
-Release:	1%{?dist}
+Release:	2%{?dist}
 License:	LGPL v2+
 Group:		Libraries
 Source0:	http://ftp.gnu.org/gnu/libiconv/%{name}-%{version}.tar.gz
@@ -135,6 +135,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-2
+- Cleanup of things that should be commented out.
+
 * Mon Mar 27 2017 Lawrence R. Rogers <lrr@cert.org> 1.14-3
 	New in 1.15:
 	* The UTF-8 converter now rejects surrogates and out-of-range code points.

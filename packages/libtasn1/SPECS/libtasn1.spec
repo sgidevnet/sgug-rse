@@ -102,6 +102,9 @@ make check
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.14-4
+- Remove hard coded shell paths
+
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 4.14-3
 - Rebuild due to libdicl upgrade to 0.1.19
 

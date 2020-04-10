@@ -103,6 +103,9 @@ install -D -m 0644 %{SOURCE2} \
 %{_mandir}/man1/ddd.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.12-34
+- Remove hard coded shell paths
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.3.12-33
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

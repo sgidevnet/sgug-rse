@@ -19,7 +19,7 @@
 
 Name:           fftw
 Version:        3.3.8
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        A Fast Fourier Transform library
 License:        GPLv2+
 URL:            http://www.fftw.org
@@ -553,6 +553,9 @@ done
 %endif
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.8-7
+- Remove hard coded shell paths/bashisms
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.3.8-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

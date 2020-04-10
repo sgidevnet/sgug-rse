@@ -828,6 +828,9 @@ fi
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.23.2-25
+- Remove hard coded shell paths
+
 * Tue Aug 13 2019 Nick Clifton  <nickc@redhat.com> - 2.32-24
 - Fix potential integer overflow in readelf.  (#1740470)
 

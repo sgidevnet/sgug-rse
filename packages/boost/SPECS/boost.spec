@@ -34,7 +34,7 @@ Summary: The free peer-reviewed portable C++ source libraries
 Version: 1.69.0
 %global version_enc 1_69_0
 %global version_suffix 169
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: Boost and MIT and Python
 
 %global toplev_dirname %{real_name}_%{version_enc}
@@ -1488,6 +1488,9 @@ fi
 %{_mandir}/man1/bjam.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.69.0-10
+- Build + install boost iostreams library
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.69.0-9
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

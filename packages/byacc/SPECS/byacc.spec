@@ -53,6 +53,9 @@ echo ====================TESTING END=====================
 %{_mandir}/man1/byacc.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.9.20190617-2
+- First release on irix
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.9.20190617-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

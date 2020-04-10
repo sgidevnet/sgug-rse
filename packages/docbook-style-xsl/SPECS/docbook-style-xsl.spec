@@ -136,6 +136,9 @@ if [ "$1" = 0 ]; then
 fi
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.79.2-11
+- Remove hard coded shell paths/bashisms
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.79.2-10
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

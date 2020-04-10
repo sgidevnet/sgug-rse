@@ -60,6 +60,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.47.10-2
+- Remove hard coded shell paths
+
 * Sat Sep 14 2019 Ralf Corsépius <corsepiu@fedoraproject.org> - 1.47.11-1
 - Upstream update.
 

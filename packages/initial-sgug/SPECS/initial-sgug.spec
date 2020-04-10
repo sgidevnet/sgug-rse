@@ -57,3 +57,7 @@ This is a virtual RPM package.  It contains no actual files.
 # nothing to do
 %files
 # no files in a virtual package
+
+%changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.0-2
+- Include gssapi_krb5, socket and rt system libs

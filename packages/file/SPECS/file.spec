@@ -212,6 +212,9 @@ cd %{py3dir}
 %endif
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 5.36-4
+- Remove hard coded shell paths, use libdicl for regexp fixes
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 5.37-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

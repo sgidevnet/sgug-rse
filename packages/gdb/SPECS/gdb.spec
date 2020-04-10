@@ -72,5 +72,8 @@ rm -f $RPM_BUILD_ROOT%{_datadir}/gdb/syscalls/*
 %{_infodir}/gdb*.gz
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-2
+- Remove hard coded shell paths
+
 * Thu Jan 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.0
 - First build

@@ -249,6 +249,9 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man1/stty.1.gz
 %license COPYING
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 8.30-5
+- Remove hard coded shell paths
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org>
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

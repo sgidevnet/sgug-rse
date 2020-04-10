@@ -54,5 +54,8 @@ rm -rf $RPM_BUILD_ROOT%{_docdir}
 %{_sysconfdir}/*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 9.4.4-2
+- Fix bashisms, remove hardcoded shell paths
+
 * Sat Jan 11 2020 Daniel Hams <daniel.hams@gmail.com> - 9.4.4
 - First build

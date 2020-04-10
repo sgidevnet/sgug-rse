@@ -2,7 +2,7 @@
 #%%global rcversion RC1
 Name:       pcre
 Version:    8.43
-Release:    %{?rcversion:0.}2%{?rcversion:.%rcversion}%{?dist}.1
+Release:    3%{?dist}
 %global myversion %{version}%{?rcversion:-%rcversion}
 Summary:    Perl-compatible regular expression library
 ## Source package only:
@@ -150,7 +150,7 @@ autoreconf -vif
 %global optflags %{optflags} -fno-strict-aliasing
 %endif
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1"
+export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1 -ltinfo"
 %configure \
 %ifarch s390 s390x sparc64 sparcv9 riscv64
     --disable-jit \

@@ -484,6 +484,9 @@ make check LIBUNISTRING=-lunistring
 #%{_mandir}/man1/msghack.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.19.8-3
+- Remove hard coded shell paths/bashisms
+
 * Tue Aug 20 2019 Daiki Ueno <dueno@redhat.com> - 0.20.1-2
 - Fix misbehavior of msgmerge --for-msgfmt
 

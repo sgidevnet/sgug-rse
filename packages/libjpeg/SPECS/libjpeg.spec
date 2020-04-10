@@ -143,6 +143,9 @@ find %{buildroot} -name "*.la" -delete
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 9c-2
+- Remove hard coded shell paths
+
 * Fri Apr 02 2010 Oden Eriksson <oeriksson@mandriva.com> 8a-1mdv2010.1
 + Revision: 530761
 - 8a

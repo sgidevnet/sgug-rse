@@ -69,6 +69,9 @@ make test
 %{localrpmconfigdir}/fileattrs/perl*.attr
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.11-5
+- Remove hard coded shell paths
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.11-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

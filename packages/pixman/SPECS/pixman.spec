@@ -70,6 +70,9 @@ make check
 %{_libdir}/pkgconfig/pixman-1.pc
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.38.4-2
+- Remove hard coded shell paths
+
 * Mon Sep 09 2019 Kalev Lember <klember@redhat.com> - 0.38.4-1
 - Update to 0.38.4
 

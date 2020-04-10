@@ -93,6 +93,9 @@ make check
 %{_libexecdir}/grepconf.sh
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3-4
+- Remove hard coded shell paths/include pcre dependency
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

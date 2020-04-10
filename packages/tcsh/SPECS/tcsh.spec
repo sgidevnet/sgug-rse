@@ -177,6 +177,9 @@ fi
 # =============================================================================
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 6.20.00-3
+- Remove hard coded shell paths
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 6.21.00-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

@@ -223,6 +223,9 @@ rm sudo.lang sudoers.lang
 %{_mandir}/man1m/sudo_plugin.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.8.29-3
+- Remove hard coded shell paths
+
 * Mon Nov 11 2019 Radovan Sroka <rsroka@redhat.com> - 1.8.29-1
 - rebase to 1.8.29
 Resolves: rhbz#1766233

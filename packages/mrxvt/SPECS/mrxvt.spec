@@ -75,6 +75,9 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/doc
 %{_datadir}/pixmaps/%{name}*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.5.4-26
+- Remove hard coded shell paths, avoid use of config.cache
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.5.3-25
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

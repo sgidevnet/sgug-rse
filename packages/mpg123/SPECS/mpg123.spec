@@ -166,6 +166,9 @@ rm %{buildroot}%{_libdir}/*.la
 %{_libdir}/pkgconfig/lib%{out}.pc
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.25.10-2
+- Remove bashisms
+
 * Fri Sep 27 2019 Wim Taymans <wtaymans@redhat.com> - 1.25.12-1
 - update to 1.25.12 (rhbz#1742097)
 

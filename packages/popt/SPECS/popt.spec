@@ -91,6 +91,9 @@ make check
 %{_libdir}/libpopt.a
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-20
+- Remove hard coded shell paths
+
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-19
 - Rebuild due to libdicl upgrade to 0.1.19
 

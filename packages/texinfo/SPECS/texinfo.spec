@@ -6,7 +6,7 @@
 Summary: Tools needed to create Texinfo format documentation files
 Name: texinfo
 Version: 6.6
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Url: http://www.gnu.org/software/texinfo/
 Source0: ftp://ftp.gnu.org/gnu/texinfo/texinfo-%{version}.tar.xz
@@ -75,6 +75,7 @@ for printing using TeX.
 %autosetup -p1
 
 %build
+export CPPFLAGS="-DSGUG_UNIQ_CONFIGCACHE_TEXINFO=1"
 #%%configure --with-external-Text-Unidecode \
 #           --with-external-libintl-perl \
 #           --with-external-Unicode-EastAsianWidth \
@@ -155,6 +156,9 @@ export ALL_TESTS=yes
 %{_mandir}/man1/pdftexi2dvi.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 6.6-3
+- Remove hard coded shell paths, avoid double configure call
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 6.6-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

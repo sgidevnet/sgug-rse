@@ -151,6 +151,9 @@ done
 %{_mandir}/man1/lksh.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 57-3
+- Switch the /usr/sgug/bin/sh link to mksh, compatibility changes to work with distcc (this package cannot use it)
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 57-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

@@ -134,6 +134,9 @@ ln -s ncat %{buildroot}%{_bindir}/nc
 %{_mandir}/man1/ncat.1.gz
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2:7.70-3
+- Remove hard coded shell paths
+
 * Tue Aug 13 2019 Peter Robinson <pbrobinson@fedoraproject.org> 2:7.80-2
 - Re-provide nc, clearly 7 years isn't enough
 

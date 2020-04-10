@@ -443,6 +443,9 @@ mv man/* ${RPM_BUILD_ROOT}%{_mandir}/man1
 #%{_libdir}/libdb_java.so
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 5.3.28-39
+- Remove hard coded shell paths/bashisms
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 5.3.28-38
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

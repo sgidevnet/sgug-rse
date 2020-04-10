@@ -5146,5 +5146,8 @@ cd ..
 
 # Old changelog entries are preserved in CVS.
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-447
+- Remove hard coded shell paths/bashisms
+
 * Mon Nov 11 2019 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-1
 - First copy/pasta from fedora success in compilation

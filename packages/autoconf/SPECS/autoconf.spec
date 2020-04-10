@@ -128,6 +128,9 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{_emacs_sitestartdir}
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.69-32
+- Remove hard coded shell paths
+
 * Wed Aug 28 2019 Ondrej Dubaj <odubaj@redhat.com> - 2.69-31
 - Port tests to Bash 5
 

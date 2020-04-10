@@ -594,8 +594,8 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
-* Tue Apr 7 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-9
-- Bug fix to detect IRIX (32bit) as well as IRIX64
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-9
+- Remove hard coded shell paths/bashisms, retire cron package, detect IRIX (32bit) as well as IRIX64
 
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-7
 - Rebuild due to libdicl upgrade to 0.1.19

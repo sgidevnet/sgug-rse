@@ -120,6 +120,9 @@ make check || (
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.30-3
+- Remove hard coded shell paths
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2:1.32-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

@@ -55,6 +55,9 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libdicl-0.1.la
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.20-1
+- Update to 0.1.20 with gnulib regexp
+
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.19-1
 - Upgrade to 0.1.19 needed for pcre test passing / bug fixes.
 
