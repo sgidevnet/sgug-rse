@@ -136,6 +136,8 @@ The ncurses-static package includes static libraries of the ncurses library.
 #done
 
 %build
+# Avoid any use of configure caching (issues seen)
+unset CONFIG_SITE
 common_options="\
     --enable-colorfgbg \
     --enable-hard-tabs \
