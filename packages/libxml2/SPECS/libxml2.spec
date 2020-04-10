@@ -105,7 +105,7 @@ perl -pi -e "s|/etc/xml/catalog|%{_prefix}/etc/xml/catalog|g" catalog.c
 perl -pi -e "s|/etc/xml/catalog|%{_prefix}/etc/xml/catalog|g" xmlcatalog.c
 
 %global _configure_disable_silent_rules 1
-%configure
+%configure --without-python
 make %{?_smp_mflags}
 
 %install
