@@ -66,6 +66,16 @@ print -r -- $((x++)):$sari=$uari. #9
 EOF
 
 %build
+# This package uses its own custom build scaffolding
+# and doesn't play well with LTO using distcc
+export CC=gcc
+export CXX=g++
+# It's a bit of a hack, but putting the regular sgug-rse
+# bin directory at the front of the PATH means we'll pick
+# up the regular gcc before any distcc masq bin dir
+export PATH=%{_bindir}:$PATH
+unset DISTCC_HOSTS
+
 # Work around RHBZ #922974 on Fedora 19 and later
 %if 0%{?fedora} >= 19 || 0%{?rhel} >= 7
 CFLAGS="$RPM_OPT_FLAGS -DMKSH_DISABLE_EXPERIMENTAL" LDFLAGS="$RPM_LD_FLAGS" sh Build.sh -r
