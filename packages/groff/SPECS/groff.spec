@@ -92,10 +92,6 @@ text processor package. It contains examples, documentation for PIC
 language and documentation for creating PDF files.
 
 %prep
-export BASH_PROG=%{_bindir}/bash
-export PERL=%{_bindir}/perl
-export GREP="%{_bindir}/grep"
-export EGREP="%{_bindir}/grep -E"
 %setup -q
 #git init
 #git config user.email groff-owner@fedoraproject.org
@@ -112,11 +108,6 @@ for file in NEWS src/devices/grolbp/grolbp.1.man doc/webpage.ms \
 done
 
 %build
-export BASH_PROG=%{_bindir}/bash
-export PERL=%{_bindir}/perl
-export GREP="%{_bindir}/grep"
-export EGREP="%{_bindir}/grep -E"
-
 %configure \
     --docdir=%{_pkgdocdir} \
     --with-appresdir=%{_datadir}/X11/app-defaults \
@@ -124,10 +115,6 @@ export EGREP="%{_bindir}/grep -E"
 make %{?_smp_mflags}
 
 %install
-export BASH_PROG=%{_bindir}/bash
-export PERL=%{_bindir}/perl
-export GREP="%{_bindir}/grep"
-export EGREP="%{_bindir}/grep -E"
 make install DESTDIR=%{buildroot}
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/charset.alias
 

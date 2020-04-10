@@ -46,20 +46,14 @@ This package provides RPM Perl dependencies generators which are used for
 getting provides and requires from Perl binaries and modules.
 
 %prep
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
 %setup -q -n generators-%{version}
 
 %build
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
-$PERL Makefile.PL INSTALLDIRS=vendor INSTALLVENDORSCRIPT=%{localrpmconfigdir} \
+perl Makefile.PL INSTALLDIRS=vendor INSTALLVENDORSCRIPT=%{localrpmconfigdir} \
      NO_PACKLIST=1
 make %{?_smp_mflags}
 
 %install
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
 make pure_install DESTDIR=%{buildroot}
 %{_fixperms} $RPM_BUILD_ROOT/*
 

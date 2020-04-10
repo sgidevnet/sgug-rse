@@ -37,16 +37,13 @@ way to generate a placeholder man page pointing to that resource while
 still providing some useful information.
 
 %prep
-export PERL=%{_bindir}/perl
 %setup -q -n help2man-%{version}
 
 %build
-export PERL=%{_bindir}/perl
 %configure --%{!?with_nls:disable}%{?with_nls:enable}-nls --libdir=%{_libdir}/help2man
 make %{?_smp_mflags}
 
 %install
-export PERL=%{_bindir}/perl
 make install_l10n DESTDIR=$RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 %find_lang %name --with-man

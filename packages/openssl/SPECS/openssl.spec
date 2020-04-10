@@ -132,8 +132,6 @@ package provides Perl scripts for converting certificates and keys
 from other formats to the formats used by the OpenSSL toolkit.
 
 %prep
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 %setup -q -n %{name}-%{version}
 
 # The hobble_openssl is called here redundantly, just to be sure.
@@ -179,8 +177,6 @@ cp %{SOURCE13} test/
 %{_bindir}/perl -pi -e 's|/bin/bash|%{_bindir}/bash|g' util/find-unused-errs
 
 %build
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 # Figure out which flags we want to use.
 # default
 sslarch=%{_os}-%{_target_cpu}
@@ -322,8 +318,6 @@ make test
 %define __provides_exclude_from %{_libdir}/openssl
 
 %install
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 # Install OpenSSL.
 install -d $RPM_BUILD_ROOT{%{_bindir},%{_includedir},%{_libdir},%{_mandir},%{_libdir}/openssl,%{_pkgdocdir}}

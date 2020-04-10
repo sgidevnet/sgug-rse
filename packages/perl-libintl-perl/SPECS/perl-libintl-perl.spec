@@ -73,7 +73,6 @@ implemented for example in GNU gettext.
 
 
 %prep
-export PERL=%{_bindir}/perl
 %setup -q -n libintl-perl-%{version}
 find -type f -exec chmod -x {} \;
 find lib/Locale gettext_xs \( -name '*.pm' -o -name '*.pod' \) \
@@ -90,19 +89,16 @@ rm .gitignore MANIFEST
 
 
 %build
-export PERL=%{_bindir}/perl
-%{_bindir}/perl Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
+perl Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
 make %{?_smp_mflags}
 
 %install
-export PERL=%{_bindir}/perl
 make pure_install DESTDIR=%{buildroot}
 find %{buildroot} -type f \( -name .packlist -o \
                   -name '*.bs' -size 0 \) -delete
 %{_fixperms} %{buildroot}
 
 %check
-export PERL=%{_bindir}/perl
 make test
 
 %files

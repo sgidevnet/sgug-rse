@@ -36,19 +36,13 @@ This module provides functions for normalizing Perl version strings for
 Red Hat Package (RPM) based Linux distributions.
 
 %prep
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
 %setup -q -n Fedora-VSP-%{version}
 
 %build
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
-$PERL Makefile.PL INSTALLDIRS=vendor
+perl Makefile.PL INSTALLDIRS=vendor
 make %{?_smp_mflags}
 
 %install
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
 make pure_install DESTDIR=%{buildroot}
 find %{buildroot} -type f -name .packlist -delete
 %{_fixperms} %{buildroot}/*

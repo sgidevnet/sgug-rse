@@ -30,8 +30,6 @@ to merge two files interactively.
 Install diffutils if you need to compare text files.
 
 %prep
-export PERL=%{_bindir}/perl
-export PERL_PATH="$PERL"
 %setup -q
 # For 'cmp -s', compare file sizes only if both non-zero (bug #563618).
 %patch1 -p1 -b .cmp-s-empty
@@ -44,14 +42,10 @@ export PERL_PATH="$PERL"
 autoreconf
 
 %build
-export PERL=%{_bindir}/perl
-export PERL_PATH="$PERL"
 %configure
 make PR_PROGRAM=%{_bindir}/pr %{_smp_mflags} V=1
 
 %install
-export PERL=%{_bindir}/perl
-export PERL_PATH="$PERL"
 %make_install
 
 rm -f $RPM_BUILD_ROOT%{_libdir}/charset.alias

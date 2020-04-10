@@ -189,7 +189,6 @@ profiling) of processes.
 %endif
 
 %prep
-export PERL="%{_bindir}/perl"
 %setup -q
 
 # Apply patches
@@ -212,7 +211,6 @@ find . -name \*.sh ! -perm -0100 -print | xargs chmod +x
 
 
 trap 'cat config.log' EXIT
-export PERL="%{_bindir}/perl"
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 $CPPFLAGS"
 export LDFLAGS="-ldicl-0.1 -lintl -lc -llzma -lpthread -lgen $RPM_LD_FLAGS"
 %configure --enable-install-elfh CFLAGS="$RPM_OPT_FLAGS -fexceptions -Wno-error"

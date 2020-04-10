@@ -174,7 +174,6 @@ other hand, the package is smaller and requires fewer run-time dependencies to
 be installed.
 
 %prep
-export PERL="%{_bindir}/perl"
 %setup -q
 
 # upstream patches
@@ -215,7 +214,6 @@ echo "582" >> tests/data/DISABLED
 sed -e 's/^35$/35,52/' -i tests/data/test323
 
 %build
-export PERL="%{_bindir}/perl"
 
 mkdir build-{full,minimal}
 export common_configure_opts=" \
@@ -276,7 +274,6 @@ make %{?_smp_mflags} V=1 -C build-minimal
 make %{?_smp_mflags} V=1 -C build-full
 
 %check
-export PERL="%{_bindir}/perl"
 
 # we have to override LD_LIBRARY_PATH because we eliminated rpath
 LD_LIBRARYN32_PATH="$RPM_BUILD_ROOT%{_libdir}:$LD_LIBRARYN32_PATH"
@@ -294,7 +291,6 @@ export OPENSSL_CONF=
 srcdir=../../tests perl -I../../tests ../../tests/runtests.pl -a -p -v '!flaky'
 
 %install
-export PERL="%{_bindir}/perl"
 
 # install and rename the library that will be packaged as libcurl-minimal
 make DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p" install -C build-minimal/lib

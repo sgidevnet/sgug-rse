@@ -78,9 +78,6 @@ their use.
 # Here's a terminator
 
 %prep
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 %autosetup -p1
 
 %build
@@ -89,9 +86,6 @@ export EMACS=%{_bindir}/emacs
 %else
 export EMACS=%{_bindir}/false
 %endif
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 %configure \
     %{?with_autoconf_enables_emacs:--with-lispdir=%{_emacs_sitelispdir}/autoconf}
 make %{?_smp_mflags}
@@ -106,9 +100,6 @@ make check %{?_smp_mflags}
 
 
 %install
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 make install %{?_smp_mflags} DESTDIR=%{buildroot}
 mkdir -p %{buildroot}/share
 install -m 0644 %{SOURCE1} %{buildroot}%{_datadir}

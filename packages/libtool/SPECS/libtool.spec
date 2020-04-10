@@ -106,9 +106,6 @@ Static libraries and header files for development with ltdl.
 
 
 %prep
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 %setup -n libtool-%{version} -q
 #%patch0 -p1 -b .rpath
 %patch1 -p1 -b .test
@@ -124,14 +121,6 @@ export M4=%{_bindir}/m4
 autoreconf -v
 
 %build
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
-export CC=gcc
-export CXX=g++
-export F77=gfortran
-export CFLAGS="$RPM_OPT_FLAGS -fPIC"
-
 %configure  --prefix=%{_prefix}                 \
             --exec-prefix=%{_prefix}            \
             --bindir=%{_bindir}                 \
@@ -158,9 +147,6 @@ make check VERBOSE=yes || { cat testsuite.log ; false ; }
 
 
 %install
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 make install DESTDIR=%{buildroot}
 # info's TOP dir (by default owned by info)
 rm -f %{buildroot}%{_infodir}/dir
