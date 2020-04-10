@@ -38,18 +38,18 @@ two or more times faster than a local compile.
 #This package contains the Gnome frontend of the distcc monitoring tool.
 
 
-%package     server
-Summary:    Server for distributed C/C++ compilation
-License:    GPLv2+
+#%package     server
+#Summary:    Server for distributed C/C++ compilation
+#License:    GPLv2+
 
-Requires:   %{name}%{?_isa} = %{version}-%{release}
+#Requires:   %{name}%{?_isa} = %{version}-%{release}
 #Requires(post): systemd-units
 #Requires(preun): systemd-units
 #Requires(postun): systemd-units
 #Requires(post): systemd-sysv
 
-%description server
-This package contains the compilation server needed to use %{name}.
+#%description server
+#This package contains the compilation server needed to use %{name}.
 
 
 %prep
@@ -105,6 +105,18 @@ ln -s ../bin/distcc mips-sgi-irix6.5-c++
 ln -s ../bin/distcc mips-sgi-irix6.5-g++
 ln -s ../bin/distcc mips-sgi-irix6.5-gcc
 
+# Remove the server pieces which aren't verified as working right now.
+# If you are looking for the "update symlinks" - you don't need it
+# use the directory with masquerading links created above
+# (add /usr/sgug/distccmasqbin to your PATH)
+rm $RPM_BUILD_ROOT%{_bindir}/distccd
+rm $RPM_BUILD_ROOT%{_sysconfdir}/default/distcc
+rm $RPM_BUILD_ROOT%{_sysconfdir}/distcc/clients.allow
+rm $RPM_BUILD_ROOT%{_sysconfdir}/distcc/commands.allow.sh
+rm $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/distccd
+rm $RPM_BUILD_ROOT%{_mandir}/man1/distccd*
+rm $RPM_BUILD_ROOT%{_sbindir}/update-distcc-symlinks
+
 #%post server
 ##[ $1 -lt 2 ] && /sbin/chkconfig --add distccd ||:
 #if [ $1 -eq 1 ] ; then 
@@ -152,20 +164,23 @@ ln -s ../bin/distcc mips-sgi-irix6.5-gcc
 #%{_datadir}/applications/*.desktop
 
 
-%files server
-%doc COPYING README
-%{_bindir}/distccd
-#%{_unitdir}/*
-%{_sysconfdir}/default/distcc
-%{_sysconfdir}/distcc/*allow*
-%{_mandir}/man1/distccd*
-%config(noreplace) %{_sysconfdir}/sysconfig/distccd
-%{_sbindir}/update-distcc-symlinks
-%dir %{_libdir}/distcc
-#/usr/lib64/distcc
-%dir %{_libdir}/gcc-cross
+#%files server
+#%doc COPYING README
+#%{_bindir}/distccd
+##%{_unitdir}/*
+#%{_sysconfdir}/default/distcc
+#%{_sysconfdir}/distcc/*allow*
+#%{_mandir}/man1/distccd*
+#%config(noreplace) %{_sysconfdir}/sysconfig/distccd
+#%{_sbindir}/update-distcc-symlinks
+#%dir %{_libdir}/distcc
+##/usr/lib64/distcc
+#%dir %{_libdir}/gcc-cross
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.3-2
+- Provide masquerade links avoiding need for python + dont produce server since its not validated.
+
 * Thu Aug 15 2019 Gwyn Ciesla <gwync@protonmail.com> - 3.3.3-1
 - 3.3.3
 
