@@ -1,0 +1,18 @@
+--- lua-5.3.5/configure.ac.orig	2020-03-19 20:06:57.092850800 +0000
++++ lua-5.3.5/configure.ac	2020-03-19 20:07:42.213494960 +0000
+@@ -22,13 +22,13 @@
+ # Check for readline
+ READLINE_DEFS="#undef LUA_USE_READLINE"
+ if test "x$use_readline" == "xyes"; then
+-  AC_CHECK_LIB([readline], [readline], [:], [use_readline=no], [-lncurses])
++  AC_CHECK_LIB([readline], [readline], [:], [use_readline=no], [-lncurses -ltinfo])
+   AC_CHECK_HEADERS([readline/readline.h readline/history.h], [], [use_readline=no])
+   if test "x$use_readline" == "xno"; then
+     AC_MSG_WARN([readline headers could not be found, disabling readline support])
+   else
+     READLINE_DEFS="#define LUA_USE_READLINE"
+-    READLINE_LIBS="-lreadline -lncurses"
++    READLINE_LIBS="-lreadline -lncurses -ltinfo"
+   fi
+ fi
+ AC_SUBST(READLINE_DEFS)

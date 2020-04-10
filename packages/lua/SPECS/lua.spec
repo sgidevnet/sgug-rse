@@ -1,6 +1,3 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
-
 %global major_version 5.3
 # Normally, this is the same as version, but... not always.
 # No tests yet for 5.3.5
@@ -47,6 +44,7 @@ Patch8:         %{name}-5.2.2-configure-compat-module.patch
 Patch9:         CVE-2019-6706-use-after-free-lua_upvaluejoin.patch
 
 Patch20:        lua.sgifixes.patch
+Patch21:        lua.sgifixreadlinelink.patch
 
 BuildRequires:  automake autoconf libtool readline-devel ncurses-devel
 Requires:       lua-libs = %{version}-%{release}
@@ -100,9 +98,11 @@ mv src/luaconf.h src/luaconf.h.template.in
 %patch9 -p1 -b .CVE-2019-6706
 
 %patch20 -p1 -b .sgifixes
+%patch21 -p1 -b .sgifixreadlinelink
 
 # Put proper version in configure.ac, patch0 hardcodes 5.3.0
 sed -i 's|5.3.0|%{version}|g' configure.ac
+
 autoreconf -ifv
 
 %if 0%{?bootstrap}
@@ -119,6 +119,7 @@ cd ..
 
 
 %build
+
 %configure --with-readline --with-compat-module
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 #sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
@@ -128,6 +129,7 @@ sed -i 's|@pkgdatadir@|%{_datadir}|g' src/luaconf.h.template
 # hack so that only /usr/bin/lua gets linked with readline as it is the
 # only one which needs this and otherwise we get License troubles
 make %{?_smp_mflags} LIBS="-lm -ldl"
+
 # only /usr/bin/lua links with readline now #luac_LDADD="liblua.la -lm -ldl"
 
 %if 0%{?bootstrap}
