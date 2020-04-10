@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 8
+%global rel 9
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -348,7 +348,6 @@ ln -s db-%{bdbver} db
 
 %build
 %set_build_flags
-export PERL="%{_bindir}/perl"
 export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
 export LIBS="-lgen -ldicl-0.1 -llzma -lintl"
 
@@ -448,6 +447,9 @@ rm -f $RPM_BUILD_ROOT/%{rpmhome}/{perldeps.pl,perl.*,pythond*}
 rm -f $RPM_BUILD_ROOT/%{_fileattrsdir}/{perl*,python*}
 
 echo "Looking for lock files at: %{_localstatedir}/lib/rpm/.*.lock"
+
+# Set our optimisation level to O3
+perl -pi -e "s|mips -O2|mips -O3|g" $RPM_BUILD_ROOT%{rpmhome}/rpmrc
 
 %if %{with check}
 %check
@@ -592,6 +594,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Tue Apr 7 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-9
+- Bug fix to detect IRIX (32bit) as well as IRIX64
+
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-7
 - Rebuild due to libdicl upgrade to 0.1.19
 
