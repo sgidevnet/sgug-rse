@@ -7,7 +7,7 @@
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -761,8 +761,6 @@ macros.
 #to NVidia PTX capable devices if available.
 
 %prep
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 
 #setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
 %setup -q -n gcc-%{version}-%{DATE}
@@ -795,7 +793,7 @@ export PERL=%{_bindir}/perl
 %patch2002 -p1 -b .sgifixlibstdcpp01
 %patch2003 -p1 -b .sgifixlibstdcpp02
 
-echo 'sgugver-0.1.9-mips3-ng' > gcc/DEV-PHASE
+echo 'sgugver-0.2.0-mips3-ng' > gcc/DEV-PHASE
 
 cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
 
@@ -826,8 +824,6 @@ fi
 rm -f gcc/testsuite/go.test/test/chan/goroutines.go
 
 %build
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 
 # Undo the broken autoconf change in recent Fedora versions
 export CONFIG_SITE=NONE
@@ -1150,8 +1146,6 @@ rm -f rpm.doc/changelogs/gcc/ChangeLog.[1-9]
 find rpm.doc -name \*ChangeLog\* | xargs bzip2 -9
 
 %install
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 
 rm -rf %{buildroot}
 
@@ -3056,6 +3050,9 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %endif
 
 %changelog
+* Tue Mar 31 2020 Daniel Hams <daniel.hams@gmail.com> 9.2.0-3
+- Tweak the default spec so that static linking isn''t no-abicalls
+
 * Tue Aug 27 2019 Jakub Jelinek <jakub@redhat.com> 9.2.1-1
 - update from 9 branch
   - GCC 9.2 release
