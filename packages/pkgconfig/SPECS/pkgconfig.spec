@@ -21,6 +21,7 @@ compiler and linker flags.
 %setup -n pkg-config-%{version} -q
 
 %build
+unset CONFIG_SITE
 %configure --disable-shared --with-pc-path=%{_libdir}/pkgconfig:%{_datadir}/pkgconfig --with-internal-glib --with-libiconv
 %make_build
 
