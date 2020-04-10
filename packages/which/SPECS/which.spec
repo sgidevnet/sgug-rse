@@ -1,6 +1,3 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
-
 Summary: Displays where a particular program in your path is located
 Name: which
 Version: 2.21
