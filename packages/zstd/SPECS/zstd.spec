@@ -13,7 +13,7 @@
 
 Name:           zstd
 Version:        1.4.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Zstd compression library
 
 License:        BSD and GPLv2
@@ -133,6 +133,9 @@ install -D -m644 programs/%{name}.1 %{buildroot}%{_mandir}/man1/p%{name}.1
 #%%ldconfig_scriptlets -n lib%{name}
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.4.4-2
+- First sgug packaged release.
+
 * Wed Jan 15 2020 Pádraig Brady <P@draigBrady.com> - 1.4.4-1
 - Latest upstream
 
