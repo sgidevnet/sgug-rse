@@ -24,13 +24,12 @@ Patch2: file-5.04-volume_key.patch
 # fix double free on read error (#1685217)
 Patch14: file-5.37-double-free.patch
 
-# Disable slow matchers on irix
-Patch100: file.sgislowmatchersfix.patch
-
 URL: http://www.darwinsys.com/file/
 Requires: file-libs = %{version}-%{release}
+Requires: libdicl >= 0.1.20
 BuildRequires: zlib-devel
 BuildRequires: autoconf automake libtool
+BuildRequires: libdicl-devel >= 0.1.20
 
 %description
 The file command is used to identify a particular file according to the
@@ -104,14 +103,19 @@ rm -rf %{py3dir}
 cp -a python %{py3dir}
 %endif
 
+#exit 1
+
 %build
 # Fix config.guess to find aarch64 - #925339
 autoreconf -fi
 
-export CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+#export CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+export CPPFLAGS="%{optflags} -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 
 export gl_cv_cc_visibility=no
-%configure --enable-fsect-man5 --enable-static
+
+%configure --enable-fsect-man5 --enable-static --disable-libseccomp
 # remove hardcoded library paths from local libtool
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 #sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
