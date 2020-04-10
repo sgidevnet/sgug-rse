@@ -52,6 +52,9 @@ library.
 %configure --with-curses --disable-install-examples
 %make_build
 
+# Rewrite the .pc to include "tinfo" library from ncurses
+perl -pi -e "s|: ncurses|: ncurses tinfo|g" readline.pc
+
 %install
 %make_install
 
