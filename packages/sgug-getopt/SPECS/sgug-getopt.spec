@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Summary: SGUG getopt
 Name: sgug-getopt
 Version: 0.1.0
