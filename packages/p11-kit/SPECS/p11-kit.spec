@@ -48,6 +48,7 @@ developing applications that use %{name}.
 Summary:            System trust module from %{name}
 Requires:           %{name}%{?_isa} = %{version}-%{release}
 Requires:           libdicl >= 0.1.19
+Requires:           alternatives
 Requires(post):     %{_sbindir}/update-alternatives
 Requires(postun):   %{_sbindir}/update-alternatives
 Conflicts:          nss < 3.14.3-9
