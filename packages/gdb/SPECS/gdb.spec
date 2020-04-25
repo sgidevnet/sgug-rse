@@ -4,7 +4,7 @@
 Summary: The GNU Debugger
 Name: gdb
 Version: 7.6.2
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ and GPLv2+ with exceptions and GPL+ and LGPLv2+ and LGPLv3+ and BSD and Public Domain and GFDL
 URL: http://ftp.gnu.org/gnu/gdb/
 Source: http://ftp.gnu.org/gnu/gdb/gdb-%{version}.tar.gz
@@ -33,8 +33,8 @@ The gnu debugger.
     --libdir=%{_libdir}					      \
     --sysconfdir=%{_sysconfdir}				      \
     --mandir=%{_mandir}					      \
-    --infodir=%{_infodir}
-    
+    --infodir=%{_infodir}                                     \
+    --with-python=no
 make %{?_smp_mflags}
 
 %check
@@ -72,6 +72,9 @@ rm -f $RPM_BUILD_ROOT%{_datadir}/gdb/syscalls/*
 %{_infodir}/gdb*.gz
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-3
+- Avoid picking up python
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-2
 - Remove hard coded shell paths
 
