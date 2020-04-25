@@ -44,7 +44,7 @@ export LD_LIBRARYN32_PATH=$SGUG_LIB:/usr/lib32:/lib32:/usr/lib:/lib
 # even when PKG_CONFIG_PATH is set to something.
 #export PKG_CONFIG_PATH=$SGUG_LIB/pkgconfig:$SGUG_ROOT/share/pkgconfig
 
-export MANPATH=$SGUG_ROOT/man:/usr/share/catman/a_man:/usr/share/catman/g_man:/usr/share/catman/p_man:/usr/share/catman/u_man
+export MANPATH=$SGUG_ROOT/share/man:/usr/share/catman/a_man:/usr/share/catman/g_man:/usr/share/catman/p_man:/usr/share/catman/u_man
 
 # Work around localisation issue with libiconv
 export LC_ALL=C
