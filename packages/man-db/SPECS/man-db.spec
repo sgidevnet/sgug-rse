@@ -7,7 +7,7 @@
 Summary: Tools for searching and reading man pages
 Name: man-db
 Version: 2.8.5
-Release: 6%{?dist}
+Release: 7%{?dist}
 # GPLv2+ .. man-db
 # GPLv3+ .. gnulib
 License: GPLv2+ and GPLv3+
@@ -103,10 +103,10 @@ install -d -m 0755  $RPM_BUILD_ROOT%{cache}
 rm -rf $RPM_BUILD_ROOT/usr/lib/tmpfiles.d
 
 # Remove wierd italian man pages at wrong level...
-rm -rf $RPM_BUILD_ROOT%{_prefix}/man/it
+rm -rf $RPM_BUILD_ROOT%{_mandir}/it
 
 # Remove zsoelim man pages handled by groff
-rm $RPM_BUILD_ROOT%{_prefix}/man/man1/zsoelim.1
+rm $RPM_BUILD_ROOT%{_mandir}/man1/zsoelim.1
 
 # Remove systemd things we don't want
 rm -rf $RPM_BUILD_ROOT/lib
@@ -197,6 +197,9 @@ rm -rf $RPM_BUILD_ROOT/lib
 #%config(noreplace) %{_sysconfdir}/cron.daily/man-db.cron
 
 %changelog
+* Sun Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 2.8.5-7
+- Correct manpath
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.8.5-6
 - Remove hard coded shell paths, disable cron package
 
