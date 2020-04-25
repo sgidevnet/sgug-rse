@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 9
+%global rel 10
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -434,9 +434,9 @@ done
 rm $RPM_BUILD_ROOT%{_prefix}/share/man/man8/rpm-plugin-systemd*
 
 # Move man pages into appropriate place
-mkdir -p $RPM_BUILD_ROOT%{_mandir}
-mv $RPM_BUILD_ROOT%{_prefix}/share/man/* $RPM_BUILD_ROOT%{_mandir}/
-rmdir $RPM_BUILD_ROOT%{_prefix}/share/man
+#mkdir -p $RPM_BUILD_ROOT%{_mandir}
+#mv $RPM_BUILD_ROOT%{_prefix}/share/man/* $RPM_BUILD_ROOT%{_mandir}/
+#rmdir $RPM_BUILD_ROOT%{_prefix}/share/man
 
 %find_lang %{name}
 
@@ -594,6 +594,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-10
+- Correct manpath
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-9
 - Remove hard coded shell paths/bashisms, retire cron package, detect IRIX (32bit) as well as IRIX64
 
