@@ -22,7 +22,7 @@
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.1.1d
-Release: 3%{?dist}
+Release: 4%{?dist}
 Epoch: 1
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
@@ -355,7 +355,7 @@ mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc/tsget $RPM_BUILD_ROOT%{_bindir}
 
 # DH ugly things since the man pages get installed under share for
 # some reason
-mv $RPM_BUILD_ROOT%{_prefix}/share/man/* $RPM_BUILD_ROOT%{_mandir}
+#mv $RPM_BUILD_ROOT%{_prefix}/share/man/* $RPM_BUILD_ROOT%{_mandir}
 
 # Rename man pages so that they don't conflict with other system man pages.
 cd $RPM_BUILD_ROOT%{_mandir}
@@ -496,6 +496,9 @@ export LD_LIBRARYN32_PATH
 #%ldconfig_scriptlets libs
 
 %changelog
+* Su Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.1d-4
+- Correct manpath
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.1d-3
 - Remove hard coded shell paths/bashisms
 
