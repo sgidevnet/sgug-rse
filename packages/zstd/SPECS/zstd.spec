@@ -1,19 +1,21 @@
-%if 0%{?rhel} && 0%{?rhel} <= 6
-# gcc-4.4 is currently too old to compile pzstd
-%bcond_with pzstd
-%else
-%ifarch %{ix86} x86_64
+# Default to building pzstd on irix
+#%%if 0%%{?rhel} && 0%%{?rhel} <= 6
+## gcc-4.4 is currently too old to compile pzstd
+#%%bcond_with pzstd
+#%%else
+#%%ifarch %%{ix86} x86_64
+#%%bcond_without pzstd
+#%%else
+## aarch64 and armv7hl at least currently segfault
+## in ThreadPool test for the pzstd util
+#%%bcond_without pzstd
+#%%endif
+#%%endif
 %bcond_without pzstd
-%else
-# aarch64 and armv7hl at least currently segfault
-# in ThreadPool test for the pzstd util
-%bcond_with pzstd
-%endif
-%endif
 
 Name:           zstd
 Version:        1.4.4
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Zstd compression library
 
 License:        BSD and GPLv2
@@ -88,9 +90,9 @@ make -C contrib/pzstd test
 %make_install PREFIX=%{_prefix} LIBDIR=%{_libdir}
 
 # Move the badly installed man pages
-mkdir -p %{buildroot}%{_mandir}
-mv %{buildroot}%{_prefix}/share/man/man1 %{buildroot}%{_mandir}/
-rmdir %{buildroot}%{_prefix}/share/man
+#mkdir -p %{buildroot}%{_mandir}
+#mv %{buildroot}%{_prefix}/share/man/man1 %{buildroot}%{_mandir}/
+#rmdir %{buildroot}%{_prefix}/share/man
 
 # Don't install the static lib
 rm %{buildroot}%{_libdir}/libzstd.a
@@ -133,6 +135,9 @@ install -D -m644 programs/%{name}.1 %{buildroot}%{_mandir}/man1/p%{name}.1
 #%%ldconfig_scriptlets -n lib%{name}
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.2.11-20
+- Manpath correction, build pzstd by default
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.4.4-2
 - First sgug packaged release.
 
