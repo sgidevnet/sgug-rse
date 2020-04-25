@@ -3,7 +3,7 @@
 
 Name:		perl-Expect
 Version:	1.35
-Release:	10%{?dist}
+Release:	11%{?dist}
 Summary:	Expect for Perl
 License:	GPL+ or Artistic
 URL:		https://metacpan.org/release/Expect
@@ -44,7 +44,7 @@ passwd, fsck, rlogin, tip, etc.
 
 %prep
 %setup -q -n Expect-%{version}
-sed -i 's|^#!/usr/local/bin/perl|#!/usr/bin/perl|' examples/kibitz/kibitz tutorial/[2-6].*
+sed -i 's|^#!/usr/local/bin/perl|#!/usr/sgug/bin/perl|' examples/kibitz/kibitz tutorial/[2-6].*
 chmod -c a-x examples/ssh.pl examples/kibitz/kibitz tutorial/[2-6].*
 
 %build
@@ -70,6 +70,9 @@ make test
 %{_mandir}/man3/Expect.3*
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.35-11
+- Correct hardocded perl path
+
 * Fri Aug 23 2019 Paul Howarth <paul@city-fan.org> - 1.35-10
 - Use author-independent source URL
 
