@@ -3,7 +3,7 @@
 
 Name:		perl-Expect
 Version:	1.35
-Release:	11%{?dist}
+Release:	12%{?dist}
 Summary:	Expect for Perl
 License:	GPL+ or Artistic
 URL:		https://metacpan.org/release/Expect
@@ -70,6 +70,9 @@ make test
 %{_mandir}/man3/Expect.3*
 
 %changelog
+* Sun Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.35-12
+- Correct manpath
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.35-11
 - Correct hardocded perl path
 
