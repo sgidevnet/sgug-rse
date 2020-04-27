@@ -3,7 +3,7 @@
 Summary: A document formatting system
 Name: groff
 Version: 1.22.4
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+ and GFDL and BSD and MIT
 URL: http://www.gnu.org/software/groff/
 Source: ftp://ftp.gnu.org/gnu/groff/groff-%{version}.tar.gz
@@ -92,13 +92,6 @@ text processor package. It contains examples, documentation for PIC
 language and documentation for creating PDF files.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export BASH_PROG=%{_bindir}/bash
-export PERL=%{_bindir}/perl
-export GREP="%{_bindir}/grep"
-export EGREP="%{_bindir}/grep -E"
 %setup -q
 #git init
 #git config user.email groff-owner@fedoraproject.org
@@ -115,14 +108,6 @@ for file in NEWS src/devices/grolbp/grolbp.1.man doc/webpage.ms \
 done
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export BASH_PROG=%{_bindir}/bash
-export PERL=%{_bindir}/perl
-export GREP="%{_bindir}/grep"
-export EGREP="%{_bindir}/grep -E"
-
 %configure \
     --docdir=%{_pkgdocdir} \
     --with-appresdir=%{_datadir}/X11/app-defaults \
@@ -130,13 +115,6 @@ export EGREP="%{_bindir}/grep -E"
 make %{?_smp_mflags}
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export BASH_PROG=%{_bindir}/bash
-export PERL=%{_bindir}/perl
-export GREP="%{_bindir}/grep"
-export EGREP="%{_bindir}/grep -E"
 make install DESTDIR=%{buildroot}
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/charset.alias
 
@@ -168,10 +146,11 @@ chmod 755 %{buildroot}%{_datadir}/groff/%{version}/groffer/version.sh
 chmod 755 %{buildroot}%{_datadir}/groff/%{version}/font/devlj4/generate/special.awk
 
 # remove CreationDate from documentation
-#pushd %{buildroot}%{_pkgdocdir}
+#OLDPWD=`pwd`
+#cd %{buildroot}%{_pkgdocdir}
 #    find -name "*.html" | xargs sed -i "/^<!-- CreationDate: /d"
 #    find -name "*.ps"   | xargs sed -i "/^%%%%CreationDate: /d"
-#popd
+#cd $OLDPWD
 
 # /bin/sed moved to /usr/bin/sed in Fedora
 %{_bindir}/sed --in-place 's|#! /bin/sed -f|#! %{_bindir}/sed -f|' %{buildroot}%{_datadir}/groff/%{version}/font/devps/generate/symbol.sed
@@ -449,6 +428,9 @@ chmod 755 %{buildroot}%{_datadir}/groff/%{version}/font/devlj4/generate/special.
 %doc %{_pkgdocdir}/pdf/
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.22.4-21
+- Remove hard coded shell paths/bashisms
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.22.3-20
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

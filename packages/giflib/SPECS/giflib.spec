@@ -4,7 +4,7 @@
 Name:          giflib
 Summary:       A library and utilities for processing GIFs
 Version:       5.2.1
-Release:       3%{?dist}
+Release:       4%{?dist}
 
 License:       MIT
 URL:           http://www.sourceforge.net/projects/%{name}/
@@ -44,6 +44,8 @@ format image files.
 
 
 %build
+export CC=gcc
+export CXX=g++
 %make_build CFLAGS="%{optflags} -fPIC" LDFLAGS="%{__global_ldflags}"
 
 
@@ -53,12 +55,7 @@ format image files.
 # Drop static library
 rm -f %{buildroot}%{_libdir}/libgif.a
 
-# Move man pages into right place
-mv $RPM_BUILD_ROOT%{_prefix}/share/man $RPM_BUILD_ROOT%{_mandir}/
-
-
 #ldconfig_scriptlets
-
 
 %files
 %doc ChangeLog NEWS README
@@ -76,6 +73,9 @@ mv $RPM_BUILD_ROOT%{_prefix}/share/man $RPM_BUILD_ROOT%{_mandir}/
 
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 5.2.1-4
+- mandir correction
+
 * Tue Oct 01 2019 Sandro Mani <manisandro@gmail.com> - 5.2.1-3
 - Move quantize.c back into libgif.so (#1750122)
 

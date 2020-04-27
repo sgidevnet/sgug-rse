@@ -16,7 +16,7 @@
 Name:             tcsh
 Summary:          An enhanced version of csh, the C shell
 Version:          6.20.00
-Release:          2%{?dist}
+Release:          3%{?dist}
 License:          BSD
 
 URL:              http://www.tcsh.org/
@@ -78,9 +78,6 @@ job control and a C language like syntax.
 # Call the 'autosetup' macro to prepare the environment, but do not patch the
 # source code yet -- we need to convert the 'Fixes' file first:
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -N -S git
 
 # NOTE: If more files needs to be converted, add them here:
@@ -101,26 +98,17 @@ git commit --all --amend --no-edit > /dev/null
 # ---------------
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %configure
 %make_build all
 
 # ---------------
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %make_build check
 
 # ---------------
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_mandir}/man1
 install -p -m 755 tcsh     %{buildroot}%{_bindir}/tcsh
@@ -189,6 +177,9 @@ fi
 # =============================================================================
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 6.20.00-3
+- Remove hard coded shell paths
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 6.21.00-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

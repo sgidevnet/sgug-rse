@@ -4,7 +4,7 @@
 Name:		xloadimage
 Summary: 	Image viewer and processor
 Version:	4.1
-Release:	27%{?dist}
+Release:	28%{?dist}
 License:	MIT
 Source0:	ftp://ftp.x.org/R5contrib/%{name}.%{version}.tar.gz
 # Patches 0-18 come from Debian 4.1-16.1
@@ -96,10 +96,11 @@ mkdir -p %{buildroot}%{_bindir}
 install -m 0755 uufilter %{buildroot}%{_bindir}
 install -m 0755 xloadimage %{buildroot}%{_bindir}
 # Next, the symlinks
-pushd %{buildroot}%{_bindir}
+OLDPWD=`pwd`
+cd %{buildroot}%{_bindir}
 ln -s xloadimage xsetbg
 ln -s xloadimage xview
-popd
+cd $OLDPWD
 # The configuration file
 mkdir -p %{buildroot}%{_sysconfdir}/X11/
 install -m 0644 xloadimagerc %{buildroot}%{_sysconfdir}/X11/Xloadimage
@@ -122,6 +123,9 @@ cp -a %{buildroot}%{_mandir}/man1/xloadimage.1x %{buildroot}%{_mandir}/man1/xvie
 %{_mandir}/man1/*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.1-28
+- Remove hard coded shell paths/bashisms
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.1-27
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

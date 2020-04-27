@@ -1,10 +1,7 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
-
 Summary: Displays where a particular program in your path is located
 Name: which
 Version: 2.21
-Release: 15%{?dist}
+Release: 17%{?dist}
 License: GPLv3
 Source0: http://ftp.gnu.org/gnu/which/%{name}-%{version}.tar.gz
 Source1: which2.sh
@@ -44,6 +41,9 @@ rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 %{_mandir}/man1/which.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.21-17
+- This package is no longer able to use optimised linker flags
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.21-15
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

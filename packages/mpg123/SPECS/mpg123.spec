@@ -6,7 +6,7 @@
 
 Name:           mpg123
 Version:        1.25.10
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Real time MPEG 1.0/2.0/2.5 audio player/decoder for layers 1, 2 and 3
 
 License:        LGPLv2+
@@ -112,9 +112,9 @@ autoreconf -vfi
 %configure --enable-modules=yes
 
 %make_build
-#pushd doc
+#cd doc
 #  doxygen doxygen.conf
-#popd
+#cd ..
 
 %install
 %make_install
@@ -166,6 +166,9 @@ rm %{buildroot}%{_libdir}/*.la
 %{_libdir}/pkgconfig/lib%{out}.pc
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.25.10-2
+- Remove bashisms
+
 * Fri Sep 27 2019 Wim Taymans <wtaymans@redhat.com> - 1.25.12-1
 - update to 1.25.12 (rhbz#1742097)
 

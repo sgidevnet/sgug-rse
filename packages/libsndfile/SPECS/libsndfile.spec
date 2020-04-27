@@ -4,7 +4,7 @@
 Summary:	Library for reading and writing sound files
 Name:		libsndfile
 Version:	1.0.28
-Release:	11%{?dist}
+Release:	12%{?dist}
 License:	LGPLv2+ and GPLv2+ and BSD
 URL:		http://www.mega-nerd.com/libsndfile/
 Source0:	http://www.mega-nerd.com/libsndfile/files/libsndfile-%{version}.tar.gz
@@ -71,9 +71,6 @@ This package contains command line utilities for libsndfile.
 #rm -r src/GSM610
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 autoreconf -I M4 -fiv # for system-gsm patch
 # Needed to avoid missing symbols
 export gl_cv_cc_visibility=no
@@ -165,6 +162,9 @@ LD_LIBRARYN32_PATH=$PWD/src/.libs make check
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0.28.12
+- Remove hard coded shell paths
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.28-11
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

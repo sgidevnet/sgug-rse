@@ -6,7 +6,7 @@ Summary: A GNU tool which simplifies the build process for users
 Name: make
 Epoch: 1
 Version: 4.2.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://www.gnu.org/software/make/
@@ -69,32 +69,25 @@ Requires: make
 The make-devel package contains gnumake.h.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -p1
 
 rm -f tests/scripts/features/parallelism.orig
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 # Since we made a change to configure.ac (and configure) touch
 # the files to avoid rebuild problems with automake versioning.
 # Specifically make expects 1.15 but some systems use 1.16.1.
-touch `find . -name configure`
-touch `find . -name aclocal.m4`
-touch `find . -name Makefile.in`
+#touch `find . -name configure`
+#touch `find . -name aclocal.m4`
+#touch `find . -name Makefile.in`
+
+autoreconf -f -i
 
 #ac_cv_lib_elf_elf_begin=no #configure
 %configure %{configure_args}
 make %{?_smp_mflags}
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 rm -rf ${RPM_BUILD_ROOT}
 make DESTDIR=$RPM_BUILD_ROOT install
 ln -sf make ${RPM_BUILD_ROOT}/%{_bindir}/gmake
@@ -140,6 +133,9 @@ fi
 %{_includedir}/gnumake.h
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1:4.2.1-15
+- Remove hard coded shell paths, stop multi-configure running
+
 * Fri Sep 28 2018 Patsy Griffin Franklin <pfrankli@redhat.com> 1:4.2.1-9
 - Add -k to make check to insure that all tests are run even if failures
   occur.

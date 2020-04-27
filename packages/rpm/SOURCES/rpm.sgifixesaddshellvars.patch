@@ -1,0 +1,13 @@
+--- rpm-4.15.0/macros.in.orig	2020-03-14 09:47:16.945064720 +0000
++++ rpm-4.15.0/macros.in	2020-03-14 09:47:42.365854680 +0000
+@@ -814,6 +814,10 @@
+   export CLASSPATH}\
+   LD_LIBRARYN32_PATH=\"%{_libdir}:/usr/lib32:/lib32"\
+   export LD_LIBRARYN32_PATH\
++  SHELL=\"%{_bindir}/sh\"\
++  SHELL_PATH=\"${SHELL}\"\
++  CONFIG_SHELL=\"${SHELL}\"\
++  export SHELL SHELL_PATH CONFIG_SHELL\
+   PKG_CONFIG_PATH=\"${PKG_CONFIG_PATH}:%{_libdir}/pkgconfig:%{_datadir}/pkgconfig\"\
+   export PKG_CONFIG_PATH\
+   CONFIG_SITE=${CONFIG_SITE:-NONE}\

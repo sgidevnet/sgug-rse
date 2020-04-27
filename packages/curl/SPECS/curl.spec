@@ -4,7 +4,7 @@
 Summary: A utility for getting files from remote servers (FTP, HTTP, and others)
 Name: curl
 Version: 7.61.0
-Release: 1%{?dist}
+Release: 3%{?dist}
 License: MIT
 Source: https://curl.haxx.se/download/%{name}-%{version}.tar.gz
 
@@ -142,42 +142,38 @@ The libcurl-devel package includes header files and libraries necessary for
 developing programs which use the libcurl library. It contains the API
 documentation of the library, too.
 
-%package -n curl-minimal
-Summary: Conservatively configured build of curl for minimal installations
-Provides: curl = %{version}-%{release}
-Conflicts: curl
-RemovePathPostfixes: .minimal
+#%package -n curl-minimal
+#Summary: Conservatively configured build of curl for minimal installations
+#Provides: curl = %{version}-%{release}
+#Conflicts: curl
+#RemovePathPostfixes: .minimal
 
 # using an older version of libcurl could result in CURLE_UNKNOWN_OPTION
-Requires: libcurl%{?_isa} >= %{version}-%{release}
+#Requires: libcurl%{?_isa} >= %{version}-%{release}
 
-%description -n curl-minimal
-This is a replacement of the 'curl' package for minimal installations.  It
-comes with a limited set of features compared to the 'curl' package.  On the
-other hand, the package is smaller and requires fewer run-time dependencies to
-be installed.
+#%description -n curl-minimal
+#This is a replacement of the 'curl' package for minimal installations.  It
+#comes with a limited set of features compared to the 'curl' package.  On the
+#other hand, the package is smaller and requires fewer run-time dependencies to
+#be installed.
 
-%package -n libcurl-minimal
-Summary: Conservatively configured build of libcurl for minimal installations
-Requires: openssl-libs%{?_isa} >= 1:%{openssl_version}
-Provides: libcurl = %{version}-%{release}
-Provides: libcurl%{?_isa} = %{version}-%{release}
-Conflicts: libcurl
-RemovePathPostfixes: .minimal
+#%package -n libcurl-minimal
+#Summary: Conservatively configured build of libcurl for minimal installations
+#Requires: openssl-libs%{?_isa} >= 1:%{openssl_version}
+#Provides: libcurl = %{version}-%{release}
+#Provides: libcurl%{?_isa} = %{version}-%{release}
+#Conflicts: libcurl
+#RemovePathPostfixes: .minimal
 # needed for RemovePathPostfixes to work with shared libraries
-%undefine __brp_ldconfig
+#%undefine __brp_ldconfig
 
-%description -n libcurl-minimal
-This is a replacement of the 'libcurl' package for minimal installations.  It
-comes with a limited set of features compared to the 'libcurl' package.  On the
-other hand, the package is smaller and requires fewer run-time dependencies to
-be installed.
+#%description -n libcurl-minimal
+#This is a replacement of the 'libcurl' package for minimal installations.  It
+#comes with a limited set of features compared to the 'libcurl' package.  On the
+#other hand, the package is smaller and requires fewer run-time dependencies to
+#be installed.
 
 %prep
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
 %setup -q
 
 # upstream patches
@@ -218,18 +214,15 @@ echo "582" >> tests/data/DISABLED
 sed -e 's/^35$/35,52/' -i tests/data/test323
 
 %build
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
 
-mkdir build-{full,minimal}
+#mkdir build-{full,minimal}
+mkdir build-full
 export common_configure_opts=" \
-    --cache-file=../config.cache \
     --disable-static \
     --enable-symbol-hiding \
     --with-ssl --with-ca-bundle=%{_sysconfdir}/pki/tls/certs/ca-bundle.crt"
 
+#    --cache-file=../config.cache \ #
 #     --enable-ipv6 \ #
 #     --enable-threaded-resolver \ #
 #     --with-gssapi \ #
@@ -238,18 +231,18 @@ export common_configure_opts=" \
 %global _configure ../configure
 
 # configure minimal build
-(
-    cd build-minimal
-    %configure $common_configure_opts \
-        --disable-ldap \
-        --disable-ldaps \
-        --disable-manual \
-        --without-brotli \
-        --without-libidn2 \
-        --without-libmetalink \
-        --without-libpsl \
-        --without-libssh
-)
+#(
+#    cd build-minimal
+#    %%configure $common_configure_opts \
+#        --disable-ldap \
+#        --disable-ldaps \
+#        --disable-manual \
+#        --without-brotli \
+#        --without-libidn2 \
+#        --without-libmetalink \
+#        --without-libpsl \
+#        --without-libssh
+#)
 
 # configure full build
 (
@@ -278,14 +271,10 @@ export common_configure_opts=" \
 #    -e 's/^hardcode_libdir_flag_spec=".*"$/hardcode_libdir_flag_spec=""/' \
 #    -i build-{full,minimal}/libtool
 
-make %{?_smp_mflags} V=1 -C build-minimal
+#make %{?_smp_mflags} V=1 -C build-minimal
 make %{?_smp_mflags} V=1 -C build-full
 
 %check
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
 
 # we have to override LD_LIBRARY_PATH because we eliminated rpath
 LD_LIBRARYN32_PATH="$RPM_BUILD_ROOT%{_libdir}:$LD_LIBRARYN32_PATH"
@@ -303,21 +292,17 @@ export OPENSSL_CONF=
 srcdir=../../tests perl -I../../tests ../../tests/runtests.pl -a -p -v '!flaky'
 
 %install
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
 
-# install and rename the library that will be packaged as libcurl-minimal
-make DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p" install -C build-minimal/lib
-rm -f ${RPM_BUILD_ROOT}%{_libdir}/libcurl.{la,so}
-for i in ${RPM_BUILD_ROOT}%{_libdir}/*; do
-    mv -v $i $i.minimal
-done
-
-# install and rename the executable that will be packaged as curl-minimal
-make DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p" install -C build-minimal/src
-mv -v ${RPM_BUILD_ROOT}%{_bindir}/curl{,.minimal}
+## install and rename the library that will be packaged as libcurl-minimal
+#make DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p" install -C build-minimal/lib
+#rm -f ${RPM_BUILD_ROOT}%{_libdir}/libcurl.{la,so}
+#for i in ${RPM_BUILD_ROOT}%{_libdir}/*; do
+#    mv -v $i $i.minimal
+#done
+#
+## install and rename the executable that will be packaged as curl-minimal
+#make DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p" install -C build-minimal/src
+#mv -v ${RPM_BUILD_ROOT}%{_bindir}/curl{,.minimal}
 
 # install libcurl.m4
 install -d $RPM_BUILD_ROOT%{_datadir}/aclocal
@@ -371,16 +356,19 @@ rm -f ${RPM_BUILD_ROOT}%{_libdir}/libcurl.la
 %{_mandir}/man3/*
 %{_datadir}/aclocal/libcurl.m4
 
-%files -n curl-minimal
-%{_bindir}/curl.minimal
-%{_mandir}/man1/curl.1*
+#%files -n curl-minimal
+#%{_bindir}/curl.minimal
+#%{_mandir}/man1/curl.1*
 
-%files -n libcurl-minimal
-%license COPYING
-%{_libdir}/libcurl.so.4.minimal
-%{_libdir}/libcurl.so.4.[0-9].[0-9].minimal
+#%files -n libcurl-minimal
+#%license COPYING
+#%{_libdir}/libcurl.so.4.minimal
+#%{_libdir}/libcurl.so.4.[0-9].[0-9].minimal
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 7.61.0-3
+- Disable curl-minimal, libcurl-minimal
+
 * Wed Sep 11 2019 Kamil Dudka <kdudka@redhat.com> - 7.66.0-1
 - new upstream release, which fixes the following vulnerabilities
     CVE-2019-5481 - double free due to subsequent call of realloc()

@@ -6,7 +6,7 @@
 Summary: A GNU stream text editor
 Name: sed
 Version: 4.5
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 URL: http://sed.sourceforge.net/
 Source0: ftp://ftp.gnu.org/pub/gnu/sed/sed-%{version}.tar.xz
@@ -44,7 +44,7 @@ specified in a script file or from the command line.
 
 %build
 #DH
-#%configure --without-included-regex
+#%%configure --without-included-regex
 %configure
 make %{_smp_mflags}
 install -m 644 -p %{SOURCE1} sedfaq.txt
@@ -72,6 +72,9 @@ rm -f ${RPM_BUILD_ROOT}/%{_libdir}/charset.alias
 %{_mandir}/man1/sed.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.5-5
+- Avoid double configure calls, properly comment it out
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.5-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

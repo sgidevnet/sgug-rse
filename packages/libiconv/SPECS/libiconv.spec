@@ -6,7 +6,7 @@
 Summary:	Character set conversion library
 Name:		libiconv
 Version:	1.16
-Release:	1%{?dist}
+Release:	2%{?dist}
 License:	LGPL v2+
 Group:		Libraries
 Source0:	http://ftp.gnu.org/gnu/libiconv/%{name}-%{version}.tar.gz
@@ -58,10 +58,10 @@ iconv utility.
 
 %prep
 %setup -q
-#%patch1 -p1
-#%if 0%{?fedora} >= 20 || 0%{?centos} >= 7
-#%patch2 -p1
-#%endif
+#%%patch1 -p1
+#%%if 0%{?fedora} >= 20 || 0%{?centos} >= 7
+#%%patch2 -p1
+#%%endif
 
 rm -f po/stamp-po
 
@@ -69,8 +69,8 @@ rm -f po/stamp-po
 #cp `which libtool` libtool
 #cp -f %{_prefix}/usr/share/automake*/config.sub build-aux
 #cp -f /usr/share/automake*/config.sub libcharset/build-aux
-#%{__aclocal} -I m4 -I srcm4
-#%{__autoconf}
+#%%{__aclocal} -I m4 -I srcm4
+#%%{__autoconf}
 aclocal -I m4 -I srcm4
 autoconf
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CPPFLAGS"
@@ -81,7 +81,7 @@ export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CPPFLAGS"
 %install
 rm -rf $RPM_BUILD_ROOT
 
-#%{__make} install DESTDIR=$RPM_BUILD_ROOT
+#%%{__make} install DESTDIR=$RPM_BUILD_ROOT
 %make_install DESTDIR=$RPM_BUILD_ROOT
 #if [ -d $RPM_BUILD_ROOT%{_prefix}/%{_lib} ]; then ln -s %{_lib} $RPM_BUILD_ROOT%{_prefix}/%{_lib}; fi
 
@@ -91,11 +91,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %find_lang %{name}
 
-%clean
+#%%clean
 #rm -rf $RPM_BUILD_ROOT
 
-#%post	-p /sbin/ldconfig
-#%postun	-p /sbin/ldconfig
+#%%post	-p /sbin/ldconfig
+#%%postun	-p /sbin/ldconfig
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
@@ -135,6 +135,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-2
+- Cleanup of things that should be commented out.
+
 * Mon Mar 27 2017 Lawrence R. Rogers <lrr@cert.org> 1.14-3
 	New in 1.15:
 	* The UTF-8 converter now rejects surrogates and out-of-range code points.

@@ -5,7 +5,7 @@
 Summary: Tool Command Language, pronounced tickle
 Name: tcl
 Version: %{vers}
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 License: TCL
 URL: http://tcl.sourceforge.net/
@@ -74,7 +74,7 @@ chmod -x generic/tclStrToD.c
 
 %build
 
-pushd unix
+cd unix
 autoreconf
 
 export CFLAGS="-pthread $RPM_OPT_FLAGS"
@@ -124,6 +124,9 @@ find generic unix -name "*.h" -exec cp -p '{}' %{buildroot}/%{_includedir}/%{nam
 sed -i -e "s|$PWD/unix|%{_libdir}|; s|$PWD|%{_includedir}/%{name}-private|" %{buildroot}/%{_libdir}/%{name}Config.sh
 rm -rf %{buildroot}/%{_datadir}/%{name}%{majorver}/ldAix
 
+# Ensure shared libraries are writeable for strip
+find %{buildroot}/%{_libdir} -name "*.so" -exec chmod u+w {} \;
+
 #%ldconfig_scriptlets
 
 %files
@@ -152,6 +155,9 @@ rm -rf %{buildroot}/%{_datadir}/%{name}%{majorver}/ldAix
 %{_datadir}/%{name}%{majorver}/tclAppInit.c
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1:8.6.8-3
+- Remove hard coded shell paths/bashisms, ensure libraries are stripped
+
 * Thu May 17 2018 Jaroslav Škarvada <jskarvad@redhat.com> - 1:8.6.8-2
 - Reverted _module_build macro check, i.e. always build with systemtap probes
 

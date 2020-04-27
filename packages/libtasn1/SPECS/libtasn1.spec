@@ -4,7 +4,7 @@
 Summary:	The ASN.1 library used in GNUTLS
 Name:		libtasn1
 Version:	4.14
-Release:	3%{?dist}
+Release:	4%{?dist}
 
 # The libtasn1 library is LGPLv2+, utilities are GPLv3+
 License:	GPLv3+ and LGPLv2+
@@ -58,18 +58,12 @@ data.
 
 %prep
 #gpgv2 --keyring %{SOURCE2} %{SOURCE1} %{SOURCE0}
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %setup -q
 
 #patch1 -p1 -b .rpath
 %patch100 -p1 -b .sgifixes
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 autoreconf -v -f --install
@@ -81,9 +75,6 @@ make %{?_smp_mflags}
 
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make DESTDIR="$RPM_BUILD_ROOT" install
 
 rm -f $RPM_BUILD_ROOT{%_libdir/*.la,%_infodir/dir}
@@ -111,6 +102,9 @@ make check
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.14-4
+- Remove hard coded shell paths
+
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 4.14-3
 - Rebuild due to libdicl upgrade to 0.1.19
 

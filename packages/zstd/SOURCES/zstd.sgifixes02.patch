@@ -1,0 +1,11 @@
+--- zstd-1.4.4/lib/Makefile.orig	2020-03-15 13:22:42.288850760 +0000
++++ zstd-1.4.4/lib/Makefile	2020-03-15 13:23:11.925132360 +0000
+@@ -210,7 +210,7 @@
+ #-----------------------------------------------------------------------------
+ # make install is validated only for Linux, macOS, BSD, Hurd and Solaris targets
+ #-----------------------------------------------------------------------------
+-ifneq (,$(filter $(shell uname),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly SunOS Haiku))
++ifneq (,$(filter $(shell uname),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly SunOS Haiku IRIX64))
+ 
+ DESTDIR     ?=
+ # directory variables : GNU conventions prefer lowercase

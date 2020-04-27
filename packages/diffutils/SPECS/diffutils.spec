@@ -4,7 +4,7 @@
 Summary: A GNU collection of diff utilities
 Name: diffutils
 Version: 3.6
-Release: 3%{?dist}
+Release: 4%{?dist}
 URL: http://www.gnu.org/software/diffutils/diffutils.html
 Source: ftp://ftp.gnu.org/gnu/diffutils/diffutils-%{version}.tar.xz
 Patch1: diffutils-cmp-s-empty.patch
@@ -30,11 +30,6 @@ to merge two files interactively.
 Install diffutils if you need to compare text files.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
-export PERL_PATH="$PERL"
 %setup -q
 # For 'cmp -s', compare file sizes only if both non-zero (bug #563618).
 %patch1 -p1 -b .cmp-s-empty
@@ -47,20 +42,10 @@ export PERL_PATH="$PERL"
 autoreconf
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
-export PERL_PATH="$PERL"
 %configure
 make PR_PROGRAM=%{_bindir}/pr %{_smp_mflags} V=1
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
-export PERL_PATH="$PERL"
 %make_install
 
 rm -f $RPM_BUILD_ROOT%{_libdir}/charset.alias
@@ -81,6 +66,9 @@ make check
 %{_infodir}/diffutils.info*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.6-4
+- Remove hard coded shell paths
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.7-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

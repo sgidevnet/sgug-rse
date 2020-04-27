@@ -1733,8 +1733,8 @@ diff -N -r -u -w gcc-9.2.0/gcc/config/mips/iris6.h gcc-9.2.0-patched/gcc/config/
 +  MARCH_MTUNE_NATIVE_SPECS
 +
 +/* IRIX 6.5 has the float and long double forms of math functions.  */
-+/* #define TARGET_C99_FUNCTIONS 1 */
-+
++#undef TARGET_LIBC_HAS_FUNCTION
++#define TARGET_LIBC_HAS_FUNCTION default_libc_has_function
 +/* MIPS specific debugging info */
 +/* #define MIPS_DEBUGGING_INFO 1 */
 +#define SGUG_DEBUGGING_INFO 1
@@ -1914,10 +1914,10 @@ diff -N -r -u -w gcc-9.2.0/gcc/config/mips/iris6.h gcc-9.2.0-patched/gcc/config/
 +
 +extern void irix6_c_common_override_options (void);
 +#define C_COMMON_OVERRIDE_OPTIONS irix6_c_common_override_options()
-+
++/*
 +#undef SUBTARGET_CC1_SPEC
 +#define SUBTARGET_CC1_SPEC "%{static: -mno-abicalls}"
-+
++*/
 +#undef SUBTARGET_CPP_SPEC
 +#define SUBTARGET_CPP_SPEC "%{pthread:-D_REENTRANT}"
 +

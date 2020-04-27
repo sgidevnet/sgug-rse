@@ -1,7 +1,7 @@
 Name:           libxslt
 Summary:        Library providing the Gnome XSLT engine
 Version:        1.1.33
-Release:        2%{?dist}
+Release:        3%{?dist}
 
 License:        MIT
 URL:            http://xmlsoft.org/XSLT
@@ -70,7 +70,7 @@ developing applications that use %{name}.
 
 autoreconf -vfi
 #export PYTHON=%{__python2}
-#%configure --disable-static --disable-silent-rules --with-python
+#%%configure --disable-static --disable-silent-rules --with-python
 %configure --disable-static --disable-silent-rules --without-python
 %make_build
 
@@ -126,6 +126,9 @@ rm -vrf %{buildroot}%{_docdir}
 #%doc python/tests/*.xsl
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.33-3
+- Ensure no pulling in of python
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.33-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

@@ -4,7 +4,7 @@
 Summary: Allows restricted root access for specified users
 Name: sudo
 Version: 1.8.29
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: ISC
 URL: http://www.courtesan.com/sudo/
 Source0: https://www.sudo.ws/dist/%{name}-%{version}.tar.gz
@@ -51,9 +51,6 @@ The %{name}-devel package contains header files developing sudo
 plugins that use %{name}.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 %setup -q
 
@@ -63,9 +60,6 @@ export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 %patch102 -p1 -b .sgifixes02
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 # Remove bundled copy of zlib
 rm -rf zlib/
@@ -110,17 +104,9 @@ export LT_SYS_LIBRARY_PATH="%{_libdir}:/usr/lib32:/lib32"
 make %{?_smp_mflags}
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 make check
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR="$RPM_BUILD_ROOT" install_uid=`id -u` install_gid=`id -g` sudoers_uid=`id -u` sudoers_gid=`id -g`
 
@@ -237,6 +223,9 @@ rm sudo.lang sudoers.lang
 %{_mandir}/man1m/sudo_plugin.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.8.29-3
+- Remove hard coded shell paths
+
 * Mon Nov 11 2019 Radovan Sroka <rsroka@redhat.com> - 1.8.29-1
 - rebase to 1.8.29
 Resolves: rhbz#1766233
