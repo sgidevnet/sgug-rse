@@ -5,7 +5,7 @@
 
 Name:    zlib
 Version: 1.2.11
-Release: 19%{?dist}
+Release: 20%{?dist}
 Summary: The compression and decompression library
 # /contrib/dotzlib/ have Boost license
 License: zlib and Boost
@@ -126,8 +126,6 @@ make test
 %install
 export LDFLAGS="$RPM_LD_FLAGS"
 %make_install
-mkdir $RPM_BUILD_ROOT%{_mandir}
-mv $RPM_BUILD_ROOT%{_prefix}/share/man/* $RPM_BUILD_ROOT%{_mandir}/
 
 %if %{with minizip}
 %make_install -C contrib/minizip
@@ -173,6 +171,9 @@ find $RPM_BUILD_ROOT -name '*.la' -delete
 
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.2.11-20
+- Manpath correction
+
 * Thu Sep 05 2019 Ondrej Dubaj <odubaj@redhat.com> - 1.2.11-19
 - IBM CRC32 optimalization for POWER 8+ architectures re-add
 - fixed firefox crash duer to zlib (#1741266)

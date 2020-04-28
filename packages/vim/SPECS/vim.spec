@@ -19,7 +19,7 @@ Summary: The VIM editor
 URL:     http://www.vim.org/
 Name: vim
 Version: %{baseversion}.%{patchlevel}
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Vim and MIT
 Source0: ftp://ftp.vim.org/pub/vim/unix/vim-%{baseversion}-%{patchlevel}.tar.bz2
 Source1: vim.sh
@@ -511,29 +511,30 @@ EOF
 #appstream-util validate-relax --nonet %{buildroot}/%{_datadir}/metainfo/*.appdata.xml
 
 # Don't convert, iconv issues with UTF8 a.t.m.
-#pushd %{buildroot}/%{_datadir}/%{name}/%{vimdir}/tutor
-#mkdir conv
-   #iconv -f CP1252 -t UTF8 tutor.ca > conv/tutor.ca
-   #iconv -f CP1252 -t UTF8 tutor.it > conv/tutor.it
-   #iconv -f CP1253 -t UTF8 tutor.gr > conv/tutor.gr
-   #iconv -f CP1252 -t UTF8 tutor.fr > conv/tutor.fr
-   #iconv -f CP1252 -t UTF8 tutor.es > conv/tutor.es
-   #iconv -f CP1252 -t UTF8 tutor.de > conv/tutor.de
-   #iconv -f CP737 -t UTF8 tutor.gr.cp737 > conv/tutor.gr.cp737
-   #iconv -f EUC-JP -t UTF8 tutor.ja.euc > conv/tutor.ja.euc
-   #iconv -f SJIS -t UTF8 tutor.ja.sjis > conv/tutor.ja.sjis
-   #iconv -f UTF8 -t UTF8 tutor.ja.utf-8 > conv/tutor.ja.utf-8
-   #iconv -f UTF8 -t UTF8 tutor.ko.utf-8 > conv/tutor.ko.utf-8
-   #iconv -f CP1252 -t UTF8 tutor.no > conv/tutor.no
-   #iconv -f ISO-8859-2 -t UTF8 tutor.pl > conv/tutor.pl
-   #iconv -f ISO-8859-2 -t UTF8 tutor.sk > conv/tutor.sk
-   #iconv -f KOI8R -t UTF8 tutor.ru > conv/tutor.ru
-   #iconv -f CP1252 -t UTF8 tutor.sv > conv/tutor.sv
-#   mv -f tutor.ja.euc tutor.ja.sjis tutor.ko.euc tutor.pl.cp1250 tutor.zh.big5 tutor.ru.cp1251 tutor.zh.euc tutor.sr.cp1250 tutor.sr.utf-8 conv/
-#   rm -f tutor.ca tutor.de tutor.es tutor.fr tutor.gr tutor.it tutor.ja.utf-8 tutor.ko.utf-8 tutor.no tutor.pl tutor.sk tutor.ru tutor.sv
-#mv -f conv/* .
-#rmdir conv
-#popd
+OLDPWD=`pwd`
+cd %{buildroot}/%{_datadir}/%{name}/%{vimdir}/tutor
+mkdir conv
+   iconv -f CP1252 -t UTF-8 tutor.ca > conv/tutor.ca
+   iconv -f CP1252 -t UTF-8 tutor.it > conv/tutor.it
+   #iconv -f CP1253 -t UTF-8 tutor.gr > conv/tutor.gr
+   iconv -f CP1252 -t UTF-8 tutor.fr > conv/tutor.fr
+   iconv -f CP1252 -t UTF-8 tutor.es > conv/tutor.es
+   iconv -f CP1252 -t UTF-8 tutor.de > conv/tutor.de
+   #iconv -f CP737 -t UTF-8 tutor.gr.cp737 > conv/tutor.gr.cp737
+   iconv -f EUC-JP -t UTF-8 tutor.ja.euc > conv/tutor.ja.euc
+   iconv -f SJIS -t UTF-8 tutor.ja.sjis > conv/tutor.ja.sjis
+   iconv -f UTF-8 -t UTF-8 tutor.ja.utf-8 > conv/tutor.ja.utf-8
+   iconv -f UTF-8 -t UTF-8 tutor.ko.utf-8 > conv/tutor.ko.utf-8
+   iconv -f CP1252 -t UTF-8 tutor.no > conv/tutor.no
+   iconv -f ISO-8859-2 -t UTF-8 tutor.pl > conv/tutor.pl
+   iconv -f ISO-8859-2 -t UTF-8 tutor.sk > conv/tutor.sk
+   #iconv -f KOI8R -t UTF-8 tutor.ru > conv/tutor.ru
+   iconv -f CP1252 -t UTF-8 tutor.sv > conv/tutor.sv
+   mv -f tutor.ja.euc tutor.ja.sjis tutor.ko.euc tutor.pl.cp1250 tutor.zh.big5 tutor.ru.cp1251 tutor.zh.euc tutor.sr.cp1250 tutor.sr.utf-8 conv/
+   rm -f tutor.ca tutor.de tutor.es tutor.fr tutor.gr tutor.it tutor.ja.utf-8 tutor.ko.utf-8 tutor.no tutor.pl tutor.sk tutor.ru tutor.sv
+mv -f conv/* .
+rmdir conv
+cd $OLDPWD
 
 # Dependency cleanups
 chmod 644 %{buildroot}/%{_datadir}/%{name}/%{vimdir}/doc/vim2html.pl \
@@ -561,22 +562,22 @@ install -p -m644 %{SOURCE15} %{buildroot}%{_rpmconfigdir}/macros.d/
 rm -f %{buildroot}/%{_datadir}/vim/%{vimdir}/macros/maze/maze*.c
 rm -rf %{buildroot}/%{_datadir}/vim/%{vimdir}/tools
 rm -rf %{buildroot}/%{_datadir}/vim/%{vimdir}/doc/vim2html.pl
-#rm -f %{buildroot}/%{_datadir}/vim/%{vimdir}/tutor/tutor.gr.utf-8~
-#( cd %{buildroot}/%{_mandir}
-#  for i in `find ??/ -type f`; do
-#    if [[ "`file --mime $i`" == *charset=utf-8* ]]; then
-#      continue
-#    fi
-#    bi=`basename $i`
-#    iconv -f latin1 -t UTF8 $i > %{buildroot}/$bi
-#    mv -f %{buildroot}/$bi $i
-#  done
-#)
+rm -f %{buildroot}/%{_datadir}/vim/%{vimdir}/tutor/tutor.gr.utf-8~
+( cd %{buildroot}/%{_mandir}
+  for i in `find ??/ -type f`; do
+    if [[ "`file --mime $i`" == *charset=utf-8* ]]; then
+      continue
+    fi
+    bi=`basename $i`
+    iconv -f latin1 -t UTF-8 $i > %{buildroot}/$bi
+    mv -f %{buildroot}/$bi $i
+  done
+)
 
 # Remove not UTF-8 manpages
-#for i in pl.ISO8859-2 it.ISO8859-1 ru.KOI8-R fr.ISO8859-1 da.ISO8859-1 de.ISO8859-1; do
-#  rm -rf %{buildroot}/%{_mandir}/$i
-#done
+for i in pl.ISO8859-2 it.ISO8859-1 ru.KOI8-R fr.ISO8859-1 da.ISO8859-1 de.ISO8859-1; do
+  rm -rf %{buildroot}/%{_mandir}/$i
+done
 
 # use common man1/ru directory
 mv %{buildroot}/%{_mandir}/ru.UTF-8 %{buildroot}/%{_mandir}/ru
@@ -818,6 +819,9 @@ touch %{buildroot}/%{_datadir}/%{name}/vimfiles/doc/tags
 %{_datadir}/icons/locolor/*/apps/*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-2
+- Put back original iconv processing of docs
+
 * Mon Sep 30 2019 Zdenek Dohnal <zdohnal@redhat.com> - 2:8.1.2102-1
 - patchlevel 2102
 

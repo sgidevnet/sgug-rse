@@ -45,7 +45,7 @@
 
 Name:           git
 Version:        2.22.0
-Release:        1%{?rcrev}%{?dist}
+Release:        2%{?rcrev}%{?dist}
 Summary:        Fast Version Control System
 License:        GPLv2
 URL:            https://git-scm.com/
@@ -179,9 +179,6 @@ other SCMs, install the git-all meta-package.
 
 # Ensure a blank line follows autosetup, el6 chokes otherwise
 # https://bugzilla.redhat.com/1310704
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export TCLTK_PATH=%{_bindir}/wish
 export CC=gcc
@@ -195,9 +192,6 @@ export CXX=g++
 # Improve build reproducibility
 export TZ=UTC
 export SOURCE_DATE_EPOCH=$(date -r version +%%s 2>/dev/null)
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export TCLTK_PATH=%{_bindir}/wish
 export CC=gcc
@@ -208,9 +202,6 @@ export CXX=g++
 %install
 export TZ=UTC
 export SOURCE_DATE_EPOCH=$(date -r version +%%s 2>/dev/null)
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
 export PERL_PATH=%{_bindir}/perl
 export TCLTK_PATH=%{_bindir}/wish
 export CC=gcc
@@ -271,5 +262,8 @@ exit 0
 %{_datadir}/locale
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.22.0-2
+- Remove hard coded shell paths
+
 * Wed Dec 18 2019 Daniel Hams <daniel.hams@gmail.com> - 2.22.0-1
 - Custom build, fedora too complex

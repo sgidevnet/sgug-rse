@@ -1,7 +1,7 @@
 Summary: A tool for determining compilation options
 Name: pkgconfig
 Version: 0.29.2
-Release: 9.1%{?dist}
+Release: 9.2%{?dist}
 Epoch: 1
 License: GPLv2+
 URL: http://pkgconfig.freedesktop.org
@@ -21,6 +21,7 @@ compiler and linker flags.
 %setup -n pkg-config-%{version} -q
 
 %build
+unset CONFIG_SITE
 %configure --disable-shared --with-pc-path=%{_libdir}/pkgconfig:%{_datadir}/pkgconfig --with-internal-glib --with-libiconv
 %make_build
 
@@ -44,6 +45,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/doc/*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.29.2-9.1
+- Avoid config.cache which can screw up building
+
 * Mon Nov 30 2009 Dennis Gregorovic <dgregor@redhat.com> - 1:0.23-9.1
 - Rebuilt for RHEL 6
 

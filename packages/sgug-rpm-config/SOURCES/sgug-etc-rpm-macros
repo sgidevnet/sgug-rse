@@ -1,3 +1,23 @@
+# Test
+# Gzip
+#%_source_payload	w9.gzdio
+#%_binary_payload	w9.gzdio
+# xz
+#%_source_payload	w6.xzdio
+#%_binary_payload	w6.xzdio
+# zstd 10
+%_source_payload	w10.zstdio
+%_binary_payload	w10.zstdio
+# zstd 12
+#%_source_payload	w12.zstdio
+#%_binary_payload	w12.zstdio
+# zstd 15
+#%_source_payload	w15.zstdio
+#%_binary_payload	w15.zstdio
+# zstd 19
+#%_source_payload	w19.zstdio
+#%_binary_payload	w19.zstdio
+
 %_prefix /usr/sgug
 %_sysconfdir /usr/sgug/etc
 %_localstatedir /usr/sgug/var
@@ -6,7 +26,7 @@
 
 %_libdir /usr/sgug/lib32
 %_infodir /usr/sgug/info
-%_mandir /usr/sgug/man
+%_mandir /usr/sgug/share/man
 %_docdir /usr/sgug/share/doc
 %_defaultdocdir /usr/sgug/share/doc
 

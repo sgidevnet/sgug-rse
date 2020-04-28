@@ -8,7 +8,7 @@
 Name:           help2man
 Summary:        Create simple man pages from --help output
 Version:        1.47.10
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        GPLv3+
 URL:            http://www.gnu.org/software/help2man
 Source:         ftp://ftp.gnu.org/gnu/help2man/help2man-%{version}.tar.xz
@@ -37,25 +37,13 @@ way to generate a placeholder man page pointing to that resource while
 still providing some useful information.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
 %setup -q -n help2man-%{version}
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
 %configure --%{!?with_nls:disable}%{?with_nls:enable}-nls --libdir=%{_libdir}/help2man
 make %{?_smp_mflags}
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
 make install_l10n DESTDIR=$RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 %find_lang %name --with-man
@@ -72,6 +60,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.47.10-2
+- Remove hard coded shell paths
+
 * Sat Sep 14 2019 Ralf Corsépius <corsepiu@fedoraproject.org> - 1.47.11-1
 - Upstream update.
 

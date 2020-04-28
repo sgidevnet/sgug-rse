@@ -18,7 +18,7 @@
 
 Name:           nettle
 Version:        3.4
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        A low-level cryptographic library
 
 License:        LGPLv3+ or GPLv2+
@@ -65,7 +65,7 @@ applications with nettle.
 
 #if 0%{?bootstrap}
 #mkdir -p bootstrap_ver
-#pushd bootstrap_ver
+#cd bootstrap_ver
 #tar --strip-components=1 -xf %{SOURCE1}
 #patch -p1 < %{SOURCE2}
 #
@@ -73,7 +73,7 @@ applications with nettle.
 #sed s/ggdb3/g/ -i configure
 #sed 's/ecc-192.c//g' -i Makefile.in
 #sed 's/ecc-224.c//g' -i Makefile.in
-#popd
+#cd ..
 #endif
 
 ## Disable -ggdb3 which makes debugedit unhappy
@@ -82,16 +82,20 @@ applications with nettle.
 #sed 's/ecc-224.c//g' -i Makefile.in
 
 %build
+# Package doesn't work with config.cache
+# it creates a package that doesn't expose the correct Provides:
+# (missing the NETTLE_6 and HOGWEED_4 tags)
+unset CONFIG_SITE
 autoreconf -ifv
 %configure --enable-shared --enable-fat
 make %{?_smp_mflags}
 
 #if 0%{?bootstrap}
-#pushd bootstrap_ver
+#cd bootstrap_ver
 #autoconf
 #configure --with-tests
 #make_build
-#popd
+#cd ..
 #endif
 
 %if %{with fips}
@@ -175,6 +179,9 @@ make check
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4-4
+- Remove hard coded shell paths/bashisms, avoid config.cache
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.5.1-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

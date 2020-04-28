@@ -8,7 +8,7 @@ Summary: A GNU file archiving program
 Name: tar
 Epoch: 2
 Version: 1.30
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: http://www.gnu.org/software/tar/
 
@@ -65,9 +65,6 @@ awk 'stop = false; /^2014-07-27/ { stop = true; exit }; { print }' \
 
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %configure \
     %{!?with_selinux:--without-selinux} \
     --with-lzma="xz --format=lzma" \
@@ -123,6 +120,9 @@ make check || (
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.30-3
+- Remove hard coded shell paths
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2:1.32-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

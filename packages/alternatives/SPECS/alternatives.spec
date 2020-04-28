@@ -1,91 +1,68 @@
-Summary: A system tool for maintaining the /etc/rc*.d hierarchy
-Name: chkconfig
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
+Summary: A tool to maintain symbolic links determining default commands
+Name: alternatives
 Version: 1.11
-Release: 5%{?dist}
+Release: 8%{?dist}
 License: GPLv2
 URL: https://github.com/fedora-sysv/chkconfig
-Source: https://github.com/fedora-sysv/chkconfig/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz
-BuildRequires: newt-devel gettext popt-devel libselinux-devel beakerlib gcc
-Conflicts: initscripts <= 5.30-1
+Source: https://github.com/fedora-sysv/chkconfig/archive/chkconfig-%{version}.tar.gz#/chkconfig-%{version}.tar.gz
+BuildRequires: libdicl-devel >= 0.1.19
+Requires:      libdicl >= 0.1.19
+
+Patch0:        alternatives.sgifixes.patch
 
 %description
-Chkconfig is a basic system utility.  It updates and queries runlevel
-information for system services.  Chkconfig manipulates the numerous
-symbolic links in /etc/rc.d, to relieve system administrators of some 
-of the drudgery of manually editing the symbolic links.
-
-%package -n ntsysv
-Summary: A tool to set the stop/start of system services in a runlevel
-Requires: chkconfig = %{version}-%{release}
-
-%description -n ntsysv
-Ntsysv provides a simple interface for setting which system services
-are started or stopped in various runlevels (instead of directly
-manipulating the numerous symbolic links in /etc/rc.d). Unless you
-specify a runlevel or runlevels on the command line (see the man
-page), ntsysv configures the current runlevel (5 if you're using X).
-
-%package -n alternatives
-Summary: A tool to maintain symbolic links determining default commands
-
-%description -n alternatives
 alternatives creates, removes, maintains and displays information about the
 symbolic links comprising the alternatives system. It is possible for several
 programs fulfilling the same or similar functions to be installed on a single
 system at the same time.
 
 %prep
-%setup -q
+%setup -q -n chkconfig-%{version}
+%patch0 -p1 -b .sgifixes
+
+# Rewrite some hardcoded paths in the alternatives source
+perl -pi -e "s|/etc/alternatives|%{_prefix}/etc/alternatives|g" alternatives.c
+perl -pi -e "s|/var/lib/alternatives|%{_prefix}/var/lib/alternatives|g" alternatives.c
+perl -pi -e "s|/usr/share/locale|%{_prefix}/share/locale|g" alternatives.c
 
 %build
-make RPM_OPT_FLAGS="$RPM_OPT_FLAGS" LDFLAGS="$RPM_LD_FLAGS" %{?_smp_mflags}
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export RPM_LD_FLAGS="-ldicl-0.1 -lintl $RPM_LD_FLAGS"
+V=1 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS" LDFLAGS="$RPM_LD_FLAGS" %{?_smp_mflags}
 
 %check
-make check
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export LIBS="-ldicl-0.1"
+V=1 make check
 
 %install
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export LIBS="-ldicl-0.1"
 rm -rf $RPM_BUILD_ROOT
-make DESTDIR=$RPM_BUILD_ROOT MANDIR=%{_mandir} SBINDIR=%{_sbindir} install
+make DESTDIR=$RPM_BUILD_ROOT MANDIR=%{_mandir} SBINDIR=%{_sbindir} ALTDIR=%{_prefix}/var/lib/alternatives ALTDATADIR=%{_prefix}/etc/alternatives install
 
-mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
-ln -s rc.d/init.d $RPM_BUILD_ROOT/etc/init.d
-for n in 0 1 2 3 4 5 6; do
-    mkdir -p $RPM_BUILD_ROOT/etc/rc.d/rc${n}.d
-    ln -s rc.d/rc${n}.d $RPM_BUILD_ROOT/etc/rc${n}.d
-done
-mkdir -p $RPM_BUILD_ROOT/etc/chkconfig.d
+rm $RPM_BUILD_ROOT%{_mandir}/man8/chkconfig*
+rm $RPM_BUILD_ROOT%{_mandir}/man8/ntsysv*
 
-%find_lang %{name}
+#find_lang %{name}
 
-%files -f %{name}.lang
-%defattr(-,root,root)
-%{!?_licensedir:%global license %%doc}
+#files -f %{name}.lang
+%files
 %license COPYING
-/sbin/chkconfig
-/etc/chkconfig.d
-/etc/init.d
-/etc/rc.d
-/etc/rc.d/init.d
-/etc/rc[0-6].d
-/etc/rc.d/rc[0-6].d
-%{_mandir}/*/chkconfig*
-%{_prefix}/lib/systemd/systemd-sysv-install
-
-%files -n ntsysv
-%defattr(-,root,root)
-%{_sbindir}/ntsysv
-%{_mandir}/*/ntsysv.8*
-
-%files -n alternatives
-%license COPYING
-%dir /etc/alternatives
+%dir %{_prefix}/etc/alternatives
 %{_sbindir}/update-alternatives
 %{_sbindir}/alternatives
 %{_mandir}/*/update-alternatives*
 %{_mandir}/*/alternatives*
-%dir /var/lib/alternatives
+%dir %{_prefix}/var/lib/alternatives
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.11-8
+- Moved from chkconfig to specific alternatives package
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.11-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

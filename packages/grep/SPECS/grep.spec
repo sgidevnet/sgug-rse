@@ -4,7 +4,7 @@
 Summary: Pattern matching utilities
 Name: grep
 Version: 3.3
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: http://www.gnu.org/software/grep/
 
@@ -21,7 +21,7 @@ Patch1: grep-3.33-help-align.patch
 Patch10: grep.sgifixes.patch
 
 BuildRequires: gcc
-#BuildRequires: pcre-devel >= 3.9-10, texinfo, gettext
+BuildRequires: pcre-devel >= 3.9-10, texinfo, gettext
 BuildRequires: texinfo, gettext
 BuildRequires: autoconf automake
 # https://fedorahosted.org/fpc/ticket/174
@@ -57,8 +57,10 @@ GNU grep is needed by many scripts, so it shall be installed on every system.
 %global BUILD_FLAGS %{BUILD_FLAGS} -mlong-double-64
 %endif
 
-#%configure --without-included-regex --disable-silent-rules \
+#configure --without-included-regex --disable-silent-rules \
 #  CPPFLAGS="-I%{_includedir}/pcre" CFLAGS="%{BUILD_FLAGS}"
+export gl_cv_func_select_supports0=no
+export gl_cv_func_select_detects_ebadf=no
 %configure --disable-silent-rules \
   CPPFLAGS="-I%{_includedir}/pcre" CFLAGS="%{BUILD_FLAGS}"
 make %{?_smp_mflags}
@@ -91,6 +93,9 @@ make check
 %{_libexecdir}/grepconf.sh
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3-4
+- Remove hard coded shell paths/include pcre dependency
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

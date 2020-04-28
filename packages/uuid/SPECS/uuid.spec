@@ -4,12 +4,12 @@
 Summary: uuid library from util-linux
 Name: uuid
 Version: 1.3.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
 Source: https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v2.34/util-linux-2.34.tar.gz
 
-Patch0: libuuid.sgifixes.patch
+Patch100: libuuid.sgifixes.patch
 
 BuildRequires: gcc
 BuildRequires: automake, autoconf, libtool
@@ -28,7 +28,7 @@ to develop programs that use uuid library.
 
 %prep
 %setup -q -n util-linux-2.34
-%patch -p1
+%patch100 -p1 -b .sgifixes
 
 %build
 %{configure} --disable-all-programs --enable-libuuid
@@ -54,5 +54,8 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/locale
 %{_mandir}/man3
 
 %changelog
-* Fri Nov 29 2019 Daniel Hams <daniel.hams@gmail.com> - 0.1.15
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.0-2
+- Avoid gettext use to avoid pulling in gettext/libintl etc.
+
+* Fri Nov 29 2019 Daniel Hams <daniel.hams@gmail.com> - 1.3.0-1
 - First build

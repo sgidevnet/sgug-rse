@@ -3,7 +3,7 @@
 
 Name:           perl-generators
 Version:        1.11
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        RPM Perl dependencies generators
 License:        GPL+
 URL:            http://jplesnik.fedorapeople.org/generators
@@ -46,29 +46,14 @@ This package provides RPM Perl dependencies generators which are used for
 getting provides and requires from Perl binaries and modules.
 
 %prep
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
 %setup -q -n generators-%{version}
 
 %build
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
-$PERL Makefile.PL INSTALLDIRS=vendor INSTALLVENDORSCRIPT=%{localrpmconfigdir} \
+perl Makefile.PL INSTALLDIRS=vendor INSTALLVENDORSCRIPT=%{localrpmconfigdir} \
      NO_PACKLIST=1
 make %{?_smp_mflags}
 
 %install
-export SHELL="%{_bindir}/sh"
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL="%{_bindir}/perl"
-export PERL_PATH="$PERL"
 make pure_install DESTDIR=%{buildroot}
 %{_fixperms} $RPM_BUILD_ROOT/*
 
@@ -84,6 +69,9 @@ make test
 %{localrpmconfigdir}/fileattrs/perl*.attr
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.11-5
+- Remove hard coded shell paths
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.11-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

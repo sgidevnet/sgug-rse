@@ -53,10 +53,12 @@ for $packagedir (@packagedirs) {
 	my $rpmbuildFile = File::HomeDir->my_home."/rpmbuild/$sourceFile";
 	my $targetFile = "./packages/$packageName/$sourceFile";
 
-	my $cmd = "cp $rpmbuildFile $targetFile";
-	print "Command is '$cmd'\n";
+	if( -e $rpmbuildFile) {
+	    my $cmd = "cp $rpmbuildFile $targetFile";
+	    print "Command is '$cmd'\n";
 
-	copy($rpmbuildFile, $targetFile) or die "Copy failed: $!";
+	    copy($rpmbuildFile, $targetFile) or die "Copy failed: $!";
+	}
     }
 }
 

@@ -9,7 +9,7 @@
 Summary:	C++ user interface toolkit
 Name:		fltk
 Version:	1.3.5
-Release:	2%{?dist}
+Release:	3%{?dist}
 
 # see COPYING (or http://www.fltk.org/COPYING.php ) for exceptions details
 License:	LGPLv2+ with exceptions	
@@ -82,9 +82,6 @@ Requires: %{name}-devel
 
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %if 0%{?snap:1}
 %autosetup -p1 -n fltk-1.3.x-%{snap}
 %else
@@ -97,9 +94,6 @@ autoconf
 
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CFLAGS="-pthread"
 export CXXFLAGS="-pthread"
 #export LDFLAGS="-lpthread -lc -lm $RPM_LD_FLAGS"
@@ -132,9 +126,6 @@ make
 
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %make_install
 
 #make install-linux -C fluid DESTDIR=$RPM_BUILD_ROOT
@@ -198,6 +189,9 @@ rm -rv $RPM_BUILD_ROOT%{_mandir}/cat*
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.5-3
+- Remove hard coded shell paths
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.5-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

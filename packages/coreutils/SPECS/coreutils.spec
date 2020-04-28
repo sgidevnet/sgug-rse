@@ -4,7 +4,7 @@
 Summary: A set of basic GNU tools commonly used in shell scripts
 Name:    coreutils
 Version: 8.30
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Url:     https://www.gnu.org/software/coreutils/
 Source0: https://ftp.gnu.org/gnu/%{name}/%{name}-%{version}.tar.xz
@@ -128,9 +128,6 @@ Optional though recommended components,
 including documentation and translations.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -N
 
 # will be modified by coreutils-8.25-DIR_COLORS.patch
@@ -148,9 +145,6 @@ find tests -name '*.sh' -perm 0644 -print -exec chmod 0755 '{}' '+'
 autoreconf -fiv
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing -fpic"
 %{expand:%%global optflags %{optflags} -D_GNU_SOURCE=1}
 #for type in separate single; do
@@ -183,9 +177,6 @@ done
 cp %SOURCE50 .
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 #for type in separate single; do
 for type in separate; do
   test $type = 'single' && subdirs='SUBDIRS=.' # Only check gnulib once
@@ -193,9 +184,6 @@ for type in separate; do
 done
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 #for type in separate single; do
 for type in separate; do
   install=install
@@ -261,6 +249,9 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man1/stty.1.gz
 %license COPYING
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 8.30-5
+- Remove hard coded shell paths
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org>
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

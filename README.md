@@ -16,16 +16,18 @@ The modifications from the original fedora `.spec` files fall under the license 
 
 NOTE: While we are not yet out of beta, it is recommended to remove any previous sgug-rse installation before extracting this new one. We don't yet support in-place upgrades using RPMs.
 
+(0) Add your user account to the irix `sys` group - this will allow you to use the sgug `sudo` out of the box with your user password - then you can follow the steps below without additional hoop jumping.
+
 (1) Download the artifacts for the latest version from the github releases tab (assuming they aren't too big).
 
 You'll find three main archives - and there might be "update" archives too that need to be extracted:
 
 ```
-sgug-rse-selfhoster-0.0.4beta.tar.gz
-sgug-rse-srpms-0.0.4beta.tar.gz
-sgug-rse-rpms-0.0.4beta.tar.gz
+sgug-rse-selfhoster-0.0.5beta.tar.gz
+sgug-rse-srpms-0.0.5beta.tar.gz
+sgug-rse-rpms-0.0.5beta.tar.gz
 
-sgug-rse-rpms-0.0.4betaupdateNUM.tar.gz
+sgug-rse-rpms-0.0.5betaupdateNUM.tar.gz
 ```
 
 (2) Extract the selfhoster archive under /usr as root (important, sgug-rse _installation_ files are root owned and managed):
@@ -33,7 +35,7 @@ sgug-rse-rpms-0.0.4betaupdateNUM.tar.gz
 ```
 su - (enter root password)
 cd /usr
-gunzip -dc /path/to/sgug-rse-selfhoster-0.0.4beta.tar.gz |tar xf -
+gunzip -dc /path/to/sgug-rse-selfhoster-0.0.5beta.tar.gz |tar xf -
 (log out of root)
 ```
 
@@ -50,19 +52,19 @@ mkdir -p ~/rpmbuild/RPMS
 
 ```
 cd ~/rpmbuild
-gunzip -dc /path/to/sgug-rse-srpms-0.0.4beta.tar.gz | tar xf -
-gunzip -dc /path/to/sgug-rse-rpms-0.0.4beta.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-srpms-0.0.5beta.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-rpms-0.0.5beta.tar.gz | tar xf -
 # Optional
 mkdir ~/rpmupdates
 cd ~/rpmupdates
-gunzip -dc /path/to/sgug-rse-rpms-0.0.4betaupdateNUM.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-rpms-0.0.5betaupdateNUM.tar.gz | tar xf -
 ```
 
 (5) You'll need to clone this repo (sgug-rse) -
 
 ```
 cd ~
-git clone https://github.com/sgidevnet/sgug-rse.git sgug-rse.git
+/usr/sgug/bin/git clone https://github.com/sgidevnet/sgug-rse.git sgug-rse.git
 ```
 Adjust that path as appropriate for where you wish the repo to live.
 
@@ -79,6 +81,8 @@ sudo rpm --reinstall -ivh noarch/*.rpm mips/*.rpm
 
 and for any upgrades/updates:
 
+* CARE: You must use the "upgrade" flag for any upgraded packages to void double-installs
+
 ```
 cd ~/sgug-rse.git
 ./sgugshell.sh
@@ -86,7 +90,7 @@ cd ~/rpmupdates/RPMS
 sudo rpm -Uvh noarch/*.rpm mips/*.rpm
 ```
 
-(7) Now you can build a package with:
+(7) Now you can rebuild one of the out-of-the-box packages with:
 
 ```
 cd ~/sgug-rse.git
@@ -97,13 +101,12 @@ cp -r ~/sgug-rse.git/packages/m4/* ~/rpmbuild/
 rpmbuild -ba m4.spec --nocheck
 ```
 
-(8) Installing RPMs must be done as root (add `--reinstall` to refresh a package):
+(8) Installing RPMs must be done as root (add `--reinstall` to refresh an already installed package):
 
 ```
-su -
 cd ~user/sgug-rse.git
 ./sgugshell.sh
-rpm -ivh ~/rpmbuild/RPMS/mips/m4*.rpm
+sudo rpm -ivh ~/rpmbuild/RPMS/mips/m4*.rpm
 ```
 
 ## Bugs

@@ -4,7 +4,7 @@
 Summary:        Internationalization library for Perl, compatible with gettext
 Name:           perl-libintl-perl
 Version:        1.31
-Release:        4%{?dist}
+Release:        5%{?dist}
 # gettext_xs/gettext_xs.pm:     GPLv3+
 # gettext_xs/Makefile.PL:       LGPLv2+
 # lib/Locale/gettext_xs.pod:    LGPLv2+
@@ -73,10 +73,6 @@ implemented for example in GNU gettext.
 
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
 %setup -q -n libintl-perl-%{version}
 find -type f -exec chmod -x {} \;
 find lib/Locale gettext_xs \( -name '*.pm' -o -name '*.pod' \) \
@@ -93,28 +89,16 @@ rm .gitignore MANIFEST
 
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
-%{_bindir}/perl Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
+perl Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}"
 make %{?_smp_mflags}
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
 make pure_install DESTDIR=%{buildroot}
 find %{buildroot} -type f \( -name .packlist -o \
                   -name '*.bs' -size 0 \) -delete
 %{_fixperms} %{buildroot}
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-export PERL=%{_bindir}/perl
 make test
 
 %files
@@ -126,6 +110,9 @@ make test
 %{_mandir}/man?/*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.31-5
+- Remove hard coded shell paths
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.31-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

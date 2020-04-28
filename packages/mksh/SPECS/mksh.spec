@@ -8,7 +8,7 @@
 Summary:          MirBSD enhanced version of the Korn Shell
 Name:             mksh
 Version:          57
-Release:          2%{?dist}
+Release:          3%{?dist}
 # BSD (setmode.c), ISC (strlcpy.c), MirOS (the rest)
 License:          MirOS and ISC and BSD
 URL:              https://www.mirbsd.org/mksh.htm
@@ -17,6 +17,7 @@ Source1:          dot-mkshrc
 Source2:          rtchecks.expected
 %if 0%{?fedora} >= 17 || 0%{?rhel} >= 7
 Conflicts:        filesystem < 3
+Provides:         %{_bindir}/sh
 Provides:         %{_bindir}/lksh, %{_bindir}/mksh
 %endif
 Requires(post):   grep
@@ -65,6 +66,16 @@ print -r -- $((x++)):$sari=$uari. #9
 EOF
 
 %build
+# This package uses its own custom build scaffolding
+# and doesn't play well with LTO using distcc
+export CC=gcc
+export CXX=g++
+# It's a bit of a hack, but putting the regular sgug-rse
+# bin directory at the front of the PATH means we'll pick
+# up the regular gcc before any distcc masq bin dir
+export PATH=%{_bindir}:$PATH
+unset DISTCC_HOSTS
+
 # Work around RHBZ #922974 on Fedora 19 and later
 %if 0%{?fedora} >= 19 || 0%{?rhel} >= 7
 CFLAGS="$RPM_OPT_FLAGS -DMKSH_DISABLE_EXPERIMENTAL" LDFLAGS="$RPM_LD_FLAGS" sh Build.sh -r
@@ -89,6 +100,8 @@ install -D -m 644 %{name}.1 $RPM_BUILD_ROOT%{_mandir}/man1/%{name}.1
 install -D -m 644 lksh.1 $RPM_BUILD_ROOT%{_mandir}/man1/lksh.1
 install -D -p -m 644 dot.mkshrc $RPM_BUILD_ROOT%{_sysconfdir}/mkshrc
 install -D -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/skel/.mkshrc
+
+ln -sf mksh %{buildroot}%{_bindir}/sh
 
 %check
 ./mksh rtchecks >rtchecks.got 2>&1
@@ -129,6 +142,7 @@ done
 
 %files
 %doc dot.mkshrc
+%{_bindir}/sh
 %{_bindir}/%{name}
 %{_bindir}/lksh
 %config(noreplace) %{_sysconfdir}/mkshrc
@@ -137,6 +151,9 @@ done
 %{_mandir}/man1/lksh.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 57-3
+- Switch the /usr/sgug/bin/sh link to mksh, compatibility changes to work with distcc (this package cannot use it)
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 57-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

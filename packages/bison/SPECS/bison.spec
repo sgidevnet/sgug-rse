@@ -4,7 +4,7 @@
 Summary: A GNU general-purpose parser generator
 Name: bison
 Version: 3.4.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Source: ftp://ftp.gnu.org/pub/gnu/bison/bison-%{version}.tar.xz
 
@@ -74,9 +74,6 @@ Bison manual section for more information.
 %setup -q
 
 %build
-export SHELL=`which bash`
-export CONFIG_SHELL=$SHELL
-export SHELL_PATH=$SHELL
 %configure
 make %{?_smp_mflags}
 
@@ -125,6 +122,9 @@ gzip -9nf ${RPM_BUILD_ROOT}%{_infodir}/bison.info*
 %{_libdir}/liby.a
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.1-3
+- Remove hard coded shell paths
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.1-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
