@@ -9,7 +9,7 @@
 Summary:	C++ user interface toolkit
 Name:		fltk
 Version:	1.3.5
-Release:	3%{?dist}
+Release:	4%{?dist}
 
 # see COPYING (or http://www.fltk.org/COPYING.php ) for exceptions details
 License:	LGPLv2+ with exceptions	
@@ -34,17 +34,18 @@ Patch100:       fltk-1.3.4-x-fluid_mimetype.patch
 
 ## Irix
 Patch200:       fltk.sgiremoveldsetversion.patch
+Patch201:       fltk.sgiavoidsgiextensions.patch
 
 BuildRequires: gcc-c++
 #BuildRequires: desktop-file-utils
 BuildRequires: libjpeg-devel
 BuildRequires: libpng-devel
 #BuildRequires: pkgconfig(gl) pkgconfig(glu) 
-#BuildRequires: pkgconfig(ice)
-#BuildRequires: pkgconfig(sm) 
+BuildRequires: pkgconfig(ice)
+BuildRequires: pkgconfig(sm) 
 #BuildRequires: pkgconfig(xext) pkgconfig(xinerama) pkgconfig(xft) pkgconfig(xt) pkgconfig(x11) 
-#BuildRequires: pkgconfig(xcursor)
-#BuildRequires: pkgconfig(xproto)
+BuildRequires: pkgconfig(xcursor)
+BuildRequires: pkgconfig(xproto)
 #BuildRequires: xorg-x11-utils
 BuildRequires: zlib-devel
 BuildRequires: autoconf
@@ -62,8 +63,8 @@ Summary: Development files for %{name}
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: libstdc++-devel
 #Requires: pkgconfig(gl) pkgconfig(glu)
-#Requires: pkgconfig(ice) pkgconfig(sm)
-#Requires: pkgconfig(xft) pkgconfig(xt) pkgconfig(x11)
+Requires: pkgconfig(ice) pkgconfig(sm)
+Requires: pkgconfig(xft) pkgconfig(xt) pkgconfig(x11)
 %description devel
 %{summary}.
 
@@ -121,7 +122,7 @@ export LIBS="-lgcc_s -lc -lm -lpthread"
 #  --enable-xft
 
 # Documentation cannot be built in parallel ...
-#%make_build
+#%%make_build
 make
 
 
@@ -159,7 +160,7 @@ rm -rv $RPM_BUILD_ROOT%{_mandir}/cat*
 %license COPYING
 %{_libdir}/libfltk.so.1.3
 %{_libdir}/libfltk_forms.so.1.3
-#%{_libdir}/libfltk_gl.so.1.3
+#%%{_libdir}/libfltk_gl.so.1.3
 %{_libdir}/libfltk_images.so.1.3
 
 %files devel
@@ -170,7 +171,7 @@ rm -rv $RPM_BUILD_ROOT%{_mandir}/cat*
 %{_includedir}/Fl
 %{_libdir}/libfltk.so
 %{_libdir}/libfltk_forms.so
-#%{_libdir}/libfltk_gl.so
+#%%{_libdir}/libfltk_gl.so
 %{_libdir}/libfltk_images.so
 %{_mandir}/man1/fltk-config.1*
 %{_mandir}/man3/fltk.3*
@@ -178,17 +179,20 @@ rm -rv $RPM_BUILD_ROOT%{_mandir}/cat*
 %files static
 %{_libdir}/libfltk.a
 %{_libdir}/libfltk_forms.a
-#%{_libdir}/libfltk_gl.a
+#%%{_libdir}/libfltk_gl.a
 %{_libdir}/libfltk_images.a
 
 %files fluid
 %{_bindir}/fluid
 %{_mandir}/man1/fluid.1*
-#{_datadir}/applications/fluid.desktop
-#{_datadir}/icons/hicolor/*/*/*
+#%%{_datadir}/applications/fluid.desktop
+#%%{_datadir}/icons/hicolor/*/*/*
 
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.5-4
+- Move over to sgug-rse libX11
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.5-3
 - Remove hard coded shell paths
 

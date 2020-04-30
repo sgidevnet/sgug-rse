@@ -4,16 +4,18 @@
 Summary: X.Org X11 libXpm runtime library
 Name: libXpm
 Version: 3.5.12
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: MIT
 URL: http://www.x.org
 
 Source0: https://www.x.org/pub/individual/lib/%{name}-%{version}.tar.bz2
 
-#BuildRequires: xorg-x11-util-macros
+Patch0:  libXpm.sgifixlinkage.patch
+
+BuildRequires: xorg-x11-util-macros
 BuildRequires: autoconf automake libtool
 BuildRequires: gettext
-#BuildRequires: pkgconfig(xext) pkgconfig(xt) pkgconfig(xau)
+BuildRequires: pkgconfig(xext) pkgconfig(xt) pkgconfig(xau)
 
 %description
 X.Org X11 libXpm runtime library
@@ -27,13 +29,10 @@ X.Org X11 libXpm development package
 
 %prep
 %setup -q
+%patch0 -p1 -b .sgifixlinkage
 
 %build
-#autoreconf -v --install --force
-XPM_CFLAGS="-I/usr/include/X11"
-export XPM_CFLAGS
-XPM_LIBS="-lX11"
-export XPM_LIBS
+autoreconf
 %configure --disable-static
 make %{?_smp_mflags}
 
@@ -55,7 +54,7 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 
 %files devel
 %{_bindir}/cxpm
-#%{_bindir}/sxpm
+%{_bindir}/sxpm
 %{_includedir}/X11/xpm.h
 %{_libdir}/libXpm.so
 %{_libdir}/pkgconfig/xpm.pc
@@ -64,6 +63,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 #%{_mandir}/man1/*.1x*
 
 %changelog
+* Thu Apr 30 2020 Daniel Hams <daniel.hams@gmail.com> - 3.5.12-11
+- Switch over to sgug libX11
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.5.12-10
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

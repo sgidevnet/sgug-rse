@@ -1,6 +1,3 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
-
 %global _hardened_build 1
 
 # This file is encoded in UTF-8.  -*- coding: utf-8 -*-
@@ -8,7 +5,7 @@ Summary:       GNU Emacs text editor
 Name:          emacs
 Epoch:         1
 Version:       23.3
-Release:       1%{?dist}
+Release:       2%{?dist}
 License:       GPLv3+ and CC0-1.0
 URL:           http://www.gnu.org/software/emacs/
 Source0:       https://ftp.gnu.org/gnu/emacs/emacs-%{version}b.tar.gz
@@ -239,8 +236,7 @@ export CFLAGS="-DMAIL_USE_LOCKF $RPM_OPT_FLAGS"
 mkdir build-motif && cd build-motif
 ln -s ../configure .
 
-export CPPFLAGS="$CPPFLAGS -I/usr/Motif-2.1/include -I%{_includedir}"
-export LIBS="-lXpm -ljpeg -ltiff -ltinfo"
+export LIBS="-lfreetype -lfontconfig -ltinfo"
 
 #configure --with-dbus --with-gif --with-jpeg --with-png --with-rsvg \
 #           --with-tiff --with-xft --with-xpm --with-x-toolkit=gtk3 --with-gpm=no \
@@ -258,9 +254,6 @@ cd ..
 mkdir build-lucid && cd build-lucid
 ln -s ../configure .
 
-export CPPFLAGS="$CPPFLAGS -I%{_includedir}"
-export LIBS="-ljpeg -ltiff -ltinfo"
-
 #configure --with-dbus --with-gif --with-jpeg --with-png --with-rsvg \
 #           --with-tiff --with-xft --with-xpm --with-x-toolkit=lucid --with-gpm=no \
 #           --with-modules
@@ -273,6 +266,7 @@ cd ..
 # Build binary without X support
 mkdir build-nox && cd build-nox
 ln -s ../configure .
+export LIBS="-ltinfo"
 %configure --with-x=no
 %{setarch} make %{?_smp_mflags}
 cd ..
@@ -500,6 +494,9 @@ rm %{buildroot}%{_prefix}/var/games/emacs/tetris-scores
 #%{_includedir}/emacs-module.h
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1:23.3-2
+- Move over to sgug-rse libX11
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:26.2-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
