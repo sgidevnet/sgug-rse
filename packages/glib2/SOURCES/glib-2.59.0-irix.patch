@@ -1,0 +1,122 @@
+diff -ur glib-2.59.0/gio/gsocket.c ../glib-2.59.0/gio/gsocket.c
+--- glib-2.59.0/gio/gsocket.c	2018-12-23 09:10:41.000000000 +0000
++++ ../glib-2.59.0/gio/gsocket.c	2019-07-13 13:17:21.958028665 +0000
+@@ -4328,7 +4328,7 @@
+   const struct msghdr *_prev_msg = (prev_msg); \
+   GError **_error = (error); \
+  \
+-  _msg->msg_flags = 0; \
++  /* _msg->msg_flags = 0;                      */       \
+  \
+   /* name */ \
+   if (_prev_message != NULL && _prev_message->address == _message->address) \
+@@ -4469,7 +4469,7 @@
+     } \
+  \
+   /* flags */ \
+-  _msg->msg_flags = _message->flags; \
++  /* _msg->msg_flags = _message->flags;       */        \
+ } G_STMT_END
+ 
+ static void
+@@ -4535,7 +4535,7 @@
+   }
+ 
+   /* capture the flags */
+-  message->flags = msg->msg_flags;
++  /* message->flags = msg->msg_flags;*/
+ }
+ #endif
+ 
+@@ -5165,7 +5165,7 @@
+     /* do it */
+     while (1)
+       {
+-	result = recvmsg (socket->priv->fd, &msg, msg.msg_flags);
++	result = recvmsg (socket->priv->fd, &msg, 0);
+ #ifdef MSG_CMSG_CLOEXEC	
+ 	if (result < 0 && get_socket_errno () == EINVAL)
+ 	  {
+diff -ur glib-2.59.0/gio/gunixfdmessage.c ../glib-2.59.0/gio/gunixfdmessage.c
+--- glib-2.59.0/gio/gunixfdmessage.c	2018-12-23 09:10:41.000000000 +0000
++++ ../glib-2.59.0/gio/gunixfdmessage.c	2019-07-13 13:19:08.675119865 +0000
+@@ -53,6 +53,8 @@
+ #include "gnetworking.h"
+ #include "gioerror.h"
+ 
++#define SCM_RIGHTS 0x01
++
+ struct _GUnixFDMessagePrivate
+ {
+   GUnixFDList *list;
+diff -ur glib-2.59.0/glib/giounix.c ../glib-2.59.0/glib/giounix.c
+--- glib-2.59.0/glib/giounix.c	2018-12-23 09:10:41.000000000 +0000
++++ ../glib-2.59.0/glib/giounix.c	2019-07-13 12:37:21.915168665 +0000
+@@ -185,6 +185,10 @@
+   GIOUnixChannel *unix_channel = (GIOUnixChannel *)channel;
+   gssize result;
+ 
++#ifndef SSIZE_MAX
++# define SSIZE_MAX LONG_MAX
++#endif
++
+   if (count > SSIZE_MAX) /* At least according to the Debian manpage for read */
+     count = SSIZE_MAX;
+ 
+diff -ur glib-2.59.0/glib/gmain.c ../glib-2.59.0/glib/gmain.c
+--- glib-2.59.0/glib/gmain.c	2018-12-23 09:10:41.000000000 +0000
++++ ../glib-2.59.0/glib/gmain.c	2019-07-13 12:35:09.806724665 +0000
+@@ -54,6 +54,10 @@
+ #endif
+ #endif
+ 
++#ifdef __sgi
++# define CLOCK_MONOTONIC CLOCK_SGI_CYCLE
++#endif
++
+ #include <signal.h>
+ #include <sys/types.h>
+ #include <time.h>
+diff -ur glib-2.59.0/glib/gthread-posix.c ../glib-2.59.0/glib/gthread-posix.c
+--- glib-2.59.0/glib/gthread-posix.c	2018-12-23 09:10:41.000000000 +0000
++++ ../glib-2.59.0/glib/gthread-posix.c	2019-07-23 10:50:39.642914228 +0000
+@@ -656,12 +656,12 @@
+ 
+   pthread_condattr_init (&attr);
+ 
+-#ifdef HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP
++#if defined (HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP) || defined(__sgi)
+ #elif defined (HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined (CLOCK_MONOTONIC)
+   if G_UNLIKELY ((status = pthread_condattr_setclock (&attr, CLOCK_MONOTONIC)) != 0)
+     g_thread_abort (status, "pthread_condattr_setclock");
+ #else
+-#error Cannot support GCond on your platform.
++#error Cannot support GCond on your platform. 
+ #endif
+ 
+   cond = malloc (sizeof (pthread_cond_t));
+@@ -896,6 +895,24 @@
+     if ((status = pthread_cond_timedwait_relative_np (g_cond_get_impl (cond), g_mutex_get_impl (mutex), &ts)) == 0)
+       return TRUE;
+   }
++#elif defined (__sgi)
++  /* Required functionality missing, this is the closest we can get.
++   */
++  {
++    gint64 now = g_get_monotonic_time ();
++    gint64 absendtime;
++
++    if (end_time <= now)
++      return FALSE;
++
++    absendtime = g_get_real_time () + (end_time - now);
++
++    ts.tv_sec = absendtime / 1000000;
++    ts.tv_nsec = (absendtime % 1000000) * 1000;
++
++    if ((status = pthread_cond_timedwait (g_cond_get_impl (cond), g_mutex_get_impl (mutex), &ts)) == 0)
++      return TRUE;
++  }
+ #elif defined (HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined (CLOCK_MONOTONIC)
+   /* This is the exact check we used during init to set the clock to
+    * monotonic, so if we're in this branch, timedwait() will already be

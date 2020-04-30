@@ -1,0 +1,49 @@
+diff -ur ../rpmbuild/BUILD/Python-3.8.1/Lib/distutils/command/install.py Python-3.8.1/Lib/distutils/command/install.py
+--- ../rpmbuild/BUILD/Python-3.8.1/Lib/distutils/command/install.py	2019-12-18 13:21:23.000000000 +0000
++++ Python-3.8.1/Lib/distutils/command/install.py	2020-02-16 07:06:16.902734810 +0000
+@@ -29,15 +29,15 @@
+ 
+ INSTALL_SCHEMES = {
+     'unix_prefix': {
+-        'purelib': '$base/lib/python$py_version_short/site-packages',
+-        'platlib': '$platbase/lib/python$py_version_short/site-packages',
++        'purelib': '$base/lib32/python$py_version_short/site-packages',
++        'platlib': '$platbase/lib32/python$py_version_short/site-packages',
+         'headers': '$base/include/python$py_version_short$abiflags/$dist_name',
+         'scripts': '$base/bin',
+         'data'   : '$base',
+         },
+     'unix_home': {
+-        'purelib': '$base/lib/python',
+-        'platlib': '$base/lib/python',
++        'purelib': '$base/lib32/python',
++        'platlib': '$base/lib32/python',
+         'headers': '$base/include/python/$dist_name',
+         'scripts': '$base/bin',
+         'data'   : '$base',
+diff -ur ../rpmbuild/BUILD/Python-3.8.1/Lib/distutils/sysconfig.py Python-3.8.1/Lib/distutils/sysconfig.py
+--- ../rpmbuild/BUILD/Python-3.8.1/Lib/distutils/sysconfig.py	2019-12-18 13:21:23.000000000 +0000
++++ Python-3.8.1/Lib/distutils/sysconfig.py	2020-02-16 06:39:25.224558010 +0000
+@@ -144,10 +144,9 @@
+             prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
+         else:
+             prefix = plat_specific and EXEC_PREFIX or PREFIX
+-
+     if os.name == "posix":
+         libpython = os.path.join(prefix,
+-                                 "lib", "python" + get_python_version())
++                                 "lib32", "python" + get_python_version())
+         if standard_lib:
+             return libpython
+         else:
+diff -ur ../rpmbuild/BUILD/Python-3.8.1/Lib/site.py Python-3.8.1/Lib/site.py
+--- ../rpmbuild/BUILD/Python-3.8.1/Lib/site.py	2020-02-16 07:09:43.086269210 +0000
++++ Python-3.8.1/Lib/site.py	2020-02-16 06:45:13.700625210 +0000
+@@ -350,6 +350,7 @@
+                                                  "site-packages"))
+         else:
+             sitepackages.append(prefix)
++            sitepackages.append(os.path.join(prefix, "lib32", "site-packages"))
+             sitepackages.append(os.path.join(prefix, "lib", "site-packages"))
+     return sitepackages
+ 

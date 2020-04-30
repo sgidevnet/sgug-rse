@@ -1,0 +1,36 @@
+diff -Naur xorgproto-2019.1.orig/include/X11/Xarch.h xorgproto-2019.1/include/X11/Xarch.h
+--- xorgproto-2019.1.orig/include/X11/Xarch.h	2019-06-19 23:13:03.000000000 +0000
++++ xorgproto-2019.1/include/X11/Xarch.h	2020-04-09 19:27:09.160592530 +0000
+@@ -41,7 +41,7 @@
+ 
+ #  if defined(SVR4) || defined(__SVR4)
+ #   include <sys/types.h>
+-#   include <sys/byteorder.h>
++#   include <netman/protocols/byteorder.h>
+ #  elif defined(CSRG_BASED)
+ #   if defined(__NetBSD__) || defined(__OpenBSD__)
+ #    include <sys/types.h>
+diff -Naur xorgproto-2019.1.orig/include/X11/Xfuncs.h xorgproto-2019.1/include/X11/Xfuncs.h
+--- xorgproto-2019.1.orig/include/X11/Xfuncs.h	2019-06-19 23:13:03.000000000 +0000
++++ xorgproto-2019.1/include/X11/Xfuncs.h	2020-04-09 20:26:44.274426130 +0000
+@@ -44,7 +44,7 @@
+ #    define bcmp(b1,b2,len) memcmp(b1, b2, len)
+ #   else
+ #    include <string.h>
+-#    if defined(__SCO__) || defined(__sun) || defined(__UNIXWARE__) || defined(__CYGWIN__) || defined(_AIX) || defined(__APPLE__)
++#    if defined(__SCO__) || defined(__sun) || defined(__UNIXWARE__) || defined(__CYGWIN__) || defined(_AIX) || defined(__APPLE__) || defined(__sgi)
+ #     include <strings.h>
+ #    endif
+ #    define _XFUNCS_H_INCLUDED_STRING_H
+diff -Naur xorgproto-2019.1.orig/include/X11/Xos.h xorgproto-2019.1/include/X11/Xos.h
+--- xorgproto-2019.1.orig/include/X11/Xos.h	2019-06-19 23:13:03.000000000 +0000
++++ xorgproto-2019.1/include/X11/Xos.h	2020-04-09 20:27:09.285481330 +0000
+@@ -60,7 +60,7 @@
+  */
+ 
+ # include <string.h>
+-# if defined(__SCO__) || defined(__UNIXWARE__) || defined(__sun) || defined(__CYGWIN__) || defined(_AIX) || defined(__APPLE__)
++# if defined(__SCO__) || defined(__UNIXWARE__) || defined(__sun) || defined(__CYGWIN__) || defined(_AIX) || defined(__APPLE__) || defined(__sgi)
+ #  include <strings.h>
+ # else
+ #  ifndef index

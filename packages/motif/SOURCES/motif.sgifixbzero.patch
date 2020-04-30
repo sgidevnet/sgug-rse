@@ -1,0 +1,45 @@
+--- motif-2.3.4/lib/Xm/Xmfuncs.h.orig	2012-10-22 15:50:38.000000000 +0000
++++ motif-2.3.4/lib/Xm/Xmfuncs.h	2020-04-19 08:41:56.572306920 +0000
+@@ -39,14 +39,14 @@
+ void bzero();
+ int bcmp();
+ #else
+-#if (__STDC__ && !defined(X_NOT_STDC_ENV) && !defined(sun) && !defined(macII) && !defined(apollo)) || defined(SVR4) || defined(hpux) || defined(_IBMR2) || defined(_SEQUENT_)
++#if (__STDC__ && !defined(X_NOT_STDC_ENV) && !defined(__sgi) && !defined(sun) && !defined(macII) && !defined(apollo)) || defined(SVR4) || defined(hpux) || defined(_IBMR2) || defined(_SEQUENT_)
+ #include <string.h>
+ #define _XFUNCS_H_INCLUDED_STRING_H
+ #define bcopy(b1,b2,len) memmove(b2, b1, (size_t)(len))
+ #define bzero(b,len) memset(b, 0, (size_t)(len))
+ #define bcmp(b1,b2,len) memcmp(b1, b2, (size_t)(len))
+ #else
+-#ifdef sgi
++#if defined(__sgi)
+ #include <bstring.h>
+ #else
+ #ifdef SYSV
+@@ -64,12 +64,18 @@
+ #endif /* X_USEBFUNCS */
+ 
+ /* the new Xfuncs.h */
++#if !defined(X_NOT_STDC_ENV) && defined(__sgi)
++
++#include <bstring.h>
++
++#else
+ 
+ #if !defined(X_NOT_STDC_ENV) && (!defined(sun) || defined(SVR4))
+ /* the ANSI C way */
+ #ifndef _XFUNCS_H_INCLUDED_STRING_H
+ #include <string.h>
+ #endif
++#warning "In here"
+ #undef bzero
+ #define bzero(b,len) memset(b,0,len)
+ #else /* else X_NOT_STDC_ENV or SunOS 4 */
+@@ -88,4 +94,6 @@
+ #endif /* SYSV else */
+ #endif /* ! X_NOT_STDC_ENV else */
+ 
++#endif
++
+ #endif /* _XFUNCS_H_ */
