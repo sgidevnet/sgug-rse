@@ -19,7 +19,7 @@ Summary: The VIM editor
 URL:     http://www.vim.org/
 Name: vim
 Version: %{baseversion}.%{patchlevel}
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Vim and MIT
 Source0: ftp://ftp.vim.org/pub/vim/unix/vim-%{baseversion}-%{patchlevel}.tar.bz2
 Source1: vim.sh
@@ -296,8 +296,7 @@ perl -pi -e "s|lib64 lib|lib64 lib32 lib|g" configure
 # --with-tlib - which terminal library to use
 # --disable-gpm - disabling support for General Purpose Mouse - Linux mouse daemon
 
-export CPPFLAGS="-I%{_includedir} $CPPFLAGS"
-export LDFLAGS="$LDFLAGS -L%{_libdir} -ltinfo"
+export LIBS="-ltinfo"
 export LUA_PREFIX=%{_prefix}
 
 perl -pi -e "s/vimrc/virc/"  os_unix.h
@@ -327,7 +326,9 @@ mv -f ex_cmds.c.save ex_cmds.c
 # --enable-xim - enabling X Input Method - international input module for X,
 #                it is for multibyte languages in Vim with X
 # --enable-termtruecolor - use terminal with true colors
-export LIBS="-lXpm -lintl -ltinfo -liconv"
+
+# Needed to get the braindead vim configure to find sgug motif
+export MOTIFHOME=%{_prefix}
 
 %configure --with-features=huge \
   --enable-perlinterp=dynamic \
@@ -357,7 +358,10 @@ export LIBS="-lXpm -lintl -ltinfo -liconv"
 %else
   --disable-luainterp \
 %endif
-  --enable-fail-if-missing
+  --enable-fail-if-missing \
+  --enable-motif-check --enable-gui=motif \
+  --x-includes=%{_includedir} \
+  --x-libraries=%{_libdir}
 
 #  --enable-python3interp=dynamic \ #
 #  --enable-gtk3-check --enable-gui=gtk3 \ #
@@ -819,6 +823,9 @@ touch %{buildroot}/%{_datadir}/%{name}/vimfiles/doc/tags
 %{_datadir}/icons/locolor/*/apps/*
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-3
+- Switch over to sgug-rse motif/libX11
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-2
 - Put back original iconv processing of docs
 

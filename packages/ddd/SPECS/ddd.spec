@@ -2,10 +2,10 @@
 Summary: GUI for several command-line debuggers
 Name: ddd
 Version: 3.3.12
-Release: 34%{?dist}
+Release: 35%{?dist}
 License: GPLv2+
 URL: http://www.gnu.org/software/ddd/
-#Source0: http://dl.sf.net/ddd/ddd-%{version}.tar.gz
+#Source0: http://dl.sf.net/ddd/ddd-%%{version}.tar.gz
 #For rc:
 Source0: ftp://alpha.gnu.org/gnu/ddd/ddd-3.3.12.tar.gz
 #Source1: ddd.desktop
@@ -17,7 +17,7 @@ Patch4: ddd-3.3.12-rc1-strclass-includes.patch
 Patch5: ddd-3.3.12-debuginfo.patch
 Patch6: ddd-3.3.12-GDBAgent-fix.patch
 
-Patch100: ddd.sgilooknfeel.patch
+#Patch100: ddd.sgilooknfeel.patch
 
 #Requires: gdb, xorg-x11-utils, xterm, gnuplot, xdg-utils, xorg-x11-fonts-ISO8859-1-75dpi, xorg-x11-fonts-ISO8859-1-100dpi, xorg-x11-apps
 Requires: gdb
@@ -54,22 +54,19 @@ interface with full editing, history and completion capabilities.
 %patch5 -p1
 %patch6 -p1
 
-%patch100 -p1
+#%%patch100 -p1
 
 %build
-export CPPFLAGS="$CPPFLAGS -D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I/usr/Motif-2.1/include -I%{_includedir}"
-export PATH="/usr/bin/X11:$PATH"
-export LDFLAGS="-L/usr/Motif-2.1/lib32 -lXm $RPM_LD_FLAGS"
-export LIBS="-lm"
+# LesstifVersion is to avoid including SGI motif extension struct fields
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLesstifVersion=1000"
 libtoolize --force
 aclocal
 autoheader
 automake --force-missing --add-missing
 autoconf
 export CXXFLAGS="${RPM_OPT_FLAGS} -fpermissive"
-# Ugly workaround to get the correct libXpm linked in (from rse)
-export LDFLAGS="-L%{_libdir} -lXpm $RPM_LD_FLAGS -L/usr/Motif-2.1/lib32"
-%configure --with-readline --disable-dependency-tracking --x-includes=/usr/include/X11 --x-libraries=/usr/lib32 --with-xpm-includes=%{_includedir} --with-xpm-libraries=%{_libdir} --with-termlib=tinfo
+export PYTHON=missing
+%configure --with-readline --disable-dependency-tracking --x-includes=%{_includedir} --x-libraries=%{_libdir} --with-xpm-includes=%{_includedir} --with-xpm-libraries=%{_libdir} --with-termlib=tinfo
 make %{?_smp_mflags}
 
 %install
@@ -103,6 +100,9 @@ install -D -m 0644 %{SOURCE2} \
 %{_mandir}/man1/ddd.1*
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.12-35
+- Move over to sgug-rse libX11 (avoid SGI motif extensions)
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.12-34
 - Remove hard coded shell paths
 
