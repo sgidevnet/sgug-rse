@@ -1,0 +1,87 @@
+diff -u -r -w gcc-4.7.1/gcc/config/sh/sh.c gcc-4.7.1-patched/gcc/config/sh/sh.c
+--- gcc-4.7.1/gcc/config/sh/sh.c	2012-06-01 00:04:02.000000000 +0100
++++ gcc-4.7.1-patched/gcc/config/sh/sh.c	2019-03-28 23:56:06.698933779 +0000
+@@ -4751,10 +4751,13 @@
+ 	 CALL_ARG_LOCATION note.  */
+       if (CALL_P (from))
+ 	{
++	  bool sibcall_p SIBLING_CALL_P(from);
+ 	  rtx next = NEXT_INSN (from);
+ 	  if (next && NOTE_P (next)
+ 	      && NOTE_KIND (next) == NOTE_INSN_CALL_ARG_LOCATION)
+ 	    from = next;
++	  if (sibcall_p)
++	    return emit_barrier_after(from);
+ 	}
+ 
+       from = emit_jump_insn_after (gen_jump (label), from);
+diff -u -r -w gcc-4.7.1/gcc/ira-int.h gcc-4.7.1-patched/gcc/ira-int.h
+--- gcc-4.7.1/gcc/ira-int.h	2012-01-19 20:46:31.000000000 +0000
++++ gcc-4.7.1-patched/gcc/ira-int.h	2019-03-28 23:56:06.708934127 +0000
+@@ -1138,8 +1138,13 @@
+ ira_allocno_object_iter_cond (ira_allocno_object_iterator *i, ira_allocno_t a,
+ 			      ira_object_t *o)
+ {
+-  *o = ALLOCNO_OBJECT (a, i->n);
+-  return i->n++ < ALLOCNO_NUM_OBJECTS (a);
++  int n = i->n++;
++  if( n < ALLOCNO_NUM_OBJECTS(a) )
++    {
++      *o = ALLOCNO_OBJECT(a,n);
++      return true;
++    }
++  return false;
+ }
+ 
+ /* Loop over all objects associated with allocno A.  In each
+diff -u -r -w gcc-4.7.1/libgcc/config/i386/linux-unwind.h gcc-4.7.1-patched/libgcc/config/i386/linux-unwind.h
+--- gcc-4.7.1/libgcc/config/i386/linux-unwind.h	2012-04-20 08:51:30.000000000 +0100
++++ gcc-4.7.1-patched/libgcc/config/i386/linux-unwind.h	2019-03-28 23:56:14.422535584 +0000
+@@ -27,6 +27,8 @@
+    state data appropriately.  See unwind-dw2.c for the structs.
+    Don't use this at all if inhibit_libc is used.  */
+ 
++#include <sys/ucontext.h>
++
+ #ifndef inhibit_libc
+ 
+ #ifdef __x86_64__
+@@ -53,11 +55,12 @@
+   if (*(unsigned char *)(pc+0) == 0x48
+       && *(unsigned long long *)(pc+1) == RT_SIGRETURN_SYSCALL)
+     {
+-      struct ucontext *uc_ = context->cfa;
++      ucontext_t *uc_ = context->cfa;
+       /* The void * cast is necessary to avoid an aliasing warning.
+          The aliasing warning is correct, but should not be a problem
+          because it does not alias anything.  */
+-      sc = (struct sigcontext *) (void *) &uc_->uc_mcontext;
++      void *vptr = (void *) &(uc_->uc_mcontext);
++      sc = (struct sigcontext *)vptr;
+     }
+   else
+     return _URC_END_OF_STACK;
+@@ -142,7 +145,7 @@
+ 	siginfo_t *pinfo;
+ 	void *puc;
+ 	siginfo_t info;
+-	struct ucontext uc;
++	ucontext_t uc;
+       } *rt_ = context->cfa;
+       /* The void * cast is necessary to avoid an aliasing warning.
+          The aliasing warning is correct, but should not be a problem
+diff -u -r -w gcc-4.7.1/libgcc/config/mips/t-slibgcc-irix gcc-4.7.1-patched/libgcc/config/mips/t-slibgcc-irix
+--- gcc-4.7.1/libgcc/config/mips/t-slibgcc-irix	2011-11-02 10:49:46.000000000 +0000
++++ gcc-4.7.1-patched/libgcc/config/mips/t-slibgcc-irix	2019-03-28 23:56:06.712267576 +0000
+@@ -1,7 +1,9 @@
+ # Build a shared libgcc library with the SGI linker.
+ 
+-SHLIB_LDFLAGS = -Wl,-soname,$(SHLIB_SONAME) \
+-	-Wl,-exports_file,$(SHLIB_MAP)
++#SHLIB_LDFLAGS = -Wl,-soname,$(SHLIB_SONAME)
++#	-Wl,-exports_file,$(SHLIB_MAP)
++
++SHLIB_LDFLAGS = -Wl,-soname,$(SHLIB_SONAME)
+ 
+ SHLIB_MKMAP = $(srcdir)/mkmap-flat.awk
+ SHLIB_MAPFILES = libgcc-std.ver

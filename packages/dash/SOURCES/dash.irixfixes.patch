@@ -1,0 +1,26 @@
+diff -Naur dash-0.5.10.2.orig/src/output.c dash-0.5.10.2/src/output.c
+--- dash-0.5.10.2.orig/src/output.c	2018-05-17 04:10:58.000000000 +0000
++++ dash-0.5.10.2/src/output.c	2020-04-27 23:53:55.416339645 +0000
+@@ -55,7 +55,7 @@
+ #include <fcntl.h>
+ #endif
+ #include <limits.h>
+-
++#include <signal.h>
+ #include "shell.h"
+ #include "syntax.h"
+ #include "output.h"
+diff -Naur dash-0.5.10.2.orig/src/system.c dash-0.5.10.2/src/system.c
+--- dash-0.5.10.2.orig/src/system.c	2014-09-28 01:19:32.000000000 +0000
++++ dash-0.5.10.2/src/system.c	2020-04-27 23:55:16.720700195 +0000
+@@ -92,8 +92,8 @@
+ {
+ 	static char buf[19];
+ 
+-	if ((unsigned)sig < NSIG && sys_siglist[sig])
+-		return (char *)sys_siglist[sig];
++	if ((unsigned)sig < NSIG && _sys_siglist[sig])
++		return (char *)_sys_siglist[sig];
+ 	fmtstr(buf, sizeof(buf), "Signal %d", sig); 
+ 	return buf;
+ }

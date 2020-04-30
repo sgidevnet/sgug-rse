@@ -1,0 +1,16 @@
+diff --git a/libjack/time.c b/libjack/time.c
+index 418f291..8544d3c 100644
+--- a/libjack/time.c
++++ b/libjack/time.c
+@@ -67,7 +67,11 @@ jack_get_microseconds_from_system (void)
+ 	jack_time_t jackTime;
+ 	struct timespec time;
+ 
++#if defined(__sgi)
++	clock_gettime (CLOCK_SGI_CYCLE, &time);
++#else
+ 	clock_gettime (CLOCK_MONOTONIC, &time);
++#endif
+ 	jackTime = (jack_time_t)time.tv_sec * 1e6 +
+ 		   (jack_time_t)time.tv_nsec / 1e3;
+ 	return jackTime;
