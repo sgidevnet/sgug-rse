@@ -57,8 +57,8 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 
 rm -rf $RPM_BUILD_ROOT%{_docdir}
 
-%ldconfig_post
-%ldconfig_postun
+#%ldconfig_post
+#%ldconfig_postun
 
 %files
 %doc COPYING

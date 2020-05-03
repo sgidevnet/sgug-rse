@@ -44,10 +44,10 @@ make install DESTDIR=%{buildroot} INSTALL="install -p"
 rm %{buildroot}%{_libdir}/*.la
 
 
-%ldconfig_post
+#%ldconfig_post
 
 
-%ldconfig_postun
+#%ldconfig_postun
 
 
 %files

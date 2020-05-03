@@ -56,8 +56,8 @@ rm $RPM_BUILD_ROOT%{_docdir}/*/*.txt
 
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
-%ldconfig_post
-%ldconfig_postun
+#%ldconfig_post
+#%ldconfig_postun
 
 %files
 %doc COPYING README.md
