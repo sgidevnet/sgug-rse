@@ -52,8 +52,8 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 # hack, we'll %%doc this on our own
 rm -rf $RPM_BUILD_ROOT%{_docdir}
 
-%ldconfig_post
-%ldconfig_postun
+#%ldconfig_post
+#%ldconfig_postun
 
 %files
 %doc COPYING README

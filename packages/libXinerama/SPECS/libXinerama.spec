@@ -53,8 +53,8 @@ make install DESTDIR=$RPM_BUILD_ROOT
 # We intentionally don't ship *.la files
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 
-%ldconfig_post
-%ldconfig_postun
+#%ldconfig_post
+#%ldconfig_postun
 
 %files
 %doc COPYING

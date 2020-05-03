@@ -453,7 +453,7 @@ php --no-php-ini \
 %{?ldconfig}
 %{_bindir}/dot -c 2>/dev/null || :
 
-%ldconfig_postun
+#%ldconfig_postun
 
 %if %{DEVIL}
 # run "dot -c" to generate plugin config in %%{_libdir}/graphviz/config*
