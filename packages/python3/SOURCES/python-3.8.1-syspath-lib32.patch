@@ -1,0 +1,15 @@
+--- /usr/people/esp/src/dist/Python-3.8.1/Modules/getpath.c	2019-12-18 13:21:23.000000000 +0000
++++ Modules/getpath.c	2020-02-16 04:04:13.453565210 +0000
+@@ -1197,7 +1197,12 @@
+     if (!calculate->exec_prefix) {
+         return DECODE_LOCALE_ERR("EXEC_PREFIX define", len);
+     }
++#ifdef __sgi
++    /* SGUG build specific hack */
++    calculate->lib_python = Py_DecodeLocale("lib32/python" VERSION, &len);
++#else
+     calculate->lib_python = Py_DecodeLocale("lib/python" VERSION, &len);
++#endif
+     if (!calculate->lib_python) {
+         return DECODE_LOCALE_ERR("EXEC_PREFIX define", len);
+     }

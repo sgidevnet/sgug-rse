@@ -1,0 +1,11 @@
+--- libXpm-3.5.12/src/Makefile.am.orig	2020-04-15 14:24:32.501618080 +0000
++++ libXpm-3.5.12/src/Makefile.am	2020-04-15 14:25:24.997504200 +0000
+@@ -6,6 +6,8 @@
+ AM_CFLAGS = $(CWARNFLAGS) $(XPM_CFLAGS)
+ 
+ libXpm_la_LDFLAGS = -version-number 4:11:0 -no-undefined
++# Avoid libXpm getting linked with libintl which we don't want
++LIBS=
+ libXpm_la_LIBADD =  $(XPM_LIBS)
+ 
+ libXpm_la_SOURCES =					\
