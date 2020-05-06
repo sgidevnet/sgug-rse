@@ -7,7 +7,7 @@
 Summary: SGUG specific rpm configuration files
 Name: sgug-rpm-config
 Version: 1
-Release: 1%{?dist}
+Release: 3%{?dist}
 # No version specified.
 License: GPL+
 URL: https://github.com/sgidevnet/sgug-rse/
@@ -40,5 +40,11 @@ install -p -m 644 -t %{buildroot}%{rpmetcdir} macros
 %{rpmetcdir}/macros
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1-3
+- Switch over to zstd compression
+
+* Thur Apr 16 2020 Daniel Hams <daniel.hams@gmail.com> - 1-2
+- Fix incorrect mandir (/usr/sgug/man -> /usr/sgug/share/man)
+
 * Sun Feb 09 2020 Daniel Hams <daniel.hams@gmail.com> - 1-1
 - First try as a package

@@ -38,7 +38,7 @@ diff -N -r -u -w rpm-4.15.0/lib/rpmrc.c rpm-4.15.0-patched/lib/rpmrc.c
  	    strcpy(un.machine, __power_pc() ? "ppc" : "rs6000");
  	    sprintf(un.sysname,"aix%s.%s", un.version, un.release);
  	}
-+	else if (rstreq(un.sysname, "IRIX64")) {
++	else if (rstreqn(un.sysname, "IRIX", strlen("IRIX"))) {
 +#		if __MIPS_SIM == _MIPS_SIM_ABI64
 +		    /* 64-bit */
 +#			if !defined(__mips_isa_rev) || __mips_isa_rev < 6

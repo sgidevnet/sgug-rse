@@ -8,7 +8,7 @@
 
 Name:           bash-completion
 Version:        2.8
-Release:        7%{?dist}
+Release:        8%{?dist}
 Epoch:          1
 Summary:        Programmable completion for Bash
 
@@ -40,17 +40,11 @@ bash-completion is a collection of shell functions that take advantage
 of the programmable completion feature of bash.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -p1
 
 %build
 # Needed for rfkill patch as it modifies Makefile.am
 # It should be removed while rebasing to bash-completion-2.8
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 autoreconf -fi -v
 %configure
 %make_build
@@ -69,9 +63,6 @@ EOF
 
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %make_install
 install -Dpm 644 redefine_filedir \
     %{buildroot}%{_sysconfdir}/bash_completion.d/redefine_filedir
@@ -108,6 +99,9 @@ make -C completions check
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1:2.8-8
+- Remove hard coded shell paths
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:2.8-7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

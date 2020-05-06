@@ -4,7 +4,7 @@
 Summary: The GNU Debugger
 Name: gdb
 Version: 7.6.2
-Release: 1%{?dist}
+Release: 3%{?dist}
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ and GPLv2+ with exceptions and GPL+ and LGPLv2+ and LGPLv3+ and BSD and Public Domain and GFDL
 URL: http://ftp.gnu.org/gnu/gdb/
 Source: http://ftp.gnu.org/gnu/gdb/gdb-%{version}.tar.gz
@@ -22,16 +22,10 @@ Requires: zlib, readline, ncurses
 The gnu debugger.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %setup
 %patch0 -p1 -b .sgifixups
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %{configure} --enable-werror=no --disable-nls --disable-iconv \
     --disable-gprof --with-system-zlib --with-system-readline \
     --with-curses=ncurses                                     \
@@ -39,20 +33,14 @@ export CONFIG_SHELL="$SHELL"
     --libdir=%{_libdir}					      \
     --sysconfdir=%{_sysconfdir}				      \
     --mandir=%{_mandir}					      \
-    --infodir=%{_infodir}
-    
+    --infodir=%{_infodir}                                     \
+    --with-python=no
 make %{?_smp_mflags}
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make check
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make install DESTDIR=$RPM_BUILD_ROOT prefix=%{_prefix} INSTALL='install -p'
 
 rm -rf $RPM_BUILD_ROOT%{_libdir}/charset.alias
@@ -84,5 +72,11 @@ rm -f $RPM_BUILD_ROOT%{_datadir}/gdb/syscalls/*
 %{_infodir}/gdb*.gz
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-3
+- Avoid picking up python
+
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-2
+- Remove hard coded shell paths
+
 * Thu Jan 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.0
 - First build

@@ -4,7 +4,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.19
+Version: 0.1.22
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -39,7 +39,7 @@ make check
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT prefix=%{_prefix} INSTALL='install -p'
-rm $RPM_BUILD_ROOT/%{_libdir}/libdicl-0.1.la
+rm $RPM_BUILD_ROOT%{_libdir}/libdicl-0.1.la
 
 %files
 #%%{!?_licensedir:%%global license %%doc}
@@ -55,6 +55,12 @@ rm $RPM_BUILD_ROOT/%{_libdir}/libdicl-0.1.la
 
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.22-1
+- Upgrade to libdicl exposing strnlen, removing pselect proto
+
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.20-1
+- Update to 0.1.20 with gnulib regexp
+
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.19-1
 - Upgrade to 0.1.19 needed for pcre test passing / bug fixes.
 

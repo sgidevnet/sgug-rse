@@ -34,7 +34,7 @@ Summary: The free peer-reviewed portable C++ source libraries
 Version: 1.69.0
 %global version_enc 1_69_0
 %global version_suffix 169
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: Boost and MIT and Python
 
 %global toplev_dirname %{real_name}_%{version_enc}
@@ -68,7 +68,7 @@ Requires: %{name}-fiber%{?_isa} = %{version}-%{release}
 %endif
 Requires: %{name}-filesystem%{?_isa} = %{version}-%{release}
 #Requires: %{name}-graph%{?_isa} = %{version}-%{release}
-#Requires: %{name}-iostreams%{?_isa} = %{version}-%{release}
+Requires: %{name}-iostreams%{?_isa} = %{version}-%{release}
 #Requires: %{name}-locale%{?_isa} = %{version}-%{release}
 #Requires: %{name}-log%{?_isa} = %{version}-%{release}
 Requires: %{name}-math%{?_isa} = %{version}-%{release}
@@ -253,13 +253,13 @@ Run-time support for the BGL graph library.  BGL interface and graph
 components are generic, in the same sense as the Standard Template
 Library (STL).
 
-#%package iostreams
-#Summary: Run-time component of boost iostreams library
+%package iostreams
+Summary: Run-time component of boost iostreams library
 
-#%description iostreams
-#
-#Run-time support for Boost.Iostreams, a framework for defining streams,
-#stream buffers and i/o filters.
+%description iostreams
+
+Run-time support for Boost.Iostreams, a framework for defining streams,
+stream buffers and i/o filters.
 
 #%package locale
 #Summary: Run-time component of boost locale library
@@ -800,7 +800,7 @@ EOF
 echo ============================= build serial ==================
 ./b2 -d+2 -q %{?_smp_mflags} \
 	--without-mpi --without-graph_parallel --build-dir=serial \
-        --without-contract --without-graph --without-iostreams \
+        --without-contract --without-graph \
         --without-locale --without-log --without-serialization \
         --without-stacktrace --without-test --without-timer \
         --without-type_erasure --without-wave \
@@ -1016,7 +1016,7 @@ export PATH=/bin${PATH:+:}$PATH
 echo ============================= install serial ==================
 ./b2 -d+2 -q %{?_smp_mflags} \
 	--without-mpi --without-graph_parallel --build-dir=serial \
-        --without-contract --without-graph --without-iostreams \
+        --without-contract --without-graph \
         --without-locale --without-log --without-serialization \
         --without-stacktrace --without-test --without-timer \
         --without-type_erasure --without-wave \
@@ -1218,9 +1218,9 @@ fi
 #%license LICENSE_1_0.txt
 #%{_libdir}/libboost_graph.so.%{sonamever}
 
-#%files iostreams
-#%license LICENSE_1_0.txt
-#%{_libdir}/libboost_iostreams.so.%{sonamever}
+%files iostreams
+%license LICENSE_1_0.txt
+%{_libdir}/libboost_iostreams.so.%{sonamever}
 
 #%files locale
 #%license LICENSE_1_0.txt
@@ -1349,7 +1349,7 @@ fi
 %endif
 %{_libdir}/libboost_filesystem.so
 #%{_libdir}/libboost_graph.so
-#%{_libdir}/libboost_iostreams.so
+%{_libdir}/libboost_iostreams.so
 #%{_libdir}/libboost_locale.so
 #%{_libdir}/libboost_log.so
 #%{_libdir}/libboost_log_setup.so
@@ -1488,6 +1488,9 @@ fi
 %{_mandir}/man1/bjam.1*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.69.0-10
+- Build + install boost iostreams library
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.69.0-9
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

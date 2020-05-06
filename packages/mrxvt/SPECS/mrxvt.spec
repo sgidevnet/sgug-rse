@@ -4,7 +4,7 @@
 Summary: A lightweight multi-tabbed terminal emulator for X
 Name: mrxvt 
 Version: 0.5.4
-Release: 25%{?dist} 
+Release: 26%{?dist} 
 URL: http://materm.sourceforge.net/wiki/Main/HomePage
 License: GPLv2+
 BuildRequires:  gcc
@@ -23,9 +23,6 @@ Patch2: mrxvt.sgifixes.patch
 Mrxvt (previously materm) is based on 2.7.11 CVS of rxvt and aterm.
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 
 %setup -q 
 #%patch1 -p0 -b .no-scroll-with-buffer-mrxvt-0.5.3
@@ -33,14 +30,12 @@ export CONFIG_SHELL="$SHELL"
 sed -i 's|\r||' share/scripts/mrxvt.vbs
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 
 #configure \
 #           --enable-everything \
 #           --disable-debug
-
+# mrxvt & the config cache aren't happy together
+unset CONFIG_SITE
 %configure \
            --enable-sgi-scroll \
            --with-tab-radius=0
@@ -48,9 +43,6 @@ export CONFIG_SHELL="$SHELL"
 make %{?_smp_mflags}
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 
 rm -rf $RPM_BUILD_ROOT
 make DESTDIR=$RPM_BUILD_ROOT INSTALL="%{__install} -p" install 
@@ -83,6 +75,9 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/doc
 %{_datadir}/pixmaps/%{name}*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.5.4-26
+- Remove hard coded shell paths, avoid use of config.cache
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.5.3-25
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

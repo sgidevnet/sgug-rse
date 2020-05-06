@@ -3,7 +3,7 @@
 
 Name:           unrar
 Version:        5.6.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Utility for extracting, testing and viewing RAR archives
 License:        Freeware with further limitations
 URL:            http://www.rarlab.com/rar_add.htm
@@ -45,18 +45,12 @@ developing applications that use libunrar.
 
 
 %prep
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %setup -q -n %{name}
 cp -p %SOURCE1 .
 %patch0 -p1 -b .sgifixes
 
 
 %build
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export RPM_OPT_FLAGS="$RPM_OPT_FLAGS -DBIG_ENDIAN -D_BSD_COMPAT"
 make %{?_smp_mflags} -f makefile \
   CXX="%{__cxx}" CXXFLAGS="$RPM_OPT_FLAGS -fPIC -DPIC" LDFLAGS="$RPM_LD_FLAGS -pthread" \
@@ -68,9 +62,6 @@ make %{?_smp_mflags} -f makefile lib \
 
 
 %install
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 rm -rf %{buildroot}
 #install -Dpm 755 unrar %{buildroot}%{_bindir}/unrar
 install -Dpm 755 unrar %{buildroot}%{_bindir}/unrar-nonfree
@@ -128,6 +119,9 @@ fi
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 5.6.5-2
+- Remove hard coded shell paths
+
 * Sat Sep 08 2018 Leigh Scott <leigh123linux@googlemail.com> - 5.6.6-1
 - Update to 5.6.6
 

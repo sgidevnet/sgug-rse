@@ -7,7 +7,7 @@
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 3
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -761,11 +761,6 @@ macros.
 #to NVidia PTX capable devices if available.
 
 %prep
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 
 #setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
 %setup -q -n gcc-%{version}-%{DATE}
@@ -798,7 +793,7 @@ export PERL=%{_bindir}/perl
 %patch2002 -p1 -b .sgifixlibstdcpp01
 %patch2003 -p1 -b .sgifixlibstdcpp02
 
-echo 'sgugver-0.1.9-mips3-ng' > gcc/DEV-PHASE
+echo 'sgugver-0.2.0-mips3-ng' > gcc/DEV-PHASE
 
 cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
 
@@ -829,11 +824,6 @@ fi
 rm -f gcc/testsuite/go.test/test/chan/goroutines.go
 
 %build
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 
 # Undo the broken autoconf change in recent Fedora versions
 export CONFIG_SITE=NONE
@@ -1156,11 +1146,6 @@ rm -f rpm.doc/changelogs/gcc/ChangeLog.[1-9]
 find rpm.doc -name \*ChangeLog\* | xargs bzip2 -9
 
 %install
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 
 rm -rf %{buildroot}
 
@@ -1380,12 +1365,13 @@ fi
 mkdir -p %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++*gdb.py* \
       %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/
-#pushd ../libstdc++-v3/python
+#OLDPWD=`pwd`
+#cd ../libstdc++-v3/python
 #for i in `find . -name \*.py`; do
 #  touch -r $i %{buildroot}%{_prefix}/share/gcc-%{gcc_major}/python/$i
 #done
 #touch -r hook.in %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/libstdc++*gdb.py
-#popd
+#cd $OLDPWD
 #for f in `find %{buildroot}%{_prefix}/share/gcc-%{gcc_major}/python/ \
 #	       %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/ -name \*.py`; do
 #  r=${f/$RPM_BUILD_ROOT/}
@@ -1399,7 +1385,8 @@ mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++*gdb.py* \
 #/usr/bin/install -c -m 644 objlibgccjit/gcc/doc/libgccjit.info %{buildroot}/%{_infodir}/
 #gzip -9 %{buildroot}/%{_infodir}/libgccjit.info
 
-pushd $FULLPATH
+OLDPWD=`pwd`
+cd $FULLPATH
 if [ "%{_lib}" = "lib" ]; then
 %if %{build_objc}
 ln -sf ../../../libobjc.so.4 libobjc.so
@@ -1519,7 +1506,8 @@ rm -rf $FULLPATH/32/ada{include,lib}
 %endif
 if [ "$FULLPATH" != "$FULLLPATH" ]; then
 mv -f $FULLPATH/ada{include,lib} $FULLLPATH/
-pushd $FULLLPATH/adalib
+OLDPWD=`pwd`
+cd $FULLLPATH/adalib
 if [ "%{_lib}" = "lib" ]; then
 ln -sf ../../../../../libgnarl-*.so libgnarl.so
 ln -sf ../../../../../libgnarl-*.so libgnarl-9.so
@@ -1531,9 +1519,10 @@ ln -sf ../../../../../../%{_lib}/libgnarl-*.so libgnarl-9.so
 ln -sf ../../../../../../%{_lib}/libgnat-*.so libgnat.so
 ln -sf ../../../../../../%{_lib}/libgnat-*.so libgnat-9.so
 fi
-popd
+cd $OLDPWD
 else
-pushd $FULLPATH/adalib
+OLDPWD=`pwd`
+cd $FULLPATH/adalib
 if [ "%{_lib}" = "lib" ]; then
 ln -sf ../../../../libgnarl-*.so libgnarl.so
 ln -sf ../../../../libgnarl-*.so libgnarl-9.so
@@ -1545,7 +1534,7 @@ ln -sf ../../../../../%{_lib}/libgnarl-*.so libgnarl-9.so
 ln -sf ../../../../../%{_lib}/libgnat-*.so libgnat.so
 ln -sf ../../../../../%{_lib}/libgnat-*.so libgnat-9.so
 fi
-popd
+cd $OLDPWD
 fi
 %endif
 
@@ -1827,7 +1816,7 @@ done
 # Ensure that any static libraries are _not_ stripped
 # irix needs the symbols from libgcc.a for example that strip would remove
 chmod 644 `find %{buildroot}%{_prefix} -name lib\*.a`
-popd
+cd $OLDPWD
 #chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgfortran.so.5.*
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgomp.so.1.*
 #chmod 755 %{buildroot}%{_prefix}/%{_lib}/libcc1.so.0.*
@@ -3061,6 +3050,9 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %endif
 
 %changelog
+* Tue Mar 31 2020 Daniel Hams <daniel.hams@gmail.com> 9.2.0-3
+- Tweak the default spec so that static linking isn''t no-abicalls
+
 * Tue Aug 27 2019 Jakub Jelinek <jakub@redhat.com> 9.2.1-1
 - update from 9 branch
   - GCC 9.2 release

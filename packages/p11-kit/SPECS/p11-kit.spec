@@ -3,7 +3,7 @@
 
 # This spec file has been automatically updated
 Version:	0.23.16.1
-Release:        3%{?dist}
+Release:        5%{?dist}
 Name:           p11-kit
 Summary:        Library for loading and sharing PKCS#11 modules
 
@@ -47,7 +47,8 @@ developing applications that use %{name}.
 %package trust
 Summary:            System trust module from %{name}
 Requires:           %{name}%{?_isa} = %{version}-%{release}
-Requires:           libdicl-devel >= 0.1.19
+Requires:           libdicl >= 0.1.19
+Requires:           alternatives
 Requires(post):     %{_sbindir}/update-alternatives
 Requires(postun):   %{_sbindir}/update-alternatives
 Conflicts:          nss < 3.14.3-9
@@ -77,15 +78,9 @@ contains certificate anchors and black lists.
 
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %autosetup -p1
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
 export LIBS="-ldicl-0.1"
 # These paths are the source paths that  come from the plan here:
@@ -95,9 +90,6 @@ export LIBS="-ldicl-0.1"
 make %{?_smp_mflags} V=1
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pkcs11/modules
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
@@ -108,8 +100,8 @@ perl -pi -e "s|/usr/bin/update-ca-trust|%{_bindir}/update-ca-trust|g" $RPM_BUILD
 
 # Install the example conf with %%doc instead
 rm $RPM_BUILD_ROOT%{_sysconfdir}/pkcs11/pkcs11.conf.example
-mkdir -p $RPM_BUILD_ROOT%{_userunitdir}
-install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_userunitdir}
+#mkdir -p $RPM_BUILD_ROOT%{_userunitdir}
+#install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_userunitdir}
 
 # Remove unused server bits
 rm $RPM_BUILD_ROOT%{_libdir}/pkcs11/p11-kit-client.so
@@ -171,6 +163,9 @@ fi
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.23.16.1-5
+- Fix incorrect dependency from p11-kit-trust on libdicl-devel
+
 * Thu Feb 20 2020 Daniel Hams <daniel.hams@gmail.com> - 0.23.16.1-3
 - Rebuild due to libdicl upgrade to 0.1.19
 

@@ -4,7 +4,7 @@
 Summary:       An X Window System utility for monitoring system resources
 Name:          xosview
 Version:       1.21
-Release:       1%{?dist}
+Release:       2%{?dist}
 # The netbsd/swapinternal.{cc,h} source files are BSD only (with 
 # advertising), but neither file is used in the linux version of 
 # xosview.  Instead, the source files used are linux/swapmeter.{cc,h}, 
@@ -39,7 +39,7 @@ make PLATFORM=irix65 %{?_smp_mflags} OPTFLAGS="%{optflags}" LDFLAGS="%{build_ldf
 make PLATFORM=irix65 install PREFIX=%{buildroot}%{_prefix} INSTALL="install -p"
 install -p -m 0644 -D Xdefaults %{buildroot}%{_datadir}/X11/app-defaults/XOsview
 #desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
-mv $RPM_BUILD_ROOT%{_datadir}/man $RPM_BUILD_ROOT%{_mandir}/
+#mv $RPM_BUILD_ROOT%{_datadir}/man $RPM_BUILD_ROOT%{_mandir}/
 
 %files
 %license COPYING COPYING.GPL
@@ -51,6 +51,9 @@ mv $RPM_BUILD_ROOT%{_datadir}/man $RPM_BUILD_ROOT%{_mandir}/
 %{_datadir}/X11/app-defaults/XOsview
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.21-2
+- Manpath correction
+
 * Mon Aug 12 2019 Terje Rosten <terje.rosten@ntnu.no> - 1.21-1
 - 1.21
 

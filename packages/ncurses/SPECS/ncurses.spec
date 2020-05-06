@@ -5,7 +5,7 @@
 Summary: Ncurses support utilities
 Name: ncurses
 Version: 6.1
-Release: 12.%{revision}%{?dist}
+Release: 13.%{revision}%{?dist}
 License: MIT
 URL: https://invisible-island.net/ncurses/ncurses.html
 Source0: https://invisible-mirror.net/archives/ncurses/current/ncurses-%{version}-%{revision}.tgz
@@ -136,6 +136,8 @@ The ncurses-static package includes static libraries of the ncurses library.
 #done
 
 %build
+# Avoid any use of configure caching (issues seen)
+unset CONFIG_SITE
 common_options="\
     --enable-colorfgbg \
     --enable-hard-tabs \
@@ -160,7 +162,7 @@ abi5_options="--with-chtype=long"
 for abi in 6; do
     for char in narrowc widec; do
         mkdir $char$abi
-        pushd $char$abi
+        cd $char$abi
         ln -s ../configure .
 
         [ $abi = 6 -a $char = widec ] && progs=yes || progs=no
@@ -175,7 +177,7 @@ for abi in 6; do
         make %{?_smp_mflags} libs
         [ $progs = yes ] && make %{?_smp_mflags} -C progs
 
-        popd
+        cd ..
     done
 done
 
@@ -308,6 +310,9 @@ xz NEWS
 %{_libdir}/lib*.a
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 6.1-13
+- Remove hard coded shell paths, avoid use of config.cache
+
 * Wed Aug 07 2019 Miroslav Lichvar <mlichvar@redhat.com> 6.1-12.20190803
 - update to 6.1-20190803
 - verify upstream signatures

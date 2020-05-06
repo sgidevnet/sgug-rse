@@ -1,0 +1,19 @@
+--- util-linux-2.34/libuuid/src/Makemodule.am.orig	2020-04-15 14:38:02.876372840 +0000
++++ util-linux-2.34/libuuid/src/Makemodule.am	2020-04-15 14:45:23.862346640 +0000
+@@ -8,6 +8,7 @@
+ uuidincdir = $(includedir)/uuid
+ uuidinc_HEADERS = libuuid/src/uuid.h
+ 
++# Avoid linking in intl discovered by autoconf
+ usrlib_exec_LTLIBRARIES += libuuid.la
+ 
+ libuuid_la_SOURCES = \
+@@ -31,7 +32,7 @@
+ EXTRA_libuuid_la_DEPENDENCIES = \
+ 	libuuid/src/libuuid.sym
+ 
+-libuuid_la_LIBADD       = $(LDADD) $(SOCKET_LIBS)
++#libuuid_la_LIBADD       = $(LDADD) $(SOCKET_LIBS)
+ 
+ libuuid_la_CFLAGS = \
+ 	$(AM_CFLAGS) \

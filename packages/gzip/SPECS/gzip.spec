@@ -4,7 +4,7 @@
 Summary: The GNU data compression program
 Name: gzip
 Version: 1.9
-Release: 1%{?dist}
+Release: 2%{?dist}
 # info pages are under GFDL license
 License: GPLv3+ and GFDL
 Source0: http://ftp.gnu.org/gnu/gzip/gzip-%{version}.tar.gz
@@ -56,8 +56,10 @@ export CPP="%{__cpp}"
 export CXX="%{__cxx}"
 %configure
 make %{?_smp_mflags}
-make check
 #make gzip.info
+
+%check
+make check
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
@@ -86,6 +88,9 @@ install -p -m 644 %{SOURCE101} %{buildroot}%{profiledir}
 %{profiledir}/*
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.10-2
+- Remove hard coded shell paths
+
 * Fri Aug 09 2019 Jakub Martisko <jamartis@redhat.com> - 1.10-1
 - Rebase to 1.10
 

@@ -5,7 +5,7 @@
 
 Name:           libarchive
 Version:        3.3.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A library for handling streaming archive formats
 
 License:        BSD
@@ -85,7 +85,8 @@ standard output.
 
 
 %build
-%configure --disable-static LT_SYS_LIBRARY_PATH=%_libdir
+#%%configure --disable-static LT_SYS_LIBRARY_PATH=%_libdir
+%configure --disable-static
 %make_build
 
 
@@ -93,37 +94,39 @@ standard output.
 make install DESTDIR=$RPM_BUILD_ROOT
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
+# This only changes binary names in man pages, but doesn't work
+# under mksh (should probably replace with perl -pi -e "s|thing|bsdthing|g"
 # rhbz#1294252
-replace ()
-{
-    filename=$1
-    file=`basename "$filename"`
-    binary=${file%%.*}
-    pattern=${binary##bsd}
-
-    awk "
-        # replace the topic
-        /^.Dt ${pattern^^} 1/ {
-            print \".Dt ${binary^^} 1\";
-            next;
-        }
-        # replace the first occurence of \"$pattern\" by \"$binary\"
-        !stop && /^.Nm $pattern/ {
-            print \".Nm $binary\" ;
-            stop = 1 ;
-            next;
-        }
-        # print remaining lines
-        1;
-    " "$filename" > "$filename.new"
-    mv "$filename".new "$filename"
-}
-
-for manpage in bsdtar.1 bsdcpio.1
-do
-    installed_manpage=`find "$RPM_BUILD_ROOT" -name "$manpage"`
-    replace "$installed_manpage"
-done
+# replace ()
+# {
+#     filename=$1
+#     file=`basename "$filename"`
+#     binary=${file%%.*}
+#     pattern=${binary##bsd}
+#
+#     awk "
+#         # replace the topic
+#         /^.Dt ${pattern^^} 1/ {
+#             print \".Dt ${binary^^} 1\";
+#             next;
+#         }
+#         # replace the first occurence of \"$pattern\" by \"$binary\"
+#         !stop && /^.Nm $pattern/ {
+#             print \".Nm $binary\" ;
+#             stop = 1 ;
+#             next;
+#         }
+#         # print remaining lines
+#         1;
+#     " "$filename" > "$filename.new"
+#     mv "$filename".new "$filename"
+# }
+#
+# for manpage in bsdtar.1 bsdcpio.1
+# do
+#     installed_manpage=`find "$RPM_BUILD_ROOT" -name "$manpage"`
+#     replace "$installed_manpage"
+# done
 
 
 %check
@@ -218,6 +221,9 @@ run_testsuite
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.2-2
+- Remove man page rewriting that doesnt work with mksh
+
 * Fri Aug 30 2019 FeRD (Frank Dana) <ferdnyc@gmail.com> - 3.4.0-1
 - New upstream release, adds RAR5 and ZIPX support (readonly)
 - Drop upstreamed patches

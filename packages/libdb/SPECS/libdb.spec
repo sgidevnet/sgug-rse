@@ -7,7 +7,7 @@
 Summary: The Berkeley DB database library for C
 Name: libdb
 Version: 5.3.28
-Release: 38%{?dist}
+Release: 39%{?dist}
 Source0: http://download.oracle.com/berkeley-db/db-%{version}.tar.gz
 Source1: http://download.oracle.com/berkeley-db/db.1.85.tar.gz
 # For mt19937db.c
@@ -223,15 +223,14 @@ cp %{SOURCE2} .
 tar -xf %{SOURCE3}
 
 %patch0 -p1
-pushd db.1.85/PORT/linux
+cd db.1.85/PORT/linux
 %patch10 -p0
-popd
-pushd db.1.85
+cd ../..
 %patch11 -p0
 %patch12 -p0
 %patch13 -p0
 %patch20 -p1
-popd
+cd ..
 
 %patch22 -p1
 %patch24 -p1
@@ -253,13 +252,13 @@ popd
 
 %patch100 -p1
 
-pushd lang/sql/sqlite
+cd lang/sql/sqlite
 autoreconf -f -i
-popd
+cd ../../..
 
-pushd dist
+cd dist
 libtoolize -f -i
-popd
+cd ..
 
 cd dist
 ./s_config
@@ -286,7 +285,7 @@ test -d dist/dist-tls || mkdir dist/dist-tls
 # Reduced link flags otherwise errors
 export LDFLAGS="-lpthread -Wl,-z -Wl,relro -Wl,-z -Wl,now -Wl,-rpath -Wl,%{_libdir}"
 
-pushd dist/dist-tls
+cd dist/dist-tls
 %define _configure ../configure
 %configure -C \
 	--enable-compat185 --enable-dump185 \
@@ -317,7 +316,7 @@ make %{?_smp_mflags}
 
 # Run some quick subsystem checks
 echo "source ../../test/tcl/test.tcl; r env; r mut; r memp" | tclsh
-popd
+cd ../..
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
@@ -444,6 +443,9 @@ mv man/* ${RPM_BUILD_ROOT}%{_mandir}/man1
 #%{_libdir}/libdb_java.so
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 5.3.28-39
+- Remove hard coded shell paths/bashisms
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 5.3.28-38
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

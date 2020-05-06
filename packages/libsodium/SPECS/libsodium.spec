@@ -13,7 +13,7 @@
 
 Name:           libsodium
 Version:        1.0.18
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        The Sodium crypto library
 License:        ISC
 URL:            http://libsodium.org/
@@ -61,17 +61,11 @@ linking applications to use %{name}.
 
 
 %prep
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %setup -q
 %patch100 -p1 -b .avoidirixmalloclimits
 
 
 %build
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 # Debugging
 #export CFLAGS="-g -O0"
 #export CXXFLAGS="$CFLAGS"
@@ -87,18 +81,12 @@ export
 
 
 %install
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 %make_install
 
 rm -f %{buildroot}%{_libdir}/%{libname}.la
 
 
 %check
-export SHELL=%{_bindir}/sh
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 make check
 
 
@@ -120,6 +108,9 @@ make check
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0.18-3
+- Remove hard coded shell paths
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.18-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

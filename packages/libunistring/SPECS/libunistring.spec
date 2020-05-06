@@ -31,6 +31,9 @@ Development files for programs using libunistring.
 
 %build
 %configure --disable-static
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" lib/exported.sh
+perl -pi -e "s|\\\$sed|sed|g" lib/exported.sh
+perl -pi -e "s|\\\047|\\\\\"|g" lib/exported.sh
 make %{?_smp_mflags}
 
 %install

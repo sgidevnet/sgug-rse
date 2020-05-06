@@ -22,7 +22,7 @@
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.1.1d
-Release: 2%{?dist}
+Release: 4%{?dist}
 Epoch: 1
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
@@ -132,11 +132,6 @@ package provides Perl scripts for converting certificates and keys
 from other formats to the formats used by the OpenSSL toolkit.
 
 %prep
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 %setup -q -n %{name}-%{version}
 
 # The hobble_openssl is called here redundantly, just to be sure.
@@ -182,11 +177,6 @@ cp %{SOURCE13} test/
 %{_bindir}/perl -pi -e 's|/bin/bash|%{_bindir}/bash|g' util/find-unused-errs
 
 %build
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 # Figure out which flags we want to use.
 # default
 sslarch=%{_os}-%{_target_cpu}
@@ -328,11 +318,6 @@ make test
 %define __provides_exclude_from %{_libdir}/openssl
 
 %install
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 # Install OpenSSL.
 install -d $RPM_BUILD_ROOT{%{_bindir},%{_includedir},%{_libdir},%{_mandir},%{_libdir}/openssl,%{_pkgdocdir}}
@@ -370,10 +355,10 @@ mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc/tsget $RPM_BUILD_ROOT%{_bindir}
 
 # DH ugly things since the man pages get installed under share for
 # some reason
-mv $RPM_BUILD_ROOT%{_prefix}/share/man/* $RPM_BUILD_ROOT%{_mandir}
+#mv $RPM_BUILD_ROOT%{_prefix}/share/man/* $RPM_BUILD_ROOT%{_mandir}
 
 # Rename man pages so that they don't conflict with other system man pages.
-pushd $RPM_BUILD_ROOT%{_mandir}
+cd $RPM_BUILD_ROOT%{_mandir}
 ln -s -f config.5 man5/openssl.cnf.5
 for manpage in man*/* ; do
 	if [ -L ${manpage} ]; then
@@ -402,7 +387,7 @@ rename $file => $new_name;
 		ln -snf ssl${conflict}.1ssl ${manpage}
 	fi
 done
-popd
+cd ..
 
 mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA
 mkdir -m700 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/private
@@ -511,6 +496,12 @@ export LD_LIBRARYN32_PATH
 #%ldconfig_scriptlets libs
 
 %changelog
+* Su Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.1d-4
+- Correct manpath
+
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.1d-3
+- Remove hard coded shell paths/bashisms
+
 * Thu Oct  3 2019 Tomáš Mráz <tmraz@redhat.com> 1.1.1d-2
 - re-enable the stitched AES-CBC-SHA implementations
 - make AES-GCM work in FIPS mode again

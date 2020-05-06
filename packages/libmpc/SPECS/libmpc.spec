@@ -8,7 +8,7 @@
 Summary: C library for multiple precision complex arithmetic
 Name: libmpc
 Version: 1.1.0
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: LGPLv3+ and GFDL
 URL: http://www.multiprecision.org/
 Source0: https://ftp.gnu.org/gnu/mpc/mpc-%{version}.tar.gz
@@ -50,10 +50,10 @@ export CFLAGS="%{optflags} -std=gnu99"
 export EGREP=egrep
 
 #%if 0%{?bootstrap}
-#pushd mpc-%{bootstrap_version}
+#cd mpc-%{bootstrap_version}
 #configure --disable-static
 #%make_build
-#popd
+#cd ..
 #%endif
 
 %check
@@ -110,6 +110,9 @@ Header files and shared object symlinks for MPC is a C library.
 #%endif
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.0-5
+- Remove hard coded shell paths/bashisms
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.0-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

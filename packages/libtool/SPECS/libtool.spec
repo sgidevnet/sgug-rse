@@ -11,7 +11,7 @@
 Summary: The GNU Portable Library Tool
 Name:    libtool
 Version: 2.4.6
-Release: 31%{?dist}
+Release: 32%{?dist}
 License: GPLv2+ and LGPLv2+ and GFDL
 URL:     http://www.gnu.org/software/libtool/
 
@@ -106,12 +106,6 @@ Static libraries and header files for development with ltdl.
 
 
 %prep
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 %setup -n libtool-%{version} -q
 #%patch0 -p1 -b .rpath
 %patch1 -p1 -b .test
@@ -127,17 +121,6 @@ export M4=%{_bindir}/m4
 autoreconf -v
 
 %build
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
-export CC=gcc
-export CXX=g++
-export F77=gfortran
-export CFLAGS="$RPM_OPT_FLAGS -fPIC"
-
 %configure  --prefix=%{_prefix}                 \
             --exec-prefix=%{_prefix}            \
             --bindir=%{_bindir}                 \
@@ -164,12 +147,6 @@ make check VERBOSE=yes || { cat testsuite.log ; false ; }
 
 
 %install
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 make install DESTDIR=%{buildroot}
 # info's TOP dir (by default owned by info)
 rm -f %{buildroot}%{_infodir}/dir
@@ -208,6 +185,9 @@ rm -f %{buildroot}%{_libdir}/libltdl.{a,la}
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.4.6-32
+- Remove hard coded shell paths
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.4.6-31
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

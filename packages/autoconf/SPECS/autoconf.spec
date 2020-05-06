@@ -9,7 +9,7 @@
 Summary:    A GNU tool for automatically configuring source code
 Name:       autoconf
 Version:    2.69
-Release:    31%{?dist}
+Release:    32%{?dist}
 License:    GPLv2+ and GFDL
 Source0:    http://ftpmirror.gnu.org/autoconf/autoconf-%{version}.tar.xz
 Source1:    config.site
@@ -78,12 +78,6 @@ their use.
 # Here's a terminator
 
 %prep
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 %autosetup -p1
 
 %build
@@ -92,12 +86,6 @@ export EMACS=%{_bindir}/emacs
 %else
 export EMACS=%{_bindir}/false
 %endif
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 %configure \
     %{?with_autoconf_enables_emacs:--with-lispdir=%{_emacs_sitelispdir}/autoconf}
 make %{?_smp_mflags}
@@ -112,12 +100,6 @@ make check %{?_smp_mflags}
 
 
 %install
-export SHELL=%{_bindir}/bash
-export CONFIG_SHELL="$SHELL"
-export SHELL_PATH="$SHELL"
-export PERL_PATH=%{_bindir}/perl
-export PERL=%{_bindir}/perl
-export M4=%{_bindir}/m4
 make install %{?_smp_mflags} DESTDIR=%{buildroot}
 mkdir -p %{buildroot}/share
 install -m 0644 %{SOURCE1} %{buildroot}%{_datadir}
@@ -146,6 +128,9 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{_emacs_sitestartdir}
 
 
 %changelog
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.69-32
+- Remove hard coded shell paths
+
 * Wed Aug 28 2019 Ondrej Dubaj <odubaj@redhat.com> - 2.69-31
 - Port tests to Bash 5
 
