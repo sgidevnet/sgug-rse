@@ -51,14 +51,15 @@ developing applications that use %{name}.
 
 
 %install
-pushd src/%{name}
+_wd=$PWD
+cd src/%{name}
 install -m 0755 -d $RPM_BUILD_ROOT%{_libdir}/
 install -p -m 0755 libXNVCtrl.so.0.0.0    $RPM_BUILD_ROOT%{_libdir}/
 ln -s libXNVCtrl.so.0.0.0 $RPM_BUILD_ROOT%{_libdir}/libXNVCtrl.so.0
 ln -s libXNVCtrl.so.0 $RPM_BUILD_ROOT%{_libdir}/libXNVCtrl.so
 install -m 0755 -d $RPM_BUILD_ROOT%{_includedir}/NVCtrl/
 install -p -m 0644 {nv_control,NVCtrl,NVCtrlLib}.h $RPM_BUILD_ROOT%{_includedir}/NVCtrl/
-popd
+cd $_wd
 
 
 #%%ldconfig_post
