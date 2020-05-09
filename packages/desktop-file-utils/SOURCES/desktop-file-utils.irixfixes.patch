@@ -1,0 +1,12 @@
+diff -Naur desktop-file-utils-0.24.orig/src/install.c desktop-file-utils-0.24/src/install.c
+--- desktop-file-utils-0.24.orig/src/install.c	2019-07-20 11:23:15.000000000 +0000
++++ desktop-file-utils-0.24/src/install.c	2020-05-06 11:46:17.537740200 +0000
+@@ -266,7 +266,7 @@
+         {
+           g_set_error (err, G_FILE_ERROR,
+                        g_file_error_from_errno (errno),
+-                       _("Failed to set permissions %o on \"%s\": %s"),
++                       _("Failed to set permissions %lo on \"%s\": %s"),
+                        permissions, new_filename, g_strerror (errno));
+ 
+           if (!files_are_the_same (filename, new_filename))
