@@ -136,11 +136,11 @@ BuildRequires:  bzip2-devel
 BuildRequires:  curl-devel
 BuildRequires:  expat-devel
 BuildRequires:  jsoncpp-devel
-%if 0%{?fedora} || 0%{?rhel} >= 7
+#%%if 0%%{?fedora} || 0%%{?rhel} >= 7
 BuildRequires:  libarchive-devel
-%else
-BuildRequires:  libarchive3-devel
-%endif
+#%%else
+#BuildRequires:  libarchive3-devel
+#%%endif
 BuildRequires:  libuv-devel
 BuildRequires:  rhash-devel
 BuildRequires:  xz-devel
@@ -285,16 +285,27 @@ SRCDIR="$(/usr/bin/pwd)"
 mkdir %{_vpath_builddir}
 export PREV_WD=`pwd`
 cd %{_vpath_builddir}
+
+# Temporary for debugging
+#export CFLAGS="-g -O0"
+#export CXXFLAGS="-g -O0"
+
 # To ensure we pick up the right compiler
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+# Yes, we don't have this
+export FC=mips-sgi-irix6.5-gcf
+#export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CFLAGS"
 export CXXFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CXXFLAGS"
-export LDFLAGS="-ldicl-0.1 $LDFLAGS"
+#export LDFLAGS="-ldicl-0.1 $LDFLAGS"
 export NUM_PARALLEL=`echo -- "%{_smp_mflags}" |perl -pe "s|.*\-j(\\\\d+).*|\\\$1|g"`
+# Possibly weirdness with mksh (SIGCHLD propogation / defunct children)
+export SHELL=%{_bindir}/bash
+export SHELL_PATH="$SHELL"
+export CONFIG_SHELL="$SHELL"
 
-$SRCDIR/bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
+$SHELL $SRCDIR/bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
                   --docdir=/share/doc/%{name} --mandir=/share/man \
                   --%{?with_bootstrap:no-}system-libs \
                   --parallel=$NUM_PARALLEL \
@@ -422,6 +433,10 @@ find %{buildroot}%{_libdir}/%{orig_name} -type f | \
 find %{buildroot}%{_bindir} -type f -or -type l -or -xtype l | \
   sed -e '/.*-gui$/d' -e '/^$/d' -e 's!^%{buildroot}!"!g' -e 's!$!"!g' >> lib_files.mf
 
+# Fix up some badly paths
+perl -pi -e "s|/usr/bin/rpm|%{_bindir}/rpm|g" $RPM_BUILD_ROOT%{_prefix}/lib/rpm/%{name}.req
+perl -pi -e "s|/usr/lib\(64\)\?|%{_libdir}|g" $RPM_BUILD_ROOT%{_prefix}/lib/rpm/%{name}.req
+perl -pi -e "s|/usr/bin/cmake|%{_bindir}/cmake|g" $RPM_BUILD_ROOT%{_prefix}/lib/rpm/macros.d/macros.%{name}
 
 %if %{with test}
 %check
