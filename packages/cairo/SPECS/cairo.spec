@@ -133,8 +133,6 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %doc AUTHORS BIBLIOGRAPHY BUGS NEWS README
 %{_libdir}/libcairo.so.*
 %{_libdir}/libcairo-script-interpreter.so.*
-%{_bindir}/cairo-sphinx
-
 %files devel
 %doc ChangeLog PORTING_GUIDE
 %dir %{_includedir}/cairo/
@@ -171,6 +169,7 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %{_libdir}/pkgconfig/cairo-xlib-xcb.pc
 %{_libdir}/pkgconfig/cairo-xml.pc
 %{_datadir}/gtk-doc/html/cairo
+%{_bindir}/cairo-sphinx
 
 %files gobject
 %{_libdir}/libcairo-gobject.so.*
@@ -185,6 +184,8 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 #%%{_libdir}/cairo/
 
 %changelog
+* fixed gobject-introspection which lacked on the previous version for Irix 6.5
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.16.0-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

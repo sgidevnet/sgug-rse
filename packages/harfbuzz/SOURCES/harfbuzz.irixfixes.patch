@@ -1,0 +1,17 @@
+diff -Naur harfbuzz-2.6.1.orig/test/api/test-blob.c harfbuzz-2.6.1/test/api/test-blob.c
+--- harfbuzz-2.6.1.orig/test/api/test-blob.c	2019-05-06 12:14:20.000000000 +0000
++++ harfbuzz-2.6.1/test/api/test-blob.c	2020-04-21 21:16:52.747482417 +0000
+@@ -173,8 +173,12 @@
+     case HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE:
+     {
+       uintptr_t pagesize = get_pagesize ();
++      
++      int anonfd;
++      anonfd = open("/dev/zero", O_RWDR);
++      g_assert (anonfd != -1);
+ 
+-      data = mmap (NULL, pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
++      data = mmap (NULL, pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE, anonfd, 0);
+       g_assert (data != (char *) -1);
+       memcpy ((char *) data, test_data, sizeof (test_data));
+       mprotect ((char *) data, pagesize, PROT_READ);
