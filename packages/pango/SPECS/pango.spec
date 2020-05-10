@@ -79,7 +79,8 @@ the functionality of the installed %{name} package.
 %patch0 -p1 -b .pc
 
 %build
-export LD_LIBRARYN32_PATH=/usr/people/zapp/rpmbuild/BUILD/pango-1.43.0/mips-sgug-irix/pango/:$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{_builddir}/pango-1.43.0/mips-sgug-irix/pango/:$LD_LIBRARYN32_PATH
+
 %meson -Denable_docs=false
 %meson_build
 
@@ -126,6 +127,8 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man1/pan*
 
 
 %changelog
+* removed the docs so it will compile nicely on Irix 6.5 without gtk-doc
+
 * Mon Feb 11 2019 Peng Wu <pwu@redhat.com> - 1.43.0-3
 - Fixes pkg-config issue
 
