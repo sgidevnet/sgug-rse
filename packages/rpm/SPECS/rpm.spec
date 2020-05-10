@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 10
+%global rel 11
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -594,6 +594,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Sun May 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-11
+- Rebuild after cmake availability
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-10
 - Correct manpath
 
