@@ -47,8 +47,8 @@ make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
-%ldconfig_post
-%ldconfig_postun
+#%ldconfig_post
+#%ldconfig_postun
 
 %files
 %doc README COPYING
