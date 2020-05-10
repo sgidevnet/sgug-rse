@@ -1,0 +1,11 @@
+diff -Naur gobject-introspection-1.62.0.orig/giscanner/scannerlexer.l gobject-introspection-1.62.0/giscanner/scannerlexer.l
+--- gobject-introspection-1.62.0.orig/giscanner/scannerlexer.l	2019-09-09 12:22:10.000000000 +0000
++++ gobject-introspection-1.62.0/giscanner/scannerlexer.l	2020-04-25 14:33:42.467971362 +0000
+@@ -104,6 +104,7 @@
+ "#else".*"\n"				{ ++lineno; return ELSE_COND; }
+ "#endif".*"\n"				{ ++lineno; return ENDIF_COND; }
+ "#pragma ".*"\n"			{ ++lineno; /* Ignore pragma. */ }
++"#ident ".*"\n"                                { ++lineno; /* Ignore ident. */ }
+ 
+ "# "[0-9]+" ".*"\n"			{ ++lineno; process_linemarks(scanner, FALSE); }
+ "#line "[0-9]+" ".*"\n"			{ ++lineno; process_linemarks(scanner, TRUE); }
