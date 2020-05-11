@@ -171,6 +171,9 @@ BuildRequires: desktop-file-utils
 %if %{without bootstrap}
 # Ensure we have our own rpm-macros in place during build.
 BuildRequires:  %{name}-rpm-macros
+# Ensure recent enough rpm that has already seen cmake installed
+# so it has the right value for the cmake macro
+BuildRequires:  rpm >= 4.15.0-11
 %endif
 
 Requires:       %{name}-data = %{version}-%{release}

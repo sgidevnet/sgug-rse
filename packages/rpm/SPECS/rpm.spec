@@ -72,6 +72,8 @@ Patch2004: rpm.sgifixesaddshellvars.patch
 
 BuildRequires: libdicl-devel >= 0.1.19
 Requires: libdicl >= 0.1.19
+# Need to "find" cmake and set the right (__cmake) macro variable
+BuildRequires: cmake >= 3.17.2-1
 
 # Ensure we have the sgug macros, too
 Requires: sgug-rpm-config
