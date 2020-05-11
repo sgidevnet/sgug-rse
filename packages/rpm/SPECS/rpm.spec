@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 10
+%global rel 11
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -72,6 +72,8 @@ Patch2004: rpm.sgifixesaddshellvars.patch
 
 BuildRequires: libdicl-devel >= 0.1.19
 Requires: libdicl >= 0.1.19
+# Need to "find" cmake and set the right (__cmake) macro variable
+BuildRequires: cmake >= 3.17.2-1
 
 # Ensure we have the sgug macros, too
 Requires: sgug-rpm-config
@@ -594,6 +596,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Sun May 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-11
+- Rebuild after cmake availability
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-10
 - Correct manpath
 
