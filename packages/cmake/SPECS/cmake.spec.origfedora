@@ -17,7 +17,7 @@
 %bcond_without git_test
 
 # Set to bcond_with or use --without gui to disable qt4 gui build
-%bcond_with gui
+%bcond_without gui
 
 # Use ncurses for colorful output
 %bcond_without ncurses
@@ -33,12 +33,11 @@
 %bcond_without rpm
 
 # Sphinx-build cannot import CMakeLexer on EPEL <= 6
-#%%if 0%%{?rhel} && 0%%{?rhel} <= 6
-#%%bcond_with sphinx
-#%%else
-#%%bcond_without sphinx
-#%%endif
+%if 0%{?rhel} && 0%{?rhel} <= 6
 %bcond_with sphinx
+%else
+%bcond_without sphinx
+%endif
 
 # Run tests
 %bcond_without test
@@ -109,12 +108,10 @@ Patch2:      %{name}-libarchive3.patch
 %endif
 %endif
 
-Patch1000:      cmake.sgifixeslibuv.patch
-
 BuildRequires:  coreutils
 BuildRequires:  findutils
 BuildRequires:  gcc-c++
-#BuildRequires:  gcc-gfortran
+BuildRequires:  gcc-gfortran
 BuildRequires:  sed
 %if %{with git_test}
 # Tests fail if only git-core is installed, bug #1488830
@@ -136,11 +133,11 @@ BuildRequires:  bzip2-devel
 BuildRequires:  curl-devel
 BuildRequires:  expat-devel
 BuildRequires:  jsoncpp-devel
-#%%if 0%%{?fedora} || 0%%{?rhel} >= 7
+%if 0%{?fedora} || 0%{?rhel} >= 7
 BuildRequires:  libarchive-devel
-#%%else
-#BuildRequires:  libarchive3-devel
-#%%endif
+%else
+BuildRequires:  libarchive3-devel
+%endif
 BuildRequires:  libuv-devel
 BuildRequires:  rhash-devel
 BuildRequires:  xz-devel
@@ -171,9 +168,6 @@ BuildRequires: desktop-file-utils
 %if %{without bootstrap}
 # Ensure we have our own rpm-macros in place during build.
 BuildRequires:  %{name}-rpm-macros
-# Ensure recent enough rpm that has already seen cmake installed
-# so it has the right value for the cmake macro
-BuildRequires:  rpm >= 4.15.0-11
 %endif
 
 Requires:       %{name}-data = %{version}-%{release}
@@ -271,8 +265,6 @@ tail -n +2 %{SOURCE4} >> %{name}.prov
 tail -n +2 %{SOURCE5} >> %{name}.req
 %endif
 
-# For patch creation
-#exit 1
 
 %build
 %if 0%{?set_build_flags:1}
@@ -286,32 +278,11 @@ FCFLAGS="${FCFLAGS:-%optflags%{?_fmoddir: -I%_fmoddir}}" ; export FCFLAGS
 %endif
 SRCDIR="$(/usr/bin/pwd)"
 mkdir %{_vpath_builddir}
-export PREV_WD=`pwd`
-cd %{_vpath_builddir}
-
-# Temporary for debugging
-#export CFLAGS="-g -O0"
-#export CXXFLAGS="-g -O0"
-
-# To ensure we pick up the right compiler
-export CC=mips-sgi-irix6.5-gcc
-export CXX=mips-sgi-irix6.5-g++
-# Yes, we don't have this
-export FC=mips-sgi-irix6.5-gcf
-#export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CFLAGS"
-export CXXFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CXXFLAGS"
-#export LDFLAGS="-ldicl-0.1 $LDFLAGS"
-export NUM_PARALLEL=`echo -- "%{_smp_mflags}" |perl -pe "s|.*\-j(\\\\d+).*|\\\$1|g"`
-# Possibly weirdness with mksh (SIGCHLD propogation / defunct children)
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
-
-$SHELL $SRCDIR/bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
+pushd %{_vpath_builddir}
+$SRCDIR/bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
                   --docdir=/share/doc/%{name} --mandir=/share/man \
                   --%{?with_bootstrap:no-}system-libs \
-                  --parallel=$NUM_PARALLEL \
+                  --parallel=`/usr/bin/getconf _NPROCESSORS_ONLN` \
 %if %{with sphinx}
                   --sphinx-man --sphinx-html \
 %else
@@ -319,7 +290,7 @@ $SHELL $SRCDIR/bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
 %endif
                   --%{!?with_gui:no-}qt-gui \
 ;
-cd $PREV_WD
+popd
 %make_build -C %{_vpath_builddir} VERBOSE=1
 
 
@@ -436,18 +407,13 @@ find %{buildroot}%{_libdir}/%{orig_name} -type f | \
 find %{buildroot}%{_bindir} -type f -or -type l -or -xtype l | \
   sed -e '/.*-gui$/d' -e '/^$/d' -e 's!^%{buildroot}!"!g' -e 's!$!"!g' >> lib_files.mf
 
-# Fix up some badly paths
-perl -pi -e "s|/usr/bin/rpm|%{_bindir}/rpm|g" $RPM_BUILD_ROOT%{_prefix}/lib/rpm/%{name}.req
-perl -pi -e "s|/usr/lib\(64\)\?|%{_libdir}|g" $RPM_BUILD_ROOT%{_prefix}/lib/rpm/%{name}.req
-perl -pi -e "s|/usr/bin/cmake|%{_bindir}/cmake|g" $RPM_BUILD_ROOT%{_prefix}/lib/rpm/macros.d/macros.%{name}
 
 %if %{with test}
 %check
 %if 0%{?rhel} && 0%{?rhel} <= 6
 mv -f Modules/FindLibArchive.cmake Modules/FindLibArchive.disabled
 %endif
-export PREV_WD=`pwd`
-cd %{_vpath_builddir}
+pushd %{_vpath_builddir}
 # CTestTestUpload require internet access
 # CPackComponentsForAll-RPM-IgnoreGroup failing wih rpm 4.15 - https://gitlab.kitware.com/cmake/cmake/issues/19983
 NO_TEST="CTestTestUpload|CPackComponentsForAll-RPM-IgnoreGroup"
@@ -458,7 +424,7 @@ NO_TEST="$NO_TEST|kwsys.testProcess-4|kwsys.testProcess-5"
 bin/ctest%{?name_suffix} %{?_smp_mflags} -V -E "$NO_TEST" --output-on-failure
 # Keep an eye on failing tests
 bin/ctest%{?name_suffix} %{?_smp_mflags} -V -R "$NO_TEST" --output-on-failure || :
-cd $PREV_WD
+popd
 %if 0%{?rhel} && 0%{?rhel} <= 6
 mv -f Modules/FindLibArchive.disabled Modules/FindLibArchive.cmake
 %endif
@@ -527,9 +493,6 @@ mv -f Modules/FindLibArchive.disabled Modules/FindLibArchive.cmake
 
 
 %changelog
-* Sat May 9 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-1
-- Import from fedora
-
 * Tue Apr 28 2020 Björn Esser <besser82@fedoraproject.org> - 3.17.2-1
 - Update to cmake-3.17.2
 

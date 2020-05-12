@@ -4,8 +4,8 @@
 %bcond_without check
 
 Name:           libarchive
-Version:        3.3.2
-Release:        2%{?dist}
+Version:        3.3.3
+Release:        1%{?dist}
 Summary:        A library for handling streaming archive formats
 
 License:        BSD
@@ -221,6 +221,9 @@ run_testsuite
 
 
 %changelog
+* Sun May 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.3-1
+- Upgrade to 3.3.3
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.2-2
 - Remove man page rewriting that doesnt work with mksh
 
