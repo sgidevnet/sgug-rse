@@ -1,7 +1,7 @@
 Name:           libuv
 Epoch:          1
 Version:        1.37.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Platform layer for node.js
 
 # the licensing breakdown is described in detail in the LICENSE file
@@ -86,6 +86,9 @@ install -Dm0755 -t %{buildroot}%{_libdir}/libuv/ %{SOURCE3}
 %{_libdir}/%{name}.a
 
 %changelog
+* Tue May 12 2020 Daniel Hams <daniel.hams@gmail.com> - 1.37.0-2
+- Pull bug fixes + stability fixes from sgug libuv github
+
 * Sat May 9 2020 Daniel Hams <daniel.hams@gmail.com> - 1.37.0-1
 - Bring into wip
 

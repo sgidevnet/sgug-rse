@@ -1,6 +1,6 @@
 diff -u -r -N libuv-v1.37.0-orig/Makefile.am libuv-v1.37.0/Makefile.am
 --- libuv-v1.37.0-orig/Makefile.am	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/Makefile.am	2020-05-09 19:42:58.001508600 +0000
++++ libuv-v1.37.0/Makefile.am	2020-05-12 16:53:56.813839640 +0000
 @@ -131,7 +131,7 @@
  
  TESTS = test/run-tests
@@ -39,7 +39,7 @@ diff -u -r -N libuv-v1.37.0-orig/Makefile.am libuv-v1.37.0/Makefile.am
  uvinclude_HEADERS += include/uv/linux.h
 diff -u -r -N libuv-v1.37.0-orig/configure.ac libuv-v1.37.0/configure.ac
 --- libuv-v1.37.0-orig/configure.ac	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/configure.ac	2020-05-09 19:42:58.002769640 +0000
++++ libuv-v1.37.0/configure.ac	2020-05-12 16:53:56.815012040 +0000
 @@ -56,6 +56,7 @@
  AM_CONDITIONAL([FREEBSD],  [AS_CASE([$host_os],[*freebsd*],     [true], [false])])
  AM_CONDITIONAL([HAIKU],    [AS_CASE([$host_os],[haiku],         [true], [false])])
@@ -50,7 +50,7 @@ diff -u -r -N libuv-v1.37.0-orig/configure.ac libuv-v1.37.0/configure.ac
  AM_CONDITIONAL([NETBSD],   [AS_CASE([$host_os],[netbsd*],       [true], [false])])
 diff -u -r -N libuv-v1.37.0-orig/include/uv/unix.h libuv-v1.37.0/include/uv/unix.h
 --- libuv-v1.37.0-orig/include/uv/unix.h	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/include/uv/unix.h	2020-05-09 19:42:58.004606440 +0000
++++ libuv-v1.37.0/include/uv/unix.h	2020-05-12 16:53:56.816759240 +0000
 @@ -67,6 +67,8 @@
        defined(__MSYS__)   || \
        defined(__GNU__)
@@ -62,7 +62,7 @@ diff -u -r -N libuv-v1.37.0-orig/include/uv/unix.h libuv-v1.37.0/include/uv/unix
  #endif
 diff -u -r -N libuv-v1.37.0-orig/src/unix/core.c libuv-v1.37.0/src/unix/core.c
 --- libuv-v1.37.0-orig/src/unix/core.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/src/unix/core.c	2020-05-09 19:42:58.007695080 +0000
++++ libuv-v1.37.0/src/unix/core.c	2020-05-12 16:53:56.819867000 +0000
 @@ -18,6 +18,29 @@
   * IN THE SOFTWARE.
   */
@@ -135,7 +135,7 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/core.c libuv-v1.37.0/src/unix/core.c
      if (cmsg->cmsg_type == SCM_RIGHTS)
 diff -u -r -N libuv-v1.37.0-orig/src/unix/fs.c libuv-v1.37.0/src/unix/fs.c
 --- libuv-v1.37.0-orig/src/unix/fs.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/src/unix/fs.c	2020-05-09 19:42:58.011057160 +0000
++++ libuv-v1.37.0/src/unix/fs.c	2020-05-12 16:55:11.502453840 +0000
 @@ -504,7 +504,7 @@
  }
  
@@ -177,9 +177,22 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/fs.c libuv-v1.37.0/src/unix/fs.c
    stat_fs->f_files = buf.f_files;
    stat_fs->f_ffree = buf.f_ffree;
    req->ptr = stat_fs;
+@@ -741,8 +752,12 @@
+ #else
+   ssize_t len;
+ 
++#if defined(__sgi)
++  buf = uv__malloc(PATH_MAX + 1);
++#else
+   len = uv__fs_pathmax_size(req->path);
+   buf = uv__malloc(len + 1);
++#endif
+ 
+   if (buf == NULL) {
+     errno = ENOMEM;
 diff -u -r -N libuv-v1.37.0-orig/src/unix/internal.h libuv-v1.37.0/src/unix/internal.h
 --- libuv-v1.37.0-orig/src/unix/internal.h	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/src/unix/internal.h	2020-05-09 19:42:58.012837800 +0000
++++ libuv-v1.37.0/src/unix/internal.h	2020-05-12 16:53:56.825402440 +0000
 @@ -195,7 +195,11 @@
  int uv__close_nocheckstdio(int fd);
  int uv__close_nocancel(int fd);
@@ -212,7 +225,7 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/internal.h libuv-v1.37.0/src/unix/inte
      defined(__FreeBSD__)          ||                                      \
 diff -u -r -N libuv-v1.37.0-orig/src/unix/irix-common.c libuv-v1.37.0/src/unix/irix-common.c
 --- libuv-v1.37.0-orig/src/unix/irix-common.c	1970-01-01 00:00:00.000000000 +0000
-+++ libuv-v1.37.0/src/unix/irix-common.c	2020-05-09 19:42:58.014868360 +0000
++++ libuv-v1.37.0/src/unix/irix-common.c	2020-05-12 16:53:56.827414840 +0000
 @@ -0,0 +1,462 @@
 +/* Copyright libuv project contributors. All rights reserved.
 + *
@@ -678,7 +691,7 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/irix-common.c libuv-v1.37.0/src/unix/i
 +}
 diff -u -r -N libuv-v1.37.0-orig/src/unix/posix-hrtime.c libuv-v1.37.0/src/unix/posix-hrtime.c
 --- libuv-v1.37.0-orig/src/unix/posix-hrtime.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/src/unix/posix-hrtime.c	2020-05-09 19:42:58.016343240 +0000
++++ libuv-v1.37.0/src/unix/posix-hrtime.c	2020-05-12 16:53:56.828877000 +0000
 @@ -30,6 +30,10 @@
  
  uint64_t uv__hrtime(uv_clocktype_t type) {
@@ -692,7 +705,7 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/posix-hrtime.c libuv-v1.37.0/src/unix/
  }
 diff -u -r -N libuv-v1.37.0-orig/src/unix/stream.c libuv-v1.37.0/src/unix/stream.c
 --- libuv-v1.37.0-orig/src/unix/stream.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/src/unix/stream.c	2020-05-09 19:43:14.768675360 +0000
++++ libuv-v1.37.0/src/unix/stream.c	2020-05-12 16:53:56.832219800 +0000
 @@ -19,6 +19,29 @@
   * IN THE SOFTWARE.
   */
@@ -801,7 +814,7 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/stream.c libuv-v1.37.0/src/unix/stream
          nread = uv__recvmsg(uv__stream_fd(stream), &msg, 0);
 diff -u -r -N libuv-v1.37.0-orig/src/unix/thread.c libuv-v1.37.0/src/unix/thread.c
 --- libuv-v1.37.0-orig/src/unix/thread.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/src/unix/thread.c	2020-05-09 19:42:58.021607080 +0000
++++ libuv-v1.37.0/src/unix/thread.c	2020-05-12 16:55:17.456901120 +0000
 @@ -241,6 +241,8 @@
  #ifdef PTHREAD_STACK_MIN
      if (stack_size < PTHREAD_STACK_MIN)
@@ -820,9 +833,27 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/thread.c libuv-v1.37.0/src/unix/thread
    err = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
    if (err)
      goto error2;
+@@ -786,7 +788,7 @@
+ int uv_cond_timedwait(uv_cond_t* cond, uv_mutex_t* mutex, uint64_t timeout) {
+   int r;
+   struct timespec ts;
+-#if defined(__MVS__)
++#if defined(__MVS__) || defined(__sgi)
+   struct timeval tv;
+ #endif
+ 
+@@ -795,7 +797,7 @@
+   ts.tv_nsec = timeout % NANOSEC;
+   r = pthread_cond_timedwait_relative_np(cond, mutex, &ts);
+ #else
+-#if defined(__MVS__)
++#if defined(__MVS__) || defined(__sgi)
+   if (gettimeofday(&tv, NULL))
+     abort();
+   timeout += tv.tv_sec * NANOSEC + tv.tv_usec * 1e3;
 diff -u -r -N libuv-v1.37.0-orig/src/unix/tty.c libuv-v1.37.0/src/unix/tty.c
 --- libuv-v1.37.0-orig/src/unix/tty.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/src/unix/tty.c	2020-05-09 19:42:58.023295800 +0000
++++ libuv-v1.37.0/src/unix/tty.c	2020-05-12 16:55:02.256048160 +0000
 @@ -231,7 +231,7 @@
  static void uv__tty_make_raw(struct termios* tio) {
    assert(tio != NULL);
@@ -832,9 +863,18 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/tty.c libuv-v1.37.0/src/unix/tty.c
    /*
     * This implementation of cfmakeraw for Solaris and derivatives is taken from
     * http://www.perkin.org.uk/posts/solaris-portability-cfmakeraw.html.
+@@ -352,7 +352,7 @@
+       return UV_UDP;
+ 
+   if (type == SOCK_STREAM) {
+-#if defined(_AIX) || defined(__DragonFly__)
++#if defined(_AIX) || defined(__DragonFly__) || defined(__sgi)
+     /* on AIX/DragonFly the getsockname call returns an empty sa structure
+      * for sockets of type AF_UNIX.  For all other types it will
+      * return a properly filled in structure.
 diff -u -r -N libuv-v1.37.0-orig/src/unix/udp.c libuv-v1.37.0/src/unix/udp.c
 --- libuv-v1.37.0-orig/src/unix/udp.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/src/unix/udp.c	2020-05-09 19:42:58.026254600 +0000
++++ libuv-v1.37.0/src/unix/udp.c	2020-05-12 16:53:56.839168440 +0000
 @@ -19,6 +19,29 @@
   * IN THE SOFTWARE.
   */
@@ -933,7 +973,7 @@ diff -u -r -N libuv-v1.37.0-orig/src/unix/udp.c libuv-v1.37.0/src/unix/udp.c
    struct sockaddr_in* mcast_addr4;
 diff -u -r -N libuv-v1.37.0-orig/test/test-ipc.c libuv-v1.37.0/test/test-ipc.c
 --- libuv-v1.37.0-orig/test/test-ipc.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/test/test-ipc.c	2020-05-09 19:42:58.028512600 +0000
++++ libuv-v1.37.0/test/test-ipc.c	2020-05-12 16:53:56.841950040 +0000
 @@ -19,6 +19,10 @@
   * IN THE SOFTWARE.
   */
@@ -947,7 +987,7 @@ diff -u -r -N libuv-v1.37.0-orig/test/test-ipc.c libuv-v1.37.0/test/test-ipc.c
  
 diff -u -r -N libuv-v1.37.0-orig/test/test-pipe-sendmsg.c libuv-v1.37.0/test/test-pipe-sendmsg.c
 --- libuv-v1.37.0-orig/test/test-pipe-sendmsg.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/test/test-pipe-sendmsg.c	2020-05-09 19:42:58.030371560 +0000
++++ libuv-v1.37.0/test/test-pipe-sendmsg.c	2020-05-12 16:53:56.843942360 +0000
 @@ -19,6 +19,29 @@
   * IN THE SOFTWARE.
   */
@@ -1027,9 +1067,21 @@ diff -u -r -N libuv-v1.37.0-orig/test/test-pipe-sendmsg.c libuv-v1.37.0/test/tes
    while (r == -1 && errno == EINTR);
    ASSERT(r == 1);
  
+diff -u -r -N libuv-v1.37.0-orig/test/test-poll.c libuv-v1.37.0/test/test-poll.c
+--- libuv-v1.37.0-orig/test/test-poll.c	2020-04-19 17:15:57.000000000 +0000
++++ libuv-v1.37.0/test/test-poll.c	2020-05-12 16:55:28.413420440 +0000
+@@ -622,7 +622,7 @@
+ #if !defined(__DragonFly__) && !defined(__FreeBSD__) && !defined(__sun) && \
+     !defined(_AIX) && !defined(__MVS__) && !defined(__FreeBSD_kernel__) && \
+     !defined(__OpenBSD__) && !defined(__CYGWIN__) && !defined(__MSYS__) && \
+-    !defined(__NetBSD__)
++    !defined(__NetBSD__) && !defined(__sgi)
+   uv_poll_t poll_handle;
+   int fd;
+ 
 diff -u -r -N libuv-v1.37.0-orig/test/test-process-title-threadsafe.c libuv-v1.37.0/test/test-process-title-threadsafe.c
 --- libuv-v1.37.0-orig/test/test-process-title-threadsafe.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/test/test-process-title-threadsafe.c	2020-05-09 19:42:58.031897160 +0000
++++ libuv-v1.37.0/test/test-process-title-threadsafe.c	2020-05-12 16:53:56.845522200 +0000
 @@ -19,6 +19,9 @@
  * IN THE SOFTWARE.
  */
@@ -1042,7 +1094,7 @@ diff -u -r -N libuv-v1.37.0-orig/test/test-process-title-threadsafe.c libuv-v1.3
  #include "task.h"
 diff -u -r -N libuv-v1.37.0-orig/test/test-spawn.c libuv-v1.37.0/test/test-spawn.c
 --- libuv-v1.37.0-orig/test/test-spawn.c	2020-04-19 17:15:57.000000000 +0000
-+++ libuv-v1.37.0/test/test-spawn.c	2020-05-09 19:42:58.035180520 +0000
++++ libuv-v1.37.0/test/test-spawn.c	2020-05-12 16:53:56.848855480 +0000
 @@ -1392,8 +1392,13 @@
    ASSERT(pw != NULL);
    options.uid = pw->pw_uid;

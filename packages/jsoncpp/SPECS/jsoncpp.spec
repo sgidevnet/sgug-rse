@@ -11,7 +11,7 @@
 
 Name:           jsoncpp
 Version:        1.9.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        JSON library implemented in C++
 
 License:        Public Domain or MIT
@@ -20,7 +20,8 @@ Source0:        %{url}/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
 Patch0000:      %{name}-1.9.1-fix_version.patch
 
-BuildRequires:  cmake >= 3.1
+# Needs this version to do lib install in lib32
+BuildRequires:  cmake >= 3.17.2-2
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
 BuildRequires:  python3-devel
@@ -69,14 +70,12 @@ export PREV_WD=`pwd`
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 cd %{_target_platform}
-export CMAKE_INSTALL_LIBDIR=%{_lib}
 %cmake -DBUILD_STATIC_LIBS=OFF                \
        -DJSONCPP_WITH_WARNING_AS_ERROR=OFF    \
        -DJSONCPP_WITH_PKGCONFIG_SUPPORT=ON    \
        -DJSONCPP_WITH_CMAKE_PACKAGE=ON        \
        -DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF \
        -DPYTHON_EXECUTABLE="%{__python3}"     \
-       -DCMAKE_INSTALL_LIBDIR=%{_lib}         \
        ..
 cd $PREV_WD
 %make_build -C %{_target_platform}
@@ -137,6 +136,9 @@ chmod a+x %{buildroot}%{_libdir}/*.so.*
 
 
 %changelog
+* Tue May 12 2020 Daniel Hams <daniel.hams@gmail.com> - 1.9.1-2
+- cmake now default installs into lib32
+
 * Sun May 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.9.1-1
 - Bring into wip
 

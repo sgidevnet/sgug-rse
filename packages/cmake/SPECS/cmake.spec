@@ -68,7 +68,7 @@
 
 Name:           %{orig_name}%{?name_suffix}
 Version:        %{major_version}.%{minor_version}.2
-Release:        1%{?relsuf}%{?dist}
+Release:        2%{?relsuf}%{?dist}
 Summary:        Cross-platform make system
 
 # most sources are BSD
@@ -527,6 +527,9 @@ mv -f Modules/FindLibArchive.disabled Modules/FindLibArchive.cmake
 
 
 %changelog
+* Tue May 12 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-2
+- Fix lib install dir to be lib32, pull bug fixes + stability fixes from sgug libuv github
+
 * Sat May 9 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-1
 - Import from fedora
 
