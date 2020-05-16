@@ -127,7 +127,8 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man1/pan*
 
 
 %changelog
-* removed the docs so it will compile nicely on Irix 6.5 without gtk-doc
+* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
+- removed the docs so it will compile nicely on Irix 6.5 without gtk-doc
 
 * Mon Feb 11 2019 Peng Wu <pwu@redhat.com> - 1.43.0-3
 - Fixes pkg-config issue
