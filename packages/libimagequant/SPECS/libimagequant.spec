@@ -57,7 +57,8 @@ rm -f %{buildroot}%{_libdir}/%{name}.a
 
 
 %changelog
-* Linux specific stuff has been commented out 
+* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
+- Linux specific stuff has been commented out 
 
 * Mon Jul 29 2019 Sandro Mani <manisandro@gmail.com> - 2.12.5-1
 - Update to 2.12.5
