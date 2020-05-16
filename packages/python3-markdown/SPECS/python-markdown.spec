@@ -60,7 +60,8 @@ PYTHONPATH=%{buildroot}%{python3_sitelib} \
 
 
 %changelog
-* python3-markdown that builds on Irix 6.5
+* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
+- python3-markdown that builds on Irix 6.5
 
 * Tue Aug 13 2019 Thomas Moschny <thomas.moschny@gmx.de> - 3.1.1-4
 - Drop versioned binaries.

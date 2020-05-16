@@ -184,7 +184,8 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 #%%{_libdir}/cairo/
 
 %changelog
-* fixed gobject-introspection which lacked on the previous version for Irix 6.5
+* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
+- fixed gobject-introspection which lacked on the previous version for Irix 6.5
 
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.16.0-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
