@@ -5,41 +5,43 @@
 Summary: A GNU tool which simplifies the build process for users
 Name: make
 Epoch: 1
-Version: 4.2.1
+Version: 4.3
 Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://www.gnu.org/software/make/
-Source: ftp://ftp.gnu.org/gnu/make/make-%{version}.tar.bz2
+Source: ftp://ftp.gnu.org/gnu/make/make-%{version}.tar.gz
 
 %define configure_args ac_cv_lib_elf_elf_begin=no
 
-Patch0: make-4.2-getcwd.patch
-Patch1: make-4.0-newlines.patch
+#Patch0: make-4.2-getcwd.patch
+#Patch1: make-4.0-newlines.patch
 
 # Assume we don't have clock_gettime in configure, so that
 # make is not linked against -lpthread (and thus does not
 # limit stack to 2MB).
-Patch2: make-4.0-noclock_gettime.patch
+#Patch2: make-4.0-noclock_gettime.patch
 
 # BZs #142691, #17374
-Patch3: make-4.2-j8k.patch
+#Patch3: make-4.2-j8k.patch
 
 # Upstream: https://savannah.gnu.org/bugs/?30748
 # The default value of .SHELL_FLAGS is -c.
-Patch4: make-4.0-weird-shell.patch
+#Patch4: make-4.0-weird-shell.patch
 
 # Upstream patch: https://git.savannah.gnu.org/cgit/make.git/patch/?id=193f1e81edd6b1b56b0eb0ff8aa4b41c7b4257b4
 # Fixes wrong assumptions of glibc's glob internals.
-Patch5: make-4.2.1-glob-fix-2.patch
+#Patch5: make-4.2.1-glob-fix-2.patch
 # Upstream patch: https://git.savannah.gnu.org/cgit/make.git/patch/?id=48c8a116a914a325a0497721f5d8b58d5bba34d4
 # Fixes incorrect use of glibc 2.27 glob internals.
-Patch6: make-4.2.1-glob-fix.patch
-Patch7: make-4.2.1-glob-fix-3.patch
+#Patch6: make-4.2.1-glob-fix.patch
+#Patch7: make-4.2.1-glob-fix-3.patch
 
 # Perl 5.26 is removed the implicit CWD in @INC. 
 # Provide relative path.  Also provide better error for missing tests.
-Patch8: make-4.2.1-test-driver.patch
+#Patch8: make-4.2.1-test-driver.patch
+
+Patch100: make.sgifixessigchld.patch
 
 # Unfortunately the glob patches configure.ac, so:
 #DH
@@ -73,6 +75,9 @@ The make-devel package contains gnumake.h.
 
 rm -f tests/scripts/features/parallelism.orig
 
+# For patch generation
+#exit 1
+
 %build
 # Since we made a change to configure.ac (and configure) touch
 # the files to avoid rebuild problems with automake versioning.
@@ -82,6 +87,8 @@ rm -f tests/scripts/features/parallelism.orig
 #touch `find . -name Makefile.in`
 
 autoreconf -f -i
+
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 
 #ac_cv_lib_elf_elf_begin=no #configure
 %configure %{configure_args}
@@ -133,6 +140,9 @@ fi
 %{_includedir}/gnumake.h
 
 %changelog
+* Sat May 16 2020 Daniel Hams <daniel.hams@gmail.com> - 1:4.3-1
+- Upgrade to 4.3 and fix SIGCHLD signals slipping through the cracks
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1:4.2.1-15
 - Remove hard coded shell paths, stop multi-configure running
 
