@@ -68,7 +68,7 @@
 
 Name:           %{orig_name}%{?name_suffix}
 Version:        %{major_version}.%{minor_version}.2
-Release:        3%{?relsuf}%{?dist}
+Release:        4%{?relsuf}%{?dist}
 Summary:        Cross-platform make system
 
 # most sources are BSD
@@ -85,6 +85,8 @@ Source2:        macros.%{name}
 Source3:        %{name}.attr
 Source4:        %{name}.prov
 Source5:        %{name}.req
+
+Source100:      cmake.sgifixbinsh.filelist
 
 # Always start regular patches with numbers >= 100.
 # We need lower numbers for patches in compat package.
@@ -271,8 +273,13 @@ tail -n +2 %{SOURCE4} >> %{name}.prov
 tail -n +2 %{SOURCE5} >> %{name}.req
 %endif
 
-# For patch creation
+# For patch creation (I prefer not to have all the /bin/sh changes in the patch)
 #exit 1
+
+# Fix up all the references to /bin/sh (and point them to %{_bindir}/sh)
+for filetofix in `cat %{SOURCE100}`; do
+    perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" ${filetofix}
+done
 
 %build
 %if 0%{?set_build_flags:1}
@@ -289,24 +296,16 @@ mkdir %{_vpath_builddir}
 export PREV_WD=`pwd`
 cd %{_vpath_builddir}
 
-# Temporary for debugging
-#export CFLAGS="-g -O0"
-#export CXXFLAGS="-g -O0"
-
 # To ensure we pick up the right compiler
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 # Yes, we don't have this
 export FC=mips-sgi-irix6.5-gcf
-#export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CFLAGS"
 export CXXFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CXXFLAGS"
-#export LDFLAGS="-ldicl-0.1 $LDFLAGS"
+export LDFLAGS="-ldicl-0.1 $LDFLAGS"
 export NUM_PARALLEL=`echo -- "%{_smp_mflags}" |perl -pe "s|.*\-j(\\\\d+).*|\\\$1|g"`
-# Possibly weirdness with mksh (SIGCHLD propogation / defunct children)
-export SHELL=%{_bindir}/bash
-export SHELL_PATH="$SHELL"
-export CONFIG_SHELL="$SHELL"
 
 $SHELL $SRCDIR/bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
                   --docdir=/share/doc/%{name} --mandir=/share/man \
@@ -527,6 +526,9 @@ mv -f Modules/FindLibArchive.disabled Modules/FindLibArchive.cmake
 
 
 %changelog
+* Sat May 16 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-4
+- Avoid using select in ProcessUNIX which causes SIGCHL to fall on the floor and ctest will lock up. Rewrite hardcoded references to /bin/sh to /usr/sgug/bin/bash and link in libdicl for "correctness" of printf.
+
 * Wed May 13 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-3
 - More lib install dir fixes (LIB_SUFFIX) and ensure .so are installed executable (needed to get rpm to detect them)
 

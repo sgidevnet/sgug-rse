@@ -1,0 +1,36 @@
+FYI, you'll need a beefy machine to build cmake - linking some of the binaries can go up to 800MB per link, so if you're running "-j3", you'll be wanting at least 2GB of RAM to built this.
+
+Running this test suite takes ~4 hours on a 600MHZ Octane2.
+
+96% tests passed, 21 tests failed out of 552
+
+Label Time Summary:
+Label1    =   1.65 sec*proc (1 test)
+Label2    =   1.65 sec*proc (1 test)
+
+Total Test time (real) = 19552.33 sec
+
+The following tests FAILED:
+         60 - ExportImport (Failed)
+        126 - CPackComponentsForAll-RPM-IgnoreGroup (Failed)
+        181 - Plugin (Failed)
+        292 - CMakeOnly.CompilerIdCXX (Failed)
+        334 - RunCMake.Make (Failed)
+        349 - RunCMake.FileAPI (Failed)
+        359 - RunCMake.GNUInstallDirs (Failed)
+        368 - RunCMake.RuntimePath (Failed)
+        377 - RunCMake.CompileFeatures (Failed)
+        378 - RunCMake.PolicyScope (Failed)
+        405 - RunCMake.ctest_submit (Failed)
+        406 - RunCMake.ctest_test (Failed)
+        439 - RunCMake.try_compile (Failed)
+        452 - RunCMake.CTestResourceAllocation (Failed)
+        467 - RunCMake.CommandLine (Failed)
+        469 - RunCMake.install (Failed)
+        475 - RunCMake.CTestCommandLine (Failed)
+        490 - RunCMake.CPack_RPM.DEBUGINFO (Failed)
+        501 - RunCMake.CPack_RPM.SINGLE_DEBUGINFO (Failed)
+        502 - RunCMake.CPack_RPM.EXTRA_SLASH_IN_PATH (Failed)
+        545 - CMake.FileDownload (Failed)
+Errors while running CTest
+make: *** [Makefile:139: test] Error 8

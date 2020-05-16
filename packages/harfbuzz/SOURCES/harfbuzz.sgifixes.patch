@@ -1,0 +1,12 @@
+diff -Naur harfbuzz-2.6.1.orig/test/api/test-blob.c harfbuzz-2.6.1/test/api/test-blob.c
+--- harfbuzz-2.6.1.orig/test/api/test-blob.c	2019-05-06 12:14:20.000000000 +0000
++++ harfbuzz-2.6.1/test/api/test-blob.c	2020-04-21 20:45:46.168104510 +0000
+@@ -169,7 +169,7 @@
+       free_func = (hb_destroy_func_t) free_up_free;
+       break;
+ 
+-#ifdef TEST_MMAP
++#ifndef TEST_MMAP
+     case HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE:
+     {
+       uintptr_t pagesize = get_pagesize ();
