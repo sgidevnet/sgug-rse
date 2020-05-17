@@ -5,7 +5,7 @@ Version:	1.2.10
 Release:	56%{?dist}
 License:	LGPLv2+
 URL:		http://www.gtk.org/
-Source:		ftp://ftp.gimp.org/pub/gtk/v1.2/glib-%{version}.tar.gz
+Source:     https://ftp.gnome.org/pub/gnome/sources/glib/1.2/glib-%{version}.tar.gz
 BuildRequires:	coreutils
 BuildRequires:	gcc
 BuildRequires:	libtool
@@ -63,9 +63,9 @@ Requires: pkgconfig
 
 %build
 LIBTOOL=%{_bindir}/libtool \
-%configure --disable-static
+%configure --disable-static 
 
-make %{?_smp_mflags} LIBTOOL=%{_bindir}/libtool
+make %{?_smp_mflags} LIBTOOL="%{_bindir}/libtool --tag=CC"
 
 %install
 make install \
