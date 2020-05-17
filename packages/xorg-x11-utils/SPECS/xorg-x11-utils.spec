@@ -114,7 +114,8 @@ rm -f $RPM_BUILD_ROOT/usr/share/man/man1/edid-decode.1
 %{_mandir}/man1/xwininfo.1*
 
 %changelog
-* added a patch and some tuning was done to the spec-file
+* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
+- added a patch and some tuning was done to the spec-file
 
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 7.5-33
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
