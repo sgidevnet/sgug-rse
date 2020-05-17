@@ -62,7 +62,8 @@ Requires: pkgconfig
 # cp -p /usr/lib/rpm/config.{guess,sub} .
 
 %build
-LIBTOOL=%{_bindir}/libtool \
+export CC=mips-sgi-irix6.5-gcc
+LIBTOOL="%{_bindir}/libtool --tag=CC" \
 %configure --disable-static 
 
 make %{?_smp_mflags} LIBTOOL="%{_bindir}/libtool --tag=CC"
@@ -71,7 +72,7 @@ make %{?_smp_mflags} LIBTOOL="%{_bindir}/libtool --tag=CC"
 make install \
 	DESTDIR=%{buildroot} \
 	INSTALL="install -p" \
-	LIBTOOL=%{_bindir}/libtool
+	LIBTOOL="%{_bindir}/libtool --tag=CC"
 
 # libgmodule-1.2.so.0* missing eXecute bit
 chmod -c a+x %{buildroot}%{_libdir}/lib*.so*
@@ -85,7 +86,7 @@ rm -rf %{buildroot}%{_libdir}/lib*.la
 rm -rf %{buildroot}%{_libdir}/lib*.a
 
 %check
-make check LIBTOOL=%{_bindir}/libtool
+make check LIBTOOL="%{_bindir}/libtool --tag=CC"
 
 %if (0%{?rhel} && 0%{?rhel} <= 7) || (0%{?fedora} && 0%{?fedora} <= 27)
 # ldconfig scriptlets replaced by RPM File Triggers from Fedora 28
