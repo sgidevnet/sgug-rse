@@ -1,0 +1,9 @@
+diff -Naur libwpg-0.3.3.orig/src/conv/svg/wpg2svgbatch.pl libwpg-0.3.3/src/conv/svg/wpg2svgbatch.pl
+--- libwpg-0.3.3.orig/src/conv/svg/wpg2svgbatch.pl	2014-03-29 03:19:42.000000000 +0000
++++ libwpg-0.3.3/src/conv/svg/wpg2svgbatch.pl	2020-05-17 12:52:08.365333201 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ 
+ ######################################################################
+ #
