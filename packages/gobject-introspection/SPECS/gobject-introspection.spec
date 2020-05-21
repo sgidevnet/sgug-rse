@@ -10,7 +10,6 @@ Summary:        Introspection system for GObject-based libraries
 License:        GPLv2+, LGPLv2+, MIT
 URL:            https://wiki.gnome.org/Projects/GObjectIntrospection
 Source0:        https://download.gnome.org/sources/gobject-introspection/1.62/%{name}-%{version}.tar.xz
-Patch0:         gointro.sgifixes.patch
 
 BuildRequires:  gcc
 BuildRequires:  bison
@@ -19,8 +18,8 @@ BuildRequires:  flex
 BuildRequires:  fontconfig-devel
 BuildRequires:  freetype-devel
 BuildRequires:  gettext
-#%BuildRequires:  glib2-devel >= %{glib2_version}
-#%BuildRequires:  gtk-doc
+#BuildRequires:  glib2-devel >= %{glib2_version}
+#BuildRequires:  gtk-doc
 BuildRequires:  libffi-devel
 BuildRequires:  libX11-devel
 BuildRequires:  libXfixes-devel
@@ -32,7 +31,7 @@ BuildRequires:  python3-devel
 #BuildRequires:  python3-mako
 BuildRequires:  python3-markdown
 
-Requires:       glib2%{?_isa} >= %{glib2_version}
+#Requires:       glib2%{?_isa} >= %{glib2_version}
 
 %description
 GObject Introspection can scan C header and source files in order to
@@ -49,7 +48,7 @@ Requires:       libtool
 #Requires:       python3-mako
 # This package only works with the Python version it was built with
 # https://bugzilla.redhat.com/show_bug.cgi?id=1691064
-#Requires:       (python(abi) = %{python3_version} if python3)
+Requires:       (python(abi) = %{python3_version} if python3)
 
 %description devel
 Libraries and headers for gobject-introspection
@@ -58,10 +57,9 @@ Libraries and headers for gobject-introspection
 %autosetup -p1
 
 %build
-#export LD_LIBRARYN32_PATH=/usr/people/zapp/rpmbuild/BUILD/gobject-introspection-1.62.0/mips-sgug-irix/girepository/:$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-irix/girepository/:$LD_LIBRARYN32_PATH
 
-%meson -Dpython=%{__python3}
+%meson -Ddoctool=true -Dgtk_doc=false -Dpython=%{__python3}
 %meson_build
 
 %install
@@ -88,9 +86,12 @@ export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-ir
 #%%{_datadir}/gtk-doc/html/gi/
 
 %changelog
+<<<<<<< HEAD
+=======
 * Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
 - some slight changes so it will build on Irix 6.5 and gcc 9.2
 
+>>>>>>> 9c73c97842fc945ae797bdf1253bb936b2592878
 * Mon Sep 09 2019 Kalev Lember <klember@redhat.com> - 1.62.0-1
 - Update to 1.62.0
 

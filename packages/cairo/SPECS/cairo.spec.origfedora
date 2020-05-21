@@ -5,7 +5,7 @@
 %if 0%{?fedora} > 26 || 0%{?rhel} > 7
 %global cairogl --disable-gl
 %else
-%global cairogl --disable-gl
+%global cairogl --enable-gl
 %global with_gl 1
 %endif
 
@@ -29,8 +29,6 @@ Patch5:         0001-ft-Use-FT_Done_MM_Var-instead-of-free-when-available.patch
 # https://github.com/matthiasclasen/cairo/commit/79ad01724161502e8d9d2bd384ff1f0174e5df6e
 Patch6:         cairo-composite_color_glyphs.patch
 
-Patch7:         cairo.sgifixes.patch
-
 BuildRequires:  gcc
 BuildRequires: pkgconfig
 BuildRequires: libXrender-devel
@@ -40,11 +38,11 @@ BuildRequires: libxml2-devel
 BuildRequires: pixman-devel >= %{pixman_version}
 BuildRequires: freetype-devel >= %{freetype_version}
 BuildRequires: fontconfig-devel >= %{fontconfig_version}
-# BuildRequires: glib2-devel
-# BuildRequires: librsvg2-devel
+BuildRequires: glib2-devel
+BuildRequires: librsvg2-devel
 %if 0%{?with_gl}
-# BuildRequires: mesa-libGL-devel
-# BuildRequires: mesa-libEGL-devel
+BuildRequires: mesa-libGL-devel
+BuildRequires: mesa-libEGL-devel
 %endif
 
 %description
@@ -103,24 +101,16 @@ This package contains tools for working with the cairo graphics library.
 %autosetup -p1
 
 %build
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
-export LIBS="-ldicl-0.1"
-export LDFLAGS="%{optflags} -lgen"
 %configure --disable-static	\
 	--enable-xlib		\
 	--enable-ft		\
 	--enable-ps		\
 	--enable-pdf		\
 	--enable-svg		\
-        --enable-png            \ 
-#	--enable-tee		\
-#	--enable-gobject	\
-#        --enable-xml            \
-#        --disable-valgrind      \
-#        --enable-xlib-xcb       \
-#        --disable-gtk-doc       \
-#	%{cairogl}		\
-#	--disable-gtk-doc
+	--enable-tee		\
+	--enable-gobject	\
+	%{cairogl}		\
+	--disable-gtk-doc
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 make V=1 %{?_smp_mflags}
@@ -128,12 +118,14 @@ make V=1 %{?_smp_mflags}
 %install
 %make_install
 find $RPM_BUILD_ROOT -name '*.la' -delete
-rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
+
 %files
 %license COPYING COPYING-LGPL-2.1 COPYING-MPL-1.1
 %doc AUTHORS BIBLIOGRAPHY BUGS NEWS README
 %{_libdir}/libcairo.so.*
 %{_libdir}/libcairo-script-interpreter.so.*
+%{_bindir}/cairo-sphinx
+
 %files devel
 %doc ChangeLog PORTING_GUIDE
 %dir %{_includedir}/cairo/
@@ -145,13 +137,12 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %{_includedir}/cairo/cairo-ps.h
 %{_includedir}/cairo/cairo-script-interpreter.h
 %{_includedir}/cairo/cairo-svg.h
-#%%{_includedir}/cairo/cairo-tee.h
+%{_includedir}/cairo/cairo-tee.h
 %{_includedir}/cairo/cairo-version.h
 %{_includedir}/cairo/cairo-xlib-xrender.h
 %{_includedir}/cairo/cairo-xlib.h
 %{_includedir}/cairo/cairo-script.h
 %{_includedir}/cairo/cairo-xcb.h
-#%%{_includedir}/cairo/cairo-xml.h
 %{_libdir}/libcairo.so
 %{_libdir}/libcairo-script-interpreter.so
 %{_libdir}/pkgconfig/cairo-fc.pc
@@ -161,16 +152,19 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %{_libdir}/pkgconfig/cairo-png.pc
 %{_libdir}/pkgconfig/cairo-ps.pc
 %{_libdir}/pkgconfig/cairo-svg.pc
-#%%{_libdir}/pkgconfig/cairo-tee.pc
+%{_libdir}/pkgconfig/cairo-tee.pc
 %{_libdir}/pkgconfig/cairo-xlib.pc
 %{_libdir}/pkgconfig/cairo-xlib-xrender.pc
 %{_libdir}/pkgconfig/cairo-script.pc
 %{_libdir}/pkgconfig/cairo-xcb-shm.pc
 %{_libdir}/pkgconfig/cairo-xcb.pc
-#%%{_libdir}/pkgconfig/cairo-xlib-xcb.pc
-#%%{_libdir}/pkgconfig/cairo-xml.pc
 %{_datadir}/gtk-doc/html/cairo
-#%%{_bindir}/cairo-sphinx
+%if 0%{?with_gl}
+%{_includedir}/cairo/cairo-gl.h
+%{_libdir}/pkgconfig/cairo-egl.pc
+%{_libdir}/pkgconfig/cairo-gl.pc
+%{_libdir}/pkgconfig/cairo-glx.pc
+%endif
 
 %files gobject
 %{_libdir}/libcairo-gobject.so.*
@@ -180,17 +174,11 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %{_libdir}/libcairo-gobject.so
 %{_libdir}/pkgconfig/cairo-gobject.pc
 
-#%%files tools
-#%%{_bindir}/cairo-trace
-#%%{_libdir}/cairo/
+%files tools
+%{_bindir}/cairo-trace
+%{_libdir}/cairo/
 
 %changelog
-<<<<<<< HEAD
-=======
-* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
-- fixed gobject-introspection which lacked on the previous version for Irix 6.5
-
->>>>>>> 9c73c97842fc945ae797bdf1253bb936b2592878
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.16.0-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
