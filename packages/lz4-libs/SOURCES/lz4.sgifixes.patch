@@ -1,0 +1,12 @@
+diff -u -r lz4-1.9.1-orig/Makefile.inc lz4-1.9.1/Makefile.inc
+--- lz4-1.9.1-orig/Makefile.inc	2019-04-23 18:18:40.000000000 +0000
++++ lz4-1.9.1/Makefile.inc	2020-05-19 12:13:23.105980440 +0000
+@@ -51,7 +51,7 @@
+   endif
+ endif
+ 
+-ifneq (,$(filter Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly SunOS Haiku MidnightBSD MINGW% CYGWIN% MSYS%,$(shell uname)))
++ifneq (,$(filter Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly SunOS Haiku IRIX IRIX64 MidnightBSD MINGW% CYGWIN% MSYS%,$(shell uname)))
+ POSIX_ENV = Yes
+ else
+ POSIX_ENV = No
