@@ -6,7 +6,7 @@
 %_cmake_shared_libs -DBUILD_SHARED_LIBS:BOOL=ON
 %_cmake_skip_rpath -DCMAKE_SKIP_RPATH:BOOL=ON
 %_cmake_version @@CMAKE_VERSION@@
-%__cmake /usr/bin/cmake
+%__cmake /usr/sgug/bin/cmake
 
 # - Set default compile flags
 # - CMAKE_*_FLAGS_RELEASE are added *after* the *FLAGS environment variables
