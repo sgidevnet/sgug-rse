@@ -4,7 +4,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.22
+Version: 0.1.23
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -55,6 +55,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl-0.1.la
 
 
 %changelog
+* Thu May 21 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.23-1
+- Upgrade to libdicl exposing more posix spawn functionality
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.22-1
 - Upgrade to libdicl exposing strnlen, removing pselect proto
 

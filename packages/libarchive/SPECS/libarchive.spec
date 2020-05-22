@@ -5,7 +5,7 @@
 
 Name:           libarchive
 Version:        3.3.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A library for handling streaming archive formats
 
 License:        BSD
@@ -85,6 +85,7 @@ standard output.
 
 
 %build
+export LIBS="-llzma"
 #%%configure --disable-static LT_SYS_LIBRARY_PATH=%_libdir
 %configure --disable-static
 %make_build
@@ -221,6 +222,9 @@ run_testsuite
 
 
 %changelog
+* Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.3-2
+- Explicitly include lzma lib to ensure xz support is included
+
 * Sun May 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.3-1
 - Upgrade to 3.3.3
 
