@@ -2,7 +2,7 @@
 
 Name:       libxcb
 Version:    1.13.1
-Release:    3%{?dist}
+Release:    4%{?dist}
 Summary:    A C binding to the X11 protocol
 License:    MIT
 URL:        http://xcb.freedesktop.org/
@@ -53,7 +53,7 @@ The %{name}-doc package contains documentation for the %{name} library.
 %build
 #sed -i 's/pthread-stubs //' configure.ac
 # autoreconf -f needed to expunge rpaths
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 export CFLAGS="$RPM_OPT_FLAGS -pthread"
 export LIBS="-lpthread"
 autoreconf -v -f --install
@@ -129,6 +129,9 @@ find $RPM_BUILD_ROOT -name '*.la' -delete
 %{_pkgdocdir}
 
 %changelog
+* Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 1.13.1-4
+- Fix typo in CPPFLAGS use of _SGI_SOURCE
+
 * Sun Apr 12 2020 Daniel Hams <daniel.hams@gmail.com> - 1.13.1-3
 - Import into wip
 
