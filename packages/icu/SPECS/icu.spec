@@ -17,6 +17,7 @@ Requires: lib%{name}%{?_isa} = %{version}-%{release}
 
 Patch4: gennorm2-man.patch
 Patch5: icuinfo-man.patch
+Patch6: rbnf-tick.patch
 
 %description
 Tools and utilities for developing with icu.
@@ -60,7 +61,7 @@ BuildArch: noarch
 
 
 %build
-pushd source
+cd source
 autoconf
 CFLAGS='%optflags -fno-strict-aliasing'
 CXXFLAGS='%optflags -fno-strict-aliasing'
@@ -119,7 +120,7 @@ make %{?_smp_mflags} -C source check
 %endif
 
 # log available codes
-pushd source
+cd source
 LD_LIBRARY_PATH=lib:stubdata:tools/ctestfw:$LD_LIBRARY_PATH bin/uconv -l
 
 
