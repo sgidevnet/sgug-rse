@@ -1,5 +1,5 @@
 --- icu.orig/source/i18n/rbnf.cpp    2020-04-22 16:04:20.000000000 +0000
-+++ icu/source/i18n/rbnf.cpp     2020-05-23 16:10:10.945125200 +0000
++++ icu/source/i18n/rbnf.cpp         2020-05-23 16:10:10.945125200 +0000
 @@ -289,7 +289,7 @@
      OPEN_ANGLE = 0x003c, /* '<' */
      CLOSE_ANGLE = 0x003e, /* '>' */
@@ -11,17 +11,17 @@
  };
 @@ -374,11 +374,11 @@
  };
-
- static const UChar SQUOTE_STOPLIST[] = {
+ 
+ static const UChar SQUOTE_STOPLIST[] = { 
 -    TICK, 0
 +    ICU_TICK, 0
  };
-
- static const UChar NOQUOTE_STOPLIST[] = {
+ 
+ static const UChar NOQUOTE_STOPLIST[] = { 
 -    SPACE, COMMA, CLOSE_ANGLE, OPEN_ANGLE, TICK, QUOTE, 0
 +    SPACE, COMMA, CLOSE_ANGLE, OPEN_ANGLE, ICU_TICK, QUOTE, 0
  };
-
+ 
  static void
 @@ -528,7 +528,7 @@
      if (p < e) {
