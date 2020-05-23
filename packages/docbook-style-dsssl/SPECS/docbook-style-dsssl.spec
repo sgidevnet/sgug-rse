@@ -6,10 +6,10 @@ Summary: Norman Walsh's modular stylesheets for DocBook
 
 License: DMIT
 URL: http://docbook.sourceforge.net/
-BuildRequires: perl-generators
+#BuildRequires: perl-generators
 
 Requires: docbook-dtds
-Requires: openjade
+#Requires: openjade
 Requires: sgml-common
 Requires(post): sgml-common
 Requires(preun): sgml-common
@@ -33,32 +33,32 @@ cp %{SOURCE1} Makefile
 
 %install
 DESTDIR=$RPM_BUILD_ROOT
-make install BINDIR=$DESTDIR/usr/bin DESTDIR=$DESTDIR/usr/share/sgml/docbook/dsssl-stylesheets-%{version} MANDIR=$DESTDIR%{_mandir}
+make install BINDIR=$DESTDIR/usr/sgug/bin DESTDIR=$DESTDIR/usr/sgug/share/sgml/docbook/dsssl-stylesheets-%{version} MANDIR=$DESTDIR%{_mandir}
 cd ..
-ln -s dsssl-stylesheets-%{version} $DESTDIR/usr/share/sgml/docbook/dsssl-stylesheets
+ln -s dsssl-stylesheets-%{version} $DESTDIR/usr/sgug/share/sgml/docbook/dsssl-stylesheets
 
 %files
 %doc BUGS README ChangeLog WhatsNew
-/usr/bin/collateindex.pl
+/usr/sgug/bin/collateindex.pl
 %{_mandir}/man1/collateindex.pl.1*
-/usr/share/sgml/docbook/dsssl-stylesheets-%{version}
-/usr/share/sgml/docbook/dsssl-stylesheets
+/usr/sgug/share/sgml/docbook/dsssl-stylesheets-%{version}
+/usr/sgug/share/sgml/docbook/dsssl-stylesheets
 
 
 %post
-for centralized in /etc/sgml/*-docbook-*.cat
+for centralized in /usr/sgug/etc/sgml/*-docbook-*.cat
 do
-  /usr/bin/install-catalog --add $centralized \
-    /usr/share/sgml/docbook/dsssl-stylesheets-%{version}/catalog \
+  /usr/sgug/bin/install-catalog --add $centralized \
+    /usr/sgug/share/sgml/docbook/dsssl-stylesheets-%{version}/catalog \
     > /dev/null 2>/dev/null
 done
 
 
 %preun
 if [ "$1" = "0" ]; then
-  for centralized in /etc/sgml/*-docbook-*.cat
+  for centralized in /usr/sgug/etc/sgml/*-docbook-*.cat
   do
-    /usr/bin/install-catalog --remove $centralized /usr/share/sgml/docbook/dsssl-stylesheets-%{version}/catalog > /dev/null 2>/dev/null
+    /usr/sgug/bin/install-catalog --remove $centralized /usr/sgug/share/sgml/docbook/dsssl-stylesheets-%{version}/catalog > /dev/null 2>/dev/null
   done
 fi
 exit 0
