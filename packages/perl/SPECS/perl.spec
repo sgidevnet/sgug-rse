@@ -86,7 +86,7 @@ License:        GPL+ or Artistic
 Epoch:          %{perl_epoch}
 Version:        %{perl_version}
 # release number must be even higher, because dual-lived modules will be broken otherwise
-Release:        448%{?dist}
+Release:        449%{?dist}
 Summary:        Practical Extraction and Report Language
 Url:            https://www.perl.org/
 Source0:        https://www.cpan.org/src/5.0/perl-%{perl_version}.tar.gz
@@ -5146,6 +5146,9 @@ cd ..
 
 # Old changelog entries are preserved in CVS.
 %changelog
+* Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-449
+- Remove pushd/popd from macros.perl
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-448
 - Correct manpath
 
