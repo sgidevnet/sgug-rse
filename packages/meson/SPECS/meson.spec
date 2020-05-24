@@ -4,7 +4,7 @@
 %global libname mesonbuild
 
 Name:           meson
-Version:        0.52.0
+Version:        0.54.999git29ef44
 Release:        1%{?dist}
 Summary:        High productivity build system
 
@@ -13,10 +13,11 @@ URL:            https://mesonbuild.com/
 Source:         https://github.com/mesonbuild/meson/archive/%{version}/%{name}-%{version}.tar.gz
 
 BuildArch:      noarch
+Patch1000:      meson.sgifixes.patch
 
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
-#Requires:       python%{python3_version}dist(setuptools)
+#Requires:       python%%{python3_version}dist(setuptools)
 Requires:       ninja-build
 
 %description
@@ -27,6 +28,10 @@ unit tests, coverage reports, Valgrind, CCache and the like.
 
 %prep
 %autosetup -p1
+
+# For patch creation
+#exit 1
+
 # Macro should not change when we are redefining bindir
 sed -i -e "/^%%__meson /s| .*$| %{_bindir}/%{name}|" data/macros.%{name}
 
@@ -49,6 +54,12 @@ install -Dpm0644 -t %{buildroot}%{_rpmmacrodir} data/macros.%{name}
 %{_datadir}/polkit-1/actions/com.mesonbuild.install.policy
 
 %changelog
+* Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 0.54.999git29ef44
+- Upgrade to a version from GIT where maintainers have implemented code allowing to set custom rpaths via LDFLAGS rather than having to modify the projects themselves.
+
+* Thu May 21 2020 Daniel Hams <daniel.hams@gmail.com> - 0.52.0-2
+- Fix up machine/arch detection for all mips
+
 * Wed Oct 09 2019 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 0.52.0-1
 - Update to 0.52.0
 
