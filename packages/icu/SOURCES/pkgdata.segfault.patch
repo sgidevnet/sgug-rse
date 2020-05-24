@@ -1,0 +1,40 @@
+--- icu.orig/source/tools/pkgdata/pkgdata.cpp 2020-05-24 18:56:55.099895200 +0000
++++ icu/source/tools/pkgdata/pkgdata.cpp      2020-05-24 17:38:21.841167600 +0000
+@@ -1698,23 +1698,20 @@
+                             break;
+                         }
+                     }
+-		    if (newNameTmp && o && o->shortName && DATA_PREFIX[n]) {
+-			    printf("LOCALS %s:::%s:::%s\n", newNameTmp, o->shortName, DATA_PREFIX[n]);
+-			    auto ret = snprintf(newName,
+-				    SMALL_BUFFER_MAX_SIZE,
+-				    "%s_%s",
+-				    DATA_PREFIX[n],
+-				    newNameTmp);
+-			    (void)ret;
+-			    U_ASSERT(0 <= ret && ret < SMALL_BUFFER_MAX_SIZE);
+-			    ret = snprintf(dataName,
+-				    SMALL_BUFFER_MAX_SIZE,
+-				    "%s_%s",
+-				    o->shortName,
+-				    DATA_PREFIX[n]);
+-			    (void)ret;
+-			    U_ASSERT(0 <= ret && ret < SMALL_BUFFER_MAX_SIZE);
+-		    }
++                    auto ret = snprintf(newName,
++                            SMALL_BUFFER_MAX_SIZE,
++                            "%s_%s",
++                            DATA_PREFIX[n],
++                            newNameTmp);
++                    (void)ret;
++                    U_ASSERT(0 <= ret && ret < SMALL_BUFFER_MAX_SIZE);
++                    ret = snprintf(dataName,
++                            SMALL_BUFFER_MAX_SIZE,
++                            "%s_%s",
++                            o->shortName,
++                            DATA_PREFIX[n]);
++                    (void)ret;
++                    U_ASSERT(0 <= ret && ret < SMALL_BUFFER_MAX_SIZE);
+                 }
+                 if (newName[0] != 0) {
+                     break;

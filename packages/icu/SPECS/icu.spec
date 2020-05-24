@@ -18,6 +18,8 @@ Requires: lib%{name}%{?_isa} = %{version}-%{release}
 Patch4: gennorm2-man.patch
 Patch5: icuinfo-man.patch
 Patch6: rbnf-tick.patch
+Patch7: exclude-burmese.patch
+Patch8: pkgdata.segfault.patch
 
 %description
 Tools and utilities for developing with icu.
@@ -63,7 +65,8 @@ BuildArch: noarch
 %build
 cd source
 autoconf
-export LD_LIBRARYN32_PATH="%{_builddir}/icu/sources/lib:$LD_LIBRARYN32_PATH"
+export LD_LIBRARYN32_PATH="%{_builddir}/icu/source/lib:$LD_LIBRARYN32_PATH"
+export LD_LIBRARYN32_PATH="%{_builddir}/icu/source/stubdata:$LD_LIBRARYN32_PATH"
 CFLAGS='%optflags -fno-strict-aliasing'
 CXXFLAGS='%optflags -fno-strict-aliasing'
 # Endian: BE=0 LE=1
