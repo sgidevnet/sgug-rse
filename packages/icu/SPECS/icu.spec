@@ -63,6 +63,7 @@ BuildArch: noarch
 %build
 cd source
 autoconf
+export LD_LIBRARYN32_PATH="%{_builddir}/icu/sources/lib:$LD_LIBRARYN32_PATH"
 CFLAGS='%optflags -fno-strict-aliasing'
 CXXFLAGS='%optflags -fno-strict-aliasing'
 # Endian: BE=0 LE=1
@@ -123,9 +124,7 @@ make %{?_smp_mflags} -C source check
 cd source
 LD_LIBRARY_PATH=lib:stubdata:tools/ctestfw:$LD_LIBRARY_PATH bin/uconv -l
 
-
-%ldconfig_scriptlets -n lib%{name}
-
+#%%ldconfig_scriptlets -n lib%{name}
 
 %files
 %license license.html
