@@ -1,10 +1,10 @@
 --- icu.orig/source/data/BUILDRULES.py       2020-05-24 19:06:58.842238240 +0000
 +++ icu/source/data/BUILDRULES.py            2020-05-24 17:38:47.929485280 +0000
-@@ -221,6 +221,7 @@
+@@ -221,7 +221,6 @@
      input_files = [InFile(filename) for filename in io.glob("brkitr/dictionaries/*.txt")]
      output_files = [OutFile("brkitr/%s.dict" % v.filename[20:-4]) for v in input_files]
      extra_options_map = {
-+        "brkitr/dictionaries/burmesedict.txt": "--bytes --transform offset-0x1000",
+-        "brkitr/dictionaries/burmesedict.txt": "--bytes --transform offset-0x1000",
          "brkitr/dictionaries/cjdict.txt": "--uchars",
          "brkitr/dictionaries/khmerdict.txt": "--bytes --transform offset-0x1780",
          "brkitr/dictionaries/laodict.txt": "--bytes --transform offset-0x0e80",
