@@ -1,0 +1,119 @@
+diff -r -u -w perl-5.30.0/cflags.SH perl-5.30.0-patched/cflags.SH
+--- perl-5.30.0/cflags.SH	2019-05-11 10:50:20.000000000 +0000
++++ perl-5.30.0-patched/cflags.SH	2019-11-11 16:49:08.851965920 +0000
+@@ -178,7 +178,7 @@
+ # -std=c89 before -ansi
+ # -pedantic* before -Werror=d-a-s
+ #
+-*)  for opt in -std=c89 -ansi $pedantic \
++*)  for opt in -std=c99 -ansi $pedantic \
+ 		-Werror=declaration-after-statement \
+ 	        -Werror=pointer-arith \
+ 		-Wextra -W \
+diff -r -u -w perl-5.30.0/cpan/Test-Simple/t/Test2/behavior/ipc_wait_timeout.t perl-5.30.0-patched/cpan/Test-Simple/t/Test2/behavior/ipc_wait_timeout.t
+--- perl-5.30.0/cpan/Test-Simple/t/Test2/behavior/ipc_wait_timeout.t	2019-05-11 10:50:20.000000000 +0000
++++ perl-5.30.0-patched/cpan/Test-Simple/t/Test2/behavior/ipc_wait_timeout.t	2019-11-11 16:49:08.854122160 +0000
+@@ -8,7 +8,7 @@
+ END { $? = 0 if $ENV{HARNESS_ACTIVE} }
+ 
+ # Some platforms throw a sigpipe in this test, we can ignore it.
+-BEGIN { $SIG{PIPE} = 'IGNORE' }
++#BEGIN { $SIG{PIPE} = 'IGNORE' }
+ 
+ BEGIN { local ($@, $?, $!); eval { require threads } }
+ use Test2::Tools::Tiny;
+diff -r -u -w perl-5.30.0/perl.h perl-5.30.0-patched/perl.h
+--- perl-5.30.0/perl.h	2019-05-11 10:50:20.000000000 +0000
++++ perl-5.30.0-patched/perl.h	2019-11-11 16:49:38.167124560 +0000
+@@ -11,6 +11,13 @@
+ #ifndef H_PERL
+ #define H_PERL 1
+ 
++#if defined(__sgi) && !defined(__GNUC__)
++/*
++ * Stop the inclusion of an annoying header file under SGI
++ */
++#define _FS_VNODE_H
++#endif
++
+ #ifdef PERL_FOR_X2P
+ /*
+  * This file is being used for x2p stuff.
+@@ -830,6 +837,15 @@
+ 
+ #include <setjmp.h>
+ 
++#if defined(__sgi)
++
++#include <signal.h>
++#include <sys/signal.h>
++#include <sys/types.h>
++typedef uchar_t mprot_t;
++
++#else
++
+ #ifdef I_SYS_PARAM
+ #   ifdef PARAM_NEEDS_TYPES
+ #	include <sys/types.h>
+@@ -837,6 +853,8 @@
+ #   include <sys/param.h>
+ #endif
+ 
++#endif
++
+ /* On BSD-derived systems, <sys/param.h> defines BSD to a year-month
+    value something like 199306.  This may be useful if no more-specific
+    feature test is available.
+@@ -1949,10 +1967,12 @@
+ #       endif
+ #   endif
+ #   ifndef Perl_isinf
+-#       if defined(HAS_ISINFL) && !(defined(isinf) && defined(HAS_C99))
++#       if defined(__sgi)
++#           define Perl_isinf(x) (sizeof(x) == sizeof(double) ? _isinf(x) \
++               : sizeof(x) == sizeof(float) ? _isinff(x) \
++               : _isinfl(x))
++#       elif defined(HAS_ISINFL) && !(defined(isinf) && defined(HAS_C99))
+ #           define Perl_isinf(x) isinfl(x)
+-#       elif defined(__sgi) && defined(__c99)  /* XXX Configure test needed */
+-#           define Perl_isinf(x) isinf(x)
+ #       elif defined(LDBL_MAX) && !defined(NAN_COMPARE_BROKEN)
+ #           define Perl_isinf(x) ((x) > LDBL_MAX || (x) < -LDBL_MAX)
+ #       endif
+@@ -2047,7 +2067,11 @@
+ #       endif
+ #   endif
+ #   ifndef Perl_isinf
+-#       if defined(HAS_ISINF)
++#       if defined(__sgi)
++#           define Perl_isinf(x) (sizeof(x) == sizeof(double) ? _isinf(x) \
++               : sizeof(x) == sizeof(float) ? _isinff(x) \
++               : _isinfl(x))
++#       elif defined(HAS_ISINF)
+ #           define Perl_isinf(x) isinf(x)
+ #       elif defined(DBL_MAX) && !defined(NAN_COMPARE_BROKEN)
+ #           define Perl_isinf(x) ((x) > DBL_MAX || (x) < -DBL_MAX)
+@@ -3878,7 +3902,11 @@
+ #define U_I(what) ((unsigned int)U_32(what))
+ #define U_L(what) U_32(what)
+ 
+-#ifdef HAS_SIGNBIT
++#if defined(HAS_SIGNBIT) && defined(__sgi)
++#  define Perl_signbit(x) (sizeof(x) == sizeof(double) ? _signbit(x) \
++               : sizeof(x) == sizeof(float) ? _signbitf(x) \
++               : _signbitl(x))
++#elif defined(HAS_SIGNBIT)
+ #  ifndef Perl_signbit
+ #    define Perl_signbit signbit
+ #  endif
+diff -r -u -w perl-5.30.0/t/thread_it.pl perl-5.30.0-patched/t/thread_it.pl
+--- perl-5.30.0/t/thread_it.pl	2019-05-11 10:50:20.000000000 +0000
++++ perl-5.30.0-patched/t/thread_it.pl	2019-11-11 16:49:08.866789280 +0000
+@@ -36,6 +36,7 @@
+                             stack_size => $^O eq 'hpux'   ? 524288 :
+                                           $^O eq 'darwin' ? 2000000:
+                                           $^O eq 'VMS'    ? 150000 :
++                                          $^O eq 'irix'   ? 524288 :
+                                           $^O eq 'aix'    ? 1500000 : 0,
+                            }, sub {
+ 			       run_tests();
