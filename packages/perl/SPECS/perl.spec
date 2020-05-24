@@ -107,8 +107,7 @@ Source7:        gendep.macros
 %include %{SOURCE7}
 %endif
 
-#Source8:        perl.irix6_gcc_config.sh
-Source8:        perl.didbsconfig.sh
+Source8:        perl.irix6_gcc_config.sh
 
 # Removes date check, Fedora/RHEL specific
 Patch1:         perl-perlbug-tag.patch
@@ -307,8 +306,7 @@ Patch200:       perl-5.16.3-Link-XS-modules-to-libperl.so-with-EU-CBuilder-on-Li
 # Link XS modules to libperl.so with EU::MM on Linux, bug #960048
 Patch201:       perl-5.16.3-Link-XS-modules-to-libperl.so-with-EU-MM-on-Linux.patch
 
-#Patch300:         perl5_30_0_fixes.patch
-Patch300:         perl.didbsfixes.patch
+Patch300:         perl.sgifixes.patch
 
 # Update some of the bundled modules
 # see http://fedoraproject.org/wiki/Perl/perl.spec for instructions
@@ -2831,80 +2829,80 @@ Perl extension for Version Objects
 %prep
 %setup -q -n perl-%{perl_version}
 
-# %%patch1 -p1
-# %%ifarch %{multilib_64_archs}
-# %%patch2 -p1
-# %%endif
-# %%patch3 -p1
-# %%patch4 -p1
-# %%patch5 -p1
-# %%patch6 -p1
-# %%patch7 -p1
-# %%patch8 -p1
-# %%patch9 -p1
-# %%patch10 -p1
-# %%patch11 -p1
-# %%patch12 -p1
-# %%patch13 -p1
-# %%patch14 -p1
-# %%patch15 -p1
-# %%patch16 -p1
-# %%patch17 -p1
-# %%patch18 -p1
-# %%patch19 -p1
-# %%patch20 -p1
-# %%patch21 -p1
-# %%patch22 -p1
-# %%patch23 -p1
-# %%patch24 -p1
-# %%patch25 -p1
-# %%patch26 -p1
-# %%patch27 -p1
-# %%patch28 -p1
-# %%patch29 -p1
-# %%patch30 -p1
-# %%patch31 -p1
-# %%patch32 -p1
-# %%patch33 -p1
-# %%patch34 -p1
-# %%patch35 -p1
-# %%patch36 -p1
-# %%patch37 -p1
-# %%patch38 -p1
-# %%patch39 -p1
-# %%patch40 -p1
-# %%patch41 -p1
-# %%patch42 -p1
-# %%patch43 -p1
-# %%patch44 -p1
-# %%patch45 -p1
-# %%patch46 -p1
-# %%patch47 -p1
-# %%patch48 -p1
-# %%patch49 -p1
-# %%patch50 -p1
-# %%patch51 -p1
-# %%patch52 -p1
-# %%patch53 -p1
-# %%patch54 -p1
-# %%patch55 -p1
-# %%patch56 -p1
-# %%patch57 -p1
-# # PATCH-perl-134329-Use-after-free-in-regcomp.c.patch is a binary patch
-# git init-db .
-# git config --replace-all gc.auto 0 # Prevent from racing with "rm -rf .git"
-# git config --replace-all user.email '<nobody@localhost>'
-# git config --replace-all user.name 'Nobody'
-# git add .
-# git commit --message 'Import'
-# git am < %{PATCH58}
-# rm -rf .git # Perl tests examine a git repository
-# %%patch59 -p1
-# %%patch60 -p1
-# %%patch61 -p1
-# %%patch62 -p1
-# %%patch200 -p1
-# %%patch201 -p1
+%patch1 -p1
+#%%ifarch %{multilib_64_archs}
+#%%patch2 -p1
+#%%endif
+%patch3 -p1
+%patch4 -p1
+%patch5 -p1
+%patch6 -p1
+%patch7 -p1
+%patch8 -p1
+%patch9 -p1
+%patch10 -p1
+%patch11 -p1
+%patch12 -p1
+%patch13 -p1
+%patch14 -p1
+%patch15 -p1
+%patch16 -p1
+%patch17 -p1
+%patch18 -p1
+%patch19 -p1
+%patch20 -p1
+%patch21 -p1
+%patch22 -p1
+%patch23 -p1
+%patch24 -p1
+%patch25 -p1
+%patch26 -p1
+%patch27 -p1
+%patch28 -p1
+%patch29 -p1
+%patch30 -p1
+%patch31 -p1
+%patch32 -p1
+%patch33 -p1
+%patch34 -p1
+%patch35 -p1
+%patch36 -p1
+%patch37 -p1
+%patch38 -p1
+%patch39 -p1
+%patch40 -p1
+%patch41 -p1
+%patch42 -p1
+%patch43 -p1
+%patch44 -p1
+%patch45 -p1
+%patch46 -p1
+%patch47 -p1
+%patch48 -p1
+%patch49 -p1
+%patch50 -p1
+%patch51 -p1
+%patch52 -p1
+%patch53 -p1
+%patch54 -p1
+%patch55 -p1
+%patch56 -p1
+%patch57 -p1
+# PATCH-perl-134329-Use-after-free-in-regcomp.c.patch is a binary patch
+git init-db .
+git config --replace-all gc.auto 0 # Prevent from racing with "rm -rf .git"
+git config --replace-all user.email '<nobody@localhost>'
+git config --replace-all user.name 'Nobody'
+git add .
+git commit --message 'Import'
+git am < %{PATCH58}
+rm -rf .git # Perl tests examine a git repository
+%patch59 -p1
+%patch60 -p1
+%patch61 -p1
+%patch62 -p1
+%patch200 -p1
+%patch201 -p1
 
 %patch300 -p1
 
@@ -3010,8 +3008,7 @@ cp %{_topdir}/SOURCES/perl.irix6_gcc_config.sh config.sh
 # OPTFLAGS_REGEXP="s|^optimize=.*$|optimize='%{optflags}'|g"
 # perl -pi -e "$OPTFLAGS_REGEXP" config.sh
 
-perl -pi -e "s|DIDBSINSTALLPREFIX|/usr/didbs/current|g" config.sh
-
+perl -pi -e "s|DIDBSINSTALLPREFIX|%{_prefix}|g" config.sh
 
 # /usr/bin/env sh Configure -S \
 #         -Doptimize=" " \
@@ -3064,7 +3061,7 @@ perl -pi -e "s|DIDBSINSTALLPREFIX|/usr/didbs/current|g" config.sh
 ./Configure -S
 
 # Rewrite installation lib directory
-LIBDIR_REGEXP="s|/usr/didbs/current/lib/|/usr/didbs/current/lib32/|g"
+LIBDIR_REGEXP="s|%{_prefix}/lib/|%{_libdir}/|g"
 perl -pi -e "$LIBDIR_REGEXP" config.sh || exit -1
 
 touch config.sh
@@ -3072,7 +3069,7 @@ chmod u+x ./config.sh
 ./config_h.SH
 make depend
 
-exit 1
+#exit 1
 
 # -Duseshrplib creates libperl.so, -Ubincompat5005 help create DSO -> libperl.so
 
