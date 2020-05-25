@@ -1,6 +1,6 @@
 Name: yajl
 Version: 2.1.0
-Release: 13%{?dist}
+Release: 14%{?dist}
 Summary: Yet Another JSON Library (YAJL)
 
 License: ISC
@@ -47,6 +47,10 @@ necessary for developing against the YAJL library
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+
+# Rewrite hard references to /bin/sh
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" test/api/run_tests.sh
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" test/parsing/run_tests.sh
 
 %build
 export CC=mips-sgi-irix6.5-gcc
@@ -96,6 +100,9 @@ cd test
 
 
 %changelog
+* Sun May 24 2020 Daniel Hams <daniel.hams@gmail.com> - 2.1.0-14
+- Get tests running (fix /bin/sh references)
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.1.0-13
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

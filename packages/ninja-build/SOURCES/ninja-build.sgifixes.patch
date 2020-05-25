@@ -1,6 +1,6 @@
 diff -u -r ninja-1.9.0-orig/configure.py ninja-1.9.0/configure.py
 --- ninja-1.9.0-orig/configure.py	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/configure.py	2020-04-20 21:28:26.563517600 +0000
++++ ninja-1.9.0/configure.py	2020-05-21 12:08:00.093224080 +0000
 @@ -60,6 +60,8 @@
              self._platform = 'netbsd'
          elif self._platform.startswith('aix'):
@@ -29,10 +29,9 @@ diff -u -r ninja-1.9.0-orig/configure.py ninja-1.9.0/configure.py
      def uses_usr_local(self):
          return self._platform in ('freebsd', 'openbsd', 'bitrig', 'dragonfly', 'netbsd')
  
-Only in ninja-1.9.0-orig: ninja-1.9.0
 diff -u -r ninja-1.9.0-orig/src/build_log.cc ninja-1.9.0/src/build_log.cc
 --- ninja-1.9.0-orig/src/build_log.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/build_log.cc	2020-04-20 21:28:26.565513840 +0000
++++ ninja-1.9.0/src/build_log.cc	2020-05-21 12:08:00.102469280 +0000
 @@ -302,7 +302,7 @@
      if (!end)
        continue;
@@ -53,7 +52,7 @@ diff -u -r ninja-1.9.0-orig/src/build_log.cc ninja-1.9.0/src/build_log.cc
        entry->command_hash = LogEntry::HashCommand(StringPiece(start,
 diff -u -r ninja-1.9.0-orig/src/disk_interface.cc ninja-1.9.0/src/disk_interface.cc
 --- ninja-1.9.0-orig/src/disk_interface.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/disk_interface.cc	2020-04-20 21:28:26.567022000 +0000
++++ ninja-1.9.0/src/disk_interface.cc	2020-05-21 12:08:00.103981040 +0000
 @@ -206,7 +206,7 @@
    return ((int64_t)st.st_mtimespec.tv_sec * 1000000000LL +
            st.st_mtimespec.tv_nsec);
@@ -65,8 +64,41 @@ diff -u -r ninja-1.9.0-orig/src/disk_interface.cc ninja-1.9.0/src/disk_interface
    // For bsd, see https://github.com/freebsd/freebsd/blob/master/sys/sys/stat.h and similar
 diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
 --- ninja-1.9.0-orig/src/ninja.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/ninja.cc	2020-04-20 21:29:19.143197200 +0000
-@@ -1135,7 +1135,7 @@
++++ ninja-1.9.0/src/ninja.cc	2020-05-21 12:08:05.671420720 +0000
+@@ -733,14 +733,30 @@
+   bool first = true;
+   vector<char> cwd;
+ 
++#if defined(__sgi)
++  errno = 0;
++  char * libcgetcwd = getcwd(NULL,-1);
++  if( libcgetcwd == NULL ) {
++    Error("cannot determine working directory: %s", strerror(errno));
++    return 1;
++  } else {
++    cwd.resize(strlen(libcgetcwd)+1);
++    strcpy(&cwd[0],libcgetcwd);
++    free(libcgetcwd);
++  }
++  errno = 0;
++#else
++  char * success;
+   do {
+     cwd.resize(cwd.size() + 1024);
+     errno = 0;
+-  } while (!getcwd(&cwd[0], cwd.size()) && errno == ERANGE);
+-  if (errno != 0 && errno != ERANGE) {
++    success = getcwd(&cwd[0], cwd.size();
++  } while (!success && errno == ERANGE);
++  if (!success) {
+     Error("cannot determine working directory: %s", strerror(errno));
+     return 1;
+   }
++#endif
+ 
+   putchar('[');
+   for (vector<Edge*>::iterator e = state_.edges_.begin();
+@@ -1135,7 +1151,7 @@
          break;
        case 'j': {
          char* end;
@@ -75,7 +107,7 @@ diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
          if (*end != 0 || value < 0)
            Fatal("invalid -j parameter");
  
-@@ -1146,7 +1146,7 @@
+@@ -1146,7 +1162,7 @@
        }
        case 'k': {
          char* end;
@@ -84,7 +116,7 @@ diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
          if (*end != 0)
            Fatal("-k parameter not numeric; did you mean -k 0?");
  
-@@ -1158,7 +1158,7 @@
+@@ -1158,7 +1174,7 @@
        }
        case 'l': {
          char* end;
@@ -95,7 +127,7 @@ diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
          config->max_load_average = value;
 diff -u -r ninja-1.9.0-orig/src/subprocess-posix.cc ninja-1.9.0/src/subprocess-posix.cc
 --- ninja-1.9.0-orig/src/subprocess-posix.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/subprocess-posix.cc	2020-04-20 21:28:26.569292240 +0000
++++ ninja-1.9.0/src/subprocess-posix.cc	2020-05-21 12:08:00.108901280 +0000
 @@ -14,7 +14,6 @@
  
  #include "subprocess.h"
@@ -256,7 +288,7 @@ diff -u -r ninja-1.9.0-orig/src/subprocess-posix.cc ninja-1.9.0/src/subprocess-p
        perror("ninja: pselect");
 diff -u -r ninja-1.9.0-orig/src/util.cc ninja-1.9.0/src/util.cc
 --- ninja-1.9.0-orig/src/util.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/util.cc	2020-04-20 21:28:26.571423760 +0000
++++ ninja-1.9.0/src/util.cc	2020-05-21 12:08:00.112031200 +0000
 @@ -45,7 +45,7 @@
  #elif defined(__SVR4) && defined(__sun)
  #include <unistd.h>

@@ -1,6 +1,6 @@
 Name:           ninja-build
 Version:        1.9.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Small build system with a focus on speed
 License:        ASL 2.0
 URL:            https://ninja-build.org/
@@ -30,6 +30,9 @@ fast as possible.
 
 %prep
 %autosetup -n ninja-%{version} -p1
+
+# Patch generation
+#exit 1
 
 %build
 export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 $RPM_OPT_FLAGS"
@@ -78,6 +81,9 @@ ln -s ninja %{buildroot}%{_bindir}/ninja-build
 %{rpmmacrodir}/macros.ninja
 
 %changelog
+* Sun May 24 2020 SGUG <sgug@sgidev.sh> - 1.9.0-4
+- Implement workaround for broken IRIX getcwd call (it sets errno)
+
 * Mon Apr 20 2020 SGUG <sgug@sgidev.sh> - 1.9.0-3
 - Import into wip
 
