@@ -81,9 +81,6 @@ rm -rf %{buildroot}%{_docdir}/%{name}
 %doc potrace.pdf potracelib.pdf
 
 %changelog
-* Wed May 13 2020  Alexander Tafarte <notes2@gmx.de> - 1.16-2
-- compiles on Irix 6.5 with sgug-rse gcc 9.2 , 6/8 tests pass (2 skipped).
-
 * Sat Sep 28 2019 Susi Lehtola <jussilehtola@fedoraproject.org> - 1.16-1
 - Update to 1.16.
 
