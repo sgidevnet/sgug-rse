@@ -64,6 +64,8 @@ BuildArch: noarch
 
 %build
 cd source
+rm data/in/icudt67l.dat
+cp %{_sourcedir}/icudt67l.dat data/in
 autoconf
 export LD_LIBRARYN32_PATH="%{_builddir}/icu/source/lib:$LD_LIBRARYN32_PATH"
 export LD_LIBRARYN32_PATH="%{_builddir}/icu/source/stubdata:$LD_LIBRARYN32_PATH"
