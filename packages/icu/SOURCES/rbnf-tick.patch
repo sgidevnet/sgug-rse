@@ -1,0 +1,43 @@
+--- icu.orig/source/i18n/rbnf.cpp    2020-04-22 16:04:20.000000000 +0000
++++ icu/source/i18n/rbnf.cpp         2020-05-23 16:10:10.945125200 +0000
+@@ -289,7 +289,7 @@
+     OPEN_ANGLE = 0x003c, /* '<' */
+     CLOSE_ANGLE = 0x003e, /* '>' */
+     COMMA = 0x002c,
+-    TICK = 0x0027,
++    ICU_TICK = 0x0027,
+     QUOTE = 0x0022,
+     SPACE = 0x0020
+ };
+@@ -374,11 +374,11 @@
+ };
+ 
+ static const UChar SQUOTE_STOPLIST[] = { 
+-    TICK, 0
++    ICU_TICK, 0
+ };
+ 
+ static const UChar NOQUOTE_STOPLIST[] = { 
+-    SPACE, COMMA, CLOSE_ANGLE, OPEN_ANGLE, TICK, QUOTE, 0
++    SPACE, COMMA, CLOSE_ANGLE, OPEN_ANGLE, ICU_TICK, QUOTE, 0
+ };
+ 
+ static void
+@@ -528,7 +528,7 @@
+     if (p < e) {
+         const UChar* terminators;
+         UChar c = *p;
+-        UBool haveQuote = c == QUOTE || c == TICK;
++        UBool haveQuote = c == QUOTE || c == ICU_TICK;
+         if (haveQuote) {
+             inc();
+             terminators = c == QUOTE ? DQUOTE_STOPLIST : SQUOTE_STOPLIST;
+@@ -554,7 +554,7 @@
+                 ERROR("Empty string");
+             }
+             inc();
+-        } else if (x == OPEN_ANGLE || x == TICK || x == QUOTE) {
++        } else if (x == OPEN_ANGLE || x == ICU_TICK || x == QUOTE) {
+             ERROR("Unexpected character in string");
+         }
+     }

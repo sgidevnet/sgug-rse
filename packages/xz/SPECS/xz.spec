@@ -1,5 +1,6 @@
 # This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
+# Nope, can't otherwise it skips out on linking in pthread
+#%%global build_ldflags %%{sgug_optimised_ldflags}
 
 # Not needed for f21+ and probably RHEL8+
 %{!?_licensedir:%global license %%doc}
@@ -7,7 +8,7 @@
 Summary:	LZMA compression utilities
 Name:		xz
 Version:	5.2.4
-Release:	6%{?dist}
+Release:	7%{?dist}
 
 # Scripts xz{grep,diff,less,more} and symlinks (copied from gzip) are
 # GPLv2+, binaries are Public Domain (linked against LGPL getopt_long but its
@@ -99,6 +100,9 @@ export CFLAGS="$RPM_OPT_FLAGS"
   CFLAGS="$CFLAGS -Wa,--generate-missing-build-notes=yes"
 %endif
 
+# liblzma has undefined pthread symbols without this
+export LIBS="-lpthread"
+
 %configure
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 #sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
@@ -158,6 +162,9 @@ LD_LIBRARY_PATH=$PWD/src/liblzma/.libs make check
 
 
 %changelog
+* Thu May 21 2020 Daniel Hams <daniel.hams@gmail.com> - 5.2.4-7
+- Add pthread lib during link to avoid unresolved symbols from things using this.
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 5.2.4-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

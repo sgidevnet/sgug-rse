@@ -7,7 +7,7 @@
 
 Name:           python-rpm-macros
 Version:        3
-Release:        51%{?dist}
+Release:        52%{?dist}
 Summary:        The unversioned Python RPM macros
 
 # macros: MIT, compileall2.py: PSFv2
@@ -85,6 +85,9 @@ install -m 644 %{SOURCE5} \
 
 
 %changelog
+* Thu May 21 2020 Daniel Hams <daniel.hams@gmail.com> - 3-52
+- Fix bashism in the pybyte compile macros file
+
 * Sun Apr 12 2020 Daniel Hams <daniel.hams@gmail.com> - 3-51
 - And Unxy + HAL too, getting some macros in place
 

@@ -1,0 +1,61 @@
+diff -Naur meson-0.52.0.orig/mesonbuild/compilers/compilers.py meson-0.52.0/mesonbuild/compilers/compilers.py
+--- meson-0.52.0.orig/mesonbuild/compilers/compilers.py	2019-10-06 13:05:19.000000000 +0000
++++ meson-0.52.0/mesonbuild/compilers/compilers.py	2020-05-21 07:57:21.205032400 +0000
+@@ -237,8 +237,8 @@
+                 'b_sanitize': coredata.UserComboOption('Code sanitizer to use',
+                                                        ['none', 'address', 'thread', 'undefined', 'memory', 'address,undefined'],
+                                                        'none'),
+-                'b_lundef': coredata.UserBooleanOption('Use -Wl,--no-undefined when linking', True),
+-                'b_asneeded': coredata.UserBooleanOption('Use -Wl,--as-needed when linking', True),
++                'b_lundef': coredata.UserBooleanOption('Use -Wl,--no-undefined when linking', False),
++                'b_asneeded': coredata.UserBooleanOption('Use -Wl,--as-needed when linking', False),
+                 'b_pgo': coredata.UserComboOption('Use profile guided optimization',
+                                                   ['off', 'generate', 'use'],
+                                                   'off'),
+diff -Naur meson-0.52.0.orig/mesonbuild/envconfig.py meson-0.52.0/mesonbuild/envconfig.py
+--- meson-0.52.0.orig/mesonbuild/envconfig.py	2019-10-06 13:05:19.000000000 +0000
++++ meson-0.52.0/mesonbuild/envconfig.py	2020-05-21 08:07:52.193965800 +0000
+@@ -57,7 +57,9 @@
+     'wasm32',
+     'wasm64',
+     'x86',
+-    'x86_64'
++    'x86_64',
++    'ip30',
++    'ip35'
+ )
+ 
+ # It would feel more natural to call this "64_BIT_CPU_FAMILES", but
+@@ -258,6 +260,10 @@
+         """Machine is illumos or Solaris?"""
+         return self.system == 'sunos'
+ 
++    def is_irix(self) -> bool:
++        """Machine is IRIX?"""
++        return self.system == 'irix64'
++
+ 
+     # Various prefixes and suffixes for import libraries, shared libraries,
+     # static libraries, and executables.
+diff -Naur meson-0.52.0.orig/mesonbuild/mesonlib.py meson-0.52.0/mesonbuild/mesonlib.py
+--- meson-0.52.0.orig/mesonbuild/mesonlib.py	2019-10-06 13:05:19.000000000 +0000
++++ meson-0.52.0/mesonbuild/mesonlib.py	2020-05-21 08:10:00.711034400 +0000
+@@ -466,6 +466,9 @@
+ def is_freebsd() -> bool:
+     return platform.system().lower() == 'freebsd'
+ 
++def is_irix() -> bool:
++    return platform.system().lower() == 'irix64'
++
+ def exe_exists(arglist: typing.List[str]) -> bool:
+     try:
+         if subprocess.run(arglist, timeout=10).returncode == 0:
+@@ -672,7 +675,7 @@
+                 return 'lib/' + archpath
+         except Exception:
+             pass
+-    if is_freebsd():
++    if is_freebsd() or is_irix():
+         return 'lib'
+     if os.path.isdir('/usr/lib64') and not os.path.islink('/usr/lib64'):
+         return 'lib64'

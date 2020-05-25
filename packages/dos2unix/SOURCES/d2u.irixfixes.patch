@@ -1,0 +1,37 @@
+diff -Naur dos2unix-7.4.0.orig/Makefile dos2unix-7.4.0/Makefile
+--- dos2unix-7.4.0.orig/Makefile	2017-10-10 13:00:32.000000000 +0000
++++ dos2unix-7.4.0/Makefile	2020-05-23 17:17:04.335597520 +0000
+@@ -70,7 +70,7 @@
+ LINK            = ln -sf
+ LINK_MAN        = $(LINK)
+ 
+-prefix          = /usr
++prefix          = /usr/sgug
+ exec_prefix     = $(prefix)
+ bindir          = $(exec_prefix)/bin
+ datarootdir     = $(prefix)/share
+@@ -677,15 +677,15 @@
+ realclean: maintainer-clean
+ 
+ 
+-ZIPOBJ  = bin/$(BIN) \
+-          bin/$(MAC2UNIX_BIN) \
+-          bin/$(UNIX2DOS_BIN) \
+-          bin/$(UNIX2MAC_BIN) \
+-          share/man/man1/$(PACKAGE).1 \
+-          share/man/man1/$(MAC2UNIX).1 \
+-          share/man/man1/$(UNIX2DOS).1 \
+-          share/man/man1/$(UNIX2MAC).1 \
+-          share/doc/$(docsubdir)/*.* \
++ZIPOBJ  = sgug/bin/$(BIN) \
++          sgug/bin/$(MAC2UNIX_BIN) \
++          sgug/bin/$(UNIX2DOS_BIN) \
++          sgug/bin/$(UNIX2MAC_BIN) \
++          sgug/share/man/man1/$(PACKAGE).1 \
++          sgug/share/man/man1/$(MAC2UNIX).1 \
++          sgug/share/man/man1/$(UNIX2DOS).1 \
++          sgug/share/man/man1/$(UNIX2MAC).1 \
++          sgug/share/doc/$(docsubdir)/*.* \
+           $(ZIPOBJ_EXTRA)
+ 
+ ifdef ENABLE_NLS
