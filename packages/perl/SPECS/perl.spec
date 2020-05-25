@@ -4,11 +4,12 @@
 %global perl_archname %{_arch}-%{_os}%{perl_arch_stem}
 
 #DH
-#%global multilib_64_archs aarch64 %{power64} s390x sparc64 x86_64 
+#%%global multilib_64_archs aarch64 %%{power64} s390x sparc64 x86_64 
 %global parallel_tests 1
 %global tapsetdir   %{_datadir}/systemtap/tapset
 
 %global dual_life 0
+%global perl_bootstrap 1
 %global rebuild_from_scratch %{defined perl_bootstrap}
 
 # This overrides filters from build root (/usr/lib/rpm/macros.d/macros.perl)
@@ -33,7 +34,7 @@
 # Run syslog tests
 %bcond_with perl_enables_syslog_test
 # SystemTap support
-#%bcond_without perl_enables_systemtap
+#%%bcond_without perl_enables_systemtap
 # <> operator uses File::Glob nowadays. CSH is not needed.
 %bcond_with perl_enables_tcsh
 # We can skip %%check phase
@@ -86,7 +87,7 @@ License:        GPL+ or Artistic
 Epoch:          %{perl_epoch}
 Version:        %{perl_version}
 # release number must be even higher, because dual-lived modules will be broken otherwise
-Release:        448%{?dist}
+Release:        449%{?dist}
 Summary:        Practical Extraction and Report Language
 Url:            https://www.perl.org/
 Source0:        https://www.cpan.org/src/5.0/perl-%{perl_version}.tar.gz
@@ -305,7 +306,7 @@ Patch200:       perl-5.16.3-Link-XS-modules-to-libperl.so-with-EU-CBuilder-on-Li
 # Link XS modules to libperl.so with EU::MM on Linux, bug #960048
 Patch201:       perl-5.16.3-Link-XS-modules-to-libperl.so-with-EU-MM-on-Linux.patch
 
-Patch300:         perl5_30_0_fixes.patch
+Patch300:         perl.sgifixes.patch
 
 # Update some of the bundled modules
 # see http://fedoraproject.org/wiki/Perl/perl.spec for instructions
@@ -566,7 +567,7 @@ Requires:       perl(Devel::PPPort)
 # redhat-rpm-config. Bug #1557667.
 #Requires:       redhat-rpm-config
 # ExtUtils::Embed -e ldopts include libcrypt, bug #1666098
-#Requires:       libxcrypt-devel%{?_isa}
+#Requires:       libxcrypt-devel%%{?_isa}
 
 %if %{defined perl_bootstrap}
 %gendep_perl_devel
@@ -2829,9 +2830,9 @@ Perl extension for Version Objects
 %setup -q -n perl-%{perl_version}
 
 %patch1 -p1
-%ifarch %{multilib_64_archs}
-%patch2 -p1
-%endif
+#%%ifarch %{multilib_64_archs}
+#%%patch2 -p1
+#%%endif
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
@@ -2938,21 +2939,21 @@ recode()
 find . -name \*.orig -exec rm -fv {} \;
 
 # Configure Compress::Zlib to use system zlib
-sed -i 's|BUILD_ZLIB      = True|BUILD_ZLIB      = False|
-    s|INCLUDE         = ./zlib-src|INCLUDE         = %{_includedir}|
-    s|LIB             = ./zlib-src|LIB             = %{_libdir}|' \
-    cpan/Compress-Raw-Zlib/config.in
+#sed -i 's|BUILD_ZLIB      = True|BUILD_ZLIB      = False|
+#    s|INCLUDE         = ./zlib-src|INCLUDE         = %{_includedir}|
+#    s|LIB             = ./zlib-src|LIB             = %{_libdir}|' \
+#    cpan/Compress-Raw-Zlib/config.in
 
 # Ensure that we never accidentally bundle zlib or bzip2
-rm -rf cpan/Compress-Raw-Zlib/zlib-src
-rm -rf cpan/Compress-Raw-Bzip2/bzip2-src
-sed -i '/\(bzip2\|zlib\)-src/d' MANIFEST
+#rm -rf cpan/Compress-Raw-Zlib/zlib-src
+#rm -rf cpan/Compress-Raw-Bzip2/bzip2-src
+#sed -i '/\(bzip2\|zlib\)-src/d' MANIFEST
 
-%if !%{with gdbm}
+#%%if !%%{with gdbm}
 # Do not install anything requiring NDBM_File if NDBM is not available.
-rm -rf 'cpan/Memoize/Memoize/NDBM_File.pm'
-sed -i '\|cpan/Memoize/Memoize/NDBM_File.pm|d' MANIFEST
-%endif
+#rm -rf 'cpan/Memoize/Memoize/NDBM_File.pm'
+#sed -i '\|cpan/Memoize/Memoize/NDBM_File.pm|d' MANIFEST
+#%%endif
 
 
 %build
@@ -2982,48 +2983,62 @@ echo "RPM Build arch: %{_arch}"
 # Only ccflags and ldflags are used for Configure's compiler checks.
 # Set optimize=none to prevent from injecting upstream's value.
 cp %{_topdir}/SOURCES/perl.irix6_gcc_config.sh config.sh
+
+# perl -pi -e "s|DIDBSINSTALLPREFIX|%{_prefix}|g" config.sh
+# LIBDIR_REGEXP="s|%{_prefix}/lib/|%{_prefix}/%{_lib}/|g"
+# perl -pi -e "$LIBDIR_REGEXP" config.sh
+# #CCFLAGS_REGEXP="s|^ccflags=.*$|ccflags='-DPTHREAD_H_FIRST -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLANGUAGE_C $RPM_OPT_FLAGS'|g"
+# CCFLAGS_REGEXP="s|^ccflags=.*$|ccflags='-DPTHREAD_H_FIRST -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLANGUAGE_C'|g"
+# perl -pi -e "$CCFLAGS_REGEXP" config.sh
+# export CFLAGS="-DPTHREAD_H_FIRST -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLANGUAGE_C"
+# #CPPFLAGS_REGEXP="s|^cppflags=.*$|cppflags='-DPTHREAD_H_FIRST -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -fwrapv -fno-strict-aliasing -DLANGUAGE_C $RPM_OPT_FLAGS'|g"
+# CPPFLAGS_REGEXP="s|^cppflags=.*$|cppflags='-DPTHREAD_H_FIRST -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -fwrapv -fno-strict-aliasing -DLANGUAGE_C'|g"
+# export CPPFLAGS="-DPTHREAD_H_FIRST -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -fwrapv -fno-strict-aliasing -DLANGUAGE_C"
+# perl -pi -e "$CPPFLAGS_REGEXP" config.sh
+# #LDFLAGS_REGEXP="s|^ldflags=.*$|ldflags='$RPM_LD_FLAGS -L%{_libdir}'|g"
+# LDFLAGS_REGEXP="s|^ldflags=.*$|ldflags='-L%{_libdir}'|g"
+# perl -pi -e "$LDFLAGS_REGEXP" config.sh
+# export LDFLAGS="-L%{_libdir}"
+# #CCDLFLAGS_REGEXP="s|^ccdlflags=.*$|ccdlflags='$RPM_LD_FLAGS'|g"
+# CCDLFLAGS_REGEXP="s|^ccdlflags=.*$|ccdlflags='-L%{_libdir}'|g"
+# perl -pi -e "$CCDLFLAGS_REGEXP" config.sh
+# #LDDLFLAGS_REGEXP="s|^lddlflags=.*$|lddlflags='-shared $RPM_LD_FLAGS -L%{_libdir}'|g"
+# LDDLFLAGS_REGEXP="s|^lddlflags=.*$|lddlflags='-shared -L%{_libdir}'|g"
+# perl -pi -e "$LDDLFLAGS_REGEXP" config.sh
+# OPTFLAGS_REGEXP="s|^optimize=.*$|optimize='%{optflags}'|g"
+# perl -pi -e "$OPTFLAGS_REGEXP" config.sh
+
 perl -pi -e "s|DIDBSINSTALLPREFIX|%{_prefix}|g" config.sh
-LIBDIR_REGEXP="s|%{_prefix}/lib/|%{_prefix}/%{_lib}/|g"
-perl -pi -e "$LIBDIR_REGEXP" config.sh
-CCFLAGS_REGEXP="s|^ccflags=.*$|ccflags='$RPM_OPT_FLAGS'|g"
-perl -pi -e "$CCFLAGS_REGEXP" config.sh
-LDFLAGS_REGEXP="s|^ldflags=.*$|ldflags='$RPM_LD_FLAGS -L%{_libdir}'|g"
-perl -pi -e "$LDFLAGS_REGEXP" config.sh
-CCDLFLAGS_REGEXP="s|^ccdlflags=.*$|ccdlflags='-Wl,--enable-new-dtags $RPM_LD_FLAGS'|g"
-perl -pi -e "$CCDLFLAGS_REGEXP" config.sh
-LDDLFLAGS_REGEXP="s|^lddlflags=.*$|lddlflags='-shared $RPM_LD_FLAGS -L%{_libdir}'|g"
-perl -pi -e "$LDDLFLAGS_REGEXP" config.sh
-OPTFLAGS_REGEXP="s|^optimize=.*$|optimize='%{optflags}'|g"
-perl -pi -e "$OPTFLAGS_REGEXP" config.sh
-/usr/bin/env sh Configure -S \
-        -Doptimize=" " \
-        -Dccflags="$RPM_OPT_FLAGS" \
-        -Dldflags="$RPM_LD_FLAGS" \
-        -Dccdlflags="-Wl,--enable-new-dtags $RPM_LD_FLAGS" \
-        -Dlddlflags="-shared $RPM_LD_FLAGS" \
-        -Dshrpdir="%{_libdir}" \
-        -DDEBUGGING=-g \
-        -Dversion=%{perl_version} \
-        -Dmyhostname=localhost \
-        -Dperladmin=root@localhost \
-        -Dcc='%{__cc}' \
-        -Dcf_by='SGUG' \
-        -Dprefix=%{_prefix} \
-%if %{without perl_enables_groff}
-        -Dman1dir="%{_mandir}/man1" \
-        -Dman3dir="%{_mandir}/man3" \
-%endif
-        -Dvendorprefix=%{_prefix} \
-        -Dsiteprefix=%{_prefix}/local \
-        -Dsitelib="%{_prefix}/share/perl5/%{perl_abi}" \
-        -Dsitearch="%{_prefix}/%{_lib}/perl5/%{perl_abi}" \
-        -Dprivlib="%{privlib}" \
-        -Dvendorlib="%{perl_vendorlib}" \
-        -Darchlib="%{archlib}" \
-        -Dvendorarch="%{perl_vendorarch}" \
-        -Darchname=%{perl_archname} \
-        -Duselargefiles \
-        -Dman3ext=3pm
+
+# /usr/bin/env sh Configure -S \
+#         -Doptimize=" " \
+#         -Dccflags="$RPM_OPT_FLAGS" \
+#         -Dldflags="$RPM_LD_FLAGS" \
+#         -Dccdlflags="-Wl,--enable-new-dtags $RPM_LD_FLAGS" \
+#         -Dlddlflags="-shared $RPM_LD_FLAGS" \
+#         -Dshrpdir="%%{_libdir}" \
+#         -DDEBUGGING=-g \
+#         -Dversion=%%{perl_version} \
+#         -Dmyhostname=localhost \
+#         -Dperladmin=root@localhost \
+#         -Dcc='%%{__cc}' \
+#         -Dcf_by='SGUG' \
+#         -Dprefix=%%{_prefix} \
+# %%if %%{without perl_enables_groff}
+#         -Dman1dir="%%{_mandir}/man1" \
+#         -Dman3dir="%%{_mandir}/man3" \
+# %%endif
+#         -Dvendorprefix=%%{_prefix} \
+#         -Dsiteprefix=%%{_prefix}/local \
+#         -Dsitelib="%%{_prefix}/share/perl5/%%{perl_abi}" \
+#         -Dsitearch="%%{_prefix}/%{_lib}/perl5/%%{perl_abi}" \
+#         -Dprivlib="%%{privlib}" \
+#         -Dvendorlib="%%{perl_vendorlib}" \
+#         -Darchlib="%%{archlib}" \
+#         -Dvendorarch="%%{perl_vendorarch}" \
+#         -Darchname=%%{perl_archname} \
+#         -Duselargefiles \
+#         -Dman3ext=3pm
 
 
 #        -Duseshrplib \
@@ -3040,7 +3055,21 @@ perl -pi -e "$OPTFLAGS_REGEXP" config.sh
 #touch config.sh
 #chmod u+x config.sh
 #./config_h.SH
+#make depend
+
+## New approach replicating the steps in didbs:
+./Configure -S
+
+# Rewrite installation lib directory
+LIBDIR_REGEXP="s|%{_prefix}/lib/|%{_libdir}/|g"
+perl -pi -e "$LIBDIR_REGEXP" config.sh || exit -1
+
+touch config.sh
+chmod u+x ./config.sh
+./config_h.SH
 make depend
+
+#exit 1
 
 # -Duseshrplib creates libperl.so, -Ubincompat5005 help create DSO -> libperl.so
 
@@ -3056,7 +3085,7 @@ test -L %soname || ln -s libperl.so %soname
 LD_LIBRARYN32_PATH=%{_libdir}:$LD_LIBRARYN32_PATH make %{?_smp_mflags}
 
 %install
-make install DESTDIR=$RPM_BUILD_ROOT
+make %{?_smp_mflags} install DESTDIR=$RPM_BUILD_ROOT
 
 %global build_archlib $RPM_BUILD_ROOT%{archlib}
 %global build_privlib $RPM_BUILD_ROOT%{privlib}
@@ -5146,6 +5175,9 @@ cd ..
 
 # Old changelog entries are preserved in CVS.
 %changelog
+* Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-449
+- Remove pushd/popd from macros.perl
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-448
 - Correct manpath
 

@@ -109,6 +109,9 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/licenses/libmwaw-doc/CO*
 #%%{_mandir}/man1/mwaw2text.1*
 
 %changelog
+* Sun May 17 2020  Alexander Tafarte <notes2@gmx.de> - 0.3.15-3
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.3.15-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
