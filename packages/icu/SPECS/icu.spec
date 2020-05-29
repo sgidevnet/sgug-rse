@@ -66,9 +66,11 @@ BuildArch: noarch
 cd source
 rm data/in/icudt67l.dat
 cp %{_sourcedir}/icudt67l.dat data/in
+cp %{_sourcedir}/icu-filters.json .
 autoconf
 export LD_LIBRARYN32_PATH="%{_builddir}/icu/source/lib:$LD_LIBRARYN32_PATH"
 export LD_LIBRARYN32_PATH="%{_builddir}/icu/source/stubdata:$LD_LIBRARYN32_PATH"
+export ICU_DATA_FILTER_FILE="%{_builddir}/icu/source/icu-filters.json"
 CFLAGS='%optflags -fno-strict-aliasing'
 CXXFLAGS='%optflags -fno-strict-aliasing'
 # Endian: BE=0 LE=1
