@@ -5,13 +5,13 @@ Summary:        Cross Platform Audio Output Library
 License:        GPLv2+
 URL:            http://xiph.org/ao/
 Source0:        http://downloads.xiph.org/releases/ao/%{name}-%{version}.tar.gz
-# Patch1:         0001-ao_pulse.c-fix-latency-calculation.patch
+Patch1:         0001-ao_pulse.c-fix-latency-calculation.patch
 # https://gitlab.xiph.org/xiph/libao/commit/d5221655dfd1a2156aa6be83b5aadea7c1e0f5bd.diff
 # CVE 2017-11548
-# Patch2:         d5221655dfd1a2156aa6be83b5aadea7c1e0f5bd.diff
+Patch2:         d5221655dfd1a2156aa6be83b5aadea7c1e0f5bd.diff
 BuildRequires:  gcc
-# BuildRequires:  alsa-lib-devel
-# BuildRequires:  pkgconfig(libpulse)
+BuildRequires:  alsa-lib-devel
+BuildRequires:  pkgconfig(libpulse)
 
 %description
 Libao is a cross-platform audio library that allows programs to output audio
@@ -29,13 +29,13 @@ developing applications that use %{name}.
 
 %prep
 %setup -q
-# %patch1 -p1
-# %patch2 -p1
+%patch1 -p1
+%patch2 -p1
 sed -i "s/-O20 -ffast-math//" configure
 
 
 %build
-%configure --without-doc
+%configure
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 make %{?_smp_mflags}
@@ -48,7 +48,7 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -rf {} \;
 rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}*
 
 
-# %ldconfig_scriptlets
+%ldconfig_scriptlets
 
 
 %files
@@ -67,9 +67,6 @@ rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}*
 
 
 %changelog
-* Mon May 25 2020  Alexander Tafarte <notes2@gmx.de> - 1.2.0-16
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
-
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.2.0-15
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
