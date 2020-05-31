@@ -48,6 +48,7 @@ find %{buildroot} -name '*.la' -exec rm -f {} ';'
 %{_libdir}/pkgconfig/%{name}.pc
 
 %changelog
+- Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
 * disabled docs and Linux specific settings
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.1.3-22

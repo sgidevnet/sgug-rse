@@ -1,23 +1,43 @@
 
+## enable experimental cmake build support (or not)
+# still a bit buggy (e.g. out-of-tree and translations broken)
+#global cmake_build 1
+
 Summary: Exif and Iptc metadata manipulation library
 Name:    exiv2
-Version: 0.27.2
-%global internal_ver %{version}
-Release: 1%{?dist}
+Version: 0.26
+Release: 12%{?dist}
 
 License: GPLv2+
 URL:     http://www.exiv2.org/
-%if 0%{?beta:1}
-Source0: https://github.com/Exiv2/%{name}/archive/v%{version}-%{beta}.tar.gz
-%else
-Source0: http://exiv2.org/builds/%{name}-%{version}-Source.tar.gz
-%endif
+Source0: https://github.com/Exiv2/%{name}/archive/exiv2-%{version}.tar.gz
 
-## upstream patches
+Patch0:  exiv2-simplify-compiler-info-in-cmake.patch
+Patch1:  exiv2-fix-documentation-build.patch
 
+## upstream patches (lookaside cache)
+Patch6:  0006-1296-Fix-submitted.patch
+
+# Security fixes
+Patch10: exiv2-CVE-2017-17723.patch
+Patch11: exiv2-wrong-brackets.patch
+Patch12: exiv2-CVE-2017-11683.patch
+Patch13: exiv2-CVE-2017-14860.patch
+Patch14: exiv2-CVE-2017-14864-CVE-2017-14862-CVE-2017-14859.patch
+Patch15: exiv2-CVE-2017-17725.patch
+Patch16: exiv2-CVE-2017-17669.patch
+Patch17: exiv2-additional-security-fixes.patch
+Patch18: exiv2-CVE-2018-10958.patch
+Patch19: exiv2-CVE-2018-10998.patch
+Patch20: exiv2-CVE-2018-11531.patch
+Patch21: exiv2-CVE-2018-12264-CVE-2018-12265.patch
+Patch22: exiv2-CVE-2018-14046.patch
+Patch23: exiv2-CVE-2018-5772.patch
+Patch24: exiv2-CVE-2018-8976.patch
+Patch25: exiv2-CVE-2018-8977.patch
+Patch26: exiv2.irixfixes.patch
 ## upstreamable patches
-
-Patch100: exiv2.sgifixes.patch
+#Patch100: exiv2-doxygen.patch
 
 BuildRequires: cmake
 BuildRequires: expat-devel
@@ -32,9 +52,6 @@ BuildRequires: zlib-devel
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
-Requires: libdicl >= 0.1.24
-BuildRequires: libdicl-devel >= 0.1.24
-
 %description
 A command line utility to access image metadata, allowing one to:
 * print the Exif metadata of Jpeg images as summary info, interpreted values,
@@ -42,7 +59,7 @@ A command line utility to access image metadata, allowing one to:
 * print the Iptc metadata of Jpeg images
 * print the Jpeg comment of Jpeg images
 * set, add and delete Exif and Iptc metadata of Jpeg images
-* adjust the Exif timestamp (that''s how it all started...)
+* adjust the Exif timestamp (that's how it all started...)
 * rename Exif image files according to the Exif timestamp
 * extract, insert and delete Exif metadata (including thumbnails),
   Iptc metadata and Jpeg comments
@@ -50,9 +67,6 @@ A command line utility to access image metadata, allowing one to:
 %package devel
 Summary: Header files, libraries and development documentation for %{name}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
-# FIXME/TODO: probably overlinking --rex
-# exiv2/exiv2Config.cmake:  INTERFACE_LINK_LIBRARIES "/usr/lib64/libexpat.so"
-Requires: expat-devel%{?_isa} 
 %description devel
 %{summary}.
 
@@ -69,99 +83,44 @@ A C++ library to access image metadata, supporting full read and write access
 to the Exif and Iptc metadata, Exif MakerNote support, extract and delete
 methods for Exif thumbnails, classes to access Ifd and so on.
 
-%package doc
-Summary: Api documentation for %{name}
-BuildArch: noarch
-%description doc
-%{summary}.
+#%%package doc
+#Summary: Api documentation for %{name}
+#BuildArch: noarch
+#%%description doc
+#%%{summary}.
 
 
 %prep
-%autosetup -n %{name}-%{version}-%{?beta}%{!?beta:Source} -p1
-
-# For patch generation
-#exit 1
-
-# Rewrite the hardcoded paths in the tests
-perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" test/*.sh
-perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" test/functions.source
-perl -pi -e "s|build/bin|bin|g" test/functions.source
-perl -pi -e "s|build/bin|bin|g" tests/suite.conf
-perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" test/Makefile
+%autosetup -n %{name}-%{version} -p1
 
 %build
-export CC=mips-sgi-irix6.5-gcc
-export CXX=mips-sgi-irix6.5-g++
-export CFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 $RPM_OPT_FLAGS"
-export CXXFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 $RPM_OPT_FLAGS"
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
-# To run the tests, you'll need to install the library first
-# and then set build samples to ON below before trying to run
-# "make" in the test subdirectory.
-# Note: it's normal that one you set that on it will refuse to build
-# the RPMs, since there's all the test binaries installed
-%{cmake} . \
-  -DZLIB_ROOT="%{_prefix}" \
-  -DCMAKE_INSTALL_DOCDIR="%{_pkgdocdir}" \
-  -DCMAKE_SKIP_RPATH:BOOL=ON \
-  -DEXIV2_BUILD_DOC:BOOL=OFF \
-  -DEXIV2_ENABLE_NLS:BOOL=ON \
-  -DEXIV2_BUILD_SAMPLES:BOOL=ON \
-  -DEXIV2_BUILD_UNIT_TESTS:BOOL=OFF
+# exiv2: embedded copy of exempi should be compiled with BanAllEntityUsage
+# https://bugzilla.redhat.com/show_bug.cgi?id=888769
+export CPPFLAGS="-DBanAllEntityUsage=1"
 
-%make_build
-#%make_build doc
+%{cmake} \
+  -DEXIV2_ENABLE_BUILD_PO:BOOL=ON \
+  -DEXIV2_ENABLE_BUILD_SAMPLES:BOOL=OFF \
+  -DEXIV2_ENABLE_LIBXMP:BOOL=ON .
+  # FIXME: build this because it adds Threads library and it doesn't build without
+  #        it from some reason
 
+make %{?_smp_mflags}
+#make doc -k ||:
 
 %install
 make install/fast DESTDIR=%{buildroot}
-
 
 %find_lang exiv2 --with-man
 
 ## unpackaged files
 rm -fv %{buildroot}%{_libdir}/libexiv2.la
-#rm -fv %{buildroot}%{_libdir}/pkgconfig/exiv2.lsm
-
-# Remove the samples we don't want
-rm -fv %{buildroot}%{_bindir}/addmoddel
-rm -fv %{buildroot}%{_bindir}/convert-test
-rm -fv %{buildroot}%{_bindir}/easyaccess-test
-rm -fv %{buildroot}%{_bindir}/exifcomment
-rm -fv %{buildroot}%{_bindir}/exifdata
-rm -fv %{buildroot}%{_bindir}/exifdata-test
-rm -fv %{buildroot}%{_bindir}/exifprint
-rm -fv %{buildroot}%{_bindir}/exifvalue
-rm -fv %{buildroot}%{_bindir}/exiv2json
-rm -fv %{buildroot}%{_bindir}/geotag
-rm -fv %{buildroot}%{_bindir}/ini-test
-rm -fv %{buildroot}%{_bindir}/iotest
-rm -fv %{buildroot}%{_bindir}/iptceasy
-rm -fv %{buildroot}%{_bindir}/iptcprint
-rm -fv %{buildroot}%{_bindir}/iptctest
-rm -fv %{buildroot}%{_bindir}/key-test
-rm -fv %{buildroot}%{_bindir}/largeiptc-test
-rm -fv %{buildroot}%{_bindir}/metacopy
-rm -fv %{buildroot}%{_bindir}/mmap-test
-rm -fv %{buildroot}%{_bindir}/mrwthumb
-rm -fv %{buildroot}%{_bindir}/path-test
-rm -fv %{buildroot}%{_bindir}/prevtest
-rm -fv %{buildroot}%{_bindir}/stringto-test
-rm -fv %{buildroot}%{_bindir}/taglist
-rm -fv %{buildroot}%{_bindir}/tiff-test
-rm -fv %{buildroot}%{_bindir}/werror-test
-rm -fv %{buildroot}%{_bindir}/write-test
-rm -fv %{buildroot}%{_bindir}/write2-test
-rm -fv %{buildroot}%{_bindir}/xmpdump
-rm -fv %{buildroot}%{_bindir}/xmpparse
-rm -fv %{buildroot}%{_bindir}/xmpparser-test
-rm -fv %{buildroot}%{_bindir}/xmpprint
-rm -fv %{buildroot}%{_bindir}/xmpsample
+rm -fv %{buildroot}%{_libdir}/libxmp.a
+rm -fv %{buildroot}%{_libdir}/pkgconfig//exiv2.lsm
 
 %check
-export PKG_CONFIG_PATH="%{buildroot}%{_libdir}/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
-test "$(pkg-config --modversion exiv2)" = "%{internal_ver}"
-test "$(pkg-config --variable=libdir exiv2)" = "%{_libdir}"
+export PKG_CONFIG_PATH=%{buildroot}%{_libdir}/pkgconfig
+test "$(pkg-config --modversion exiv2)" = "%{version}"
 test -x %{buildroot}%{_libdir}/libexiv2.so
 
 
@@ -169,53 +128,25 @@ test -x %{buildroot}%{_libdir}/libexiv2.so
 %license COPYING
 %doc doc/ChangeLog
 # README is mostly installation instructions
-#doc README.md
+#doc README
 %{_bindir}/exiv2
-%{_mandir}/man1/exiv2*.1*
+#%%{_mandir}/man1/exiv2*.1*
 
 #%%ldconfig_scriptlets libs
 
 %files libs
-%{_libdir}/libexiv2.so.27*
-%{_libdir}/libexiv2.so.%{internal_ver}
+%{_libdir}/libexiv2.so.26*
 
 %files devel
 %{_includedir}/exiv2/
 %{_libdir}/libexiv2.so
 %{_libdir}/pkgconfig/exiv2.pc
-%{_libdir}/cmake/exiv2/
-# todo: -static subpkg?  -- rex
-%{_libdir}/libexiv2-xmp.a
 
-%files doc
-%{_pkgdocdir}/
+#%%files doc
+#%%{_datadir}/doc/html/
 
 
 %changelog
-* Mon Jul 29 2019 Rex Dieter <rdieter@fedoraproject.org> - 0.27.2-1
-- 0.27.2
-
-* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.27.2-0.2.RC2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
-
-* Tue Jul 16 2019 Rex Dieter <rdieter@fedoraproject.org> - 0.27.2-0.1.RC2
-- 0.27.2-RC2 (#1720353)
-
-* Fri Apr 26 2019 Rex Dieter <rdieter@fedoraproject.org> - 0.27.1-1
-- exiv-0.27.1 (#1696117)
-
-* Thu Jan 31 2019 Rex Dieter <rdieter@fedoraproject.org> - 0.27.0-3
-- -devel: Requires: expat-devel
-
-* Wed Jan 30 2019 Rex Dieter <rdieter@fedoraproject.org> - 0.27.0-2
-- pull in upstream fix for pkgconfig exiv2.pc
-
-* Thu Jan 10 2019 Rex Dieter <rdieter@fedoraproject.org> - 0.27.0-1
-- exiv2-0.27.0 (#1665246)
-
-* Thu Jan 10 2019 Rex Dieter <rdieter@fedoraproject.org> - 0.26-13
-- backport pentax DNG crasher (#1585514, exiv2#201)
-
 * Tue Jul 24 2018 Jan Grulich <jgrulich@redhat.com> - 0.26-12
 - Security fix for CVE-2017-17723, CVE-2017-17725, CVE-2018-10958, CVE-2018-10998,
   CVE-2018-11531, CVE-2018-12264, CVE-2018-12265, CVE-2018-14046, CVE-2018-5772,

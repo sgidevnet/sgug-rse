@@ -1,0 +1,45 @@
+diff -Naur patchutils-0.3.4.orig/scripts/editdiff.in patchutils-0.3.4/scripts/editdiff.in
+--- patchutils-0.3.4.orig/scripts/editdiff.in	2011-02-10 07:36:06.000000000 +0000
++++ patchutils-0.3.4/scripts/editdiff.in	2020-05-07 22:55:38.097886555 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ #
+ # editdiff - simple wrapper around rediff
+ # Copyright (C) 2001-2002, 2011 Tim Waugh <twaugh@redhat.com>
+diff -Naur patchutils-0.3.4.orig/scripts/espdiff.in patchutils-0.3.4/scripts/espdiff.in
+--- patchutils-0.3.4.orig/scripts/espdiff.in	2008-06-11 03:01:28.000000000 +0000
++++ patchutils-0.3.4/scripts/espdiff.in	2020-05-07 22:55:03.476797176 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ #
+ # espdiff - do whatever it was you wanted
+ # Copyright (C) 2003 Tim Waugh <twaugh@redhat.com>
+diff -Naur patchutils-0.3.4.orig/scripts/move-to-front patchutils-0.3.4/scripts/move-to-front
+--- patchutils-0.3.4.orig/scripts/move-to-front	2008-06-11 03:01:28.000000000 +0000
++++ patchutils-0.3.4/scripts/move-to-front	2020-05-07 22:54:38.480289406 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ if [ "$#" -eq 0 ] || [ "x$1" == "x--help" ]
+ then
+   echo "usage: move-to-front [PATCHES..] PATCH"
+diff -Naur patchutils-0.3.4.orig/tests/combine2/run-test patchutils-0.3.4/tests/combine2/run-test
+--- patchutils-0.3.4.orig/tests/combine2/run-test	2008-07-02 04:11:08.000000000 +0000
++++ patchutils-0.3.4/tests/combine2/run-test	2020-05-07 22:56:12.638995040 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ 
+ # This is a combinediff(1) testcase.
+ 
+diff -Naur patchutils-0.3.4.orig/tests/combine3/run-test patchutils-0.3.4/tests/combine3/run-test
+--- patchutils-0.3.4.orig/tests/combine3/run-test	2008-07-02 04:11:08.000000000 +0000
++++ patchutils-0.3.4/tests/combine3/run-test	2020-05-07 22:56:52.187464373 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ 
+ # This is a combinediff(1) testcase.
+ 

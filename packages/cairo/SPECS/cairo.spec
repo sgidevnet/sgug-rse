@@ -112,12 +112,13 @@ export LDFLAGS="%{optflags} -lgen"
 	--enable-ps		\
 	--enable-pdf		\
 	--enable-svg		\
-	--enable-tee		\
-	--enable-gobject	\
-        --enable-xml            \
-        --disable-valgrind      \
-        --enable-xlib-xcb       \
-        --disable-gtk-doc       \
+        --enable-png            \ 
+#	--enable-tee		\
+#	--enable-gobject	\
+#        --enable-xml            \
+#        --disable-valgrind      \
+#        --enable-xlib-xcb       \
+#        --disable-gtk-doc       \
 #	%{cairogl}		\
 #	--disable-gtk-doc
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
@@ -133,8 +134,6 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %doc AUTHORS BIBLIOGRAPHY BUGS NEWS README
 %{_libdir}/libcairo.so.*
 %{_libdir}/libcairo-script-interpreter.so.*
-%{_bindir}/cairo-sphinx
-
 %files devel
 %doc ChangeLog PORTING_GUIDE
 %dir %{_includedir}/cairo/
@@ -146,13 +145,13 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %{_includedir}/cairo/cairo-ps.h
 %{_includedir}/cairo/cairo-script-interpreter.h
 %{_includedir}/cairo/cairo-svg.h
-%{_includedir}/cairo/cairo-tee.h
+#%%{_includedir}/cairo/cairo-tee.h
 %{_includedir}/cairo/cairo-version.h
 %{_includedir}/cairo/cairo-xlib-xrender.h
 %{_includedir}/cairo/cairo-xlib.h
 %{_includedir}/cairo/cairo-script.h
 %{_includedir}/cairo/cairo-xcb.h
-%{_includedir}/cairo/cairo-xml.h
+#%%{_includedir}/cairo/cairo-xml.h
 %{_libdir}/libcairo.so
 %{_libdir}/libcairo-script-interpreter.so
 %{_libdir}/pkgconfig/cairo-fc.pc
@@ -162,15 +161,16 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %{_libdir}/pkgconfig/cairo-png.pc
 %{_libdir}/pkgconfig/cairo-ps.pc
 %{_libdir}/pkgconfig/cairo-svg.pc
-%{_libdir}/pkgconfig/cairo-tee.pc
+#%%{_libdir}/pkgconfig/cairo-tee.pc
 %{_libdir}/pkgconfig/cairo-xlib.pc
 %{_libdir}/pkgconfig/cairo-xlib-xrender.pc
 %{_libdir}/pkgconfig/cairo-script.pc
 %{_libdir}/pkgconfig/cairo-xcb-shm.pc
 %{_libdir}/pkgconfig/cairo-xcb.pc
-%{_libdir}/pkgconfig/cairo-xlib-xcb.pc
-%{_libdir}/pkgconfig/cairo-xml.pc
+#%%{_libdir}/pkgconfig/cairo-xlib-xcb.pc
+#%%{_libdir}/pkgconfig/cairo-xml.pc
 %{_datadir}/gtk-doc/html/cairo
+#%%{_bindir}/cairo-sphinx
 
 %files gobject
 %{_libdir}/libcairo-gobject.so.*
@@ -185,6 +185,12 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 #%%{_libdir}/cairo/
 
 %changelog
+<<<<<<< HEAD
+=======
+* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
+- fixed gobject-introspection which lacked on the previous version for Irix 6.5
+
+>>>>>>> 9c73c97842fc945ae797bdf1253bb936b2592878
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.16.0-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

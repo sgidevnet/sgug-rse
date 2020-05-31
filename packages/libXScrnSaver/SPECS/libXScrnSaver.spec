@@ -53,6 +53,9 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 %{_includedir}/X11/extensions/scrnsaver.h
 
 %changelog
+* Mon May 25 2020  Alexander Tafarte <notes2@gmx.de> - 1.2.3-5
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.2.3-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

@@ -67,6 +67,9 @@ rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}*
 
 
 %changelog
+* Mon May 25 2020  Alexander Tafarte <notes2@gmx.de> - 1.2.0-16
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.2.0-15
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
