@@ -1,15 +1,17 @@
 Name:    libatomic_ops
 Summary: Atomic memory update operations
 Version: 7.6.10
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 # libatomic_ops MIT, libatomic_ops_gpl GPLv2
 License: GPLv2 and MIT
 URL:     https://github.com/ivmai/libatomic_ops/
 Source0: https://github.com/ivmai/libatomic_ops/releases/download/v%{version}/libatomic_ops-%{version}.tar.gz
 
+Patch100: libatomic_ops.sgifixes.patch
+
 BuildRequires: gcc
-Patch1:  libatomic.irixfixes.patch
+
 %description
 Provides implementations for atomic memory update operations on a
 number of architectures. This allows direct use of these in reasonably
@@ -33,14 +35,17 @@ Files for developing with %{name} and linking statically.
 %prep
 %autosetup -p1
 
+# For patch generation
+#exit 1
+
 %build
 %configure \
   --enable-shared \
   --disable-silent-rules
 
 # kill rpath
-sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+#sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+#sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 
 %make_build
 
@@ -81,6 +86,9 @@ rm -fv %{buildroot}%{_docdir}/libatomic_ops/{COPYING,README*,*.txt}
 
 
 %changelog
+* Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.10-3
+- Fix up patch naming, avoid the rpath deactivation
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 7.6.10-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
