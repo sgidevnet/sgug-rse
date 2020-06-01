@@ -5,7 +5,7 @@
 
 Name: sgml-common
 Version: 0.6.3
-Release: 53%{?dist}
+Release: 54%{?dist}
 
 Summary: Common SGML catalog and DTD files
 
@@ -74,6 +74,13 @@ done
 
 %build
 %configure
+
+# Rewrite some hardcoded paths
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" bin/install-catalog
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" bin/sgmlwhich
+
+perl -pi -e "s|/etc/sgml|%{_sysconfdir}/sgml|g" bin/install-catalog
+perl -pi -e "s|/etc/sgml|%{_sysconfdir}/sgml|g" bin/sgmlwhich
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -202,6 +209,9 @@ fi
 %{_datadir}/xml/datatypes.dtd
 
 %changelog
+* Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> - 0.6.3-54
+- Rewrite some hardcoded paths
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.6.3-53
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
