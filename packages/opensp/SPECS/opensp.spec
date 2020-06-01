@@ -117,6 +117,9 @@ make check || : # TODO: failures as of 1.5.2 :(
 
 
 %changelog
+* Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> - 1.5.2-33
+- Import into wip, fix up
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.5.2-33
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
