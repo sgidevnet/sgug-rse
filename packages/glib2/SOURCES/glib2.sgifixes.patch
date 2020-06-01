@@ -1,7 +1,6 @@
-Only in glib-2.62.6: core
 diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
 --- glib-2.62.6-orig/gio/glocalfile.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/glocalfile.c	2020-05-21 16:21:25.406961480 +0000
++++ glib-2.62.6/gio/glocalfile.c	2020-05-31 12:52:34.740537560 +0000
 @@ -2734,7 +2734,7 @@
    if (g_cancellable_set_error_if_cancelled (state->cancellable, error))
      return FALSE;
@@ -31,7 +30,7 @@ diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
      DIR *dirp;
 diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
 --- glib-2.62.6-orig/gio/gsocket.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gsocket.c	2020-05-21 16:15:21.678943440 +0000
++++ glib-2.62.6/gio/gsocket.c	2020-05-31 12:52:34.749592520 +0000
 @@ -4427,7 +4427,7 @@
    const struct msghdr *_prev_msg = (prev_msg); \
    GError **_error = (error); \
@@ -73,7 +72,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
  	  {
 diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
 --- glib-2.62.6-orig/gio/gtrashportal.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gtrashportal.c	2020-05-21 16:18:46.722779800 +0000
++++ glib-2.62.6/gio/gtrashportal.c	2020-05-31 12:52:34.751526040 +0000
 @@ -86,10 +86,17 @@
  
    path = g_file_get_path (file);
@@ -94,7 +93,7 @@ diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
  
 diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.c
 --- glib-2.62.6-orig/gio/gunixfdmessage.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gunixfdmessage.c	2020-05-21 16:11:26.609407880 +0000
++++ glib-2.62.6/gio/gunixfdmessage.c	2020-05-31 12:52:34.753378200 +0000
 @@ -48,6 +48,10 @@
  #include <fcntl.h>
  #include <errno.h>
@@ -108,7 +107,7 @@ diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.
  #include "gnetworking.h"
 diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
 --- glib-2.62.6-orig/glib/giounix.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/giounix.c	2020-05-21 15:12:00.630299320 +0000
++++ glib-2.62.6/glib/giounix.c	2020-05-31 12:52:34.755534520 +0000
 @@ -31,7 +31,17 @@
  
  #include "config.h"
@@ -129,7 +128,7 @@ diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
  #include <sys/stat.h>
 diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.in
 --- glib-2.62.6-orig/glib/glibconfig.h.in	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/glibconfig.h.in	2020-05-21 15:31:21.820073200 +0000
++++ glib-2.62.6/glib/glibconfig.h.in	2020-05-31 12:52:34.757008040 +0000
 @@ -16,7 +16,7 @@
   * system printf functions.  This is useful to know, for example,
   * when using glibc's register_printf_function().
@@ -141,7 +140,7 @@ diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.i
  #mesondefine GOBJECT_STATIC_COMPILATION
 diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
 --- glib-2.62.6-orig/glib/gmain.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gmain.c	2020-05-19 21:46:02.100535160 +0000
++++ glib-2.62.6/glib/gmain.c	2020-05-31 12:52:34.764143720 +0000
 @@ -2844,7 +2844,11 @@
    struct timespec ts;
    gint result;
@@ -156,13 +155,14 @@ diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
      g_error ("GLib requires working CLOCK_MONOTONIC");
 diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meson.build
 --- glib-2.62.6-orig/glib/gnulib/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gnulib/meson.build	2020-05-21 15:47:23.245314840 +0000
++++ glib-2.62.6/glib/gnulib/meson.build	2020-05-31 12:53:40.425962360 +0000
 @@ -323,14 +323,16 @@
                           output: 'gnulib_math.h',
                           configuration: math_h_config)
  
+-gnulib_sources = ['asnprintf.c', 'printf.c', 'printf-args.c', 'printf-parse.c', 'printf-frexp.c', 'printf-frexpl.c', 'isnand.c', 'isnanl.c', 'vasnprintf.c']
 +# We already have all these in libdicl
- gnulib_sources = ['asnprintf.c', 'printf.c', 'printf-args.c', 'printf-parse.c', 'printf-frexp.c', 'printf-frexpl.c', 'isnand.c', 'isnanl.c', 'vasnprintf.c']
++gnulib_sources = ['asnprintf.c', 'printf.c', 'printf-args.c', 'printf-parse.c', 'printf-frexp.c', 'printf-frexpl.c', 'isnand.c', 'isnanf.c', 'isnanl.c', 'vasnprintf.c']
 +#gnulib_sources = ['printf.c','vasnprintf.c']
  
 -if not gl_cv_func_frexp_works
@@ -182,7 +182,7 @@ diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meso
  
 diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.c
 --- glib-2.62.6-orig/glib/gthread-posix.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gthread-posix.c	2020-05-21 15:16:31.838946160 +0000
++++ glib-2.62.6/glib/gthread-posix.c	2020-05-31 12:52:34.768641720 +0000
 @@ -661,7 +661,7 @@
  
    pthread_condattr_init (&attr);
@@ -217,7 +217,7 @@ diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.
     * monotonic, so if we're in this branch, timedwait() will already be
 diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
 --- glib-2.62.6-orig/glib/gutils.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gutils.c	2020-05-21 13:05:21.482670800 +0000
++++ glib-2.62.6/glib/gutils.c	2020-05-31 12:52:34.772754600 +0000
 @@ -992,11 +992,17 @@
        const gsize size_large = (gsize) 256 * 256;
        gchar *tmp;
@@ -237,31 +237,10 @@ diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
          size = HOST_NAME_MAX + 1;
  #else
          size = _POSIX_HOST_NAME_MAX + 1;
-Only in glib-2.62.6-orig/glib/pcre: pcre.h
-Only in glib-2.62.6-orig/glib/pcre: pcre_byte_order.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_chartables.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_compile.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_config.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_dfa_exec.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_exec.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_fullinfo.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_get.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_globals.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_internal.h
-Only in glib-2.62.6-orig/glib/pcre: pcre_jit_compile.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_newline.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_ord2utf8.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_string_utils.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_study.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_tables.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_valid_utf8.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_version.c
-Only in glib-2.62.6-orig/glib/pcre: pcre_xclass.c
-Only in glib-2.62.6-orig/glib/pcre: ucp.h
 Only in glib-2.62.6-orig: glib-2.62.6
 diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
 --- glib-2.62.6-orig/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/meson.build	2020-05-21 15:49:54.021600800 +0000
++++ glib-2.62.6/meson.build	2020-05-31 12:52:34.776757720 +0000
 @@ -449,7 +449,6 @@
    'link',
    'localtime_r',
@@ -285,10 +264,9 @@ diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
  
  if glib_conf.has('HAVE_SYS_STATVFS_H')
    functions += ['statvfs']
-Only in glib-2.62.6: mips-sgug-irix
 diff -u -r glib-2.62.6-orig/tests/mapping-test.c glib-2.62.6/tests/mapping-test.c
 --- glib-2.62.6-orig/tests/mapping-test.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/tests/mapping-test.c	2020-05-21 16:29:00.262339320 +0000
++++ glib-2.62.6/tests/mapping-test.c	2020-05-31 12:52:34.778149000 +0000
 @@ -208,7 +208,11 @@
    signal (SIGUSR1, handle_usr1);
  #endif

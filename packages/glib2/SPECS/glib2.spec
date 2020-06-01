@@ -2,7 +2,7 @@
 
 Name: glib2
 Version: 2.62.6
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -223,7 +223,7 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 #%%{_datadir}/systemtap/
 
 #%%files doc
-#%%doc %{_datadir}/gtk-doc/html/*
+#%%doc %%{_datadir}/gtk-doc/html/*
 
 #%%files fam
 #%%{_libdir}/gio/modules/libgiofam.so
@@ -240,6 +240,9 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Sun May 31 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-2
+- Bug fix - include missing rpl_isnanf replacement func
+
 * Tue May 19 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-1
 - Pull official fc31 version into wip
 
