@@ -1,0 +1,6 @@
+Lib/test/test_bz2.py
+Lib/test/test_zipfile.py
+Lib/test/cfgparser.2
+Lib/test/ziptestdata/exe_with_zip
+Lib/test/ziptestdata/header.sh
+Lib/test/ziptestdata/exe_with_z64
