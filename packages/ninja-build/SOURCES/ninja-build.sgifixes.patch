@@ -1,6 +1,6 @@
 diff -u -r ninja-1.9.0-orig/configure.py ninja-1.9.0/configure.py
 --- ninja-1.9.0-orig/configure.py	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/configure.py	2020-06-01 19:56:53.092952560 +0000
++++ ninja-1.9.0/configure.py	2020-06-01 21:03:22.450684800 +0000
 @@ -60,6 +60,8 @@
              self._platform = 'netbsd'
          elif self._platform.startswith('aix'):
@@ -31,7 +31,7 @@ diff -u -r ninja-1.9.0-orig/configure.py ninja-1.9.0/configure.py
  
 diff -u -r ninja-1.9.0-orig/src/build_log.cc ninja-1.9.0/src/build_log.cc
 --- ninja-1.9.0-orig/src/build_log.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/build_log.cc	2020-06-01 19:56:53.095035520 +0000
++++ ninja-1.9.0/src/build_log.cc	2020-06-01 21:03:22.452556960 +0000
 @@ -302,7 +302,7 @@
      if (!end)
        continue;
@@ -52,7 +52,7 @@ diff -u -r ninja-1.9.0-orig/src/build_log.cc ninja-1.9.0/src/build_log.cc
        entry->command_hash = LogEntry::HashCommand(StringPiece(start,
 diff -u -r ninja-1.9.0-orig/src/disk_interface.cc ninja-1.9.0/src/disk_interface.cc
 --- ninja-1.9.0-orig/src/disk_interface.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/disk_interface.cc	2020-06-01 19:56:53.096623280 +0000
++++ ninja-1.9.0/src/disk_interface.cc	2020-06-01 21:03:22.454171920 +0000
 @@ -206,7 +206,7 @@
    return ((int64_t)st.st_mtimespec.tv_sec * 1000000000LL +
            st.st_mtimespec.tv_nsec);
@@ -64,7 +64,7 @@ diff -u -r ninja-1.9.0-orig/src/disk_interface.cc ninja-1.9.0/src/disk_interface
    // For bsd, see https://github.com/freebsd/freebsd/blob/master/sys/sys/stat.h and similar
 diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
 --- ninja-1.9.0-orig/src/ninja.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/ninja.cc	2020-06-01 19:56:53.099684400 +0000
++++ ninja-1.9.0/src/ninja.cc	2020-06-01 21:03:22.457178400 +0000
 @@ -733,14 +733,30 @@
    bool first = true;
    vector<char> cwd;
@@ -127,7 +127,7 @@ diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
          config->max_load_average = value;
 diff -u -r ninja-1.9.0-orig/src/subprocess-posix.cc ninja-1.9.0/src/subprocess-posix.cc
 --- ninja-1.9.0-orig/src/subprocess-posix.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/subprocess-posix.cc	2020-06-01 19:57:04.346719040 +0000
++++ ninja-1.9.0/src/subprocess-posix.cc	2020-06-01 21:03:22.458877040 +0000
 @@ -12,6 +12,13 @@
  // See the License for the specific language governing permissions and
  // limitations under the License.
@@ -171,74 +171,22 @@ diff -u -r ninja-1.9.0-orig/src/subprocess-posix.cc ninja-1.9.0/src/subprocess-p
        perror("ninja: pselect");
 diff -u -r ninja-1.9.0-orig/src/subprocess_test.cc ninja-1.9.0/src/subprocess_test.cc
 --- ninja-1.9.0-orig/src/subprocess_test.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/subprocess_test.cc	2020-06-01 19:56:53.103478320 +0000
-@@ -72,6 +72,7 @@
++++ ninja-1.9.0/src/subprocess_test.cc	2020-06-01 21:03:31.799393600 +0000
+@@ -128,7 +128,11 @@
+     subprocs_.DoWork();
+   }
  
- #ifndef _WIN32
- 
-+#if !defined(__sgi)
- TEST_F(SubprocessTest, InterruptChild) {
-   Subprocess* subproc = subprocs_.Add("kill -INT $$");
-   ASSERT_NE((Subprocess *) 0, subproc);
-@@ -82,6 +83,7 @@
- 
++#if defined(__sgi)
++  EXPECT_EQ(ExitFailure, subproc->Finish());
++#else
    EXPECT_EQ(ExitInterrupted, subproc->Finish());
- }
 +#endif
- 
- TEST_F(SubprocessTest, InterruptParent) {
-   Subprocess* subproc = subprocs_.Add("kill -INT $PPID ; sleep 1");
-@@ -96,6 +98,7 @@
-   ASSERT_FALSE("We should have been interrupted");
  }
- 
-+#if !defined(__sgi)
- TEST_F(SubprocessTest, InterruptChildWithSigTerm) {
-   Subprocess* subproc = subprocs_.Add("kill -TERM $$");
-   ASSERT_NE((Subprocess *) 0, subproc);
-@@ -106,6 +109,7 @@
- 
-   EXPECT_EQ(ExitInterrupted, subproc->Finish());
- }
-+#endif
- 
- TEST_F(SubprocessTest, InterruptParentWithSigTerm) {
-   Subprocess* subproc = subprocs_.Add("kill -TERM $PPID ; sleep 1");
-@@ -120,6 +124,7 @@
-   ASSERT_FALSE("We should have been interrupted");
- }
- 
-+#if !defined(__sgi)
- TEST_F(SubprocessTest, InterruptChildWithSigHup) {
-   Subprocess* subproc = subprocs_.Add("kill -HUP $$");
-   ASSERT_NE((Subprocess *) 0, subproc);
-@@ -130,6 +135,7 @@
- 
-   EXPECT_EQ(ExitInterrupted, subproc->Finish());
- }
-+#endif
  
  TEST_F(SubprocessTest, InterruptParentWithSigHup) {
-   Subprocess* subproc = subprocs_.Add("kill -HUP $PPID ; sleep 1");
-@@ -144,6 +150,7 @@
-   ASSERT_FALSE("We should have been interrupted");
- }
- 
-+#if !defined(__sgi)
- TEST_F(SubprocessTest, Console) {
-   // Skip test if we don't have the console ourselves.
-   if (isatty(0) && isatty(1) && isatty(2)) {
-@@ -158,6 +165,7 @@
-     EXPECT_EQ(ExitSuccess, subproc->Finish());
-   }
- }
-+#endif
- 
- #endif
- 
 diff -u -r ninja-1.9.0-orig/src/util.cc ninja-1.9.0/src/util.cc
 --- ninja-1.9.0-orig/src/util.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/util.cc	2020-06-01 19:56:53.105597680 +0000
++++ ninja-1.9.0/src/util.cc	2020-06-01 21:03:22.461022000 +0000
 @@ -45,7 +45,7 @@
  #elif defined(__SVR4) && defined(__sun)
  #include <unistd.h>
