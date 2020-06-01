@@ -22,6 +22,8 @@ BuildRequires:  re2c >= 0.11.3
 Requires:       emacs-filesystem
 Requires:       vim-filesystem
 
+BuildRequires:  libdicl-devel >= 0.1.25
+
 %description
 Ninja is a small build system with a focus on speed. It differs from other
 build systems in two major respects: it is designed to have its input files
