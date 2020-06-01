@@ -35,8 +35,8 @@ fast as possible.
 #exit 1
 
 %build
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 $RPM_OPT_FLAGS"
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+export CFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 $RPM_OPT_FLAGS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS -lpthread"
 
 %if 0%{?rhel} && 0%{?rhel} <= 7
 %{__python2} \

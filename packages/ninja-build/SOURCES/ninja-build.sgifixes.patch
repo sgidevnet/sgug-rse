@@ -1,6 +1,6 @@
 diff -u -r ninja-1.9.0-orig/configure.py ninja-1.9.0/configure.py
 --- ninja-1.9.0-orig/configure.py	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/configure.py	2020-05-21 12:08:00.093224080 +0000
++++ ninja-1.9.0/configure.py	2020-06-01 19:56:53.092952560 +0000
 @@ -60,6 +60,8 @@
              self._platform = 'netbsd'
          elif self._platform.startswith('aix'):
@@ -31,7 +31,7 @@ diff -u -r ninja-1.9.0-orig/configure.py ninja-1.9.0/configure.py
  
 diff -u -r ninja-1.9.0-orig/src/build_log.cc ninja-1.9.0/src/build_log.cc
 --- ninja-1.9.0-orig/src/build_log.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/build_log.cc	2020-05-21 12:08:00.102469280 +0000
++++ ninja-1.9.0/src/build_log.cc	2020-06-01 19:56:53.095035520 +0000
 @@ -302,7 +302,7 @@
      if (!end)
        continue;
@@ -52,7 +52,7 @@ diff -u -r ninja-1.9.0-orig/src/build_log.cc ninja-1.9.0/src/build_log.cc
        entry->command_hash = LogEntry::HashCommand(StringPiece(start,
 diff -u -r ninja-1.9.0-orig/src/disk_interface.cc ninja-1.9.0/src/disk_interface.cc
 --- ninja-1.9.0-orig/src/disk_interface.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/disk_interface.cc	2020-05-21 12:08:00.103981040 +0000
++++ ninja-1.9.0/src/disk_interface.cc	2020-06-01 19:56:53.096623280 +0000
 @@ -206,7 +206,7 @@
    return ((int64_t)st.st_mtimespec.tv_sec * 1000000000LL +
            st.st_mtimespec.tv_nsec);
@@ -64,7 +64,7 @@ diff -u -r ninja-1.9.0-orig/src/disk_interface.cc ninja-1.9.0/src/disk_interface
    // For bsd, see https://github.com/freebsd/freebsd/blob/master/sys/sys/stat.h and similar
 diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
 --- ninja-1.9.0-orig/src/ninja.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/ninja.cc	2020-05-21 12:08:05.671420720 +0000
++++ ninja-1.9.0/src/ninja.cc	2020-06-01 19:56:53.099684400 +0000
 @@ -733,14 +733,30 @@
    bool first = true;
    vector<char> cwd;
@@ -127,168 +127,118 @@ diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
          config->max_load_average = value;
 diff -u -r ninja-1.9.0-orig/src/subprocess-posix.cc ninja-1.9.0/src/subprocess-posix.cc
 --- ninja-1.9.0-orig/src/subprocess-posix.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/subprocess-posix.cc	2020-05-21 12:08:00.108901280 +0000
-@@ -14,7 +14,6 @@
++++ ninja-1.9.0/src/subprocess-posix.cc	2020-06-01 19:57:04.346719040 +0000
+@@ -12,6 +12,13 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
  
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++
  #include "subprocess.h"
  
--#include <sys/select.h>
- #include <assert.h>
- #include <errno.h>
- #include <fcntl.h>
-@@ -23,9 +22,6 @@
- #include <stdio.h>
- #include <string.h>
- #include <sys/wait.h>
--#include <spawn.h>
--
--extern char** environ;
+ #include <sys/select.h>
+@@ -110,8 +117,8 @@
+   if (err != 0)
+     Fatal("posix_spawnattr_setflags: %s", strerror(err));
  
- #include "util.h"
- 
-@@ -54,74 +50,61 @@
- #endif  // !USE_PPOLL
-   SetCloseOnExec(fd_);
- 
--  posix_spawn_file_actions_t action;
--  int err = posix_spawn_file_actions_init(&action);
--  if (err != 0)
--    Fatal("posix_spawn_file_actions_init: %s", strerror(err));
--
--  err = posix_spawn_file_actions_addclose(&action, output_pipe[0]);
--  if (err != 0)
--    Fatal("posix_spawn_file_actions_addclose: %s", strerror(err));
--
--  posix_spawnattr_t attr;
--  err = posix_spawnattr_init(&attr);
--  if (err != 0)
--    Fatal("posix_spawnattr_init: %s", strerror(err));
--
--  short flags = 0;
--
--  flags |= POSIX_SPAWN_SETSIGMASK;
--  err = posix_spawnattr_setsigmask(&attr, &set->old_mask_);
--  if (err != 0)
--    Fatal("posix_spawnattr_setsigmask: %s", strerror(err));
--  // Signals which are set to be caught in the calling process image are set to
--  // default action in the new process image, so no explicit
--  // POSIX_SPAWN_SETSIGDEF parameter is needed.
--
--  if (!use_console_) {
--    // Put the child in its own process group, so ctrl-c won't reach it.
--    flags |= POSIX_SPAWN_SETPGROUP;
--    // No need to posix_spawnattr_setpgroup(&attr, 0), it's the default.
--
--    // Open /dev/null over stdin.
--    err = posix_spawn_file_actions_addopen(&action, 0, "/dev/null", O_RDONLY,
--          0);
--    if (err != 0) {
--      Fatal("posix_spawn_file_actions_addopen: %s", strerror(err));
--    }
-+  pid_ = fork();
-+  if (pid_ < 0)
-+    Fatal("fork: %s", strerror(errno));
-+
-+  if (pid_ == 0) {
-+    close(output_pipe[0]);
-+
-+    // Track which fd we use to report errors on.
-+    int error_pipe = output_pipe[1];
-+    do {
-+      if (sigaction(SIGINT, &set->old_int_act_, 0) < 0)
-+        break;
-+      if (sigaction(SIGTERM, &set->old_term_act_, 0) < 0)
-+        break;
-+      if (sigaction(SIGHUP, &set->old_hup_act_, 0) < 0)
-+        break;
-+      if (sigprocmask(SIG_SETMASK, &set->old_mask_, 0) < 0)
-+        break;
-+
-+      if (!use_console_) {
-+        // Put the child in its own process group, so ctrl-c won't reach it.
-+        if (setpgid(0, 0) < 0)
-+          break;
-+
-+        // Open /dev/null over stdin.
-+        int devnull = open("/dev/null", O_RDONLY);
-+        if (devnull < 0)
-+          break;
-+        if (dup2(devnull, 0) < 0)
-+          break;
-+        close(devnull);
-+
-+        if (dup2(output_pipe[1], 1) < 0 ||
-+            dup2(output_pipe[1], 2) < 0)
-+          break;
-+
-+        // Now can use stderr for errors.
-+        error_pipe = 2;
-+        close(output_pipe[1]);
-+      }
-+      // In the console case, output_pipe is still inherited by the child and
-+      // closed when the subprocess finishes, which then notifies ninja.
- 
--    err = posix_spawn_file_actions_adddup2(&action, output_pipe[1], 1);
--    if (err != 0)
--      Fatal("posix_spawn_file_actions_adddup2: %s", strerror(err));
--    err = posix_spawn_file_actions_adddup2(&action, output_pipe[1], 2);
--    if (err != 0)
--      Fatal("posix_spawn_file_actions_adddup2: %s", strerror(err));
--    err = posix_spawn_file_actions_addclose(&action, output_pipe[1]);
--    if (err != 0)
--      Fatal("posix_spawn_file_actions_addclose: %s", strerror(err));
--    // In the console case, output_pipe is still inherited by the child and
--    // closed when the subprocess finishes, which then notifies ninja.
--  }
--#ifdef POSIX_SPAWN_USEVFORK
--  flags |= POSIX_SPAWN_USEVFORK;
--#endif
-+      execl("/bin/sh", "/bin/sh", "-c", command.c_str(), (char *) NULL);
-+    } while (false);
- 
--  err = posix_spawnattr_setflags(&attr, flags);
--  if (err != 0)
--    Fatal("posix_spawnattr_setflags: %s", strerror(err));
--
 -  const char* spawned_args[] = { "/bin/sh", "-c", command.c_str(), NULL };
 -  err = posix_spawn(&pid_, "/bin/sh", &action, &attr,
--        const_cast<char**>(spawned_args), environ);
--  if (err != 0)
--    Fatal("posix_spawn: %s", strerror(err));
--
--  err = posix_spawnattr_destroy(&attr);
--  if (err != 0)
--    Fatal("posix_spawnattr_destroy: %s", strerror(err));
--  err = posix_spawn_file_actions_destroy(&action);
--  if (err != 0)
--    Fatal("posix_spawn_file_actions_destroy: %s", strerror(err));
-+    // If we get here, something went wrong; the execl should have
-+    // replaced us.
-+    char* err = strerror(errno);
-+    if (write(error_pipe, err, strlen(err)) < 0) {
-+      // If the write fails, there's nothing we can do.
-+      // But this block seems necessary to silence the warning.
-+    }
-+    _exit(1);
-+  }
- 
-   close(output_pipe[1]);
-   return true;
-@@ -298,7 +281,11 @@
++  const char* spawned_args[] = { "/usr/sgug/bin/sh", "-c", command.c_str(), NULL };
++  err = posix_spawn(&pid_, "/usr/sgug/bin/sh", &action, &attr,
+         const_cast<char**>(spawned_args), environ);
+   if (err != 0)
+     Fatal("posix_spawn: %s", strerror(err));
+@@ -298,7 +305,15 @@
    }
  
    interrupted_ = 0;
-+#ifndef __sgi
++#if !defined(__sgi)
    int ret = pselect(nfds, &set, 0, 0, 0, &old_mask_);
 +#else
++#undef select
++  sigset_t origmask;
++  pthread_sigmask (SIG_SETMASK, &old_mask_, &origmask);
 +  int ret = select(nfds, &set, 0, 0, 0);
++  pthread_sigmask (SIG_SETMASK, &origmask, NULL);
 +#endif
    if (ret == -1) {
      if (errno != EINTR) {
        perror("ninja: pselect");
+diff -u -r ninja-1.9.0-orig/src/subprocess_test.cc ninja-1.9.0/src/subprocess_test.cc
+--- ninja-1.9.0-orig/src/subprocess_test.cc	2019-01-30 18:58:59.000000000 +0000
++++ ninja-1.9.0/src/subprocess_test.cc	2020-06-01 19:56:53.103478320 +0000
+@@ -72,6 +72,7 @@
+ 
+ #ifndef _WIN32
+ 
++#if !defined(__sgi)
+ TEST_F(SubprocessTest, InterruptChild) {
+   Subprocess* subproc = subprocs_.Add("kill -INT $$");
+   ASSERT_NE((Subprocess *) 0, subproc);
+@@ -82,6 +83,7 @@
+ 
+   EXPECT_EQ(ExitInterrupted, subproc->Finish());
+ }
++#endif
+ 
+ TEST_F(SubprocessTest, InterruptParent) {
+   Subprocess* subproc = subprocs_.Add("kill -INT $PPID ; sleep 1");
+@@ -96,6 +98,7 @@
+   ASSERT_FALSE("We should have been interrupted");
+ }
+ 
++#if !defined(__sgi)
+ TEST_F(SubprocessTest, InterruptChildWithSigTerm) {
+   Subprocess* subproc = subprocs_.Add("kill -TERM $$");
+   ASSERT_NE((Subprocess *) 0, subproc);
+@@ -106,6 +109,7 @@
+ 
+   EXPECT_EQ(ExitInterrupted, subproc->Finish());
+ }
++#endif
+ 
+ TEST_F(SubprocessTest, InterruptParentWithSigTerm) {
+   Subprocess* subproc = subprocs_.Add("kill -TERM $PPID ; sleep 1");
+@@ -120,6 +124,7 @@
+   ASSERT_FALSE("We should have been interrupted");
+ }
+ 
++#if !defined(__sgi)
+ TEST_F(SubprocessTest, InterruptChildWithSigHup) {
+   Subprocess* subproc = subprocs_.Add("kill -HUP $$");
+   ASSERT_NE((Subprocess *) 0, subproc);
+@@ -130,6 +135,7 @@
+ 
+   EXPECT_EQ(ExitInterrupted, subproc->Finish());
+ }
++#endif
+ 
+ TEST_F(SubprocessTest, InterruptParentWithSigHup) {
+   Subprocess* subproc = subprocs_.Add("kill -HUP $PPID ; sleep 1");
+@@ -144,6 +150,7 @@
+   ASSERT_FALSE("We should have been interrupted");
+ }
+ 
++#if !defined(__sgi)
+ TEST_F(SubprocessTest, Console) {
+   // Skip test if we don't have the console ourselves.
+   if (isatty(0) && isatty(1) && isatty(2)) {
+@@ -158,6 +165,7 @@
+     EXPECT_EQ(ExitSuccess, subproc->Finish());
+   }
+ }
++#endif
+ 
+ #endif
+ 
 diff -u -r ninja-1.9.0-orig/src/util.cc ninja-1.9.0/src/util.cc
 --- ninja-1.9.0-orig/src/util.cc	2019-01-30 18:58:59.000000000 +0000
-+++ ninja-1.9.0/src/util.cc	2020-05-21 12:08:00.112031200 +0000
++++ ninja-1.9.0/src/util.cc	2020-06-01 19:56:53.105597680 +0000
 @@ -45,7 +45,7 @@
  #elif defined(__SVR4) && defined(__sun)
  #include <unistd.h>
