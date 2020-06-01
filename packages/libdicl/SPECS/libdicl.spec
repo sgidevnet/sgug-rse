@@ -4,7 +4,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.23
+Version: 0.1.25
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -55,6 +55,12 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl-0.1.la
 
 
 %changelog
+* Sun May 31 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.25-1
+- Fix up test launching + correct glaring endian header mistake
+
+* Thu May 21 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.24-1
+- More posix spawnattr funcs + timegm
+
 * Thu May 21 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.23-1
 - Upgrade to libdicl exposing more posix spawn functionality
 

@@ -1,0 +1,15 @@
+diff -u -r libatomic_ops-7.6.10-orig/src/atomic_ops.c libatomic_ops-7.6.10/src/atomic_ops.c
+--- libatomic_ops-7.6.10-orig/src/atomic_ops.c	2019-03-01 16:59:46.000000000 +0000
++++ libatomic_ops-7.6.10/src/atomic_ops.c	2020-05-31 02:28:18.182570600 +0000
+@@ -28,6 +28,11 @@
+  * cas emulation is not needed.  Thus we skip this on Windows.
+  */
+ 
++#if defined(__sgi)
++#include <time.h>
++#include <sys/time.h>
++#endif
++
+ #if defined(HAVE_CONFIG_H)
+ # include "config.h"
+ #endif

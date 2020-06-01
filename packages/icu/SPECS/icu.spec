@@ -1,25 +1,28 @@
 #%%global debugtrace 1
 
 Name:      icu
-Version:   67.1
-Release:   1%{?dist}
+Version:   63.2
+Release:   3%{?dist}
 Summary:   International Components for Unicode
 
 License:   MIT and UCD and Public Domain
 URL:       http://site.icu-project.org/
-Source0:   https://github.com/unicode-org/icu/releases/download/release-67-1/icu4c-67_1-src.tgz
+Source0:   https://github.com/unicode-org/icu/releases/download/release-63-2/icu4c-63_2-src.tgz
 Source1:   icu-config.sh
 
 BuildRequires: gcc
 BuildRequires: gcc-c++
+#BuildRequires: doxygen, autoconf, python2
 BuildRequires: autoconf, python3
 Requires: lib%{name}%{?_isa} = %{version}-%{release}
 
+# https://bugzilla.redhat.com/show_bug.cgi?id=1708935 temporarily roll back to 63.1
+Patch0: roll-back-63.2-to-63.1-patched.patch
 Patch4: gennorm2-man.patch
 Patch5: icuinfo-man.patch
-Patch6: rbnf-tick.patch
-Patch7: exclude-burmese.patch
-Patch8: pkgdata.segfault.patch
+Patch100: armv7hl-disable-tests.patch
+
+Patch1000: icu.sgifixes.patch
 
 %description
 Tools and utilities for developing with icu.
@@ -54,21 +57,28 @@ BuildArch: noarch
 %description -n lib%{name}-doc
 %{summary}.
 
-%{!?endian: %global endian %(%{__python3} -c "import sys;print (0 if sys.byteorder=='big' else 1)")}
+%{!?endian: %global endian %(%{__python} -c "import sys;print (0 if sys.byteorder=='big' else 1)")}
 # " this line just fixes syntax highlighting for vim that is confused by the above and continues literal
 
 
 %prep
-%autosetup -p1 -n %{name}
+%setup -q -n %{name}
+%patch0 -p2 -b .roll-back-63.2-to-63.1-patched.patch
+%patch4 -p1 -b .gennorm2-man.patch
+%patch5 -p1 -b .icuinfo-man.patch
+%ifarch armv7hl
+%patch100 -p1 -b .armv7hl-disable-tests.patch
+%endif
 
+%patch1000 -p1
+
+# For patch generation
+#exit 1
 
 %build
+export PREV_WD=`pwd`
 cd source
-rm data/in/icudt67l.dat
-cp %{_sourcedir}/icudt67l.dat data/in
 autoconf
-export LD_LIBRARYN32_PATH="%{_builddir}/icu/source/lib:$LD_LIBRARYN32_PATH"
-export LD_LIBRARYN32_PATH="%{_builddir}/icu/source/stubdata:$LD_LIBRARYN32_PATH"
 CFLAGS='%optflags -fno-strict-aliasing'
 CXXFLAGS='%optflags -fno-strict-aliasing'
 # Endian: BE=0 LE=1
@@ -126,10 +136,13 @@ make %{?_smp_mflags} -C source check
 %endif
 
 # log available codes
+export PREV_WD=`pwd`
 cd source
-LD_LIBRARY_PATH=lib:stubdata:tools/ctestfw:$LD_LIBRARY_PATH bin/uconv -l
+LD_LIBRARYN32_PATH=lib:stubdata:tools/ctestfw:$LD_LIBRARYN32_PATH bin/uconv -l
+
 
 #%%ldconfig_scriptlets -n lib%{name}
+
 
 %files
 %license license.html
@@ -180,23 +193,12 @@ LD_LIBRARY_PATH=lib:stubdata:tools/ctestfw:$LD_LIBRARY_PATH bin/uconv -l
 %files -n lib%{name}-doc
 %license LICENSE
 %doc readme.html
-%doc source/__docs/%{name}/html/*
+#%%doc source/__docs/%{name}/html/*
 
 
 %changelog
-* Fri May 15 2020 Pete Walter <pwalter@fedoraproject.org> - 67.1-1
-- Update to 67.1
-
-* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 65.1-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
-
-* Fri Nov 01 2019 Pete Walter <pwalter@fedoraproject.org> - 65.1-1
-- Update to 65.1
-- Add a patch from gentoo to fix the build on s390x
-- Drop arm test disabling patches as they are no longer needed
-
-* Fri Nov 01 2019 Pete Walter <pwalter@fedoraproject.org> - 63.2-4
-- Build with Python 3
+* Sat May 30 2020 Daniel Hams <daniel.hams@gmail.com> - 63.2-3
+- Import of fc31 version into wip
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 63.2-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

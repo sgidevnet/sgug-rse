@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 11
+%global rel 12
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -71,6 +71,7 @@ Patch2003: rpm.sgistriplibs.patch
 Patch2004: rpm.sgifixesaddshellvars.patch
 
 BuildRequires: libdicl-devel >= 0.1.19
+BuildRequires: python3-rpm-macros >= 3-52
 Requires: libdicl >= 0.1.19
 # Need to "find" cmake and set the right (__cmake) macro variable
 BuildRequires: cmake >= 3.17.2-1
@@ -246,22 +247,22 @@ This package contains support for digitally signing RPM packages.
 #This package should be installed if you want to develop Python 2
 #programs that will manipulate RPM packages and databases.
 
-#%package -n python3-%{name}
-#Summary: Python 3 bindings for apps which will manipulate RPM packages
-#BuildRequires: python3-devel
-#%{?python_provide:%python_provide python3-%{name}}
-#Requires: %{name}-libs%{?_isa} = %{version}-%{release}
-#Provides: %{name}-python3 = %{version}-%{release}
-#Obsoletes: %{name}-python3 < %{version}-%{release}
-#Obsoletes: platform-python-%{name} < %{version}-%{release}
+%package -n python3-%{name}
+Summary: Python 3 bindings for apps which will manipulate RPM packages
+BuildRequires: python3-devel
+%{?python_provide:%python_provide python3-%{name}}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+Provides: %{name}-python3 = %{version}-%{release}
+Obsoletes: %{name}-python3 < %{version}-%{release}
+Obsoletes: platform-python-%{name} < %{version}-%{release}
 
-#%description -n python3-%{name}
-#The python3-rpm package contains a module that permits applications
-#written in the Python programming language to use the interface
-#supplied by RPM Package Manager libraries.
+%description -n python3-%{name}
+The python3-rpm package contains a module that permits applications
+written in the Python programming language to use the interface
+supplied by RPM Package Manager libraries.
 
-#This package should be installed if you want to develop Python 3
-#programs that will manipulate RPM packages and databases.
+This package should be installed if you want to develop Python 3
+programs that will manipulate RPM packages and databases.
 
 %package apidocs
 Summary: API documentation for RPM libraries
@@ -376,6 +377,7 @@ ac_cv_func_getline=yes ./configure \
     %{!?with_int_bdb: --with-external-db} \
     %{!?with_plugins: --disable-plugins} \
     --with-lua \
+    --enable-python \
     %{?with_ndb: --with-ndb} \
     %{?with_libimaevm: --with-imaevm} \
     %{?with_zstd: --enable-zstd} \
@@ -383,27 +385,26 @@ ac_cv_func_getline=yes ./configure \
     --with-crypto=openssl \
     --disable-openmp
 
-#    --enable-python \ #
 #    --with-cap \ #
 #    --with-acl \ #
 #    --with-selinux \ #
 
 %make_build
 
-#cd python
+cd python
 #py2_build
-#py3_build
-#cd ..
+%py3_build
+cd ..
 
 %install
 %make_install
 
 # We need to build with --enable-python for the self-test suite, but we
 # actually package the bindings built with setup.py (#531543#c26)
-#cd python
+cd python
 #py2_install
-#py3_install
-#cd ..
+%py3_install
+cd ..
 
 
 # Save list of packages through cron
@@ -572,13 +573,13 @@ make check || (cat tests/rpmtests.log; exit 0)
 %{_bindir}/rpmsign
 %{_mandir}/man8/rpmsign.8*
 
-#%files -n python2-%{name}
-#%{python2_sitearch}/%{name}/
-#%{python2_sitearch}/%{name}-%{version}*.egg-info
+#%%files -n python2-%%{name}
+#%%{python2_sitearch}/%%{name}/
+#%%{python2_sitearch}/%%{name}-%%{version}*.egg-info
 
-#%files -n python3-%{name}
-#%{python3_sitearch}/%{name}/
-#%{python3_sitearch}/%{name}-%{version}*.egg-info
+%files -n python3-%{name}
+%{python3_sitearch}/%{name}/
+%{python3_sitearch}/%{name}-%{version}*.egg-info
 
 %files devel
 %{_mandir}/man8/rpmgraph.8*
@@ -596,6 +597,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-12
+- Now with better macros, enable python bindings for rpm
+
 * Sun May 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-11
 - Rebuild after cmake availability
 

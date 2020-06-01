@@ -1,0 +1,13 @@
+Modules/getpath.c
+Modules/_blake2/blake2b2s.py
+Mac/PythonLauncher/factorySettings.plist
+Mac/BuildScript/build-installer.py
+Tools/gdb/libpython.py
+Tools/scripts/pathfix.py
+Lib/distutils/tests/test_build_scripts.py
+Lib/distutils/tests/test_install_scripts.py
+Lib/test/test_importlib/source/test_source_encoding.py
+Lib/test/test_tokenize.py
+Lib/test/test_tools/test_pathfix.py
+PC/launcher.c
+Objects/typeslots.py
