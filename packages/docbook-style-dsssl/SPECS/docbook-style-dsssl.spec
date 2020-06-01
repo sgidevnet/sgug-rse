@@ -1,8 +1,8 @@
 Name: docbook-style-dsssl
 Version: 1.79
-Release: 28%{?dist}
+Release: 29%{?dist}
 
-Summary: Norman Walsh's modular stylesheets for DocBook
+Summary: Norman Walsh''s modular stylesheets for DocBook
 
 License: DMIT
 URL: http://docbook.sourceforge.net/
@@ -27,43 +27,49 @@ They are highly customizable.
 %prep
 %setup -q -n docbook-dsssl-%{version}
 cp %{SOURCE1} Makefile
-
+perl -pi -e "s|/usr/bin/perl|%{_bindir}/perl|g" bin/collateindex.pl
 
 %build
 
 %install
 DESTDIR=$RPM_BUILD_ROOT
-make install BINDIR=$DESTDIR/usr/bin DESTDIR=$DESTDIR/usr/share/sgml/docbook/dsssl-stylesheets-%{version} MANDIR=$DESTDIR%{_mandir}
+make install BINDIR=$DESTDIR%{_bindir} DESTDIR=$DESTDIR%{_datadir}/sgml/docbook/dsssl-stylesheets-%{version} MANDIR=$DESTDIR%{_mandir}
 cd ..
-ln -s dsssl-stylesheets-%{version} $DESTDIR/usr/share/sgml/docbook/dsssl-stylesheets
+ln -s dsssl-stylesheets-%{version} $DESTDIR%{_datadir}/sgml/docbook/dsssl-stylesheets
 
 %files
 %doc BUGS README ChangeLog WhatsNew
-/usr/bin/collateindex.pl
+%{_bindir}/collateindex.pl
 %{_mandir}/man1/collateindex.pl.1*
-/usr/share/sgml/docbook/dsssl-stylesheets-%{version}
-/usr/share/sgml/docbook/dsssl-stylesheets
+
+%{_datadir}/sgml/docbook/dsssl-stylesheets-%{version}
+%{_datadir}/sgml/docbook/dsssl-stylesheets
 
 
 %post
-for centralized in /etc/sgml/*-docbook-*.cat
+for centralized in %{_sysconfdir}/sgml/*-docbook-*.cat
 do
-  /usr/bin/install-catalog --add $centralized \
-    /usr/share/sgml/docbook/dsssl-stylesheets-%{version}/catalog \
+  %{_bindir}/install-catalog --add $centralized \
+    %{_datadir}/sgml/docbook/dsssl-stylesheets-%{version}/catalog \
     > /dev/null 2>/dev/null
 done
 
 
 %preun
 if [ "$1" = "0" ]; then
-  for centralized in /etc/sgml/*-docbook-*.cat
+  for centralized in %{_sysconfdir}/sgml/*-docbook-*.cat
   do
-    /usr/bin/install-catalog --remove $centralized /usr/share/sgml/docbook/dsssl-stylesheets-%{version}/catalog > /dev/null 2>/dev/null
+    %{_bindir}/install-catalog --remove $centralized \
+      %{_datadir}/sgml/docbook/dsssl-stylesheets-%{version}/catalog \
+      > /dev/null 2>/dev/null
   done
 fi
 exit 0
 
 %changelog
+* Mon Jul 01 2020 Daniel Hams <daniel.hams@gmail.com> - 1.79-29
+- Rewrite hardcoded paths, get pre/post working
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.79-28
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
