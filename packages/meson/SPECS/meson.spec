@@ -20,8 +20,6 @@ BuildRequires:  python3-setuptools
 #Requires:       python%%{python3_version}dist(setuptools)
 Requires:       ninja-build
 
-Patch100:       meson-0.52.irixfixes.patch
-
 %description
 Meson is a build system designed to optimize programmer
 productivity. It aims to do this by providing simple, out-of-the-box

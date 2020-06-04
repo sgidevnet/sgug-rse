@@ -7,7 +7,7 @@
 Summary: Red Hat specific rpm configuration files
 Name: redhat-rpm-config
 Version: 143
-Release: 2%{?dist}
+Release: 3%{?dist}
 # No version specified.
 License: GPL+
 URL: https://src.fedoraproject.org/rpms/redhat-rpm-config
@@ -123,8 +123,7 @@ Conflicts: gcc < 8.0.1-0.22
 
 Provides: system-rpm-config = %{version}-%{release}
 
-# We don't use kernel modules macros
-#%%global rrcdir /usr/lib/rpm/redhat
+%global rrcdir %{_prefix}/lib/rpm/redhat
 
 %description
 Red Hat specific rpm configuration files.
@@ -143,52 +142,52 @@ Red Hat specific rpm configuration files.
 cp -p %{sources} .
 
 %install
-#mkdir -p %{buildroot}%{rrcdir}
-#install -p -m 644 -t %{buildroot}%{rrcdir} macros rpmrc
-#install -p -m 444 -t %{buildroot}%{rrcdir} redhat-hardened-*
-#install -p -m 444 -t %{buildroot}%{rrcdir} redhat-annobin-*
-#install -p -m 755 -t %{buildroot}%{rrcdir} config.*
-#install -p -m 755 -t %{buildroot}%{rrcdir} dist.sh rpmsort symset-table kmodtool
-#install -p -m 755 -t %{buildroot}%{rrcdir} dist.sh
-#install -p -m 755 -t %{buildroot}%{rrcdir} gpgverify
-#install -p -m 755 -t %{buildroot}%{rrcdir} brp-*
+mkdir -p %{buildroot}%{rrcdir}
+#install -p -m 644 -t %%{buildroot}%%{rrcdir} macros rpmrc
+#install -p -m 444 -t %%{buildroot}%%{rrcdir} redhat-hardened-*
+#install -p -m 444 -t %%{buildroot}%%{rrcdir} redhat-annobin-*
+#install -p -m 755 -t %%{buildroot}%%{rrcdir} config.*
+#install -p -m 755 -t %%{buildroot}%%{rrcdir} dist.sh rpmsort symset-table kmodtool
+#install -p -m 755 -t %%{buildroot}%%{rrcdir} dist.sh
+#install -p -m 755 -t %%{buildroot}%%{rrcdir} gpgverify
+install -p -m 755 -t %{buildroot}%{rrcdir} brp-*
 
-#install -p -m 755 -t %{buildroot}%{rrcdir} find-*
-#mkdir -p %{buildroot}%{rrcdir}/find-provides.d
-#install -p -m 644 -t %{buildroot}%{rrcdir}/find-provides.d firmware.prov modalias.prov
+#install -p -m 755 -t %%{buildroot}%%{rrcdir} find-*
+#mkdir -p %%{buildroot}%%{rrcdir}/find-provides.d
+#install -p -m 644 -t %%{buildroot}%%{rrcdir}/find-provides.d firmware.prov modalias.prov
 
-#install -p -m 755 -t %{buildroot}%{rrcdir} brp-*
+#install -p -m 755 -t %%{buildroot}%%{rrcdir} brp-*
 
 mkdir -p %{buildroot}%{_rpmconfigdir}/macros.d
 install -p -m 644 -t %{buildroot}%{_rpmconfigdir}/macros.d macros.*
 
 mkdir -p %{buildroot}%{_fileattrsdir}
 install -p -m 644 -t %{buildroot}%{_fileattrsdir} *.attr
-#install -p -m 755 -t %{buildroot}%{_rpmconfigdir} kmod.prov
+#install -p -m 755 -t %%{buildroot}%%{_rpmconfigdir} kmod.prov
 
 mkdir -p %{buildroot}%{_rpmluadir}/fedora/{rpm,srpm}
 install -p -m 644 -t %{buildroot}%{_rpmluadir}/fedora common.lua
 install -p -m 644 -t %{buildroot}%{_rpmluadir}/fedora/srpm forge.lua
 
 %files
-#%dir %{rrcdir}
-#%{rrcdir}/macros
-#%{rrcdir}/rpmrc
-#%{rrcdir}/brp-*
-#%{rrcdir}/dist.sh
-#%{rrcdir}/gpgverify
-#%{rrcdir}/redhat-hardened-*
-#%{rrcdir}/redhat-annobin-*
-#%{rrcdir}/config.*
-#%{rrcdir}/find-provides
-#%{rrcdir}/find-requires
-#%{rrcdir}/brp-ldconfig
+%dir %{rrcdir}
+#%%{rrcdir}/macros
+#%%{rrcdir}/rpmrc
+%{rrcdir}/brp-*
+#%%{rrcdir}/dist.sh
+#%%{rrcdir}/gpgverify
+#%%{rrcdir}/redhat-hardened-*
+#%%{rrcdir}/redhat-annobin-*
+#%%{rrcdir}/config.*
+#%%{rrcdir}/find-provides
+#%%{rrcdir}/find-requires
+#%%{rrcdir}/brp-ldconfig
 %{_fileattrsdir}/*.attr
-#%{_rpmconfigdir}/kmod.prov
+#%%{_rpmconfigdir}/kmod.prov
 %{_rpmconfigdir}/macros.d/macros.*-srpm
-#%{_rpmconfigdir}/macros.d/macros.dwz
+#%%{_rpmconfigdir}/macros.d/macros.dwz
 %{_rpmconfigdir}/macros.d/macros.forge
-#%{_rpmconfigdir}/macros.d/macros.ldconfig
+#%%{_rpmconfigdir}/macros.d/macros.ldconfig
 %{_rpmconfigdir}/macros.d/macros.vpath
 %{_rpmconfigdir}/macros.d/macros.fedora-misc
 %dir %{_rpmluadir}/fedora
@@ -199,18 +198,21 @@ install -p -m 644 -t %{buildroot}%{_rpmluadir}/fedora/srpm forge.lua
 
 %doc buildflags.md
 
-#%files -n kernel-rpm-macros
-#%dir %{rrcdir}/find-provides.d
-#%{rrcdir}/kmodtool
-#%{rrcdir}/rpmsort
-#%{rrcdir}/symset-table
-#%{rrcdir}/find-provides.ksyms
-#%{rrcdir}/find-requires.ksyms
-#%{rrcdir}/find-provides.d/firmware.prov
-#%{rrcdir}/find-provides.d/modalias.prov
-#%{_rpmconfigdir}/macros.d/macros.kmp
+#%%files -n kernel-rpm-macros
+#%%dir %%{rrcdir}/find-provides.d
+#%%{rrcdir}/kmodtool
+#%%{rrcdir}/rpmsort
+#%%{rrcdir}/symset-table
+#%%{rrcdir}/find-provides.ksyms
+#%%{rrcdir}/find-requires.ksyms
+#%%{rrcdir}/find-provides.d/firmware.prov
+#%%{rrcdir}/find-provides.d/modalias.prov
+#%%{_rpmconfigdir}/macros.d/macros.kmp
 
 %changelog
+* Mon May 25 2020 Daniel Hams <daniel.hams@gmail.com> - 143-3
+- Activate some more macros + python compilation macros
+
 * Sun Apr 12 2020 Daniel Hams <daniel.hams@gmail.com> - 143-2
 - First import with fixups
 

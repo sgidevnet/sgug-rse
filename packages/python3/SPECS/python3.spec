@@ -1,10 +1,15 @@
 Summary: WIP spec for python 3.8
 Name: python3
 Version: 3.8.1
-Release: 2wip%{?dist}
+Release: 3wip%{?dist}
 License: GPLv3+
 URL: https://www.python.org
 Source: https://www.python.org/ftp/python/%{version}/Python-%{version}.tgz
+
+Source100: python3.sgifixesbinsh.list
+Source101: python3.sgifixesbinbash.list
+Source102: python3.sgifixeslocalbinpython.list
+Source103: python3.sgifixesbinpython.list
 
 Provides: %{_bindir}/python
 Provides: %{_bindir}/python3
@@ -42,13 +47,25 @@ A minimal port of python 3.8.1 against sgug-rse.
 %patch2 -p1 -b .3.8.1-irix~
 %patch3 -p1 -b .3.8.1-irix~
 
-# Rewrite hardcoded paths causing unwanted Requires
-perl -pi -e "s|/usr/local/bin/python|%{_bindir}/python|g" Lib/cgi.py
+# For patching
+#exit 1
 
-perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" Doc/library/pathlib.rst
-perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" Lib/test/test_*.py
-perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" Lib/test/cfgparser.2
-perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" Lib/test/ziptestdata/header.sh
+# Fix /bin/sh
+for filetofix in `cat %{SOURCE100}`; do
+    perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" ${filetofix}
+done
+# Fix /bin/bash
+for filetofix in `cat %{SOURCE101}`; do
+    perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" ${filetofix}
+done
+# Fix local/bin/python
+for filetofix in `cat %{SOURCE102}`; do
+    perl -pi -e "s|/usr/local/bin/python|%{_bindir}/python|g" ${filetofix}
+done
+# Fix /bin/python
+for filetofix in `cat %{SOURCE103}`; do
+    perl -pi -e "s|/usr/bin/python|%{_bindir}/python|g" ${filetofix}
+done
 
 # Remove bundled libraries to ensure that we're using the system copy
 rm -rf Modules/expat
@@ -101,6 +118,9 @@ rm -rf $RPM_BUILD_ROOT%{_bindir}/pip*
 %{_mandir}/*
 
 %changelog
+* Mon May 25 2020 Daniel Hams <daniel.hams@gmail.com> - 3.8.1-3wip
+- Get a little more aggressive about rewriting /bin/sh etc.
+
 * Sun Apr 12 2020 Daniel Hams <daniel.hams@gmail.com> - 3.8.1-2
 - Rename to python3, Provides: of python3 and python3-devel
   Fix up hardcoded paths + bug fix to system lib path

@@ -1,0 +1,12 @@
+diff -u -r dos2unix-7.4.0-orig/Makefile dos2unix-7.4.0/Makefile
+--- dos2unix-7.4.0-orig/Makefile	2017-10-10 21:00:32.000000000 +0000
++++ dos2unix-7.4.0/Makefile	2020-05-30 06:16:28.829579600 +0000
+@@ -70,7 +70,7 @@
+ LINK            = ln -sf
+ LINK_MAN        = $(LINK)
+ 
+-prefix          = /usr
++prefix          = /usr/sgug
+ exec_prefix     = $(prefix)
+ bindir          = $(exec_prefix)/bin
+ datarootdir     = $(prefix)/share

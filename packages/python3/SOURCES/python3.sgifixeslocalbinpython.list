@@ -1,0 +1,5 @@
+Mac/PythonLauncher/factorySettings.plist
+Mac/BuildScript/scripts/postflight.ensurepip
+Tools/scripts/fixps.py
+Lib/cgi.py
+PC/launcher.c
