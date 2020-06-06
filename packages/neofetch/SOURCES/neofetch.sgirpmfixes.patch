@@ -1,5 +1,6 @@
---- neofetch-6.0.0/neofetch   2019-12-10 07:31:55.000000000 +0000
-+++ neofetch-6.0.0-patched/neofetch 2019-12-05 16:20:56.358810880 +0000
+diff -u -r neofetch-6.0.0-orig/neofetch neofetch-6.0.0/neofetch
+--- neofetch-6.0.0-orig/neofetch	2019-01-08 16:32:04.000000000 +0000
++++ neofetch-6.0.0/neofetch	2020-06-05 04:02:48.563391480 +0000
 @@ -1394,7 +1394,8 @@
          ;;
  
@@ -9,3 +10,14 @@
 +            has "versions"   && tot versions -b && ((packages-=3))
          ;;
      esac
+ 
+@@ -2228,7 +2229,7 @@
+                 ;;
+ 
+                 *)
+-                    gpu="$(glxinfo | grep -F 'OpenGL renderer string')"
++                    gpu="$(unset LD_LIBRARYN32_PATH; glxinfo | grep -F 'OpenGL renderer string')"
+                     gpu="${gpu/OpenGL renderer string: }"
+                 ;;
+             esac
+Only in neofetch-6.0.0: neofetch~
