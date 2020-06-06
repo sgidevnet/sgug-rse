@@ -87,7 +87,7 @@ License:        GPL+ or Artistic
 Epoch:          %{perl_epoch}
 Version:        %{perl_version}
 # release number must be even higher, because dual-lived modules will be broken otherwise
-Release:        449%{?dist}
+Release:        450%{?dist}
 Summary:        Practical Extraction and Report Language
 Url:            https://www.perl.org/
 Source0:        https://www.cpan.org/src/5.0/perl-%{perl_version}.tar.gz
@@ -2985,7 +2985,7 @@ echo "RPM Build arch: %{_arch}"
 cp %{_topdir}/SOURCES/perl.irix6_gcc_config.sh config.sh
 
 # perl -pi -e "s|DIDBSINSTALLPREFIX|%{_prefix}|g" config.sh
-# LIBDIR_REGEXP="s|%{_prefix}/lib/|%{_prefix}/%{_lib}/|g"
+# LIBDIR_REGEXP="s|%{_prefix}/lib|%{_prefix}/%{_lib}/|g"
 # perl -pi -e "$LIBDIR_REGEXP" config.sh
 # #CCFLAGS_REGEXP="s|^ccflags=.*$|ccflags='-DPTHREAD_H_FIRST -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLANGUAGE_C $RPM_OPT_FLAGS'|g"
 # CCFLAGS_REGEXP="s|^ccflags=.*$|ccflags='-DPTHREAD_H_FIRST -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLANGUAGE_C'|g"
@@ -3061,7 +3061,7 @@ perl -pi -e "s|DIDBSINSTALLPREFIX|%{_prefix}|g" config.sh
 ./Configure -S
 
 # Rewrite installation lib directory
-LIBDIR_REGEXP="s|%{_prefix}/lib/|%{_libdir}/|g"
+LIBDIR_REGEXP="s|%{_prefix}/lib|%{_libdir}/|g"
 perl -pi -e "$LIBDIR_REGEXP" config.sh || exit -1
 
 touch config.sh
@@ -5175,6 +5175,9 @@ cd ..
 
 # Old changelog entries are preserved in CVS.
 %changelog
+* Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-450
+- Bug fix: put back correct rpath for perl + libraries
+
 * Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-449
 - Remove pushd/popd from macros.perl
 
