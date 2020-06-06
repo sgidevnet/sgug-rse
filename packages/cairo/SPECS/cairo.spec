@@ -11,7 +11,7 @@
 
 Name:		cairo
 Version:	1.16.0
-Release:	6%{?dist}
+Release:	7%{?dist}
 Summary:	A 2D graphics library
 
 License:	LGPLv2 or MPLv1.1
@@ -40,7 +40,7 @@ BuildRequires: libxml2-devel
 BuildRequires: pixman-devel >= %{pixman_version}
 BuildRequires: freetype-devel >= %{freetype_version}
 BuildRequires: fontconfig-devel >= %{fontconfig_version}
-# BuildRequires: glib2-devel
+BuildRequires: glib2-devel
 # BuildRequires: librsvg2-devel
 %if 0%{?with_gl}
 # BuildRequires: mesa-libGL-devel
@@ -89,15 +89,15 @@ and print output.
 This package contains libraries, header files and developer documentation
 needed for developing software which uses the cairo Gobject library.
 
-%package tools
-Summary: Development tools for cairo
-
-%description tools
-Cairo is a 2D graphics library designed to provide high-quality display
-and print output.
-
-This package contains tools for working with the cairo graphics library.
- * cairo-trace: Record cairo library calls for later playback
+#%%package tools
+#Summary: Development tools for cairo
+#
+#%%description tools
+#Cairo is a 2D graphics library designed to provide high-quality display
+#and print output.
+#
+#This package contains tools for working with the cairo graphics library.
+# * cairo-trace: Record cairo library calls for later playback
 
 %prep
 %autosetup -p1
@@ -112,23 +112,24 @@ export LDFLAGS="%{optflags} -lgen"
 	--enable-ps		\
 	--enable-pdf		\
 	--enable-svg		\
-        --enable-png            \ 
-#	--enable-tee		\
-#	--enable-gobject	\
-#        --enable-xml            \
+        --enable-png            \
+	--enable-tee		\
+        --enable-xml            \
+        --enable-xlib-xcb
+
 #        --disable-valgrind      \
-#        --enable-xlib-xcb       \
+#	--enable-gobject	\
 #        --disable-gtk-doc       \
 #	%{cairogl}		\
 #	--disable-gtk-doc
-sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+#sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+#sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 make V=1 %{?_smp_mflags}
 
 %install
 %make_install
 find $RPM_BUILD_ROOT -name '*.la' -delete
-rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
+rm -f $RPM_BUILD_ROOT%{_libdir}/cairo/cairo-sphinx.so
 %files
 %license COPYING COPYING-LGPL-2.1 COPYING-MPL-1.1
 %doc AUTHORS BIBLIOGRAPHY BUGS NEWS README
@@ -145,13 +146,13 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %{_includedir}/cairo/cairo-ps.h
 %{_includedir}/cairo/cairo-script-interpreter.h
 %{_includedir}/cairo/cairo-svg.h
-#%%{_includedir}/cairo/cairo-tee.h
+%{_includedir}/cairo/cairo-tee.h
 %{_includedir}/cairo/cairo-version.h
 %{_includedir}/cairo/cairo-xlib-xrender.h
 %{_includedir}/cairo/cairo-xlib.h
 %{_includedir}/cairo/cairo-script.h
 %{_includedir}/cairo/cairo-xcb.h
-#%%{_includedir}/cairo/cairo-xml.h
+%{_includedir}/cairo/cairo-xml.h
 %{_libdir}/libcairo.so
 %{_libdir}/libcairo-script-interpreter.so
 %{_libdir}/pkgconfig/cairo-fc.pc
@@ -161,16 +162,16 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 %{_libdir}/pkgconfig/cairo-png.pc
 %{_libdir}/pkgconfig/cairo-ps.pc
 %{_libdir}/pkgconfig/cairo-svg.pc
-#%%{_libdir}/pkgconfig/cairo-tee.pc
+%{_libdir}/pkgconfig/cairo-tee.pc
 %{_libdir}/pkgconfig/cairo-xlib.pc
 %{_libdir}/pkgconfig/cairo-xlib-xrender.pc
 %{_libdir}/pkgconfig/cairo-script.pc
 %{_libdir}/pkgconfig/cairo-xcb-shm.pc
 %{_libdir}/pkgconfig/cairo-xcb.pc
-#%%{_libdir}/pkgconfig/cairo-xlib-xcb.pc
-#%%{_libdir}/pkgconfig/cairo-xml.pc
+%{_libdir}/pkgconfig/cairo-xlib-xcb.pc
+%{_libdir}/pkgconfig/cairo-xml.pc
 %{_datadir}/gtk-doc/html/cairo
-#%%{_bindir}/cairo-sphinx
+%{_bindir}/cairo-sphinx
 
 %files gobject
 %{_libdir}/libcairo-gobject.so.*
@@ -185,12 +186,12 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/cairo/cairo-sphinx.so
 #%%{_libdir}/cairo/
 
 %changelog
-<<<<<<< HEAD
-=======
-* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
+* Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16.0-7
+- Fix up configure params, get xml, libxcb + tee working.
+
+* Fri May 1 2020 HAL <hal@null.not> - 1.16.0-6
 - fixed gobject-introspection which lacked on the previous version for Irix 6.5
 
->>>>>>> 9c73c97842fc945ae797bdf1253bb936b2592878
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.16.0-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
