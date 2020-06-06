@@ -1,0 +1,142 @@
+diff -r -u distcc-3.3.3-orig/include_server/c_extensions/distcc_pump_c_extensions_module.c distcc-3.3.3/include_server/c_extensions/distcc_pump_c_extensions_module.c
+--- distcc-3.3.3-orig/include_server/c_extensions/distcc_pump_c_extensions_module.c	2019-08-14 20:07:05.000000000 +0000
++++ distcc-3.3.3/include_server/c_extensions/distcc_pump_c_extensions_module.c	2020-06-03 18:31:38.093864280 +0000
+@@ -16,6 +16,13 @@
+  * USA.
+ */
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++
+ // Author: Nils Klarlund
+ 
+ /* distcc_pump_c_extensions_module.c -- Python bindings for distcc-pump
+diff -r -u distcc-3.3.3-orig/include_server/parse_file.py distcc-3.3.3/include_server/parse_file.py
+--- distcc-3.3.3-orig/include_server/parse_file.py	2019-08-14 20:07:05.000000000 +0000
++++ distcc-3.3.3/include_server/parse_file.py	2020-06-03 18:32:01.914062280 +0000
+@@ -272,7 +272,7 @@
+ 
+     assert isinstance(filepath, str)
+     self.filepath = filepath
+-    parse_file_start_time = time.clock()
++    parse_file_start_time = time.monotonic()
+     statistics.parse_file_counter += 1
+ 
+     includepath_map_index = self.includepath_map.Index
+@@ -338,6 +338,6 @@
+                       expr_includes, next_includes)
+ 
+ 
+-    statistics.parse_file_total_time += time.clock() - parse_file_start_time
++    statistics.parse_file_total_time += time.monotonic() - parse_file_start_time
+ 
+     return (quote_includes, angle_includes, expr_includes, next_includes)
+diff -r -u distcc-3.3.3-orig/include_server/statistics.py distcc-3.3.3/include_server/statistics.py
+--- distcc-3.3.3-orig/include_server/statistics.py	2019-08-14 20:07:05.000000000 +0000
++++ distcc-3.3.3/include_server/statistics.py	2020-06-03 18:31:38.095763480 +0000
+@@ -62,13 +62,13 @@
+   global start_time, translation_unit_counter
+   """Mark the start of a request to find an include closure."""
+   translation_unit_counter += 1
+-  start_time = time.clock()
++  start_time = time.monotonic()
+ 
+ 
+ def EndTiming():
+   """Mark the end of an include closure calculation."""
+   global translation_unit_time, min_time, max_time, total_time
+-  translation_unit_time = time.clock() - start_time
++  translation_unit_time = time.monotonic() - start_time
+   min_time = min(translation_unit_time, min_time)
+   max_time = max(translation_unit_time, max_time)
+   total_time += translation_unit_time
+diff -r -u distcc-3.3.3-orig/pump.in distcc-3.3.3/pump.in
+--- distcc-3.3.3-orig/pump.in	2019-08-14 20:07:05.000000000 +0000
++++ distcc-3.3.3/pump.in	2020-06-03 18:31:38.097928200 +0000
+@@ -306,13 +306,14 @@
+ 
+   # solaris sh's built-in test does not support -S, so we need to use
+   # the binary.
+-  if [ -x /bin/test ]; then
+-    TEST=/bin/test
+-  elif [ -x /usr/bin/test ]; then
+-    TEST=/usr/bin/test
+-  else
+-    TEST=test
+-  fi
++  #if [ -x /bin/test ]; then
++  #  TEST=/bin/test
++  #elif [ -x /usr/bin/test ]; then
++  #  TEST=/usr/bin/test
++  #else
++  #  TEST=test
++  #fi
++  TEST=/usr/sgug/bin/test
+   if $TEST ! -S "$socket"; then
+     echo "__________Expected a socket at '$socket'" 1>&2
+     PrintIncludeServerStatusMessage 1
+@@ -500,7 +501,7 @@
+   if [ -n "$DISTCC_HOSTS" ]; then
+     echo export DISTCC_HOSTS=\'$DISTCC_HOSTS\'
+   fi
+-  echo export PATH=\'$distcc_location:$PATH\'
++  echo export PATH=\'$PATH:$distcc_location\'
+ }
+ 
+ Main() {
+@@ -540,7 +541,7 @@
+       Announce
+       StartIncludeServerAndDetermineHosts || exit 1
+       # Now execute the command that is the argument of 'pump'.
+-      PATH="$distcc_location:$PATH" \
++      PATH="$PATH:$distcc_location" \
+         "$@"
+       # When we exit, the ShutDown function will be called.
+       ;;
+diff -r -u distcc-3.3.3-orig/src/clinet.c distcc-3.3.3/src/clinet.c
+--- distcc-3.3.3-orig/src/clinet.c	2019-08-14 20:07:05.000000000 +0000
++++ distcc-3.3.3/src/clinet.c	2020-06-03 18:31:38.099368120 +0000
+@@ -95,6 +95,7 @@
+     if (s == NULL) return EXIT_OUT_OF_MEMORY;
+ 
+     rs_trace("started connecting to %s", s);
++    //printf("started connecting to %s\n", s);
+ 
+     if ((fd = socket(sa->sa_family, SOCK_STREAM, 0)) == -1) {
+         rs_log_error("failed to create socket: %s", strerror(errno));
+diff -r -u distcc-3.3.3-orig/src/include_server_if.c distcc-3.3.3/src/include_server_if.c
+--- distcc-3.3.3-orig/src/include_server_if.c	2019-08-14 20:07:05.000000000 +0000
++++ distcc-3.3.3/src/include_server_if.c	2020-06-03 18:31:38.100858200 +0000
+@@ -91,9 +91,17 @@
+     }
+ 
+     strcpy(sa.sun_path, include_server_port);
++    //printf("#1 Copied '%s' into sa.sun_path\n", sa.sun_path);
+     sa.sun_family = AF_UNIX;
+ 
++#if defined(__sgi)
++    struct sockaddr_un sa_reg;
++    memcpy(&sa_reg, &sa, sizeof(struct sockaddr_un));
++
++    if (dcc_connect_by_addr(&sa_reg, sizeof(sa_reg), &fd))
++#else
+     if (dcc_connect_by_addr((struct sockaddr *) &sa, sizeof(sa), &fd))
++#endif
+         return 1;
+ 
+     /* TODO? switch include_server to use more appropriate token names */
+diff -r -u distcc-3.3.3-orig/src/netutil.c distcc-3.3.3/src/netutil.c
+--- distcc-3.3.3-orig/src/netutil.c	2019-08-14 20:07:05.000000000 +0000
++++ distcc-3.3.3/src/netutil.c	2020-06-03 18:31:38.102271240 +0000
+@@ -182,6 +182,7 @@
+         /* NB: The word 'sun' is predefined on Solaris */
+         struct sockaddr_un *sa_un = (struct sockaddr_un *) sa;
+         checked_asprintf(p_buf, "UNIX-DOMAIN %s", sa_un->sun_path);
++        //printf("#2 Copied '%s' into sa_un.sun_path\n", sa_un->sun_path);
+     } else {
+         checked_asprintf(p_buf, "UNKNOWN-FAMILY %d", sa->sa_family);
+     }

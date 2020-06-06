@@ -29,14 +29,14 @@ BuildRequires:  gettext
 BuildRequires:  itstool
 
 # Disable pkgconfig autodep
-%global __requires_exclude ^/usr/sgug/bin/pkg-config$
+#%%global __requires_exclude ^/usr/sgug/bin/pkg-config$
 
 %description
 This is the freedesktop.org shared MIME info database.
 
 Many programs and desktops use the MIME system to represent the types of
 files. Frequently, it is necessary to work out the correct MIME type for
-a file. This is generally done by examining the file's name or contents,
+a file. This is generally done by examining the file''s name or contents,
 and looking up the correct MIME type in a database.
 
 %prep
@@ -60,7 +60,7 @@ find $RPM_BUILD_ROOT%{_datadir}/mime -type d \
 find $RPM_BUILD_ROOT%{_datadir}/mime -type f -not -path "*/packages/*" \
 | sed -e "s|^$RPM_BUILD_ROOT|%%ghost |" >> %{name}.files
 
-mkdir -p $RPM_BUILD_ROOT/%{_datadir}/applications
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
 install -m 644 %SOURCE1 $RPM_BUILD_ROOT%{_datadir}/applications/gnome-mimeapps.list
 cat %SOURCE2 >> $RPM_BUILD_ROOT%{_datadir}/applications/gnome-mimeapps.list
 cat %SOURCE3 >> $RPM_BUILD_ROOT%{_datadir}/applications/gnome-mimeapps.list
@@ -79,7 +79,7 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/locale/*
 
 
 %post
-/usr/sgug/bin/touch --no-create %{_datadir}/mime/packages &>/dev/null ||:
+%{_bindir}/touch --no-create %{_datadir}/mime/packages &>/dev/null ||:
 
 %transfiletriggerin -- %{_datadir}/mime
 update-mime-database -n %{_datadir}/mime &> /dev/null ||:
@@ -95,11 +95,14 @@ update-mime-database -n %{_datadir}/mime &> /dev/null ||:
 %{_datadir}/applications/mimeapps.list
 %{_datadir}/applications/gnome-mimeapps.list
 # better to co-own this dir than to pull in pkgconfig
-%dir %{_datadir}/pkgconfig
+#%%dir %%{_datadir}/pkgconfig
 %{_datadir}/pkgconfig/shared-mime-info.pc
 %{_mandir}/man*/*
 
 %changelog
+* Sun May 31 2020 Daniel Hams <daniel.hams@gmail.com> - 1.15-1
+- (And originally HAL too) - pull into wip
+
 * Tue Nov 05 2019 Bastien Nocera <bnocera@redhat.com> - 1.15-1
 + shared-mime-info-1.15-1
 - Update to 1.15

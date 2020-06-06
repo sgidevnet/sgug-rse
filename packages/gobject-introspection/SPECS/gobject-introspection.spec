@@ -11,6 +11,8 @@ License:        GPLv2+, LGPLv2+, MIT
 URL:            https://wiki.gnome.org/Projects/GObjectIntrospection
 Source0:        https://download.gnome.org/sources/gobject-introspection/1.62/%{name}-%{version}.tar.xz
 
+Patch100:       gobject-introspection.sgifixes.patch
+
 BuildRequires:  gcc
 BuildRequires:  bison
 BuildRequires:  cairo-gobject-devel
@@ -86,12 +88,9 @@ export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-ir
 #%%{_datadir}/gtk-doc/html/gi/
 
 %changelog
-<<<<<<< HEAD
-=======
 * Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
 - some slight changes so it will build on Irix 6.5 and gcc 9.2
 
->>>>>>> 9c73c97842fc945ae797bdf1253bb936b2592878
 * Mon Sep 09 2019 Kalev Lember <klember@redhat.com> - 1.62.0-1
 - Update to 1.62.0
 

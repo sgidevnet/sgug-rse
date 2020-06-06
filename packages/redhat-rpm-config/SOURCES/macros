@@ -1,0 +1,52 @@
+#---------------------------------------------------------------------
+#	Expanded at end of %install scriptlet.
+#
+
+%__arch_install_post   /usr/sgug/lib/rpm/check-buildroot
+
+# Build root policy macros. Standard naming:
+# convert all '-' in basename to '_', add two leading underscores.
+#%%__brp_ldconfig /usr/sgug/lib/rpm/sgug/brp-ldconfig
+%__brp_compress /usr/sgug/lib/rpm/brp-compress %{_prefix}
+%__brp_strip /usr/sgug/lib/rpm/brp-strip %{__strip}
+%__brp_strip_comment_note /usr/sgug/lib/rpm/brp-strip-comment-note %{__strip} %{__objdump}
+%__brp_strip_static_archive /usr/sgug/lib/rpm/brp-strip-static-archive %{__strip}
+%__brp_python_bytecompile /usr/sgug/lib/rpm/sgug/brp-python-bytecompile "%{__python}" "%{?_python_bytecompile_errors_terminate_build}" "%{?_python_bytecompile_extra}"
+%__brp_python_hardlink /usr/sgug/lib/rpm/brp-python-hardlink
+# __brp_mangle_shebangs_exclude - shebangs to exclude
+# __brp_mangle_shebangs_exclude_file - file from which to get shebangs to exclude
+# __brp_mangle_shebangs_exclude_from - files to ignore
+# __brp_mangle_shebangs_exclude_from_file - file from which to get files to ignore
+%__brp_mangle_shebangs /usr/sgug/lib/rpm/sgug/brp-mangle-shebangs %{?__brp_mangle_shebangs_exclude:--shebangs "%{?__brp_mangle_shebangs_exclude}"} %{?__brp_mangle_shebangs_exclude_file:--shebangs-from "%{__brp_mangle_shebangs_exclude_file}"} %{?__brp_mangle_shebangs_exclude_from:--files "%{?__brp_mangle_shebangs_exclude_from}"} %{?__brp_mangle_shebangs_exclude_from_file:--files-from "%{__brp_mangle_shebangs_exclude_from_file}"}
+
+%__os_install_post    \
+    %{?__brp_compress} \
+    %{!?__debug_package:\
+    %{?__brp_strip} \
+    %{?__brp_strip_comment_note} \
+    } \
+    %{?__brp_strip_static_archive} \
+    %{?py_auto_byte_compile:%{?__brp_python_bytecompile}} \
+    %{?__brp_python_hardlink} \
+    %{?__brp_mangle_shebangs} \
+%{nil}
+
+%__spec_install_post\
+    %{?__debug_package:%{__debug_install_post}}\
+    %{__arch_install_post}\
+    %{__os_install_post}\
+%{nil}
+
+%install %{?_enable_debug_packages:%{?buildsubdir:%{debug_package}}}\
+%%install\
+%{nil}
+
+#
+## Automatically compile python files
+%py_auto_byte_compile 1
+
+#
+## Should python bytecompilation errors terminate a build?
+%_python_bytecompile_errors_terminate_build 1
+## Should python bytecompilation compile outisde python specific directories?
+%_python_bytecompile_extra 0

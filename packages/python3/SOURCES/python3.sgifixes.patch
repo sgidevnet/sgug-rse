@@ -1,6 +1,128 @@
-diff -ur Python-3.8.1/Modules/addrinfo.h ../Python-3.8.1/Modules/addrinfo.h
---- Python-3.8.1/Modules/addrinfo.h	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/Modules/addrinfo.h	2020-01-08 07:18:49.425417099 +0000
+diff -u -r -N Python-3.8.1-orig/Lib/distutils/command/install.py Python-3.8.1/Lib/distutils/command/install.py
+--- Python-3.8.1-orig/Lib/distutils/command/install.py	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Lib/distutils/command/install.py	2020-06-06 14:25:15.520864880 +0000
+@@ -29,15 +29,15 @@
+ 
+ INSTALL_SCHEMES = {
+     'unix_prefix': {
+-        'purelib': '$base/lib/python$py_version_short/site-packages',
+-        'platlib': '$platbase/lib/python$py_version_short/site-packages',
++        'purelib': '$base/lib32/python$py_version_short/site-packages',
++        'platlib': '$platbase/lib32/python$py_version_short/site-packages',
+         'headers': '$base/include/python$py_version_short$abiflags/$dist_name',
+         'scripts': '$base/bin',
+         'data'   : '$base',
+         },
+     'unix_home': {
+-        'purelib': '$base/lib/python',
+-        'platlib': '$base/lib/python',
++        'purelib': '$base/lib32/python',
++        'platlib': '$base/lib32/python',
+         'headers': '$base/include/python/$dist_name',
+         'scripts': '$base/bin',
+         'data'   : '$base',
+diff -u -r -N Python-3.8.1-orig/Lib/distutils/sysconfig.py Python-3.8.1/Lib/distutils/sysconfig.py
+--- Python-3.8.1-orig/Lib/distutils/sysconfig.py	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Lib/distutils/sysconfig.py	2020-06-06 14:25:15.522819280 +0000
+@@ -144,10 +144,9 @@
+             prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
+         else:
+             prefix = plat_specific and EXEC_PREFIX or PREFIX
+-
+     if os.name == "posix":
+         libpython = os.path.join(prefix,
+-                                 "lib", "python" + get_python_version())
++                                 "lib32", "python" + get_python_version())
+         if standard_lib:
+             return libpython
+         else:
+diff -u -r -N Python-3.8.1-orig/Lib/site.py Python-3.8.1/Lib/site.py
+--- Python-3.8.1-orig/Lib/site.py	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Lib/site.py	2020-06-06 14:25:15.524689440 +0000
+@@ -269,6 +269,10 @@
+     if os.name == 'nt':
+         return f'{userbase}\\Python{version[0]}{version[1]}\\site-packages'
+ 
++    # sgug-rse specific hack.
++    if sys.platform.startswith('irix'):
++        return f'{userbase}/lib32/python/site-packages'
++
+     if sys.platform == 'darwin' and sys._framework:
+         return f'{userbase}/lib/python/site-packages'
+ 
+@@ -335,11 +339,18 @@
+         seen.add(prefix)
+ 
+         if os.sep == '/':
+-            sitepackages.append(os.path.join(prefix, "lib",
+-                                        "python%d.%d" % sys.version_info[:2],
+-                                        "site-packages"))
++            # sgug-rse specific hack.
++            if sys.platform.startswith('irix'):
++                sitepackages.append(os.path.join(prefix, "lib32",
++                                                 "python%d.%d" % sys.version_info[:2],
++                                                 "site-packages"))
++            else:
++                sitepackages.append(os.path.join(prefix, "lib",
++                                                 "python%d.%d" % sys.version_info[:2],
++                                                 "site-packages"))
+         else:
+             sitepackages.append(prefix)
++            sitepackages.append(os.path.join(prefix, "lib32", "site-packages"))
+             sitepackages.append(os.path.join(prefix, "lib", "site-packages"))
+     return sitepackages
+ 
+diff -u -r -N Python-3.8.1-orig/Lib/sysconfig.py Python-3.8.1/Lib/sysconfig.py
+--- Python-3.8.1-orig/Lib/sysconfig.py	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Lib/sysconfig.py	2020-06-06 14:25:15.510256320 +0000
+@@ -20,10 +20,10 @@
+ 
+ _INSTALL_SCHEMES = {
+     'posix_prefix': {
+-        'stdlib': '{installed_base}/lib/python{py_version_short}',
+-        'platstdlib': '{platbase}/lib/python{py_version_short}',
+-        'purelib': '{base}/lib/python{py_version_short}/site-packages',
+-        'platlib': '{platbase}/lib/python{py_version_short}/site-packages',
++        'stdlib': '{installed_base}/lib32/python{py_version_short}',
++        'platstdlib': '{platbase}/lib32/python{py_version_short}',
++        'purelib': '{base}/lib32/python{py_version_short}/site-packages',
++        'platlib': '{platbase}/lib32/python{py_version_short}/site-packages',
+         'include':
+             '{installed_base}/include/python{py_version_short}{abiflags}',
+         'platinclude':
+@@ -32,10 +32,10 @@
+         'data': '{base}',
+         },
+     'posix_home': {
+-        'stdlib': '{installed_base}/lib/python',
+-        'platstdlib': '{base}/lib/python',
+-        'purelib': '{base}/lib/python',
+-        'platlib': '{base}/lib/python',
++        'stdlib': '{installed_base}/lib32/python',
++        'platstdlib': '{base}/lib32/python',
++        'purelib': '{base}/lib32/python',
++        'platlib': '{base}/lib32/python',
+         'include': '{installed_base}/include/python',
+         'platinclude': '{installed_base}/include/python',
+         'scripts': '{base}/bin',
+@@ -62,10 +62,10 @@
+         'data': '{userbase}',
+         },
+     'posix_user': {
+-        'stdlib': '{userbase}/lib/python{py_version_short}',
+-        'platstdlib': '{userbase}/lib/python{py_version_short}',
+-        'purelib': '{userbase}/lib/python{py_version_short}/site-packages',
+-        'platlib': '{userbase}/lib/python{py_version_short}/site-packages',
++        'stdlib': '{userbase}/lib32/python{py_version_short}',
++        'platstdlib': '{userbase}/lib32/python{py_version_short}',
++        'purelib': '{userbase}/lib32/python{py_version_short}/site-packages',
++        'platlib': '{userbase}/lib32/python{py_version_short}/site-packages',
+         'include': '{userbase}/include/python{py_version_short}',
+         'scripts': '{userbase}/bin',
+         'data': '{userbase}',
+diff -u -r -N Python-3.8.1-orig/Modules/addrinfo.h Python-3.8.1/Modules/addrinfo.h
+--- Python-3.8.1-orig/Modules/addrinfo.h	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Modules/addrinfo.h	2020-06-06 14:25:15.404187600 +0000
 @@ -123,7 +123,7 @@
  
  #endif /* !HAVE_GETNAMEINFO */
@@ -19,9 +141,25 @@ diff -ur Python-3.8.1/Modules/addrinfo.h ../Python-3.8.1/Modules/addrinfo.h
  /*
   * RFC 2553: protocol-independent placeholder for socket addresses
   */
-diff -ur Python-3.8.1/Modules/mmapmodule.c ../Python-3.8.1/Modules/mmapmodule.c
---- Python-3.8.1/Modules/mmapmodule.c	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/Modules/mmapmodule.c	2020-01-08 07:22:05.759738699 +0000
+diff -u -r -N Python-3.8.1-orig/Modules/getpath.c Python-3.8.1/Modules/getpath.c
+--- Python-3.8.1-orig/Modules/getpath.c	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Modules/getpath.c	2020-06-06 14:25:15.496709600 +0000
+@@ -1197,7 +1197,12 @@
+     if (!calculate->exec_prefix) {
+         return DECODE_LOCALE_ERR("EXEC_PREFIX define", len);
+     }
++#ifdef __sgi
++    /* SGUG build specific hack */
++    calculate->lib_python = Py_DecodeLocale("lib32/python" VERSION, &len);
++#else
+     calculate->lib_python = Py_DecodeLocale("lib/python" VERSION, &len);
++#endif
+     if (!calculate->lib_python) {
+         return DECODE_LOCALE_ERR("EXEC_PREFIX define", len);
+     }
+diff -u -r -N Python-3.8.1-orig/Modules/mmapmodule.c Python-3.8.1/Modules/mmapmodule.c
+--- Python-3.8.1-orig/Modules/mmapmodule.c	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Modules/mmapmodule.c	2020-06-06 14:25:15.407329600 +0000
 @@ -50,9 +50,12 @@
  
  #endif
@@ -36,9 +174,9 @@ diff -ur Python-3.8.1/Modules/mmapmodule.c ../Python-3.8.1/Modules/mmapmodule.c
  
  #if defined(HAVE_SYSCONF) && defined(_SC_PAGESIZE)
  static int
-diff -ur Python-3.8.1/Modules/posixmodule.c ../Python-3.8.1/Modules/posixmodule.c
---- Python-3.8.1/Modules/posixmodule.c	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/Modules/posixmodule.c	2020-01-08 06:21:08.253364299 +0000
+diff -u -r -N Python-3.8.1-orig/Modules/posixmodule.c Python-3.8.1/Modules/posixmodule.c
+--- Python-3.8.1-orig/Modules/posixmodule.c	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Modules/posixmodule.c	2020-06-06 14:25:15.423035040 +0000
 @@ -35,6 +35,15 @@
  #  include <windows.h>
  #endif
@@ -55,9 +193,9 @@ diff -ur Python-3.8.1/Modules/posixmodule.c ../Python-3.8.1/Modules/posixmodule.
  #include "pycore_ceval.h"     /* _PyEval_ReInitThreads() */
  #include "pycore_pystate.h"   /* _PyRuntime */
  #include "pythread.h"
-diff -ur Python-3.8.1/Modules/selectmodule.c ../Python-3.8.1/Modules/selectmodule.c
---- Python-3.8.1/Modules/selectmodule.c	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/Modules/selectmodule.c	2020-01-08 07:10:06.067682699 +0000
+diff -u -r -N Python-3.8.1-orig/Modules/selectmodule.c Python-3.8.1/Modules/selectmodule.c
+--- Python-3.8.1-orig/Modules/selectmodule.c	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Modules/selectmodule.c	2020-06-06 14:25:15.430206480 +0000
 @@ -45,6 +45,7 @@
  #ifdef __sgi
  /* This is missing from unistd.h */
@@ -66,9 +204,9 @@ diff -ur Python-3.8.1/Modules/selectmodule.c ../Python-3.8.1/Modules/selectmodul
  #endif
  
  #ifdef HAVE_SYS_TYPES_H
-diff -ur Python-3.8.1/Modules/socketmodule.c ../Python-3.8.1/Modules/socketmodule.c
---- Python-3.8.1/Modules/socketmodule.c	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/Modules/socketmodule.c	2020-01-08 07:47:12.673530699 +0000
+diff -u -r -N Python-3.8.1-orig/Modules/socketmodule.c Python-3.8.1/Modules/socketmodule.c
+--- Python-3.8.1-orig/Modules/socketmodule.c	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Modules/socketmodule.c	2020-06-06 14:25:15.440429760 +0000
 @@ -244,7 +244,7 @@
  #endif
  
@@ -124,9 +262,9 @@ diff -ur Python-3.8.1/Modules/socketmodule.c ../Python-3.8.1/Modules/socketmodul
                             makesockaddr(s->sock_fd, SAS2SA(&addrbuf),
                                          ((msg.msg_namelen > addrbuflen) ?
                                           addrbuflen : msg.msg_namelen),
-diff -ur Python-3.8.1/Modules/socketmodule.h ../Python-3.8.1/Modules/socketmodule.h
---- Python-3.8.1/Modules/socketmodule.h	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/Modules/socketmodule.h	2020-01-22 06:25:53.306158550 +0000
+diff -u -r -N Python-3.8.1-orig/Modules/socketmodule.h Python-3.8.1/Modules/socketmodule.h
+--- Python-3.8.1-orig/Modules/socketmodule.h	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Modules/socketmodule.h	2020-06-06 14:25:15.442269600 +0000
 @@ -9,6 +9,9 @@
  # endif
  # include <netinet/in.h>
@@ -137,9 +275,9 @@ diff -ur Python-3.8.1/Modules/socketmodule.h ../Python-3.8.1/Modules/socketmodul
  #  include <netinet/tcp.h>
  # endif
  
-diff -ur Python-3.8.1/Python/pylifecycle.c ../Python-3.8.1/Python/pylifecycle.c
---- Python-3.8.1/Python/pylifecycle.c	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/Python/pylifecycle.c	2020-01-08 06:01:22.192394699 +0000
+diff -u -r -N Python-3.8.1-orig/Python/pylifecycle.c Python-3.8.1/Python/pylifecycle.c
+--- Python-3.8.1-orig/Python/pylifecycle.c	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Python/pylifecycle.c	2020-06-06 14:25:15.445914800 +0000
 @@ -46,6 +46,24 @@
  #define PyWindowsConsoleIO_Check(op) (PyObject_TypeCheck((op), &PyWindowsConsoleIO_Type))
  #endif
@@ -165,9 +303,9 @@ diff -ur Python-3.8.1/Python/pylifecycle.c ../Python-3.8.1/Python/pylifecycle.c
  _Py_IDENTIFIER(flush);
  _Py_IDENTIFIER(name);
  _Py_IDENTIFIER(stdin);
-diff -ur Python-3.8.1/Python/pytime.c ../Python-3.8.1/Python/pytime.c
---- Python-3.8.1/Python/pytime.c	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/Python/pytime.c	2020-01-08 06:02:35.888481899 +0000
+diff -u -r -N Python-3.8.1-orig/Python/pytime.c Python-3.8.1/Python/pytime.c
+--- Python-3.8.1-orig/Python/pytime.c	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/Python/pytime.c	2020-06-06 14:25:15.448448080 +0000
 @@ -882,6 +882,9 @@
  #ifdef CLOCK_HIGHRES
      const clockid_t clk_id = CLOCK_HIGHRES;
@@ -178,9 +316,9 @@ diff -ur Python-3.8.1/Python/pytime.c ../Python-3.8.1/Python/pytime.c
  #else
      const clockid_t clk_id = CLOCK_MONOTONIC;
      const char *implementation = "clock_gettime(CLOCK_MONOTONIC)";
-diff -ur Python-3.8.1/aclocal.m4 ../Python-3.8.1/aclocal.m4
---- Python-3.8.1/aclocal.m4	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/aclocal.m4	2020-02-15 07:02:00.217177037 +0000
+diff -u -r -N Python-3.8.1-orig/aclocal.m4 Python-3.8.1/aclocal.m4
+--- Python-3.8.1-orig/aclocal.m4	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/aclocal.m4	2020-06-06 14:25:15.450332960 +0000
 @@ -12,9 +12,9 @@
  # PARTICULAR PURPOSE.
  
@@ -235,9 +373,9 @@ diff -ur Python-3.8.1/aclocal.m4 ../Python-3.8.1/aclocal.m4
  	m4_default([$4], [AC_MSG_FAILURE(
  [The pkg-config script could not be found or is too old.  Make sure it
  is in your PATH or set the PKG_CONFIG environment variable to the full
-diff -ur Python-3.8.1/configure ../Python-3.8.1/configure
---- Python-3.8.1/configure	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/configure	2020-02-15 07:02:07.967068237 +0000
+diff -u -r -N Python-3.8.1-orig/configure Python-3.8.1/configure
+--- Python-3.8.1-orig/configure	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/configure	2020-06-06 14:25:15.469484400 +0000
 @@ -2992,6 +2992,12 @@
  $as_echo "#define _DARWIN_C_SOURCE 1" >>confdefs.h
  
@@ -279,9 +417,9 @@ diff -ur Python-3.8.1/configure ../Python-3.8.1/configure
  	SunOS/5*)
  		if test "$GCC" = "yes" ; then
  			LDSHARED='$(CC) -shared'
-diff -ur Python-3.8.1/configure.ac ../Python-3.8.1/configure.ac
---- Python-3.8.1/configure.ac	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/configure.ac	2020-02-15 07:01:43.778024237 +0000
+diff -u -r -N Python-3.8.1-orig/configure.ac Python-3.8.1/configure.ac
+--- Python-3.8.1-orig/configure.ac	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/configure.ac	2020-06-06 14:25:15.477329680 +0000
 @@ -140,6 +140,10 @@
  # them.
  AC_DEFINE(_DARWIN_C_SOURCE, 1, [Define on Darwin to activate all library features])
@@ -321,9 +459,9 @@ diff -ur Python-3.8.1/configure.ac ../Python-3.8.1/configure.ac
  	SunOS/5*)
  		if test "$GCC" = "yes" ; then
  			LDSHARED='$(CC) -shared'
-diff -ur Python-3.8.1/pyconfig.h.in ../Python-3.8.1/pyconfig.h.in
---- Python-3.8.1/pyconfig.h.in	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/pyconfig.h.in	2020-02-15 07:01:04.234993037 +0000
+diff -u -r -N Python-3.8.1-orig/pyconfig.h.in Python-3.8.1/pyconfig.h.in
+--- Python-3.8.1-orig/pyconfig.h.in	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/pyconfig.h.in	2020-06-06 14:25:15.480187920 +0000
 @@ -1603,6 +1603,9 @@
  /* Define to force use of thread-safe errno, h_errno, and other functions */
  #undef _REENTRANT
@@ -334,9 +472,9 @@ diff -ur Python-3.8.1/pyconfig.h.in ../Python-3.8.1/pyconfig.h.in
  /* Define to the level of X/Open that your system supports */
  #undef _XOPEN_SOURCE
  
-diff -ur Python-3.8.1/setup.py ../Python-3.8.1/setup.py
---- Python-3.8.1/setup.py	2019-12-18 13:21:23.000000000 +0000
-+++ ../Python-3.8.1/setup.py	2020-01-22 06:48:18.556893750 +0000
+diff -u -r -N Python-3.8.1-orig/setup.py Python-3.8.1/setup.py
+--- Python-3.8.1-orig/setup.py	2019-12-18 17:21:23.000000000 +0000
++++ Python-3.8.1/setup.py	2020-06-06 14:25:15.484404080 +0000
 @@ -670,8 +670,8 @@
              add_dir_to_list(self.compiler.include_dirs,
                              sysconfig.get_config_var("INCLUDEDIR"))
