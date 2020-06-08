@@ -809,9 +809,10 @@ mkdir -p %{buildroot}$DirHoldingGdbPy
 # "pyconfig.h" include the right file based on architecture.
 # See https://bugzilla.redhat.com/show_bug.cgi?id=192747
 # Filanames are defined here:
-%global _pyconfig32_h pyconfig-32.h
-%global _pyconfig64_h pyconfig-64.h
-%global _pyconfig_h pyconfig-%{__isa_bits}.h
+#%%global _pyconfig32_h pyconfig-32.h
+#%%global _pyconfig64_h pyconfig-64.h
+#%%global _pyconfig_h pyconfig-%{__isa_bits}.h
+%global _pyconfig_h pyconfig.h
 
 # Use a common function to do an install for all our configurations:
 InstallPython() {
@@ -851,19 +852,20 @@ InstallPython() {
     chmod +x %{buildroot}%{_bindir}/python${LDVersion}-config
 
   # Make python3-devel multilib-ready
-  mv %{buildroot}%{_includedir}/python${LDVersion}/pyconfig.h \
-     %{buildroot}%{_includedir}/python${LDVersion}/%{_pyconfig_h}
-  cat > %{buildroot}%{_includedir}/python${LDVersion}/pyconfig.h << EOF
-#include <bits/wordsize.h>
-
-#if __WORDSIZE == 32
-#include "%{_pyconfig32_h}"
-#elif __WORDSIZE == 64
-#include "%{_pyconfig64_h}"
-#else
-#error "Unknown word size"
-#endif
-EOF
+#  mv %{buildroot}%{_includedir}/python${LDVersion}/pyconfig.h \
+#     %{buildroot}%{_includedir}/python${LDVersion}/%{_pyconfig_h}
+#  cat > %{buildroot}%{_includedir}/python${LDVersion}/pyconfig.h << EOF
+##include <bits/wordsize.h>
+#
+##if __WORDSIZE == 32
+##include "%{_pyconfig32_h}"
+##elif __WORDSIZE == 64
+##include "%{_pyconfig64_h}"
+##else
+##error "Unknown word size"
+##endif
+#EOF
+#
 
   echo FINISHED: INSTALL OF PYTHON FOR CONFIGURATION: $ConfName
 }
@@ -916,9 +918,9 @@ cp -a %{SOURCE11} %{buildroot}%{_metainfodir}
 #
 # Split this out so it goes directly to the pyconfig-32.h/pyconfig-64.h
 # variants:
-sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" \
-  %{buildroot}%{pylibdir}/distutils/sysconfig.py \
-  %{buildroot}%{pylibdir}/sysconfig.py
+#sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" \
+#  %{buildroot}%{pylibdir}/distutils/sysconfig.py \
+#  %{buildroot}%{pylibdir}/sysconfig.py
 
 # Install pathfix.py to bindir
 # See https://github.com/fedora-python/python-rpm-porting/issues/24
