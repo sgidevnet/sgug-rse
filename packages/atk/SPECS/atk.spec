@@ -1,6 +1,6 @@
 Name: atk
 Version: 2.34.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Interfaces for accessibility support
 
 License: LGPLv2+
@@ -50,10 +50,13 @@ needed for development of applications or toolkits which use ATK.
 %{_libdir}/libatk-1.0.so
 %{_includedir}/atk-1.0
 %{_libdir}/pkgconfig/atk.pc
-#%{_datadir}/gtk-doc/html/atk
+#%%{_datadir}/gtk-doc/html/atk
 %{_datadir}/gir-1.0
 
 %changelog
+* Sun Jun 07 2020  Alexander Tafarte <notes2@gmx.de> - 2.35.1-2
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Tue Sep 10 2019 Kalev Lember <klember@redhat.com> - 2.34.1-1
 - Update to 2.34.1
 

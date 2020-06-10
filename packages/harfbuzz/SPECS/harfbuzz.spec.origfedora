@@ -6,14 +6,14 @@ Summary:        Text shaping library
 License:        MIT
 URL:            http://freedesktop.org/wiki/Software/HarfBuzz
 Source0:        http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-%{version}.tar.xz
-Patch0:         harfbuzz.sgifixes.patch
+
 BuildRequires:  cairo-devel
 BuildRequires:  freetype-devel
 BuildRequires:  glib2-devel
 BuildRequires:  gobject-introspection-devel
 BuildRequires:  libicu-devel
-#BuildRequires:  graphite2-devel
-#BuildRequires:  gtk-doc
+BuildRequires:  graphite2-devel
+BuildRequires:  gtk-doc
 BuildRequires:  gcc-c++
 
 %description
@@ -41,7 +41,7 @@ This package contains Harfbuzz ICU support library.
 
 
 %build
-%configure --disable-static --with-gobject --without-gtk-doc --enable-introspection
+%configure --disable-static --with-graphite2 --with-gobject --enable-introspection
 
 make %{?_smp_mflags} V=1
 
@@ -49,6 +49,12 @@ make %{?_smp_mflags} V=1
 %install
 make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
+
+
+%ldconfig_scriptlets
+
+%ldconfig_scriptlets icu
+
 
 %files
 %license COPYING
@@ -82,9 +88,6 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 %{_libdir}/libharfbuzz-icu.so.*
 
 %changelog
-* Sun Jun 07 2020  Alexander Tafarte <notes2@gmx.de> - 2.6.1-3
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
-
 * Wed Sep 18 2019 Kalev Lember <klember@redhat.com> - 2.6.1-2
 - Build with --with-gobject --enable-introspection (#1737186)
 - Tighten soname globs

@@ -1,7 +1,7 @@
 Summary: WIP spec for python 3.8
 Name: python3
 Version: 3.8.1
-Release: 3wip%{?dist}
+Release: 4wip%{?dist}
 License: GPLv3+
 URL: https://www.python.org
 Source: https://www.python.org/ftp/python/%{version}/Python-%{version}.tgz
@@ -31,10 +31,7 @@ BuildRequires: gcc
 BuildRequires: automake, autoconf, libtool, pkgconfig
 BuildRequires: python-rpm-macros
 
-Patch0: python-3.8.1-irix.patch
-Patch1: python-3.8.1-syspath-lib32.patch
-Patch2: python-3.8.1-more-lib32.patch
-Patch3: python-3.8.1-even-more-lib32.patch
+Patch100: python3.sgifixes.patch
 
 %description
 A minimal port of python 3.8.1 against sgug-rse.
@@ -42,10 +39,11 @@ A minimal port of python 3.8.1 against sgug-rse.
 %prep
 
 %setup -q -n Python-%{version}
-%patch0 -p1 -b .3.8.1-irix~
-%patch1 -p0 -b .3.8.1-irix~
-%patch2 -p1 -b .3.8.1-irix~
-%patch3 -p1 -b .3.8.1-irix~
+
+# To create an "orig" that patches can be diff''d against
+#exit 1
+
+%patch100 -p1
 
 # For patching
 #exit 1
@@ -101,12 +99,23 @@ cd $PREV_WD
 rm $RPM_BUILD_ROOT%{_libdir}/python3.8/test/ziptestdata/exe_with_z64
 rm $RPM_BUILD_ROOT%{_libdir}/python3.8/test/ziptestdata/exe_with_zip
 
+rm -rf $RPM_BUILD_ROOT%{_libdir}/python3.8/lib2to3/tests
+rm -rf $RPM_BUILD_ROOT%{_libdir}/python3.8/test
+
 # Remove setup tools which comes from it's own package
 rm -rf $RPM_BUILD_ROOT%{_libdir}/python3.8/site-packages/setuptools
 
 # Remove pip which comes from it's own package
 rm -rf $RPM_BUILD_ROOT%{_libdir}/python3.8/site-packages/pip
 rm -rf $RPM_BUILD_ROOT%{_bindir}/pip*
+
+# Remove shebang lines from .py files that aren't executable, and
+# remove executability from .py files that don't have a shebang line:
+find %{buildroot} -name \*.py \
+  \( \( \! -perm /u+x,g+x,o+x -exec sed -e '/^#!/Q 0' -e 'Q 1' {} \; \
+  -print -exec sed -i '1d' {} \; \) -o \( \
+  -perm /u+x,g+x,o+x ! -exec grep -m 1 -q '^#!' {} \; \
+  -exec chmod a-x {} \; \) \)
 
 %files
 %{_bindir}/*
@@ -118,6 +127,9 @@ rm -rf $RPM_BUILD_ROOT%{_bindir}/pip*
 %{_mandir}/*
 
 %changelog
+* Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 3.8.1-4wip
+- Move to single patch, fix up things broken by new rpm macros coming online
+
 * Mon May 25 2020 Daniel Hams <daniel.hams@gmail.com> - 3.8.1-3wip
 - Get a little more aggressive about rewriting /bin/sh etc.
 
