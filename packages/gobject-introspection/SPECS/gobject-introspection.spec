@@ -12,6 +12,7 @@ URL:            https://wiki.gnome.org/Projects/GObjectIntrospection
 Source0:        https://download.gnome.org/sources/gobject-introspection/1.62/%{name}-%{version}.tar.xz
 
 Patch100:       gobject-introspection.sgifixes.patch
+Patch101:       gobject-introspection-lc-global.patch
 
 BuildRequires:  gcc
 BuildRequires:  bison
@@ -31,7 +32,7 @@ BuildRequires:  libxml2-devel
 BuildRequires:  meson
 BuildRequires:  python3-devel
 #BuildRequires:  python3-mako
-BuildRequires:  python3-markdown
+#BuildRequires:  python3-markdown
 
 #Requires:       glib2%{?_isa} >= %{glib2_version}
 
@@ -60,6 +61,7 @@ Libraries and headers for gobject-introspection
 
 %build
 export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-irix/girepository/:$LD_LIBRARYN32_PATH
+export LIBS=-lc
 
 %meson -Ddoctool=true -Dgtk_doc=false -Dpython=%{__python3}
 %meson_build

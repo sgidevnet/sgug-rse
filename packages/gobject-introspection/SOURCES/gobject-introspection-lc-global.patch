@@ -1,0 +1,10 @@
+--- gobject-introspection-1.62.0.orig/meson.build  2019-09-09 15:22:10.000000000 +0000  
++++ gobject-introspection-1.62.0/meson.build       2020-06-11 22:25:48.393925120 +0000 
+@@ -101,6 +101,7 @@
+ endforeach
+
+ add_project_arguments(['-DHAVE_CONFIG_H'], language: 'c')
++add_global_link_arguments(['-lc'], language: 'c')
+
+ gi_hidden_visibility_cflags = []
+ if host_system == 'windows'
