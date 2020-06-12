@@ -3,7 +3,7 @@
 
 Name:           libxml2
 Version:        2.9.9
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Library providing XML and HTML support
 
 License:        MIT
@@ -13,6 +13,8 @@ Patch0:         libxml2-multilib.patch
 # Patch from openSUSE.
 # See:  https://bugzilla.gnome.org/show_bug.cgi?id=789714
 Patch1:         libxml2-2.9.8-python3-unicode-errors.patch
+
+Patch100:       libxml2.sgifixes.patch
 
 BuildRequires:  gcc
 BuildRequires:  make
@@ -94,6 +96,10 @@ at parse time or later once the document has been modified.
 %prep
 
 %autosetup -p1
+
+# A place to regenerate the sgug patch
+#exit 1
+
 find doc -type f -executable -print -exec chmod 0644 {} ';'
 
 %build
@@ -108,7 +114,7 @@ perl -pi -e "s|/etc/xml/catalog|%{_prefix}/etc/xml/catalog|g" xmlcatalog.c
 %global _configure ../configure
 %global _configure_disable_silent_rules 1
 #%%configure --without-python
-( cd py3 && %configure --cache-file=../config.cache --with-python=%{__python3} )
+( cd py3 && %configure --with-python=%{__python3} )
 %make_build -C py3
 
 %install
@@ -170,12 +176,15 @@ gzip -9 -c doc/libxml2-api.xml > doc/libxml2-api.xml.gz
 %doc python/TODO python/libxml2class.txt
 %doc doc/*.py doc/python.html
 %{python3_sitearch}/libxml2.py
-#%%{python3_sitearch}/__pycache__/libxml2.*
+%{python3_sitearch}/__pycache__/libxml2.*
 %{python3_sitearch}/drv_libxml2.py
-#%%{python3_sitearch}/__pycache__/drv_libxml2.*
+%{python3_sitearch}/__pycache__/drv_libxml2.*
 %{python3_sitearch}/libxml2mod.so
 
 %changelog
+* Fri Jun 12 2020 Daniel Hams <daniel.hams@gmail.com> - 2.9.9-6
+- Fix up broken xml2-config script
+
 * Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> - 2.9.9-5
 - Activate python3 bindings (but still a little bit broken as no autocompilation)
 
