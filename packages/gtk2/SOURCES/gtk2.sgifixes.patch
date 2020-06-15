@@ -1,0 +1,24 @@
+diff -Naur gtk+-2.24.32.orig/demos/testpixbuf-color.c gtk+-2.24.32/demos/testpixbuf-color.c
+--- gtk+-2.24.32.orig/demos/testpixbuf-color.c	2016-10-21 21:10:51.000000000 +0000
++++ gtk+-2.24.32/demos/testpixbuf-color.c	2020-06-14 07:26:58.212562227 +0000
+@@ -6,7 +6,7 @@
+ 
+ #include <gtk/gtk.h>
+ 
+-#define ICC_PROFILE             "/usr/share/color/icc/bluish.icc"
++#define ICC_PROFILE             "/usr/sgug/share/color/icc/bluish.icc"
+ #define ICC_PROFILE_SIZE        3966
+ 
+ static gboolean
+diff -Naur gtk+-2.24.32.orig/tests/testfilechooser.c gtk+-2.24.32/tests/testfilechooser.c
+--- gtk+-2.24.32.orig/tests/testfilechooser.c	2016-10-21 21:10:08.000000000 +0000
++++ gtk+-2.24.32/tests/testfilechooser.c	2020-06-14 07:27:28.739001831 +0000
+@@ -632,7 +632,7 @@
+   /* Shortcuts */
+ 
+   gtk_file_chooser_add_shortcut_folder_uri (GTK_FILE_CHOOSER (dialog),
+-					    "file:///usr/share/pixmaps",
++					    "file:///usr/sgug/share/pixmaps",
+ 					    NULL);
+ 
+   /* Initial filename or folder */
