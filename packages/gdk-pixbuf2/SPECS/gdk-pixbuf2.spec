@@ -99,6 +99,7 @@ chmod u+w  %{buildroot}%{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders.cache
 
 %find_lang gdk-pixbuf
 
+%{buildroot}/usr/sgug/bin/gdk-pixbuf-query-loaders-%{__isa_bits} > %{buildroot}/usr/sgug/lib32/gdk-pixbuf-2.0/2.10.0/loaders.cache
 #%%transfiletriggerin -- %{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders
 #%%transfiletriggerpostun -- %{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders
 
