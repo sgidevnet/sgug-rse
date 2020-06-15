@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 13
+%global rel 14
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -66,9 +66,9 @@ Patch912: 0001-Revert-Improve-ARM-detection.patch
 
 Patch2000: rpm.sgifixes.patch
 
-BuildRequires: libdicl-devel >= 0.1.19
+BuildRequires: libdicl-devel >= 0.1.27
 BuildRequires: python3-rpm-macros >= 3-52
-Requires: libdicl >= 0.1.19
+Requires: libdicl >= 0.1.27
 # Need to "find" cmake and set the right (__cmake) macro variable
 BuildRequires: cmake >= 3.17.2-1
 
@@ -227,21 +227,21 @@ Requires: rpm-sign-libs%{_isa} = %{version}-%{release}
 %description sign
 This package contains support for digitally signing RPM packages.
 
-#%package -n python2-%{name}
-#Summary: Python 2 bindings for apps which will manipulate RPM packages
-#BuildRequires: python2-devel
-#%{?python_provide:%python_provide python2-%{name}}
-#Requires: %{name}-libs%{?_isa} = %{version}-%{release}
-#Provides: %{name}-python = %{version}-%{release}
-#Obsoletes: %{name}-python < %{version}-%{release}
+%package -n python2-%{name}
+Summary: Python 2 bindings for apps which will manipulate RPM packages
+BuildRequires: python2-devel
+%{?python_provide:%python_provide python2-%{name}}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+Provides: %{name}-python = %{version}-%{release}
+Obsoletes: %{name}-python < %{version}-%{release}
 
-#%description -n python2-%{name}
-#The python2-rpm package contains a module that permits applications
-#written in the Python programming language to use the interface
-#supplied by RPM Package Manager libraries.
+%description -n python2-%{name}
+The python2-rpm package contains a module that permits applications
+written in the Python programming language to use the interface
+supplied by RPM Package Manager libraries.
 
-#This package should be installed if you want to develop Python 2
-#programs that will manipulate RPM packages and databases.
+This package should be installed if you want to develop Python 2
+programs that will manipulate RPM packages and databases.
 
 %package -n python3-%{name}
 Summary: Python 3 bindings for apps which will manipulate RPM packages
@@ -396,7 +396,7 @@ ac_cv_func_getline=yes ./configure \
 %make_build
 
 cd python
-#py2_build
+%py2_build
 %py3_build
 cd ..
 
@@ -406,7 +406,7 @@ cd ..
 # We need to build with --enable-python for the self-test suite, but we
 # actually package the bindings built with setup.py (#531543#c26)
 cd python
-#py2_install
+%py2_install
 %py3_install
 cd ..
 
@@ -577,9 +577,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %{_bindir}/rpmsign
 %{_mandir}/man8/rpmsign.8*
 
-#%%files -n python2-%%{name}
-#%%{python2_sitearch}/%%{name}/
-#%%{python2_sitearch}/%%{name}-%%{version}*.egg-info
+%files -n python2-%{name}
+%{python2_sitearch}/%{name}/
+%{python2_sitearch}/%{name}-%{version}*.egg-info
 
 %files -n python3-%{name}
 %{python3_sitearch}/%{name}/
@@ -601,6 +601,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Mon Jun 15 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-14
+- Include python2 bindings generation
+
 * Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-13
 - Merge patches into a single patch, more fix up of hardcoded paths.
 
