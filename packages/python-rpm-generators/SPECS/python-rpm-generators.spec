@@ -5,7 +5,7 @@
 Name:           python-rpm-generators
 Summary:        Dependency generators for Python RPMs
 Version:        9
-Release:        2%{?dist}
+Release:        3%{?dist}
 
 # Originally all those files were part of RPM, so license is kept here
 License:        GPLv2+
@@ -49,6 +49,9 @@ install -Dpm0755 -t %{buildroot}%{_rpmconfigdir} pythondeps.sh pythondistdeps.py
 %{_rpmconfigdir}/pythondistdeps.py
 
 %changelog
+* Mon Jun 15 2020 Daniel Hams <daniel.hams@gmail.com> - 9-3
+- Fix up the python.attr and pythondist.attr files
+
 * Thu Apr 16 2020 Daniel Hams <daniel.hams@gmail.com> - 9-2
 - Import into wip
 
