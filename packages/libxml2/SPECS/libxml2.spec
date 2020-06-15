@@ -3,7 +3,7 @@
 
 Name:           libxml2
 Version:        2.9.9
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        Library providing XML and HTML support
 
 License:        MIT
@@ -58,23 +58,23 @@ Summary:        Static library for libxml2
 Static library for libxml2 provided for specific uses or shaving a few
 microseconds when parsing, do not link to them for generic purpose packages.
 
-#%%package -n python2-%%{name}
-#%%{?python_provide:%%python_provide python2-%%{name}}
-#Summary:        Python bindings for the libxml2 library
-#BuildRequires:  python2-devel
-#Requires:       %%{name}%%{?_isa} = %%{version}-%%{release}
-#Obsoletes:      %%{name}-python < %%{version}-%%{release}
-#Provides:       %%{name}-python = %%{version}-%%{release}
+%package -n python2-%{name}
+%{?python_provide:%python_provide python2-%{name}}
+Summary:        Python bindings for the libxml2 library
+BuildRequires:  python2-devel
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Obsoletes:      %{name}-python < %{version}-%{release}
+Provides:       %{name}-python = %{version}-%{release}
 
-#%%description -n python2-%%{name}
-#The libxml2-python package contains a Python 2 module that permits applications
-#written in the Python programming language, version 2, to use the interface
-#supplied by the libxml2 library to manipulate XML files.
+%description -n python2-%{name}
+The libxml2-python package contains a Python 2 module that permits applications
+written in the Python programming language, version 2, to use the interface
+supplied by the libxml2 library to manipulate XML files.
 
-#This library allows to manipulate XML files. It includes support
-#to read, modify and write XML and HTML files. There is DTDs support
-#this includes parsing and validation even with complex DTDs, either
-#at parse time or later once the document has been modified.
+This library allows to manipulate XML files. It includes support
+to read, modify and write XML and HTML files. There is DTDs support
+this includes parsing and validation even with complex DTDs, either
+at parse time or later once the document has been modified.
 
 %package -n python3-%{name}
 Summary:        Python 3 bindings for the libxml2 library
@@ -103,6 +103,7 @@ at parse time or later once the document has been modified.
 find doc -type f -executable -print -exec chmod 0644 {} ';'
 
 %build
+mkdir py2
 mkdir py3
 # Rewrite the default catalogs to our intended paths
 perl -pi -e "s|/etc/sgml/catalog|%{_prefix}/etc/sgml/catalog|g" catalog.c
@@ -114,10 +115,15 @@ perl -pi -e "s|/etc/xml/catalog|%{_prefix}/etc/xml/catalog|g" xmlcatalog.c
 %global _configure ../configure
 %global _configure_disable_silent_rules 1
 #%%configure --without-python
+export PREV_WD=`pwd`
+( cd py2 && %configure --with-python=%{__python2} )
+cd $PREV_WD
+%make_build -C py2
 ( cd py3 && %configure --with-python=%{__python3} )
 %make_build -C py3
 
 %install
+%make_install -C py2
 %make_install -C py3
 
 # multiarch crazyness on timestamp differences or Makefile/binaries for examples
@@ -130,7 +136,7 @@ rm -vrf %{buildroot}%{_datadir}/doc/
 gzip -9 -c doc/libxml2-api.xml > doc/libxml2-api.xml.gz
 
 %check
-#%%make_build runtests -C py2
+%make_build runtests -C py2
 %make_build runtests -C py3
 
 #%%ldconfig_scriptlets
@@ -165,12 +171,12 @@ gzip -9 -c doc/libxml2-api.xml > doc/libxml2-api.xml.gz
 %license Copyright
 %{_libdir}/libxml2.a
 
-#%%files -n python2-%%{name}
-#%%doc python/TODO python/libxml2class.txt
-#%%doc doc/*.py doc/python.html
-#%%{python2_sitearch}/libxml2.py*
-#%%{python2_sitearch}/drv_libxml2.py*
-#%%{python2_sitearch}/libxml2mod.so
+%files -n python2-%{name}
+%doc python/TODO python/libxml2class.txt
+%doc doc/*.py doc/python.html
+%{python2_sitearch}/libxml2.py*
+%{python2_sitearch}/drv_libxml2.py*
+%{python2_sitearch}/libxml2mod.so
 
 %files -n python3-%{name}
 %doc python/TODO python/libxml2class.txt
@@ -182,6 +188,9 @@ gzip -9 -c doc/libxml2-api.xml > doc/libxml2-api.xml.gz
 %{python3_sitearch}/libxml2mod.so
 
 %changelog
+* Mon Jun 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.9.9-7
+- Include python2 bindings generation
+
 * Fri Jun 12 2020 Daniel Hams <daniel.hams@gmail.com> - 2.9.9-6
 - Fix up broken xml2-config script
 
