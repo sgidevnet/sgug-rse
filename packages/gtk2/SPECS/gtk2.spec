@@ -224,14 +224,11 @@ make install DESTDIR=$RPM_BUILD_ROOT        \
 # We need to have separate 32-bit and 64-bit binaries
 # for places where we have two copies of the GTK+ package installed.
 # (we might have x86_64 and i686 packages on the same system, for example.)
-#case "$host" in
-#  alpha*|ia64*|ppc64*|powerpc64*|s390x*|x86_64*|aarch64*|mips64*)
-#   mv $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0 $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0-64
-#   ;;
-#  *)
-#   mv $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0 $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0-32
-#   ;;
-#esac
+%if %{__isa_bits} == 64
+mv $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0 $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0-64
+%else
+mv $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0 $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0-32
+%endif
 
 # Install wrappers for the binaries
 cp %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}/update-gtk-immodules
@@ -255,7 +252,6 @@ touch $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/immodules.cache
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/modules
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/immodules
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/filesystems
-
 
 %transfiletriggerin -- %{_libdir}/gtk-2.0/immodules/ %{_libdir}/gtk-2.0/%{bin_version}/immodules/
 gtk-query-immodules-2.0-%{__isa_bits} --update-cache
