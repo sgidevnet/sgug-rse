@@ -145,7 +145,9 @@ This package contains developer documentation for the GTK+ widget toolkit.
 %prep
 %autosetup -n gtk+-%{version} -p1
 export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}:$LD_LIBRARYN32_PATH
-export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gtk-2.0/2.10.0:$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gtk-2.0/2.10.0/engines:$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gtk-2.0/2.10.0/immodules:$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gtk-2.0/2.10.0/printbackends:$LD_LIBRARYN32_PATH
 
 %build
 export CFLAGS='-fno-strict-aliasing %optflags'
