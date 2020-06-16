@@ -66,7 +66,7 @@
 
 # Do not forget to bump pam_ssh_agent_auth release if you rewind the main package release to 1
 %global openssh_ver 8.1p1
-%global openssh_rel 10
+%global openssh_rel 11
 %global pam_ssh_agent_ver 0.10.3
 %global pam_ssh_agent_rel 7
 
@@ -312,7 +312,7 @@ rsh, and to provide secure encrypted communications between two
 untrusted hosts over an insecure network. X11 connections and
 arbitrary TCP/IP ports can also be forwarded over the secure channel.
 
-OpenSSH is OpenBSD's version of the last free version of SSH, bringing
+OpenSSH is OpenBSD''s version of the last free version of SSH, bringing
 it up to date in terms of security and features.
 
 This package includes the core files necessary for both the OpenSSH
@@ -478,6 +478,8 @@ fi
 export ac_cv_func___b64_pton=no
 export ac_cv_func___b64_ntop=no
 
+export CPPFLAGS="-D_SGI_MP_SOURCE"
+
 %configure \
 	--sysconfdir=%{_sysconfdir}/ssh \
 	--libexecdir=%{_libexecdir}/openssh \
@@ -587,7 +589,7 @@ install -d $RPM_BUILD_ROOT%{_libdir}/fipscheck
 #install -m644 %{SOURCE2} $RPM_BUILD_ROOT/etc/pam.d/sshd
 #install -m644 %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/ssh-keycat
 install -m644 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sshd
-install -m644 ssh_config_redhat $RPM_BUILD_ROOT%{_sysconfdir}/ssh/ssh_config.d/05-redhat.conf
+#install -m644 ssh_config_redhat $RPM_BUILD_ROOT%{_sysconfdir}/ssh/ssh_config.d/05-redhat.conf
 #install -d -m755 $RPM_BUILD_ROOT/%{_unitdir}
 #install -m644 %{SOURCE9} $RPM_BUILD_ROOT/%{_unitdir}/sshd@.service
 #install -m644 %{SOURCE10} $RPM_BUILD_ROOT/%{_unitdir}/sshd.socket
@@ -673,7 +675,7 @@ grep "sshd:x:74:74" /etc/passwd >/dev/null || \
 %attr(0644,root,root) %{_mandir}/man1/scp.1*
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh/ssh_config
 %dir %attr(0755,root,root) %{_sysconfdir}/ssh/ssh_config.d/
-%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh/ssh_config.d/05-redhat.conf
+#%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh/ssh_config.d/05-redhat.conf
 %attr(0644,root,root) %{_mandir}/man5/ssh_config.5*
 %if ! %{rescue}
 %attr(0755,root,root) %{_bindir}/ssh-agent
@@ -751,6 +753,9 @@ grep "sshd:x:74:74" /etc/passwd >/dev/null || \
 %endif
 
 %changelog
+* Tue Jun 16 2020 Daniel Hams <daniel.hams@gmail.com> - 8.1p1-11
+- Stop installing the redhat config that doesn''t work, fix the broken key reading
+
 * Sun Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 8.1p1-10
 - Correct manpath
 
