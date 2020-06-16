@@ -262,7 +262,7 @@ gtk-query-immodules-2.0-%{__isa_bits} --update-cache
 %files -f gtk20.lang
 %license COPYING
 %doc AUTHORS NEWS README
-%{_bindir}/gtk-query-immodules-2.0
+%{_bindir}/gtk-query-immodules-2.0-%{__isa_bits}
 %{_bindir}/update-gtk-immodules
 %{_libdir}/libgtk-x11-2.0.so.*
 %{_libdir}/libgdk-x11-2.0.so.*
