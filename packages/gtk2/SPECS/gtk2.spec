@@ -144,11 +144,12 @@ This package contains developer documentation for the GTK+ widget toolkit.
 
 %prep
 %autosetup -n gtk+-%{version} -p1
+export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}:$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gtk-2.0/2.10.0:$LD_LIBRARYN32_PATH
 
 %build
 export CFLAGS='-fno-strict-aliasing %optflags'
 export XDG_DATA_DIRS=/usr/sgug/share
-#export CFLAGS="${CFLAGS} -DGTK_DATADIR=/usr/sgug/share/mime"
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--disable-gtk-doc; fi;
  %configure $CONFIGFLAGS \
 	--enable-man		\
