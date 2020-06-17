@@ -1,6 +1,3 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
-
 Summary: An easy to use, modeless text editor
 Name: joe
 Version: 4.6
@@ -12,7 +9,7 @@ Source: http://downloads.sourceforge.net/joe-editor/joe-%{version}.tar.gz
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
 Patch0: joe-3.7-joerc.patch
-#Patch1: joe-3.8-selinux.patch
+Patch1: joe-3.8-selinux.patch
 Patch2: joe-3.8-time.patch
 Patch4: joe-3.8-indent-ow.patch
 # Patch5: joe-3.8-aarch64.patch
@@ -29,7 +26,7 @@ environment.
 %prep
 %setup -q
 %patch0 -p1 -b .joerc
-#%%patch1 -p1 -b .selinux
+%patch1 -p1 -b .selinux
 %patch2 -p1 -b .time
 %patch4 -p1 -b .of
 # %patch5 -p1 -b .aarch64
@@ -52,6 +49,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 install -c -m 644 joe/TODO setup.hint $RPM_BUILD_ROOT%{_pkgdocdir}
 
 # This is automatically compressed afterwards...
+# pushd 
 PREVWD=`pwd`
 cd $RPM_BUILD_ROOT/%{_mandir}/man1
 ln -s joe.1 jmacs.1
@@ -59,6 +57,7 @@ ln -s joe.1 jpico.1
 ln -s joe.1 jstar.1
 ln -s joe.1 rjoe.1
 cd $PREVWD
+#popd
 
 %files
 %license COPYING
@@ -73,8 +72,8 @@ cd $PREVWD
 %{_datadir}/applications/j*desktop
 
 %changelog
-* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.6-6
-- First sgug-rse release
+* Fri May 29 2020  Alexander Tafarte <notes2@gmx.de> - 
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.6-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
