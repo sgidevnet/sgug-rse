@@ -16,14 +16,14 @@ Patch1:         libssh-0.9.4-fix-version.patch
 
 Patch100:       libssh.sgifixes.patch
 
-BuildRequires:  cmake
+BuildRequires:  cmake >= 3.17.2-6
 BuildRequires:  gcc-c++
 #BuildRequires:  gnupg2
 BuildRequires:  openssl-devel
 BuildRequires:  pkgconfig
 BuildRequires:  zlib-devel
 #BuildRequires:  krb5-devel
-#BuildRequires:  libcmocka-devel
+BuildRequires:  libcmocka-devel
 #BuildRequires:  pam_wrapper
 #BuildRequires:  socket_wrapper
 #BuildRequires:  nss_wrapper
@@ -85,11 +85,10 @@ export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 
 %cmake .. \
     -DUNIT_TESTING=OFF \
-    -DCLIENT_TESTING=OFF \
-    -DSERVER_TESTING=OFF \
+    -DCLIENT_TESTING=ON \
+    -DSERVER_TESTING=ON \
     -DGLOBAL_CLIENT_CONFIG="%{_sysconfdir}/libssh/libssh_client.config" \
-    -DGLOBAL_BIND_CONFIG="%{_sysconfdir}/libssh/libssh_server.config" \
-    -DZLIB_ROOT="%{_prefix}"
+    -DGLOBAL_BIND_CONFIG="%{_sysconfdir}/libssh/libssh_server.config"
 
 #    -DUNIT_TESTING=ON \
 #    -DCLIENT_TESTING=ON \
