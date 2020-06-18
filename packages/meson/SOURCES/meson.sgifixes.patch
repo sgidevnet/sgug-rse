@@ -1,6 +1,18 @@
-diff -u -r meson-git29ef44-orig/mesonbuild/backend/backends.py meson-git29ef44/mesonbuild/backend/backends.py
---- meson-git29ef44-orig/mesonbuild/backend/backends.py	2020-05-21 23:28:19.000000000 +0000
-+++ meson-git29ef44/mesonbuild/backend/backends.py	2020-05-22 03:46:07.463499080 +0000
+diff -u -r meson-0.54.999git29ef44-orig/data/macros.meson meson-0.54.999git29ef44/data/macros.meson
+--- meson-0.54.999git29ef44-orig/data/macros.meson	2020-05-21 23:28:19.000000000 +0000
++++ meson-0.54.999git29ef44/data/macros.meson	2020-06-13 14:58:56.820803880 +0000
+@@ -3,7 +3,7 @@
+ %__meson_auto_features enabled
+ 
+ %_smp_mesonflags %([ -z "$MESON_BUILD_NCPUS" ] \\\
+-	&& MESON_BUILD_NCPUS="`/usr/bin/getconf _NPROCESSORS_ONLN`"; \\\
++	&& MESON_BUILD_NCPUS="`/usr/sbin/sysconf NPROC_ONLN`"; \\\
+         ncpus_max=%{?_smp_ncpus_max}; \\\
+         if [ -n "$ncpus_max" ] && [ "$ncpus_max" -gt 0 ] && [ "$MESON_BUILD_NCPUS" -gt "$ncpus_max" ]; then MESON_BUILD_NCPUS="$ncpus_max"; fi; \\\
+         if [ "$MESON_BUILD_NCPUS" -gt 1 ]; then echo "--num-processes $MESON_BUILD_NCPUS"; fi)
+diff -u -r meson-0.54.999git29ef44-orig/mesonbuild/backend/backends.py meson-0.54.999git29ef44/mesonbuild/backend/backends.py
+--- meson-0.54.999git29ef44-orig/mesonbuild/backend/backends.py	2020-05-21 23:28:19.000000000 +0000
++++ meson-0.54.999git29ef44/mesonbuild/backend/backends.py	2020-06-13 14:58:05.370892800 +0000
 @@ -459,6 +459,7 @@
          for arg in args:
              if arg.startswith('-Wl,-rpath='):
@@ -17,9 +29,9 @@ diff -u -r meson-git29ef44-orig/mesonbuild/backend/backends.py meson-git29ef44/m
          return tuple(result)
  
      def object_filename_from_source(self, target, source):
-diff -u -r meson-git29ef44-orig/mesonbuild/compilers/compilers.py meson-git29ef44/mesonbuild/compilers/compilers.py
---- meson-git29ef44-orig/mesonbuild/compilers/compilers.py	2020-05-21 23:28:19.000000000 +0000
-+++ meson-git29ef44/mesonbuild/compilers/compilers.py	2020-05-22 03:46:07.466613160 +0000
+diff -u -r meson-0.54.999git29ef44-orig/mesonbuild/compilers/compilers.py meson-0.54.999git29ef44/mesonbuild/compilers/compilers.py
+--- meson-0.54.999git29ef44-orig/mesonbuild/compilers/compilers.py	2020-05-21 23:28:19.000000000 +0000
++++ meson-0.54.999git29ef44/mesonbuild/compilers/compilers.py	2020-06-13 14:58:05.374281760 +0000
 @@ -257,8 +257,8 @@
                  'b_sanitize': coredata.UserComboOption('Code sanitizer to use',
                                                         ['none', 'address', 'thread', 'undefined', 'memory', 'address,undefined'],
@@ -31,9 +43,9 @@ diff -u -r meson-git29ef44-orig/mesonbuild/compilers/compilers.py meson-git29ef4
                  'b_pgo': coredata.UserComboOption('Use profile guided optimization',
                                                    ['off', 'generate', 'use'],
                                                    'off'),
-diff -u -r meson-git29ef44-orig/mesonbuild/environment.py meson-git29ef44/mesonbuild/environment.py
---- meson-git29ef44-orig/mesonbuild/environment.py	2020-05-21 23:28:19.000000000 +0000
-+++ meson-git29ef44/mesonbuild/environment.py	2020-05-22 03:46:07.470653480 +0000
+diff -u -r meson-0.54.999git29ef44-orig/mesonbuild/environment.py meson-0.54.999git29ef44/mesonbuild/environment.py
+--- meson-0.54.999git29ef44-orig/mesonbuild/environment.py	2020-05-21 23:28:19.000000000 +0000
++++ meson-0.54.999git29ef44/mesonbuild/environment.py	2020-06-13 14:58:05.379768080 +0000
 @@ -326,6 +326,8 @@
          trial = detect_windows_arch(compilers)
      elif mesonlib.is_freebsd() or mesonlib.is_netbsd() or mesonlib.is_openbsd():
@@ -52,9 +64,9 @@ diff -u -r meson-git29ef44-orig/mesonbuild/environment.py meson-git29ef44/mesonb
      else:
          trial = platform.machine().lower()
  
-diff -u -r meson-git29ef44-orig/mesonbuild/linkers.py meson-git29ef44/mesonbuild/linkers.py
---- meson-git29ef44-orig/mesonbuild/linkers.py	2020-05-21 23:28:19.000000000 +0000
-+++ meson-git29ef44/mesonbuild/linkers.py	2020-05-22 03:48:33.085440280 +0000
+diff -u -r meson-0.54.999git29ef44-orig/mesonbuild/linkers.py meson-0.54.999git29ef44/mesonbuild/linkers.py
+--- meson-0.54.999git29ef44-orig/mesonbuild/linkers.py	2020-05-21 23:28:19.000000000 +0000
++++ meson-0.54.999git29ef44/mesonbuild/linkers.py	2020-06-13 14:58:05.382930480 +0000
 @@ -558,7 +558,11 @@
          if not rpath_paths and not install_rpath and not build_rpath:
              return ([], set())
@@ -93,9 +105,9 @@ diff -u -r meson-git29ef44-orig/mesonbuild/linkers.py meson-git29ef44/mesonbuild
          # TODO: should this actually be "for (dragonfly|open)bsd"?
          if mesonlib.is_dragonflybsd() or mesonlib.is_openbsd():
              # This argument instructs the compiler to record the value of
-diff -u -r meson-git29ef44-orig/mesonbuild/mesonlib.py meson-git29ef44/mesonbuild/mesonlib.py
---- meson-git29ef44-orig/mesonbuild/mesonlib.py	2020-05-21 23:28:19.000000000 +0000
-+++ meson-git29ef44/mesonbuild/mesonlib.py	2020-05-22 03:46:07.476800440 +0000
+diff -u -r meson-0.54.999git29ef44-orig/mesonbuild/mesonlib.py meson-0.54.999git29ef44/mesonbuild/mesonlib.py
+--- meson-0.54.999git29ef44-orig/mesonbuild/mesonlib.py	2020-05-21 23:28:19.000000000 +0000
++++ meson-0.54.999git29ef44/mesonbuild/mesonlib.py	2020-06-13 14:58:05.385924720 +0000
 @@ -511,6 +511,8 @@
  def is_hurd() -> bool:
      return platform.system().lower() == 'gnu'
@@ -114,9 +126,9 @@ diff -u -r meson-git29ef44-orig/mesonbuild/mesonlib.py meson-git29ef44/mesonbuil
      if is_windows():
          return ['C:/mingw/lib'] # TODO: get programmatically
      if is_osx():
-diff -u -r meson-git29ef44-orig/mesonbuild/scripts/depfixer.py meson-git29ef44/mesonbuild/scripts/depfixer.py
---- meson-git29ef44-orig/mesonbuild/scripts/depfixer.py	2020-05-21 23:28:19.000000000 +0000
-+++ meson-git29ef44/mesonbuild/scripts/depfixer.py	2020-05-22 03:46:07.479043240 +0000
+diff -u -r meson-0.54.999git29ef44-orig/mesonbuild/scripts/depfixer.py meson-0.54.999git29ef44/mesonbuild/scripts/depfixer.py
+--- meson-0.54.999git29ef44-orig/mesonbuild/scripts/depfixer.py	2020-05-21 23:28:19.000000000 +0000
++++ meson-0.54.999git29ef44/mesonbuild/scripts/depfixer.py	2020-06-13 14:58:05.387893600 +0000
 @@ -297,6 +297,7 @@
          self.fix_rpathtype_entry(rpath_dirs_to_remove, new_rpath, DT_RUNPATH)
  

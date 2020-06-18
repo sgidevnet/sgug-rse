@@ -1,0 +1,13 @@
+diff -u -r symlinks-1.7-orig/symlinks.c symlinks-1.7/symlinks.c
+--- symlinks-1.7-orig/symlinks.c	2020-01-07 21:03:13.000000000 +0000
++++ symlinks-1.7/symlinks.c	2020-06-13 12:23:38.329511800 +0000
+@@ -1,3 +1,9 @@
++/* Pull these in before other things get #defined */
++#if defined(__sgi)
++# include <sys/types.h>
++# include <sys/stat.h>
++#endif
++
+ #define _FILE_OFFSET_BITS 64
+ #define _LARGEFILE_SOURCE
+ #define _LARGEFILE64_SOURCE

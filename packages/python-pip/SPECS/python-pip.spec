@@ -1,7 +1,7 @@
 %bcond_without bootstrap
 %bcond_with tests
 
-%bcond_with python2
+%bcond_without python2
 %bcond_with doc
 
 %global srcname pip
@@ -15,13 +15,13 @@
 # Note that with disabled python3, bashcomp2 will be disabled as well because
 # bashcompdir will point to a different path than with python3 enabled.
 %global bashcompdir %{_sysconfdir}/bash_completion.d
-%global bashcomp2 0
+%global bashcomp2 1
 
 Name:           python-%{srcname}
-# When updating, update the bundled libraries versions bellow!
+# When updating, update the bundled libraries versions below!
 # You can use vendor_meta.sh in the dist git repo
 Version:        19.1.1
-Release:        7%{?dist}
+Release:        8%{?dist}
 Summary:        A tool for installing and managing Python packages
 
 # We bundle a lot of libraries with pip, which itself is under MIT license.
@@ -188,10 +188,10 @@ Provides: bundled(python%{1}dist(webencodings)) = 0.5.1
 # a long time until manylinux1 is phased out).
 # See: https://github.com/pypa/manylinux/issues/305
 # Note that manylinux is only applicable to x86 (both 32 and 64 bits)
-%global crypt_compat_recommends() %{expand:
-Recommends: (libcrypt.so.1()(64bit) if python%{1}(x86-64))
-Recommends: (libcrypt.so.1 if python%{1}(x86-32))
-}
+#%%global crypt_compat_recommends() %%{expand:
+#Recommends: (libcrypt.so.1()(64bit) if python%%{1}(x86-64))
+#Recommends: (libcrypt.so.1 if python%%{1}(x86-32))
+#}
 
 
 %if %{with python2}
@@ -220,7 +220,7 @@ Requires:       python2-setuptools
 
 %{?python_provide:%python_provide python2-%{srcname}}
 
-%{crypt_compat_recommends 2}
+#%%{crypt_compat_recommends 2}
 
 %description -n python2-%{srcname}
 pip is a package management system used to install and manage software packages
@@ -264,7 +264,7 @@ Requires:  python%{python3_pkgversion}-setuptools
 Provides:       pip = %{version}-%{release}
 Conflicts:      python-pip < %{version}-%{release}
 
-%{crypt_compat_recommends 3}
+#%%{crypt_compat_recommends 3}
 
 %description -n python%{python3_pkgversion}-%{srcname}
 pip is a package management system used to install and manage software packages
@@ -292,8 +292,8 @@ Requires:       ca-certificates
 %{bundled 2}
 %{bundled 3}
 
-%{crypt_compat_recommends 2}
-%{crypt_compat_recommends 3}
+#%%{crypt_compat_recommends 2}
+#%%{crypt_compat_recommends 3}
 
 %description wheel
 A Python wheel of pip to use with venv.
@@ -523,7 +523,7 @@ ln -sf %{buildroot}%{_bindir}/pip3 _bin/pip
 %{python3_sitelib}/pip*
 %dir %{bashcompdir}
 %{bashcompdir}/pip
-#%%{bashcompdir}/pip3*
+%{bashcompdir}/pip3*
 %if 0%{?bashcomp2}
 %dir %(dirname %{bashcompdir})
 %endif
@@ -544,6 +544,9 @@ ln -sf %{buildroot}%{_bindir}/pip3 _bin/pip
 %endif
 
 %changelog
+* Mon Jun 15 2020 Daniel Hams <daniel.hams@gmail.com> - 19.1.1-8
+- Updated for compatibility - python2 libs
+
 * Thu Jan 02 2020 Miro Hrončok <mhroncok@redhat.com> - 19.1.1-7
 - Upgrade urllib3 to 1.25.3, requests to 2.22.0
 - Fix urllib3 CVE-2019-11324 (#1774595)

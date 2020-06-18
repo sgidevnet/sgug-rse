@@ -1,6 +1,18 @@
-diff -u -r -N Python-3.8.1-orig/Lib/distutils/command/install.py Python-3.8.1/Lib/distutils/command/install.py
---- Python-3.8.1-orig/Lib/distutils/command/install.py	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Lib/distutils/command/install.py	2020-06-06 14:25:15.520864880 +0000
+diff -r -u -N Python-3.7.7-orig/Include/object.h Python-3.7.7/Include/object.h
+--- Python-3.7.7-orig/Include/object.h	2020-06-07 22:41:32.063161640 +0000
++++ Python-3.7.7/Include/object.h	2020-06-08 17:44:45.066202280 +0000
+@@ -1124,7 +1124,7 @@
+    ? (void)(0)                                      \
+    : _PyObject_AssertFailed((obj),                  \
+                             (msg),                  \
+-                            (__STRING(expr)),       \
++                            (Py_STRINGIFY(expr)),   \
+                             (__FILE__),             \
+                             (__LINE__),             \
+                             (__PRETTY_FUNCTION__)))
+diff -r -u -N Python-3.7.7-orig/Lib/distutils/command/install.py Python-3.7.7/Lib/distutils/command/install.py
+--- Python-3.7.7-orig/Lib/distutils/command/install.py	2020-06-07 22:41:32.129300600 +0000
++++ Python-3.7.7/Lib/distutils/command/install.py	2020-06-08 17:44:45.068624680 +0000
 @@ -29,15 +29,15 @@
  
  INSTALL_SCHEMES = {
@@ -21,14 +33,11 @@ diff -u -r -N Python-3.8.1-orig/Lib/distutils/command/install.py Python-3.8.1/Li
          'headers': '$base/include/python/$dist_name',
          'scripts': '$base/bin',
          'data'   : '$base',
-diff -u -r -N Python-3.8.1-orig/Lib/distutils/sysconfig.py Python-3.8.1/Lib/distutils/sysconfig.py
---- Python-3.8.1-orig/Lib/distutils/sysconfig.py	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Lib/distutils/sysconfig.py	2020-06-06 14:25:15.522819280 +0000
-@@ -144,10 +144,9 @@
-             prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
-         else:
-             prefix = plat_specific and EXEC_PREFIX or PREFIX
--
+diff -r -u -N Python-3.7.7-orig/Lib/distutils/sysconfig.py Python-3.7.7/Lib/distutils/sysconfig.py
+--- Python-3.7.7-orig/Lib/distutils/sysconfig.py	2020-06-07 22:41:32.105328200 +0000
++++ Python-3.7.7/Lib/distutils/sysconfig.py	2020-06-08 17:44:45.070505800 +0000
+@@ -148,7 +148,7 @@
+ 
      if os.name == "posix":
          libpython = os.path.join(prefix,
 -                                 "lib", "python" + get_python_version())
@@ -36,45 +45,52 @@ diff -u -r -N Python-3.8.1-orig/Lib/distutils/sysconfig.py Python-3.8.1/Lib/dist
          if standard_lib:
              return libpython
          else:
-diff -u -r -N Python-3.8.1-orig/Lib/site.py Python-3.8.1/Lib/site.py
---- Python-3.8.1-orig/Lib/site.py	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Lib/site.py	2020-06-06 14:25:15.524689440 +0000
-@@ -269,6 +269,10 @@
+diff -r -u -N Python-3.7.7-orig/Lib/distutils/tests/test_install.py Python-3.7.7/Lib/distutils/tests/test_install.py
+--- Python-3.7.7-orig/Lib/distutils/tests/test_install.py	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Lib/distutils/tests/test_install.py	2020-06-08 17:44:45.072069720 +0000
+@@ -57,8 +57,9 @@
+             self.assertEqual(got, expected)
+ 
+         libdir = os.path.join(destination, "lib", "python")
++        platlibdir = os.path.join(destination, "lib32", "python")
+         check_path(cmd.install_lib, libdir)
+-        check_path(cmd.install_platlib, libdir)
++        check_path(cmd.install_platlib, platlibdir)
+         check_path(cmd.install_purelib, libdir)
+         check_path(cmd.install_headers,
+                    os.path.join(destination, "include", "python", "foopkg"))
+diff -r -u -N Python-3.7.7-orig/Lib/site.py Python-3.7.7/Lib/site.py
+--- Python-3.7.7-orig/Lib/site.py	2020-06-07 22:41:32.130934440 +0000
++++ Python-3.7.7/Lib/site.py	2020-06-08 17:44:45.074162120 +0000
+@@ -268,6 +268,9 @@
      if os.name == 'nt':
          return f'{userbase}\\Python{version[0]}{version[1]}\\site-packages'
  
-+    # sgug-rse specific hack.
 +    if sys.platform.startswith('irix'):
 +        return f'{userbase}/lib32/python/site-packages'
 +
      if sys.platform == 'darwin' and sys._framework:
          return f'{userbase}/lib/python/site-packages'
  
-@@ -335,11 +339,18 @@
+@@ -334,11 +337,15 @@
          seen.add(prefix)
  
          if os.sep == '/':
--            sitepackages.append(os.path.join(prefix, "lib",
--                                        "python%d.%d" % sys.version_info[:2],
--                                        "site-packages"))
-+            # sgug-rse specific hack.
-+            if sys.platform.startswith('irix'):
-+                sitepackages.append(os.path.join(prefix, "lib32",
-+                                                 "python%d.%d" % sys.version_info[:2],
-+                                                 "site-packages"))
-+            else:
-+                sitepackages.append(os.path.join(prefix, "lib",
-+                                                 "python%d.%d" % sys.version_info[:2],
-+                                                 "site-packages"))
++            sitepackages.append(os.path.join(prefix, "lib32",
++                                        "python" + sys.version[:3],
++                                        "site-packages"))
+             sitepackages.append(os.path.join(prefix, "lib",
+                                         "python%d.%d" % sys.version_info[:2],
+                                         "site-packages"))
          else:
              sitepackages.append(prefix)
 +            sitepackages.append(os.path.join(prefix, "lib32", "site-packages"))
              sitepackages.append(os.path.join(prefix, "lib", "site-packages"))
      return sitepackages
  
-diff -u -r -N Python-3.8.1-orig/Lib/sysconfig.py Python-3.8.1/Lib/sysconfig.py
---- Python-3.8.1-orig/Lib/sysconfig.py	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Lib/sysconfig.py	2020-06-06 14:25:15.510256320 +0000
+diff -r -u -N Python-3.7.7-orig/Lib/sysconfig.py Python-3.7.7/Lib/sysconfig.py
+--- Python-3.7.7-orig/Lib/sysconfig.py	2020-06-07 22:41:32.107506040 +0000
++++ Python-3.7.7/Lib/sysconfig.py	2020-06-08 17:44:45.076345160 +0000
 @@ -20,10 +20,10 @@
  
  _INSTALL_SCHEMES = {
@@ -120,9 +136,109 @@ diff -u -r -N Python-3.8.1-orig/Lib/sysconfig.py Python-3.8.1/Lib/sysconfig.py
          'include': '{userbase}/include/python{py_version_short}',
          'scripts': '{userbase}/bin',
          'data': '{userbase}',
-diff -u -r -N Python-3.8.1-orig/Modules/addrinfo.h Python-3.8.1/Modules/addrinfo.h
---- Python-3.8.1-orig/Modules/addrinfo.h	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Modules/addrinfo.h	2020-06-06 14:25:15.404187600 +0000
+diff -r -u -N Python-3.7.7-orig/Lib/test/test_fileio.py Python-3.7.7/Lib/test/test_fileio.py
+--- Python-3.7.7-orig/Lib/test/test_fileio.py	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Lib/test/test_fileio.py	2020-06-08 17:44:45.078373400 +0000
+@@ -384,7 +384,7 @@
+                     self.assertEqual(f.writable(), True)
+                     if sys.platform != "darwin" and \
+                        'bsd' not in sys.platform and \
+-                       not sys.platform.startswith(('sunos', 'aix')):
++                       not sys.platform.startswith(('sunos', 'aix', 'irix')):
+                         # Somehow /dev/tty appears seekable on some BSDs
+                         self.assertEqual(f.seekable(), False)
+                     self.assertEqual(f.isatty(), True)
+diff -r -u -N Python-3.7.7-orig/Lib/test/test_io.py Python-3.7.7/Lib/test/test_io.py
+--- Python-3.7.7-orig/Lib/test/test_io.py	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Lib/test/test_io.py	2020-06-08 17:44:45.085085880 +0000
+@@ -4145,6 +4145,7 @@
+     def alarm_interrupt(self, sig, frame):
+         1/0
+ 
++    @unittest.skipIf(sys.platform.startswith('irix'), 'issue #12429: IRIX affeected')
+     def check_interrupted_write(self, item, bytes, **fdopen_kwargs):
+         """Check that a partial write, when it gets interrupted, properly
+         invokes the signal handler, and bubbles up the exception raised
+diff -r -u -N Python-3.7.7-orig/Lib/test/test_site.py Python-3.7.7/Lib/test/test_site.py
+--- Python-3.7.7-orig/Lib/test/test_site.py	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Lib/test/test_site.py	2020-06-08 17:44:45.087301000 +0000
+@@ -269,8 +269,8 @@
+         dirs = site.getsitepackages()
+         if os.sep == '/':
+             # OS X, Linux, FreeBSD, etc
+-            self.assertEqual(len(dirs), 1)
+-            wanted = os.path.join('xoxo', 'lib',
++            self.assertEqual(len(dirs), 2)
++            wanted = os.path.join('xoxo', 'lib32',
+                                   'python%d.%d' % sys.version_info[:2],
+                                   'site-packages')
+             self.assertEqual(dirs[0], wanted)
+diff -r -u -N Python-3.7.7-orig/Makefile.pre.in Python-3.7.7/Makefile.pre.in
+--- Python-3.7.7-orig/Makefile.pre.in	2020-06-07 22:41:32.118910360 +0000
++++ Python-3.7.7/Makefile.pre.in	2020-06-08 17:44:45.090426600 +0000
+@@ -144,7 +144,7 @@
+ MANDIR=		@mandir@
+ INCLUDEDIR=	@includedir@
+ CONFINCLUDEDIR=	$(exec_prefix)/include
+-SCRIPTDIR=	$(prefix)/lib
++SCRIPTDIR=	$(prefix)/lib32
+ ABIFLAGS=	@ABIFLAGS@
+ 
+ # Detailed destination directories
+diff -r -u -N Python-3.7.7-orig/Modules/_multiprocessing/semaphore.c Python-3.7.7/Modules/_multiprocessing/semaphore.c
+--- Python-3.7.7-orig/Modules/_multiprocessing/semaphore.c	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Modules/_multiprocessing/semaphore.c	2020-06-08 17:44:45.092483160 +0000
+@@ -185,10 +185,31 @@
+ 
+ #define SEM_CLEAR_ERROR()
+ #define SEM_GET_LAST_ERROR() 0
+-#define SEM_CREATE(name, val, max) sem_open(name, O_CREAT | O_EXCL, 0600, val)
+ #define SEM_CLOSE(sem) sem_close(sem)
+ #define SEM_GETVALUE(sem, pval) sem_getvalue(sem, pval)
+-#define SEM_UNLINK(name) sem_unlink(name)
++#if defined(__sgi)
++#define MAXPATHLEN 1024
++static inline sem_t *adapt_sem_open(const char * name, int oflag,
++			    mode_t mode, unsigned int val)
++{
++  char tmpbuf[MAXPATHLEN];
++  sprintf(tmpbuf, "/tmp%s", name);
++  return sem_open((const char*)tmpbuf, O_CREAT | O_EXCL, 0600, val);
++}
++
++static inline int adapt_sem_unlink(const char * name )
++{
++    char tmpbuf[MAXPATHLEN];
++    sprintf(tmpbuf, "/tmp%s", name);
++    return sem_unlink((const char *)tmpbuf);
++}
++
++# define SEM_CREATE(name, val, max) adapt_sem_open(name, O_CREAT | O_EXCL, 0600, val)
++# define SEM_UNLINK(name) adapt_sem_unlink(name)
++#else
++# define SEM_CREATE(name, val, max) sem_open(name, O_CREAT | O_EXCL, 0600, val)
++# define SEM_UNLINK(name) sem_unlink(name)
++#endif
+ 
+ /* OS X 10.4 defines SEM_FAILED as -1 instead of (sem_t *)-1;  this gives
+    compiler warnings, and (potentially) undefined behaviour. */
+@@ -500,7 +521,13 @@
+ 
+ #ifndef MS_WINDOWS
+     if (name != NULL) {
++#if defined(__sgi)
++      char tmpbuf[MAXPATHLEN];
++      sprintf(tmpbuf, "/tmp%s", name);
++      handle = sem_open(tmpbuf, 0);
++#else
+         handle = sem_open(name, 0);
++#endif
+         if (handle == SEM_FAILED) {
+             PyMem_Free(name_copy);
+             return PyErr_SetFromErrno(PyExc_OSError);
+diff -r -u -N Python-3.7.7-orig/Modules/addrinfo.h Python-3.7.7/Modules/addrinfo.h
+--- Python-3.7.7-orig/Modules/addrinfo.h	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Modules/addrinfo.h	2020-06-08 17:44:45.093940120 +0000
 @@ -123,7 +123,7 @@
  
  #endif /* !HAVE_GETNAMEINFO */
@@ -141,44 +257,41 @@ diff -u -r -N Python-3.8.1-orig/Modules/addrinfo.h Python-3.8.1/Modules/addrinfo
  /*
   * RFC 2553: protocol-independent placeholder for socket addresses
   */
-diff -u -r -N Python-3.8.1-orig/Modules/getpath.c Python-3.8.1/Modules/getpath.c
---- Python-3.8.1-orig/Modules/getpath.c	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Modules/getpath.c	2020-06-06 14:25:15.496709600 +0000
-@@ -1197,7 +1197,12 @@
+diff -r -u -N Python-3.7.7-orig/Modules/getpath.c Python-3.7.7/Modules/getpath.c
+--- Python-3.7.7-orig/Modules/getpath.c	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Modules/getpath.c	2020-06-08 17:44:45.096395800 +0000
+@@ -535,7 +535,7 @@
+                 "Could not find platform dependent libraries <exec_prefix>\n");
+         }
+         wcsncpy(exec_prefix, calculate->exec_prefix, MAXPATHLEN);
+-        joinpath(exec_prefix, L"lib/lib-dynload");
++        joinpath(exec_prefix, L"lib32/lib-dynload");
+     }
+     /* If we found EXEC_PREFIX do *not* reduce it!  (Yet.) */
+ }
+@@ -787,7 +787,7 @@
+     else {
+         wcsncpy(calculate->zip_path, calculate->prefix, MAXPATHLEN);
+     }
+-    joinpath(calculate->zip_path, L"lib/python00.zip");
++    joinpath(calculate->zip_path, L"lib32/python00.zip");
+ 
+     /* Replace "00" with version */
+     size_t bufsz = wcslen(calculate->zip_path);
+@@ -912,7 +912,7 @@
      if (!calculate->exec_prefix) {
          return DECODE_LOCALE_ERR("EXEC_PREFIX define", len);
      }
-+#ifdef __sgi
-+    /* SGUG build specific hack */
+-    calculate->lib_python = Py_DecodeLocale("lib/python" VERSION, &len);
 +    calculate->lib_python = Py_DecodeLocale("lib32/python" VERSION, &len);
-+#else
-     calculate->lib_python = Py_DecodeLocale("lib/python" VERSION, &len);
-+#endif
      if (!calculate->lib_python) {
          return DECODE_LOCALE_ERR("EXEC_PREFIX define", len);
      }
-diff -u -r -N Python-3.8.1-orig/Modules/mmapmodule.c Python-3.8.1/Modules/mmapmodule.c
---- Python-3.8.1-orig/Modules/mmapmodule.c	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Modules/mmapmodule.c	2020-06-06 14:25:15.407329600 +0000
-@@ -50,9 +50,12 @@
- 
- #endif
- 
--#ifdef UNIX
-+#if defined(UNIX) || defined(__sgi)
-+#undef _SGIAPI
-+#define _SGIAPI 1
- #include <sys/mman.h>
- #include <sys/stat.h>
-+#undef _SGIAPI
- 
- #if defined(HAVE_SYSCONF) && defined(_SC_PAGESIZE)
- static int
-diff -u -r -N Python-3.8.1-orig/Modules/posixmodule.c Python-3.8.1/Modules/posixmodule.c
---- Python-3.8.1-orig/Modules/posixmodule.c	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Modules/posixmodule.c	2020-06-06 14:25:15.423035040 +0000
-@@ -35,6 +35,15 @@
- #  include <windows.h>
+diff -r -u -N Python-3.7.7-orig/Modules/posixmodule.c Python-3.7.7/Modules/posixmodule.c
+--- Python-3.7.7-orig/Modules/posixmodule.c	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Modules/posixmodule.c	2020-06-08 17:44:45.110661960 +0000
+@@ -33,6 +33,15 @@
+ #include "winreparse.h"
  #endif
  
 +#ifdef __sgi
@@ -190,12 +303,21 @@ diff -u -r -N Python-3.8.1-orig/Modules/posixmodule.c Python-3.8.1/Modules/posix
 +# endif
 +#endif
 +
- #include "pycore_ceval.h"     /* _PyEval_ReInitThreads() */
- #include "pycore_pystate.h"   /* _PyRuntime */
- #include "pythread.h"
-diff -u -r -N Python-3.8.1-orig/Modules/selectmodule.c Python-3.8.1/Modules/selectmodule.c
---- Python-3.8.1-orig/Modules/selectmodule.c	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Modules/selectmodule.c	2020-06-06 14:25:15.430206480 +0000
+ /* On android API level 21, 'AT_EACCESS' is not declared although
+  * HAVE_FACCESSAT is defined. */
+ #ifdef __ANDROID__
+@@ -11416,6 +11425,8 @@
+     }
+ #elif defined(__hpux)
+     ncpu = mpctl(MPC_GETNUMSPUS, NULL, NULL);
++#elif defined(__sgi)
++    ncpu = sysconf(_SC_NPROC_ONLN);
+ #elif defined(HAVE_SYSCONF) && defined(_SC_NPROCESSORS_ONLN)
+     ncpu = sysconf(_SC_NPROCESSORS_ONLN);
+ #elif defined(__DragonFly__) || \
+diff -r -u -N Python-3.7.7-orig/Modules/selectmodule.c Python-3.7.7/Modules/selectmodule.c
+--- Python-3.7.7-orig/Modules/selectmodule.c	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Modules/selectmodule.c	2020-06-08 17:44:45.114865000 +0000
 @@ -45,6 +45,7 @@
  #ifdef __sgi
  /* This is missing from unistd.h */
@@ -204,10 +326,10 @@ diff -u -r -N Python-3.8.1-orig/Modules/selectmodule.c Python-3.8.1/Modules/sele
  #endif
  
  #ifdef HAVE_SYS_TYPES_H
-diff -u -r -N Python-3.8.1-orig/Modules/socketmodule.c Python-3.8.1/Modules/socketmodule.c
---- Python-3.8.1-orig/Modules/socketmodule.c	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Modules/socketmodule.c	2020-06-06 14:25:15.440429760 +0000
-@@ -244,7 +244,7 @@
+diff -r -u -N Python-3.7.7-orig/Modules/socketmodule.c Python-3.7.7/Modules/socketmodule.c
+--- Python-3.7.7-orig/Modules/socketmodule.c	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Modules/socketmodule.c	2020-06-08 17:44:45.123799400 +0000
+@@ -241,7 +241,7 @@
  #endif
  
  
@@ -216,45 +338,37 @@ diff -u -r -N Python-3.8.1-orig/Modules/socketmodule.c Python-3.8.1/Modules/sock
  /* make sure that the reentrant (gethostbyaddr_r etc)
     functions are declared correctly if compiling with
     MIPSPro 7.x in ANSI C mode (default) */
-@@ -254,13 +254,33 @@
+@@ -251,7 +251,25 @@
  #undef _SGIAPI /* to avoid warning */
  #define _SGIAPI 1
  
-+#define __P(args)      args
++#define __P(args) args
 +
 +struct if_nameindex {
-+        unsigned int     if_index;      /* 1, 2, ... */
-+        char            *if_name;       /* null terminated name */
++  unsigned int if_index;
++  char * if_name;
 +};
 +
-+extern char    *if_indextoname __P((unsigned int, char *));
-+extern unsigned int    if_nametoindex __P((const char *));
-+extern struct if_nameindex     *if_nameindex __P((void));
-+extern void    if_freenameindex __P((struct if_nameindex *));
++extern char * if_indextoname __P((unsigned int, char *));
++extern unsigned int if_nametoindex __P((const char*));
++extern struct if_nameindex * if_nameindex __P((void));
++extern void if_freenameindex __P((struct if_nameindex *));
 +
-+extern int sethostname(const char *, int);
++extern int sethostname(const char*, int);
 +
-+#define IFNAMSIZ        16
-+#define IF_NAMESIZE     IFNAMSIZ
++#define IFNAMSIZ 16
++#define IF_NAMESIZE IFNAMSIZ
 +
  #undef _XOPEN_SOURCE
 +#include <unistd.h>
  #include <sys/socket.h>
  #include <sys/types.h>
  #include <netinet/in.h>
- #ifdef _SS_ALIGNSIZE
- #define HAVE_GETADDRINFO 1
- #define HAVE_GETNAMEINFO 1
-+
-+
- #endif
- 
- #define HAVE_INET_PTON
-@@ -3862,7 +3882,11 @@
+@@ -3716,7 +3734,11 @@
      retval = Py_BuildValue("NOiN",
                             (*makeval)(ctx.result, makeval_data),
                             cmsg_list,
-+#ifdef __sgi
++#if defined(__sgi)
 +			   0,
 +#else
                             (int)msg.msg_flags,
@@ -262,9 +376,9 @@ diff -u -r -N Python-3.8.1-orig/Modules/socketmodule.c Python-3.8.1/Modules/sock
                             makesockaddr(s->sock_fd, SAS2SA(&addrbuf),
                                          ((msg.msg_namelen > addrbuflen) ?
                                           addrbuflen : msg.msg_namelen),
-diff -u -r -N Python-3.8.1-orig/Modules/socketmodule.h Python-3.8.1/Modules/socketmodule.h
---- Python-3.8.1-orig/Modules/socketmodule.h	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Modules/socketmodule.h	2020-06-06 14:25:15.442269600 +0000
+diff -r -u -N Python-3.7.7-orig/Modules/socketmodule.h Python-3.7.7/Modules/socketmodule.h
+--- Python-3.7.7-orig/Modules/socketmodule.h	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Modules/socketmodule.h	2020-06-08 17:44:45.125592040 +0000
 @@ -9,6 +9,9 @@
  # endif
  # include <netinet/in.h>
@@ -275,10 +389,10 @@ diff -u -r -N Python-3.8.1-orig/Modules/socketmodule.h Python-3.8.1/Modules/sock
  #  include <netinet/tcp.h>
  # endif
  
-diff -u -r -N Python-3.8.1-orig/Python/pylifecycle.c Python-3.8.1/Python/pylifecycle.c
---- Python-3.8.1-orig/Python/pylifecycle.c	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Python/pylifecycle.c	2020-06-06 14:25:15.445914800 +0000
-@@ -46,6 +46,24 @@
+diff -r -u -N Python-3.7.7-orig/Python/pylifecycle.c Python-3.7.7/Python/pylifecycle.c
+--- Python-3.7.7-orig/Python/pylifecycle.c	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Python/pylifecycle.c	2020-06-08 17:44:45.129400600 +0000
+@@ -39,6 +39,24 @@
  #define PyWindowsConsoleIO_Check(op) (PyObject_TypeCheck((op), &PyWindowsConsoleIO_Type))
  #endif
  
@@ -303,124 +417,23 @@ diff -u -r -N Python-3.8.1-orig/Python/pylifecycle.c Python-3.8.1/Python/pylifec
  _Py_IDENTIFIER(flush);
  _Py_IDENTIFIER(name);
  _Py_IDENTIFIER(stdin);
-diff -u -r -N Python-3.8.1-orig/Python/pytime.c Python-3.8.1/Python/pytime.c
---- Python-3.8.1-orig/Python/pytime.c	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/Python/pytime.c	2020-06-06 14:25:15.448448080 +0000
+diff -r -u -N Python-3.7.7-orig/Python/pytime.c Python-3.7.7/Python/pytime.c
+--- Python-3.7.7-orig/Python/pytime.c	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Python/pytime.c	2020-06-08 17:44:45.131725000 +0000
 @@ -882,6 +882,9 @@
  #ifdef CLOCK_HIGHRES
      const clockid_t clk_id = CLOCK_HIGHRES;
      const char *implementation = "clock_gettime(CLOCK_HIGHRES)";
-+#elif defined(CLOCK_SGI_CYCLE)
++#elif defined(__sgi)
 +    const clockid_t clk_id = CLOCK_SGI_CYCLE;
 +    const char *implementation = "clock_gettime(CLOCK_SGI_CYCLE)";
  #else
      const clockid_t clk_id = CLOCK_MONOTONIC;
      const char *implementation = "clock_gettime(CLOCK_MONOTONIC)";
-diff -u -r -N Python-3.8.1-orig/aclocal.m4 Python-3.8.1/aclocal.m4
---- Python-3.8.1-orig/aclocal.m4	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/aclocal.m4	2020-06-06 14:25:15.450332960 +0000
-@@ -12,9 +12,9 @@
- # PARTICULAR PURPOSE.
- 
- m4_ifndef([AC_CONFIG_MACRO_DIRS], [m4_defun([_AM_CONFIG_MACRO_DIRS], [])m4_defun([AC_CONFIG_MACRO_DIRS], [_AM_CONFIG_MACRO_DIRS($@)])])
--dnl pkg.m4 - Macros to locate and utilise pkg-config.   -*- Autoconf -*-
--dnl serial 11 (pkg-config-0.29.1)
--dnl
-+# pkg.m4 - Macros to locate and utilise pkg-config.   -*- Autoconf -*-
-+# serial 12 (pkg-config-0.29.2)
-+
- dnl Copyright © 2004 Scott James Remnant <scott@netsplit.com>.
- dnl Copyright © 2012-2015 Dan Nicholson <dbn.lists@gmail.com>
- dnl
-@@ -55,7 +55,7 @@
- dnl See the "Since" comment for each macro you use to see what version
- dnl of the macros you require.
- m4_defun([PKG_PREREQ],
--[m4_define([PKG_MACROS_VERSION], [0.29.1])
-+[m4_define([PKG_MACROS_VERSION], [0.29.2])
- m4_if(m4_version_compare(PKG_MACROS_VERSION, [$1]), -1,
-     [m4_fatal([pkg.m4 version $1 or higher is required but ]PKG_MACROS_VERSION[ found])])
- ])dnl PKG_PREREQ
-@@ -156,7 +156,7 @@
- AC_ARG_VAR([$1][_LIBS], [linker flags for $1, overriding pkg-config])dnl
- 
- pkg_failed=no
--AC_MSG_CHECKING([for $1])
-+AC_MSG_CHECKING([for $2])
- 
- _PKG_CONFIG([$1][_CFLAGS], [cflags], [$2])
- _PKG_CONFIG([$1][_LIBS], [libs], [$2])
-@@ -166,11 +166,11 @@
- See the pkg-config man page for more details.])
- 
- if test $pkg_failed = yes; then
--   	AC_MSG_RESULT([no])
-+        AC_MSG_RESULT([no])
-         _PKG_SHORT_ERRORS_SUPPORTED
-         if test $_pkg_short_errors_supported = yes; then
- 	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
--        else 
-+        else
- 	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
-         fi
- 	# Put the nasty error message in config.log where it belongs
-@@ -187,7 +187,7 @@
- _PKG_TEXT])[]dnl
-         ])
- elif test $pkg_failed = untried; then
--     	AC_MSG_RESULT([no])
-+        AC_MSG_RESULT([no])
- 	m4_default([$4], [AC_MSG_FAILURE(
- [The pkg-config script could not be found or is too old.  Make sure it
- is in your PATH or set the PKG_CONFIG environment variable to the full
-diff -u -r -N Python-3.8.1-orig/configure Python-3.8.1/configure
---- Python-3.8.1-orig/configure	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/configure	2020-06-06 14:25:15.469484400 +0000
-@@ -2992,6 +2992,12 @@
- $as_echo "#define _DARWIN_C_SOURCE 1" >>confdefs.h
- 
- 
-+# The later defininition of _XOPEN_SOURCE and _POSIX_C_SOURCE disables
-+# certain features on IRIX, so we need _SGI_SOURCE to re-enable
-+# them.
-+
-+$as_echo "#define _SGI_SOURCE 1" >>confdefs.h
-+
- 
- define_xopen_source=yes
- 
-@@ -5877,6 +5883,16 @@
-           LDLIBRARY='libpython$(LDVERSION).dll.a'
-           DLLLIBRARY='libpython$(LDVERSION).dll'
-           ;;
-+    irix*|IRIX*)
-+	  LDLIBRARY='libpython$(LDVERSION).so'
-+	  BLDLIBRARY='-Wl,-rpath,$(LIBDIR) -L. -lpython$(LDVERSION)'
-+	  RUNSHARED=LD_LIBRARYN32_PATH=`pwd`${LD_LIBRARYN32_PATH:+:${LD_LIBRARYN32_PATH}}
-+	  INSTSONAME="$LDLIBRARY".$SOVERSION
-+	  if test "$with_pydebug" != yes
-+	  then
-+	      PY3LIBRARY=libpython3.so
-+	  fi
-+	  ;;
-     SunOS*)
- 	  LDLIBRARY='libpython$(LDVERSION).so'
- 	  BLDLIBRARY='-Wl,-R,$(LIBDIR) -L. -lpython$(LDVERSION)'
-@@ -9330,6 +9346,10 @@
- 		BLDSHARED="Modules/ld_so_aix \$(CC) -bI:Modules/python.exp"
- 		LDSHARED="\$(LIBPL)/ld_so_aix \$(CC) -bI:\$(LIBPL)/python.exp"
- 		;;
-+	irix*|IRIX*)
-+		LDSHARED='$(CC) -shared'
-+		LDCXXSHARED='$(CXX) -shared'
-+		;;
- 	SunOS/5*)
- 		if test "$GCC" = "yes" ; then
- 			LDSHARED='$(CC) -shared'
-diff -u -r -N Python-3.8.1-orig/configure.ac Python-3.8.1/configure.ac
---- Python-3.8.1-orig/configure.ac	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/configure.ac	2020-06-06 14:25:15.477329680 +0000
-@@ -140,6 +140,10 @@
+diff -r -u -N Python-3.7.7-orig/configure.ac Python-3.7.7/configure.ac
+--- Python-3.7.7-orig/configure.ac	2020-06-07 22:41:32.150671640 +0000
++++ Python-3.7.7/configure.ac	2020-06-08 17:44:45.196357960 +0000
+@@ -140,6 +140,11 @@
  # them.
  AC_DEFINE(_DARWIN_C_SOURCE, 1, [Define on Darwin to activate all library features])
  
@@ -428,84 +441,118 @@ diff -u -r -N Python-3.8.1-orig/configure.ac Python-3.8.1/configure.ac
 +# certain features on IRIX, so we need _SGI_SOURCE to re-enable
 +# them.
 +AC_DEFINE(_SGI_SOURCE, 1, [Define on IRIX to activate all library features])
++
  
  define_xopen_source=yes
  
-@@ -1109,6 +1113,16 @@
+@@ -1131,6 +1136,16 @@
            LDLIBRARY='libpython$(LDVERSION).dll.a'
            DLLLIBRARY='libpython$(LDVERSION).dll'
            ;;
 +    irix*|IRIX*)
 +	  LDLIBRARY='libpython$(LDVERSION).so'
-+	  BLDLIBRARY='-Wl,-rpath,$(LIBDIR) -L. -lpython$(LDVERSION)'
++	  BLDLIBRARY='-Wl,-R,$(LIBDIR) -L. -lpython$(LDVERSION)'
 +	  RUNSHARED=LD_LIBRARYN32_PATH=`pwd`${LD_LIBRARYN32_PATH:+:${LD_LIBRARYN32_PATH}}
 +	  INSTSONAME="$LDLIBRARY".$SOVERSION
 +	  if test "$with_pydebug" != yes
 +	  then
 +	      PY3LIBRARY=libpython3.so
 +	  fi
-+	  ;;
++          ;;
      SunOS*)
  	  LDLIBRARY='libpython$(LDVERSION).so'
  	  BLDLIBRARY='-Wl,-R,$(LIBDIR) -L. -lpython$(LDVERSION)'
-@@ -2516,6 +2530,10 @@
+@@ -2536,6 +2551,10 @@
  		BLDSHARED="Modules/ld_so_aix \$(CC) -bI:Modules/python.exp"
  		LDSHARED="\$(LIBPL)/ld_so_aix \$(CC) -bI:\$(LIBPL)/python.exp"
  		;;
-+	irix*|IRIX*)
++        irix*|IRIX*)
 +		LDSHARED='$(CC) -shared'
 +		LDCXXSHARED='$(CXX) -shared'
 +		;;
  	SunOS/5*)
  		if test "$GCC" = "yes" ; then
  			LDSHARED='$(CC) -shared'
-diff -u -r -N Python-3.8.1-orig/pyconfig.h.in Python-3.8.1/pyconfig.h.in
---- Python-3.8.1-orig/pyconfig.h.in	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/pyconfig.h.in	2020-06-06 14:25:15.480187920 +0000
-@@ -1603,6 +1603,9 @@
- /* Define to force use of thread-safe errno, h_errno, and other functions */
- #undef _REENTRANT
+@@ -4594,7 +4613,7 @@
+ #include <sys/stat.h>
  
-+/* Define on IRIX to activate all library features */
-+#undef _SGI_SOURCE
-+
- /* Define to the level of X/Open that your system supports */
- #undef _XOPEN_SOURCE
+ int main(void) {
+-  sem_t *a = sem_open("/autoconf", O_CREAT, S_IRUSR|S_IWUSR, 0);
++  sem_t *a = sem_open("/tmp/autoconf", O_CREAT, S_IRUSR|S_IWUSR, 0);
+   if (a == SEM_FAILED) {
+     perror("sem_open");
+     return 1;
+@@ -4626,7 +4645,7 @@
+ #include <sys/stat.h>
  
-diff -u -r -N Python-3.8.1-orig/setup.py Python-3.8.1/setup.py
---- Python-3.8.1-orig/setup.py	2019-12-18 17:21:23.000000000 +0000
-+++ Python-3.8.1/setup.py	2020-06-06 14:25:15.484404080 +0000
-@@ -670,8 +670,8 @@
+ int main(void){
+-  sem_t *a = sem_open("/autocftw", O_CREAT, S_IRUSR|S_IWUSR, 0);
++  sem_t *a = sem_open("/tmp/autocftw", O_CREAT, S_IRUSR|S_IWUSR, 0);
+   int count;
+   int res;
+   if(a==SEM_FAILED){
+@@ -4772,9 +4791,9 @@
+ dnl define LIBPL after ABIFLAGS and LDVERSION is defined.
+ AC_SUBST(PY_ENABLE_SHARED)
+ if test x$PLATFORM_TRIPLET = x; then
+-  LIBPL='$(prefix)'"/lib/python${VERSION}/config-${LDVERSION}"
++  LIBPL='$(prefix)'"/lib32/python${VERSION}/config-${LDVERSION}"
+ else
+-  LIBPL='$(prefix)'"/lib/python${VERSION}/config-${LDVERSION}-${PLATFORM_TRIPLET}"
++  LIBPL='$(prefix)'"/lib32/python${VERSION}/config-${LDVERSION}-${PLATFORM_TRIPLET}"
+ fi
+ AC_SUBST(LIBPL)
+ 
+diff -r -u -N Python-3.7.7-orig/setup.py Python-3.7.7/setup.py
+--- Python-3.7.7-orig/setup.py	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/setup.py	2020-06-08 17:44:45.142832360 +0000
+@@ -581,12 +581,12 @@
+             os.unlink(tmpfile)
+ 
+     def detect_modules(self):
+-        # Ensure that /usr/local is always used, but the local build
++        # Ensure that /usr/sgug is always used, but the local build
+         # directories (i.e. '.' and 'Include') must be first.  See issue
+         # 10520.
+         if not cross_compiling:
+-            add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
+-            add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
++            add_dir_to_list(self.compiler.library_dirs, '/usr/sgug/lib32')
++            add_dir_to_list(self.compiler.include_dirs, '/usr/sgug/include')
+         # only change this for cross builds for 3.3, issues on Mageia
+         if cross_compiling:
+             self.add_gcc_paths()
+@@ -638,8 +638,8 @@
              add_dir_to_list(self.compiler.include_dirs,
                              sysconfig.get_config_var("INCLUDEDIR"))
  
 -        system_lib_dirs = ['/lib64', '/usr/lib64', '/lib', '/usr/lib']
 -        system_include_dirs = ['/usr/include']
-+        system_lib_dirs = ['/usr/sgug/lib32', '/usr/lib32', '/lib32', '/usr/lib']
-+        system_include_dirs = ['/usr/sgug/include', '/usr/include']
++        system_lib_dirs = ['/usr/sgug/lib32','/usr/lib32','/lib32','/usr/lib']
++        system_include_dirs = ['/usr/sgug/include','/usr/include']
          # lib_dirs and inc_dirs are used to search for files;
          # if a file is found in one of those directories, it can
          # be assumed that no additional -I,-L directives are needed.
-@@ -2202,9 +2202,12 @@
-             sep = ' ' + sep
-             return [v.strip() for v in value.split(sep) if v.strip()]
+@@ -891,11 +891,11 @@
+             elif curses_library:
+                 readline_libs.append(curses_library)
+             elif self.compiler.find_library_file(lib_dirs +
+-                                                     ['/usr/lib/termcap'],
++                                                     ['/usr/sgug/lib32/termcap'],
+                                                      'termcap'):
+                 readline_libs.append('termcap')
+             exts.append( Extension('readline', ['readline.c'],
+-                                   library_dirs=['/usr/lib/termcap'],
++                                   library_dirs=['/usr/sgug/lib32/termcap'],
+                                    extra_link_args=readline_extra_link_args,
+                                    libraries=readline_libs) )
+         else:
+@@ -1669,7 +1669,7 @@
+             missing.append('_tkinter')
  
--        openssl_includes = split_var('OPENSSL_INCLUDES', '-I')
--        openssl_libdirs = split_var('OPENSSL_LDFLAGS', '-L')
-+        #openssl_includes = split_var('OPENSSL_INCLUDES', '-I')
-+        #openssl_libdirs = split_var('OPENSSL_LDFLAGS', '-L')
-+        openssl_includes = ('/usr/sgug/include',)
-+        openssl_libdirs = ('/usr/sgug/lib32',)
-         openssl_libs = split_var('OPENSSL_LIBS', '-l')
-+        
-         if not openssl_libs:
-             # libssl and libcrypto not found
-             self.missing.extend(['_ssl', '_hashlib'])
-@@ -2214,6 +2217,7 @@
-         ssl_incs = find_file(
-             'openssl/ssl.h', self.inc_dirs, openssl_includes
-         )
-+
-         if ssl_incs is None:
-             self.missing.extend(['_ssl', '_hashlib'])
-             return None, None
+         # Build the _uuid module if possible
+-        uuid_incs = find_file("uuid.h", inc_dirs, ["/usr/include/uuid"])
++        uuid_incs = find_file("uuid.h", inc_dirs, ["/usr/sgug/include/uuid"])
+         if uuid_incs is not None:
+             if self.compiler.find_library_file(lib_dirs, 'uuid'):
+                 uuid_libs = ['uuid']

@@ -143,12 +143,12 @@ BuildArch: noarch
 This package contains developer documentation for the GTK+ widget toolkit.
 
 %prep
+#autoreconf -fi gtk+-%{version}
 %autosetup -n gtk+-%{version} -p1
 
 %build
 export CFLAGS='-fno-strict-aliasing %optflags'
 export XDG_DATA_DIRS=/usr/sgug/share
-#export CFLAGS="${CFLAGS} -DGTK_DATADIR=/usr/sgug/share/mime"
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--disable-gtk-doc; fi;
  %configure $CONFIGFLAGS \
 	--enable-man		\
@@ -160,6 +160,8 @@ export XDG_DATA_DIRS=/usr/sgug/share
 )
 
 # fight unused direct deps
+rm libtool
+cp /usr/sgug/bin/libtool libtool
 sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 make %{?_smp_mflags}
@@ -224,14 +226,11 @@ make install DESTDIR=$RPM_BUILD_ROOT        \
 # We need to have separate 32-bit and 64-bit binaries
 # for places where we have two copies of the GTK+ package installed.
 # (we might have x86_64 and i686 packages on the same system, for example.)
-#case "$host" in
-#  alpha*|ia64*|ppc64*|powerpc64*|s390x*|x86_64*|aarch64*|mips64*)
-#   mv $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0 $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0-64
-#   ;;
-#  *)
-#   mv $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0 $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0-32
-#   ;;
-#esac
+%if %{__isa_bits} == 64
+mv $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0 $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0-64
+%else
+mv $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0 $RPM_BUILD_ROOT%{_bindir}/gtk-query-immodules-2.0-32
+%endif
 
 # Install wrappers for the binaries
 cp %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}/update-gtk-immodules
@@ -241,13 +240,16 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/X11/xinit/xinput.d
 cp %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xinit/xinput.d
 
 # Explicitly use python2 shebang instead of ambiguous python
-sed -i -e '/^#!\// s/python$/python2/' $RPM_BUILD_ROOT%{_bindir}/gtk-builder-convert
+sed -i -e 's/^#!.*$/#!\/usr\/sgug\/bin\/python/' $RPM_BUILD_ROOT%{_bindir}/gtk-builder-convert
 
 # Remove unpackaged files
 rm $RPM_BUILD_ROOT%{_libdir}/*.la
 rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/*/*.la
 rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/*/*.la
 rm $RPM_BUILD_ROOT%{_bindir}/gtk-update-icon-cache
+rm $RPM_BUILD_ROOT%{_libdir}/*.a
+rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/*/*.a
+rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/*/*.a
 #rm $RPM_BUILD_ROOT%{_mandir}/man1/gtk-update-icon-cache.1*
 
 touch $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/immodules.cache
@@ -255,7 +257,6 @@ touch $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/immodules.cache
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/modules
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/immodules
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/filesystems
-
 
 %transfiletriggerin -- %{_libdir}/gtk-2.0/immodules/ %{_libdir}/gtk-2.0/%{bin_version}/immodules/
 gtk-query-immodules-2.0-%{__isa_bits} --update-cache
@@ -266,7 +267,7 @@ gtk-query-immodules-2.0-%{__isa_bits} --update-cache
 %files -f gtk20.lang
 %license COPYING
 %doc AUTHORS NEWS README
-%{_bindir}/gtk-query-immodules-2.0
+%{_bindir}/gtk-query-immodules-2.0-%{__isa_bits}
 %{_bindir}/update-gtk-immodules
 %{_libdir}/libgtk-x11-2.0.so.*
 %{_libdir}/libgdk-x11-2.0.so.*
