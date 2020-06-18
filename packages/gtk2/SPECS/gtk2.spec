@@ -143,11 +143,8 @@ BuildArch: noarch
 This package contains developer documentation for the GTK+ widget toolkit.
 
 %prep
+#autoreconf -fi gtk+-%{version}
 %autosetup -n gtk+-%{version} -p1
-export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}:$LD_LIBRARYN32_PATH
-export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gtk-2.0/2.10.0/engines:$LD_LIBRARYN32_PATH
-export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gtk-2.0/2.10.0/immodules:$LD_LIBRARYN32_PATH
-export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gtk-2.0/2.10.0/printbackends:$LD_LIBRARYN32_PATH
 
 %build
 export CFLAGS='-fno-strict-aliasing %optflags'
@@ -163,6 +160,8 @@ export XDG_DATA_DIRS=/usr/sgug/share
 )
 
 # fight unused direct deps
+rm libtool
+cp /usr/sgug/bin/libtool libtool
 sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 make %{?_smp_mflags}
@@ -248,6 +247,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/*.la
 rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/*/*.la
 rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/*/*.la
 rm $RPM_BUILD_ROOT%{_bindir}/gtk-update-icon-cache
+rm $RPM_BUILD_ROOT%{_libdir}/*.a
+rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/*/*.a
+rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/*/*.a
 #rm $RPM_BUILD_ROOT%{_mandir}/man1/gtk-update-icon-cache.1*
 
 touch $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/immodules.cache
