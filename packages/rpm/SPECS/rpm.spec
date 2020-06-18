@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 14
+%global rel 15
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -66,9 +66,9 @@ Patch912: 0001-Revert-Improve-ARM-detection.patch
 
 Patch2000: rpm.sgifixes.patch
 
-BuildRequires: libdicl-devel >= 0.1.27
+BuildRequires: libdicl-devel >= 0.1.28
 BuildRequires: python3-rpm-macros >= 3-52
-Requires: libdicl >= 0.1.27
+Requires: libdicl >= 0.1.28
 # Need to "find" cmake and set the right (__cmake) macro variable
 BuildRequires: cmake >= 3.17.2-1
 
@@ -601,6 +601,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Mon Jun 18 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-15
+- Depend on newer libdicl
+
 * Mon Jun 15 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-14
 - Include python2 bindings generation
 
