@@ -1,24 +1,3 @@
-diff -Naur gdk-pixbuf-2.40.0.orig/build-aux/post-install.sh gdk-pixbuf-2.40.0/build-aux/post-install.sh
---- gdk-pixbuf-2.40.0.orig/build-aux/post-install.sh	2019-10-08 03:44:10.000000000 +0000
-+++ gdk-pixbuf-2.40.0/build-aux/post-install.sh	2020-05-29 13:00:32.767352623 +0000
-@@ -1,12 +1,12 @@
--#!/bin/sh
-+#!/usr/sgug/bin/sh
- 
--bindir="$1"
--libdir="$2"
--binary_version="$3"
-+bindir="/usr/sgug/bin"
-+libdir="/usr/sgug/lib32"
-+binary_version="2.10.0$3"
- 
- if [ -z "$DESTDIR" ]; then
-         mkdir -p "$libdir/gdk-pixbuf-2.0/$binary_version"
--        $bindir/gdk-pixbuf-query-loaders > "$libdir/gdk-pixbuf-2.0/$binary_version/loaders.cache"
-+        $bindir/gdk-pixbuf-query-loaders-32 > "$libdir/gdk-pixbuf-2.0/$binary_version/loaders.cache"
- else
-         echo "***"
-         echo "*** Warning: loaders.cache not built"
 diff -Naur gdk-pixbuf-2.40.0.orig/meson.build gdk-pixbuf-2.40.0/meson.build
 --- gdk-pixbuf-2.40.0.orig/meson.build	2019-10-08 03:44:10.000000000 +0000
 +++ gdk-pixbuf-2.40.0/meson.build	2020-05-29 13:00:32.769575383 +0000
