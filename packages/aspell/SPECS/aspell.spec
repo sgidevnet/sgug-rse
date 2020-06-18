@@ -49,10 +49,9 @@ mv manual/aspell.info.aux manual/aspell.info
 
 %build
 LDFLAGS=-ltinfo
-autoreconf -fi
 %configure --disable-rpath
-#rm libtool
-#cp /usr/sgug/bin/libtool libtool
+rm libtool
+cp /usr/sgug/bin/libtool libtool
 sed -i -e 's! -shared ! -Wl,--as-needed\0!g' libtool
 make %{?_smp_mflags}
 cp scripts/aspell-import examples/aspell-import
@@ -117,7 +116,6 @@ rm -f ${RPM_BUILD_ROOT}%{_infodir}/dir
 %changelog
 * Thu Jun 18 2020 David Stancu <dstancu@nyu.edu> - 12:0.60.8-3
 - Rebuilt for SGUG RSE
-- autoreconf before autoconf + clean *.a before packaging
 
 * Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 12:0.60.8-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
