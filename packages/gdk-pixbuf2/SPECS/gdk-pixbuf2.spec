@@ -85,30 +85,28 @@ export LD_LIBRARYN32_PATH=%{_builddir}%{_libdir}/gdk-pixbuf-2.0/2.10.0/:$LD_LIBR
        -Dinstalled_tests=false \
        -Djasper=false \
 
-%global _smp_mflags -j1
 %meson_build
 
 %install
 %meson_install
 
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders/
-# echo %{buildroot}%{_libdir}/gdk-pixbuf-2.0/2.10.0/
 touch %{buildroot}%{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders.cache
 chmod u+w  %{buildroot}%{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders.cache
-#touch $RPM_BUILD_ROOT%{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders.cache
 (cd $RPM_BUILD_ROOT%{_bindir}
  mv gdk-pixbuf-query-loaders gdk-pixbuf-query-loaders-%{__isa_bits}
 )
 
 %find_lang gdk-pixbuf
 
-#%%transfiletriggerin -- %{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders
-%{buildroot}/usr/sgug/bin/gdk-pixbuf-query-loaders-%{__isa_bits} --update-cache
-#/gdk-pixbuf-query-loaders-%{__isa_bits} --update-cache
+%if %{__isa_bits} == 32
+%{buildroot}/usr/sgug/bin/gdk-pixbuf-query-loaders-%{__isa_bits} > %{buildroot}/usr/sgug/lib32/gdk-pixbuf-2.0/2.10.0/loaders.cache
+%else
+%{buildroot}/usr/sgug/bin/gdk-pixbuf-query-loaders-%{__isa_bits} > %{buildroot}/usr/sgug/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+%endif
 
+#%%transfiletriggerin -- %{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders
 #%%transfiletriggerpostun -- %{_libdir}/gdk-pixbuf-2.0/2.10.0/loaders
-%{buildroot}/usr/sgug/bin/gdk-pixbuf-query-loaders-%{__isa_bits} --update-cache
-#/gdk-pixbuf-query-loaders-%{__isa_bits} --update-cache
 
 %files -f gdk-pixbuf.lang
 %license COPYING
