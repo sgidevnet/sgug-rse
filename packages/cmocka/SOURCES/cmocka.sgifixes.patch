@@ -1,0 +1,35 @@
+diff -u -r cmocka-1.1.5-orig/include/cmocka.h cmocka-1.1.5/include/cmocka.h
+--- cmocka-1.1.5-orig/include/cmocka.h	2019-03-28 12:33:50.000000000 +0000
++++ cmocka-1.1.5/include/cmocka.h	2020-06-17 07:07:00.125937320 +0000
+@@ -124,20 +124,22 @@
+     typedef unsigned long int uintptr_t;
+ # else /* _WIN32 */
+ 
++#   if defined(__sgi)
++      typedef unsigned long int uintptr_t;
+ /* ILP32 and LP64 platforms */
+-#  ifdef __WORDSIZE /* glibc */
+-#   if __WORDSIZE == 64
++#   elif defined(__WORDSIZE) /* glibc */
++#     if __WORDSIZE == 64
+       typedef unsigned long int uintptr_t;
+-#   else
++#     else
+       typedef unsigned int uintptr_t;
+-#   endif /* __WORDSIZE == 64 */
+-#  else /* __WORDSIZE */
+-#   if defined(_LP64) || defined(_I32LPx)
++#     endif /* __WORDSIZE == 64 */
++#   else /* __WORDSIZE */
++#     if defined(_LP64) || defined(_I32LPx)
+       typedef unsigned long int uintptr_t;
+-#   else
++#     else
+       typedef unsigned int uintptr_t;
+-#   endif
+-#  endif /* __WORDSIZE */
++#     endif
++#   endif /* __WORDSIZE */
+ # endif /* _WIN32 */
+ 
+ # define _UINTPTR_T

@@ -1,0 +1,284 @@
+diff --git a/Modules/Setup.dist b/Modules/Setup.dist
+index bbc9222..2cf35a9 100644
+--- a/Modules/Setup.dist
++++ b/Modules/Setup.dist
+@@ -153,7 +153,7 @@ GLHACK=-Dclear=__GLclear
+ # modules are to be built as shared libraries (see above for more
+ # detail; also note that *static* reverses this effect):
+ 
+-#*shared*
++*shared*
+ 
+ # GNU readline.  Unlike previous Python incarnations, GNU readline is
+ # now incorporated in an optional module, configured in the Setup file
+@@ -163,33 +163,33 @@ GLHACK=-Dclear=__GLclear
+ # it, depending on your system -- see the GNU readline instructions.
+ # It's okay for this to be a shared library, too.
+ 
+-#readline readline.c -lreadline -ltermcap
++readline readline.c -lreadline -ltermcap
+ 
+ 
+ # Modules that should always be present (non UNIX dependent):
+ 
+-#array arraymodule.c	# array objects
+-#cmath cmathmodule.c _math.c # -lm # complex math library functions
+-#math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
+-#_struct _struct.c	# binary structure packing/unpacking
+-#time timemodule.c # -lm # time operations and variables
+-#operator operator.c	# operator.add() and similar goodies
+-#_testcapi _testcapimodule.c    # Python C API test module
+-#_random _randommodule.c	# Random number generator
+-#_collections _collectionsmodule.c # Container types
++array arraymodule.c	# array objects
++cmath cmathmodule.c _math.c # -lm # complex math library functions
++math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
++_struct _struct.c	# binary structure packing/unpacking
++time timemodule.c # -lm # time operations and variables
++operator operator.c	# operator.add() and similar goodies
++_testcapi _testcapimodule.c    # Python C API test module
++_random _randommodule.c	# Random number generator
++_collections _collectionsmodule.c # Container types
+ #_heapq _heapqmodule.c		# Heapq type
+-#itertools itertoolsmodule.c	# Functions creating iterators for efficient looping 
+-#strop stropmodule.c		# String manipulations
+-#_functools _functoolsmodule.c	# Tools for working with functions and callable objects
++itertools itertoolsmodule.c	# Functions creating iterators for efficient looping 
++strop stropmodule.c		# String manipulations
++_functools _functoolsmodule.c	# Tools for working with functions and callable objects
+ #_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
+ #_pickle _pickle.c	# pickle accelerator
+ #datetime datetimemodule.c	# date/time type
+-#_bisect _bisectmodule.c	# Bisection algorithms
++_bisect _bisectmodule.c	# Bisection algorithms
+ 
+-#unicodedata unicodedata.c    # static Unicode character database
++unicodedata unicodedata.c    # static Unicode character database
+ 
+ # access to ISO C locale support
+-#_locale _localemodule.c  # -lintl
++_locale _localemodule.c  # -lintl
+ 
+ # Standard I/O baseline
+ #_io -I$(srcdir)/Modules/_io _io/bufferedio.c _io/bytesio.c _io/fileio.c _io/iobase.c _io/_iomodule.c _io/stringio.c _io/textio.c
+@@ -199,41 +199,41 @@ GLHACK=-Dclear=__GLclear
+ # (If you have a really backward UNIX, select and socket may not be
+ # supported...)
+ 
+-#fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
+-#spwd spwdmodule.c		# spwd(3) 
+-#grp grpmodule.c		# grp(3)
+-#select selectmodule.c	# select(2); not on ancient System V
++fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
++spwd spwdmodule.c		# spwd(3) 
++grp grpmodule.c		# grp(3)
++select selectmodule.c	# select(2); not on ancient System V
+ 
+ # Memory-mapped files (also works on Win32).
+-#mmap mmapmodule.c
++mmap mmapmodule.c
+ 
+ # CSV file helper
+-#_csv _csv.c
++_csv _csv.c
+ 
+ # Socket module helper for socket(2)
+-#_socket socketmodule.c timemodule.c
++_socket socketmodule.c timemodule.c
+ 
+ # Socket module helper for SSL support; you must comment out the other
+ # socket line above, and possibly edit the SSL variable:
+ #SSL=/usr/local/ssl
+-#_ssl _ssl.c \
+-#	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+-#	-L$(SSL)/lib -lssl -lcrypto
++_ssl _ssl.c \
++	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
++	-L$(SSL)/lib -lssl -lcrypto
+ 
+ # The crypt module is now disabled by default because it breaks builds
+ # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
+ #
+ # First, look at Setup.config; configure may have set this for you.
+ 
+-#crypt cryptmodule.c # -lcrypt	# crypt(3); needs -lcrypt on some systems
++crypt cryptmodule.c # -lcrypt	# crypt(3); needs -lcrypt on some systems
+ 
+ 
+ # Some more UNIX dependent modules -- off by default, since these
+ # are not supported by all UNIX systems:
+ 
+-#nis nismodule.c -lnsl	# Sun yellow pages -- not everywhere
+-#termios termios.c	# Steen Lumholt's termios module
+-#resource resource.c	# Jeremy Hylton's rlimit interface
++#nis nismodule.c -lnsl -ltirpc -I/usr/include/tirpc -I/usr/include/nsl -L/usr/lib/nsl
++#termios termios.c	# Steen Lumholt's termios module
++#resource resource.c	# Jeremy Hylton's rlimit interface
+ 
+ 
+ # Multimedia modules -- off by default.
+@@ -241,8 +241,8 @@ GLHACK=-Dclear=__GLclear
+ # #993173 says audioop works on 64-bit platforms, though.
+ # These represent audio samples or images as strings:
+ 
+-#audioop audioop.c	# Operations on audio samples
+-#imageop imageop.c	# Operations on images
++audioop audioop.c	# Operations on audio samples
++imageop imageop.c	# Operations on images
+ 
+ 
+ # Note that the _md5 and _sha modules are normally only built if the
+@@ -252,14 +252,14 @@ GLHACK=-Dclear=__GLclear
+ # Message-Digest Algorithm, described in RFC 1321.  The necessary files
+ # md5.c and md5.h are included here.
+ 
+-#_md5 md5module.c md5.c
++_md5 md5module.c md5.c
+ 
+ 
+ # The _sha module implements the SHA checksum algorithms.
+ # (NIST's Secure Hash Algorithms.)
+-#_sha shamodule.c
+-#_sha256 sha256module.c
+-#_sha512 sha512module.c
++_sha shamodule.c
++_sha256 sha256module.c
++_sha512 sha512module.c
+ 
+ 
+ # SGI IRIX specific modules -- off by default.
+@@ -306,12 +306,12 @@ GLHACK=-Dclear=__GLclear
+ # A Linux specific module -- off by default; this may also work on 
+ # some *BSDs.
+ 
+-#linuxaudiodev linuxaudiodev.c
++#linuxaudiodev linuxaudiodev.c
+ 
+ 
+ # George Neville-Neil's timing module:
+ 
+-#timing timingmodule.c
++timing timingmodule.c
+ 
+ 
+ # The _tkinter module.
+@@ -326,7 +326,7 @@ GLHACK=-Dclear=__GLclear
+ # every system.
+ 
+ # *** Always uncomment this (leave the leading underscore in!):
+-# _tkinter _tkinter.c tkappinit.c -DWITH_APPINIT \
++_tkinter _tkinter.c tkappinit.c -DWITH_APPINIT \
+ # *** Uncomment and edit to reflect where your Tcl/Tk libraries are:
+ #	-L/usr/local/lib \
+ # *** Uncomment and edit to reflect where your Tcl/Tk headers are:
+@@ -336,7 +336,7 @@ GLHACK=-Dclear=__GLclear
+ # *** Or uncomment this for Solaris:
+ #	-I/usr/openwin/include \
+ # *** Uncomment and edit for Tix extension only:
+-#	-DWITH_TIX -ltix8.1.8.2 \
++#	-DWITH_TIX -ltix \
+ # *** Uncomment and edit for BLT extension only:
+ #	-DWITH_BLT -I/usr/local/blt/blt8.0-unoff/include -lBLT8.0 \
+ # *** Uncomment and edit for PIL (TkImaging) extension only:
+@@ -345,7 +345,7 @@ GLHACK=-Dclear=__GLclear
+ # *** Uncomment and edit for TOGL extension only:
+ #	-DWITH_TOGL togl.c \
+ # *** Uncomment and edit to reflect your Tcl/Tk versions:
+-#	-ltk8.2 -ltcl8.2 \
++	-ltk -ltcl \
+ # *** Uncomment and edit to reflect where your X11 libraries are:
+ #	-L/usr/X11R6/lib \
+ # *** Or uncomment this for Solaris:
+@@ -355,7 +355,7 @@ GLHACK=-Dclear=__GLclear
+ # *** Uncomment for AIX:
+ #	-lld \
+ # *** Always uncomment this; X11 libraries to link with:
+-#	-lX11
++	-lX11
+ 
+ # Lance Ellinghaus's syslog module
+ #syslog syslogmodule.c		# syslog daemon interface
+@@ -377,7 +377,7 @@ GLHACK=-Dclear=__GLclear
+ # it is a highly experimental and dangerous device for calling
+ # *arbitrary* C functions in *arbitrary* shared libraries:
+ 
+-#dl dlmodule.c
++dl dlmodule.c
+ 
+ 
+ # Modules that provide persistent dictionary-like semantics.  You will
+@@ -400,7 +400,7 @@ GLHACK=-Dclear=__GLclear
+ #
+ # First, look at Setup.config; configure may have set this for you.
+ 
+-#gdbm gdbmmodule.c -I/usr/local/include -L/usr/local/lib -lgdbm
++gdbm gdbmmodule.c -lgdbm
+ 
+ 
+ # Sleepycat Berkeley DB interface.
+@@ -415,11 +415,9 @@ GLHACK=-Dclear=__GLclear
+ #
+ # Edit the variables DB and DBLIBVERto point to the db top directory
+ # and the subdirectory of PORT where you built it.
+-#DB=/usr/local/BerkeleyDB.4.0
+-#DBLIBVER=4.0
+-#DBINC=$(DB)/include
+-#DBLIB=$(DB)/lib
+-#_bsddb _bsddb.c -I$(DBINC) -L$(DBLIB) -ldb-$(DBLIBVER)
++DBINC=/usr/include/libdb
++DBLIB=/usr/lib
++_bsddb _bsddb.c -I$(DBINC) -L$(DBLIB) -ldb
+ 
+ # Historical Berkeley DB 1.85
+ #
+@@ -434,14 +432,14 @@ GLHACK=-Dclear=__GLclear
+ 
+ 
+ # Helper module for various ascii-encoders
+-#binascii binascii.c
++binascii binascii.c
+ 
+ # Fred Drake's interface to the Python parser
+-#parser parsermodule.c
++parser parsermodule.c
+ 
+ # cStringIO and cPickle
+-#cStringIO cStringIO.c
+-#cPickle cPickle.c
++cStringIO cStringIO.c
++cPickle cPickle.c
+ 
+ 
+ # Lee Busby's SIGFPE modules.
+@@ -464,7 +462,7 @@ GLHACK=-Dclear=__GLclear
+ # Andrew Kuchling's zlib module.
+ # This require zlib 1.1.3 (or later).
+ # See http://www.gzip.org/zlib/
+-#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
++zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
+ 
+ # Interface to the Expat XML parser
+ # More information on Expat can be found at www.libexpat.org.
+@@ -475,14 +473,14 @@ GLHACK=-Dclear=__GLclear
+ # Hye-Shik Chang's CJKCodecs
+ 
+ # multibytecodec is required for all the other CJK codec modules
+-#_multibytecodec cjkcodecs/multibytecodec.c
+-
+-#_codecs_cn cjkcodecs/_codecs_cn.c
+-#_codecs_hk cjkcodecs/_codecs_hk.c
+-#_codecs_iso2022 cjkcodecs/_codecs_iso2022.c
+-#_codecs_jp cjkcodecs/_codecs_jp.c
+-#_codecs_kr cjkcodecs/_codecs_kr.c
+-#_codecs_tw cjkcodecs/_codecs_tw.c
++_multibytecodec cjkcodecs/multibytecodec.c
++
++_codecs_cn cjkcodecs/_codecs_cn.c
++_codecs_hk cjkcodecs/_codecs_hk.c
++_codecs_iso2022 cjkcodecs/_codecs_iso2022.c
++_codecs_jp cjkcodecs/_codecs_jp.c
++_codecs_kr cjkcodecs/_codecs_kr.c
++_codecs_tw cjkcodecs/_codecs_tw.c
+ 
+ # Example -- included for reference only:
+ # xx xxmodule.c
