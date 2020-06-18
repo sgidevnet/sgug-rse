@@ -11,7 +11,7 @@
 
 Name:		cairo
 Version:	1.16.0
-Release:	7%{?dist}
+Release:	8%{?dist}
 Summary:	A 2D graphics library
 
 License:	LGPLv2 or MPLv1.1
@@ -115,10 +115,10 @@ export LDFLAGS="%{optflags} -lgen"
         --enable-png            \
 	--enable-tee		\
         --enable-xml            \
-        --enable-xlib-xcb
+        --enable-xlib-xcb       \
+        --enable-gobject
 
 #        --disable-valgrind      \
-#	--enable-gobject	\
 #        --disable-gtk-doc       \
 #	%{cairogl}		\
 #	--disable-gtk-doc
@@ -186,6 +186,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/cairo/cairo-sphinx.so
 #%%{_libdir}/cairo/
 
 %changelog
+* Sun Jun 07 2020 HAL <notes2@gmx.de> - 1.16.0-8 
+- added gobject-introspection in the spec.
+
 * Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16.0-7
 - Fix up configure params, get xml, libxcb + tee working.
 

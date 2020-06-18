@@ -1,0 +1,36 @@
+diff -Naur ORBit2-2.14.19.orig/Makefile.in ORBit2-2.14.19/Makefile.in
+--- ORBit2-2.14.19.orig/Makefile.in	2010-09-28 02:39:41.000000000 +0000
++++ ORBit2-2.14.19/Makefile.in	2020-06-17 09:09:57.634121119 +0000
+@@ -295,8 +295,8 @@
+ top_build_prefix = @top_build_prefix@
+ top_builddir = @top_builddir@
+ top_srcdir = @top_srcdir@
+-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
+-SUBDIRS = linc2 src include test docs
++DISTCHECK_CONFIGURE_FLAGS = --disable-gtk-doc
++SUBDIRS = linc2 src include test
+ bin_SCRIPTS = orbit2-config
+ EXTRA_DIST = \
+ 	ORBit2.m4	\
+@@ -306,7 +306,6 @@
+ 	MAINTAINERS	\
+ 	README.win32	\
+ 	Makefile.shared \
+-	gtk-doc.make	\
+ 	ORBit2.doap
+ 
+ m4datadir = $(datadir)/aclocal
+diff -Naur ORBit2-2.14.19.orig/configure.in ORBit2-2.14.19/configure.in
+--- ORBit2-2.14.19.orig/configure.in	2010-07-01 06:57:01.000000000 +0000
++++ ORBit2-2.14.19/configure.in	2020-06-17 09:09:11.962058469 +0000
+@@ -344,8 +344,8 @@
+ AC_SUBST(CFLAGS)
+ 
+ 
+-dnl ----- gtk-doc ------
+-GTK_DOC_CHECK([1.0])
++# dnl ----- gtk-doc ------
++# GTK_DOC_CHECK([1.0])
+ 
+ 
+ AC_CONFIG_FILES([
