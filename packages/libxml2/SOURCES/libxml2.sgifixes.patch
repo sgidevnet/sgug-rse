@@ -1,0 +1,26 @@
+diff -u -r libxml2-2.9.9-orig/xml2-config.in libxml2-2.9.9/xml2-config.in
+--- libxml2-2.9.9-orig/xml2-config.in	2020-06-12 06:29:53.761998840 +0000
++++ libxml2-2.9.9/xml2-config.in	2020-06-12 06:31:36.336723960 +0000
+@@ -3,12 +3,7 @@
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ includedir=@includedir@
+-if [ "`ldd /bin/sh | grep lib64`" = "" ]
+-then
+-    libdir=${exec_prefix}/lib
+-else
+-    libdir=${exec_prefix}/lib64
+-fi
++libdir=${exec_prefix}/lib32
+ 
+ usage()
+ {
+@@ -55,7 +50,7 @@
+ 
+     --exec-prefix=*)
+       exec_prefix=$optarg
+-      libdir=$exec_prefix/lib
++      libdir=$exec_prefix/lib32
+       ;;
+ 
+     --exec-prefix)

@@ -5,7 +5,7 @@
 
 Name:           meson
 Version:        0.54.999git29ef44
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        High productivity build system
 
 License:        ASL 2.0
@@ -17,7 +17,7 @@ Patch1000:      meson.sgifixes.patch
 
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
-#Requires:       python%%{python3_version}dist(setuptools)
+Requires:       python%{python3_version}dist(setuptools)
 Requires:       ninja-build
 
 %description
@@ -54,6 +54,9 @@ install -Dpm0644 -t %{buildroot}%{_rpmmacrodir} data/macros.%{name}
 %{_datadir}/polkit-1/actions/com.mesonbuild.install.policy
 
 %changelog
+* Mon Jun 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.54.999git29ef44-2
+- Fix up the num cpus detection logic used by some packages, enable new dependency on the compute dependency provide of setuptools
+
 * Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 0.54.999git29ef44
 - Upgrade to a version from GIT where maintainers have implemented code allowing to set custom rpaths via LDFLAGS rather than having to modify the projects themselves.
 

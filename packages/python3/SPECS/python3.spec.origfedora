@@ -13,7 +13,7 @@ URL: https://www.python.org/
 
 #  WARNING  When rebasing to a new Python version,
 #           remember to update the python3-docs package as well
-%global general_version %{pybasever}.6
+%global general_version %{pybasever}.7
 #global prerel ...
 %global upstream_version %{general_version}%{?prerel}
 Version: %{general_version}%{?prerel:~%{prerel}}
@@ -131,16 +131,6 @@ License: Python
 # Reported at https://bugs.python.org/issue34022
 # Tracked at https://bugzilla.redhat.com/show_bug.cgi?id=1724753
 %global source_date_epoch_from_changelog 0
-
-# For multilib support, files that are different between 32- and 64-bit arches
-# need different filenames. Use "64" or "32" according to the word size.
-# Currently, the best way to determine an architecture's word size happens to
-# be checking %%{_lib}.
-%if "%{_lib}" == "lib64"
-%global wordsize 64
-%else
-%global wordsize 32
-%endif
 
 
 # =======================
@@ -306,6 +296,7 @@ Patch328: 00328-pyc-timestamp-invalidation-mode.patch
 # Assume all .py files are Python scripts when working recursively:
 # In upstream since 3.8: https://bugs.python.org/issue38347
 Patch335: 00335-backport-pathfix-change.patch
+
 
 # (New patches go here ^^^)
 #
@@ -795,7 +786,7 @@ mkdir -p %{buildroot}$DirHoldingGdbPy
 # Filanames are defined here:
 %global _pyconfig32_h pyconfig-32.h
 %global _pyconfig64_h pyconfig-64.h
-%global _pyconfig_h pyconfig-%{wordsize}.h
+%global _pyconfig_h pyconfig-%{__isa_bits}.h
 
 # Use a common function to do an install for all our configurations:
 InstallPython() {
@@ -1554,6 +1545,13 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Wed Mar 11 2020 Marcel Plch <mplch@redhat.com> - 3.7.7-1
+- Update to 3.7.7
+- Update the ensurepip module to work with setuptools >= 45
+
+* Tue Jan 28 2020 Miro Hrončok <mhroncok@redhat.com> - 3.7.6-2
+- ctypes: Disable checks for union types being passed by value (#1794572)
+
 * Thu Dec 19 2019 Miro Hrončok <mhroncok@redhat.com> - 3.7.6-1
 - Update to 3.7.6
 

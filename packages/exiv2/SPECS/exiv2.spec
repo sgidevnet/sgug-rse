@@ -3,7 +3,7 @@ Summary: Exif and Iptc metadata manipulation library
 Name:    exiv2
 Version: 0.27.2
 %global internal_ver %{version}
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 License: GPLv2+
 URL:     http://www.exiv2.org/
@@ -19,13 +19,13 @@ Source0: http://exiv2.org/builds/%{name}-%{version}-Source.tar.gz
 
 Patch100: exiv2.sgifixes.patch
 
-BuildRequires: cmake
+BuildRequires: cmake >= 3.17.2-6
 BuildRequires: expat-devel
 BuildRequires: gcc-c++
 BuildRequires: gettext
 BuildRequires: pkgconfig
 BuildRequires: pkgconfig(libcurl)
-#BuildRequires: pkgconfig(libssh)
+BuildRequires: pkgconfig(libssh)
 BuildRequires: zlib-devel
 # docs
 #BuildRequires: doxygen graphviz libxslt
@@ -99,7 +99,6 @@ export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 # them in the install section before RPMs are built.
 # This allows us to run "make check" of the package
 %{cmake} . \
-  -DZLIB_ROOT="%{_prefix}" \
   -DCMAKE_INSTALL_DOCDIR="%{_pkgdocdir}" \
   -DCMAKE_SKIP_RPATH:BOOL=ON \
   -DEXIV2_BUILD_DOC:BOOL=OFF \
@@ -190,6 +189,9 @@ test -x %{buildroot}%{_libdir}/libexiv2.so
 
 
 %changelog
+* Wed Jun 17 2020 Daniel Hams <daniel.hams@gmail.com> - 0.27.2-2
+- Remove need to explicitly point at zlib home, enable libssh
+
 * Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> - 0.27.2-1
 - Upgrade in WIP to latest fc31 version
 

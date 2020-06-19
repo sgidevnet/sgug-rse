@@ -23,11 +23,11 @@
 %bcond_without ncurses
 
 # Setting the Python-version used by default
-%if 0%{?rhel} && 0%{?rhel} < 8
-%bcond_with python3
-%else
+#%%if 0%%{?rhel} && 0%%{?rhel} < 8
+#%%bcond_with python3
+#%%else
 %bcond_without python3
-%endif
+#%%endif
 
 # Enable RPM dependency generators for cmake files written in Python
 %bcond_without rpm
@@ -68,7 +68,7 @@
 
 Name:           %{orig_name}%{?name_suffix}
 Version:        %{major_version}.%{minor_version}.2
-Release:        5%{?relsuf}%{?dist}
+Release:        6%{?relsuf}%{?dist}
 Summary:        Cross-platform make system
 
 # most sources are BSD
@@ -526,6 +526,9 @@ mv -f Modules/FindLibArchive.disabled Modules/FindLibArchive.cmake
 
 
 %changelog
+* Wed Jun 17 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-6
+- Update FindZLIB module to hunt first for sgug libz
+
 * Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-5
 - Fix minor path issue in __cmake macro (was overriden anyway, but..)
 
