@@ -1,0 +1,18 @@
+--- wordlist.orig/scowl/src/add-affixes	2012-10-11 13:05:58.864864580 +0100
++++ wordlist/scowl/src/add-affixes	2012-10-11 14:11:05.144908897 +0100
+@@ -74,6 +74,15 @@
+   @a = grep {not $remove{"$w:$p:$_"}} @a;
+   next unless @a;
+   $lookup{$w} .= join("\n",@a)."\n";
++  next unless $p eq 'N';
++
++  # For irregular nouns that have plurals that do not end in s
++  # then add the possessive form of the plural as well
++  foreach (@a) {
++      next unless (substr($_,-1,1) ne 's');
++      $possessive{$_} = "$_\'s\n";
++      $lookup{$w} .= $possessive{$_};
++  }
+ }
+ 
+ unless ($no_possessive) {
