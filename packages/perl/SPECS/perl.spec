@@ -87,7 +87,7 @@ License:        GPL+ or Artistic
 Epoch:          %{perl_epoch}
 Version:        %{perl_version}
 # release number must be even higher, because dual-lived modules will be broken otherwise
-Release:        450%{?dist}
+Release:        451%{?dist}
 Summary:        Practical Extraction and Report Language
 Url:            https://www.perl.org/
 Source0:        https://www.cpan.org/src/5.0/perl-%{perl_version}.tar.gz
@@ -3056,9 +3056,18 @@ perl -pi -e "s|DIDBSINSTALLPREFIX|%{_prefix}|g" config.sh
 #chmod u+x config.sh
 #./config_h.SH
 #make depend
+# Perls scripts aren't the biggest fan of ksh, so force use of
+# bash in places perl is going to use one.
+export SHELL=%{_bindir}/bash
+export SHELL_PATH="$SHELL"
+export CONFIG_SHELL="$SHELL"
+
+# Rewrite some questionable (usr)/bin/ references
+perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" config.sh
+perl -pi -e "s|/usr/bin/ln|%{_bindir}/ln|g" config.sh
 
 ## New approach replicating the steps in didbs:
-./Configure -S
+%{_bindir}/bash ./Configure -S
 
 # Rewrite installation lib directory
 LIBDIR_REGEXP="s|%{_prefix}/lib|%{_libdir}/|g"
@@ -3066,7 +3075,7 @@ perl -pi -e "$LIBDIR_REGEXP" config.sh || exit -1
 
 touch config.sh
 chmod u+x ./config.sh
-./config_h.SH
+%{_bindir}/bash ./config_h.SH
 make depend
 
 #exit 1
@@ -5175,6 +5184,9 @@ cd ..
 
 # Old changelog entries are preserved in CVS.
 %changelog
+* Fri Jun 19 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-451
+- Get aggressive and force use of sgug bash as the shell perl uses for various things.
+
 * Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-450
 - Bug fix: put back correct rpath for perl + libraries
 
