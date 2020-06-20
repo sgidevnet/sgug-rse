@@ -1,33 +1,32 @@
-%global glib2_version 2.56.1
-%global freetype_version 2.1.5
-%global fontconfig_version 2.11.91
-%global cairo_version 1.12.10
+%global glib2_version 2.59.2
+%global fribidi_version 0.19.7
 %global libthai_version 0.1.9
-%global harfbuzz_version 1.4.2
+%global harfbuzz_version 2.0.0
+%global fontconfig_version 2.12.92
 %global libXft_version 2.0.0
-%global fribidi_version 1.0
+%global cairo_version 1.12.10
+%global freetype_version 2.1.5
 
 Name: pango
-Version: 1.43.0
-Release: 3%{?dist}
+Version: 1.44.7
+Release: 1%{?dist}
 Summary: System for layout and rendering of internationalized text
 
 License: LGPLv2+
 URL: http://www.pango.org
-Source0: https://download.gnome.org/sources/%{name}/1.43/%{name}-%{version}.tar.xz
-#Patch0: pango-fixes-pkg-config.patch
+Source0: https://download.gnome.org/sources/%{name}/1.44/%{name}-%{version}.tar.xz
 
 BuildRequires: pkgconfig(cairo) >= %{cairo_version}
 BuildRequires: pkgconfig(freetype2) >= %{freetype_version}
 BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
 BuildRequires: pkgconfig(fontconfig) >= %{fontconfig_version}
 BuildRequires: pkgconfig(harfbuzz) >= %{harfbuzz_version}
-#BuildRequires: pkgconfig(libthai) >= %{libthai_version}
+BuildRequires: pkgconfig(libthai) >= %{libthai_version}
 BuildRequires: pkgconfig(xft) >= %{libXft_version}
 BuildRequires: pkgconfig(fribidi) >= %{fribidi_version}
 BuildRequires: pkgconfig(gobject-introspection-1.0)
 BuildRequires: cairo-gobject-devel
-#BuildRequires: gtk-doc
+BuildRequires: gtk-doc
 BuildRequires: help2man
 BuildRequires: meson
 BuildRequires: gcc gcc-c++
@@ -37,7 +36,7 @@ Requires: freetype%{?_isa} >= %{freetype_version}
 Requires: fontconfig%{?_isa} >= %{fontconfig_version}
 Requires: cairo%{?_isa} >= %{cairo_version}
 Requires: harfbuzz%{?_isa} >= %{harfbuzz_version}
-#Requires: libthai%{?_isa} >= %{libthai_version}
+Requires: libthai%{?_isa} >= %{libthai_version}
 Requires: libXft%{?_isa} >= %{libXft_version}
 Requires: fribidi%{?_isa} >= %{fribidi_version}
 
@@ -76,12 +75,13 @@ the functionality of the installed %{name} package.
 
 %prep
 %setup -q -n pango-%{version}
-#%patch0 -p1 -b .pc
+
 
 %build
-export LD_LIBRARYN32_PATH=%{_builddir}/pango-1.43.0/mips-sgug-irix/pango/:$LD_LIBRARYN32_PATH
+%meson \
+  -Dgtk_doc=true \
+  -Dinstall-tests=true
 
-%meson -Denable_docs=false
 %meson_build
 
 
@@ -95,7 +95,6 @@ if ! test -e $PANGOXFT_SO; then
         exit 1
 fi
 
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man1/pan*
 
 %files
 %license COPYING
@@ -103,23 +102,25 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man1/pan*
 %{_libdir}/libpango*-*.so.*
 %{_bindir}/pango-list
 %{_bindir}/pango-view
-#%%{_mandir}/man1/pango-view.1*
+%{_mandir}/man1/pango-view.1*
 %{_libdir}/girepository-1.0/Pango-1.0.typelib
 %{_libdir}/girepository-1.0/PangoCairo-1.0.typelib
+%{_libdir}/girepository-1.0/PangoFc-1.0.typelib
 %{_libdir}/girepository-1.0/PangoFT2-1.0.typelib
+%{_libdir}/girepository-1.0/PangoOT-1.0.typelib
 %{_libdir}/girepository-1.0/PangoXft-1.0.typelib
-
 
 %files devel
 %{_libdir}/libpango*.so
 %{_includedir}/*
 %{_libdir}/pkgconfig/*
-#%%doc %{_datadir}/gtk-doc/html/pango
+%doc %{_datadir}/gtk-doc/html/pango
 %{_datadir}/gir-1.0/Pango-1.0.gir
 %{_datadir}/gir-1.0/PangoCairo-1.0.gir
+%{_datadir}/gir-1.0/PangoFc-1.0.gir
 %{_datadir}/gir-1.0/PangoFT2-1.0.gir
+%{_datadir}/gir-1.0/PangoOT-1.0.gir
 %{_datadir}/gir-1.0/PangoXft-1.0.gir
-
 
 %files tests
 %{_libexecdir}/installed-tests/%{name}
@@ -127,8 +128,23 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man1/pan*
 
 
 %changelog
-* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
-- removed the docs so it will compile nicely on Irix 6.5 without gtk-doc
+* Fri Oct 25 2019 Kalev Lember <klember@redhat.com> - 1.44.7-1
+- Update to 1.44.7
+
+* Tue Sep 03 2019 Kalev Lember <klember@redhat.com> - 1.44.6-1
+- Update to 1.44.6
+
+* Thu Aug 15 2019 Kalev Lember <klember@redhat.com> - 1.44.5-1
+- Update to 1.44.5
+
+* Wed Aug 14 2019 Kalev Lember <klember@redhat.com> - 1.44.4-1
+- Update to 1.44.4
+
+* Mon Aug 12 2019 Kalev Lember <klember@redhat.com> - 1.44.3-1
+- Update to 1.44.3
+
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.43.0-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
 * Mon Feb 11 2019 Peng Wu <pwu@redhat.com> - 1.43.0-3
 - Fixes pkg-config issue

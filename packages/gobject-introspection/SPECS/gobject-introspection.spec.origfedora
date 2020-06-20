@@ -4,14 +4,12 @@
 
 Name:           gobject-introspection
 Version:        1.62.0
-Release:        7%{?dist}
+Release:        1%{?dist}
 Summary:        Introspection system for GObject-based libraries
 
 License:        GPLv2+, LGPLv2+, MIT
 URL:            https://wiki.gnome.org/Projects/GObjectIntrospection
 Source0:        https://download.gnome.org/sources/gobject-introspection/1.62/%{name}-%{version}.tar.xz
-
-Patch100:       gobject-introspection.sgifixes.patch
 
 BuildRequires:  gcc
 BuildRequires:  bison
@@ -21,13 +19,13 @@ BuildRequires:  fontconfig-devel
 BuildRequires:  freetype-devel
 BuildRequires:  gettext
 BuildRequires:  glib2-devel >= %{glib2_version}
-#BuildRequires:  gtk-doc
+BuildRequires:  gtk-doc
 BuildRequires:  libffi-devel
 BuildRequires:  libX11-devel
 BuildRequires:  libXfixes-devel
 BuildRequires:  libXft-devel
 BuildRequires:  libxml2-devel
-#BuildRequires:  mesa-libGL-devel
+BuildRequires:  mesa-libGL-devel
 BuildRequires:  meson
 BuildRequires:  python3-devel
 BuildRequires:  python3-mako
@@ -58,15 +56,8 @@ Libraries and headers for gobject-introspection
 %prep
 %autosetup -p1
 
-# Fix some hardcoded paths
-perl -pi -e "s|/usr/share|%{_datadir}|g" giscanner/transformer.py
-perl -pi -e "s|/usr/share|%{_datadir}|g" giscanner/utils.py
-perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" giscanner/dumper.py
-
 %build
-export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-irix/girepository/:$LD_LIBRARYN32_PATH
-
-%meson -Ddoctool=true -Dgtk_doc=false -Dpython=%{__python3}
+%meson -Ddoctool=true -Dgtk_doc=true -Dpython=%{__python3}
 %meson_build
 
 %install
@@ -88,17 +79,11 @@ export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-ir
 %{_datadir}/gobject-introspection-1.0/
 %{_datadir}/aclocal/introspection.m4
 %{_mandir}/man1/*.gz
-#%%dir %%{_datadir}/gtk-doc
-#%%dir %%{_datadir}/gtk-doc/html
-#%%{_datadir}/gtk-doc/html/gi/
+%dir %{_datadir}/gtk-doc
+%dir %{_datadir}/gtk-doc/html
+%{_datadir}/gtk-doc/html/gi/
 
 %changelog
-* Sat Jun 20 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-7
-- Fix some hardcoded paths + reenable deps now we have packaged enough python pieces
-
-* Fri May 1 2020 HAL <hal@null.not> - 1.16.0-6
-- some slight changes so it will build on Irix 6.5 and gcc 9.2
-
 * Mon Sep 09 2019 Kalev Lember <klember@redhat.com> - 1.62.0-1
 - Update to 1.62.0
 
