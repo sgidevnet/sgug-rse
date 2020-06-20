@@ -6,7 +6,9 @@ Summary:        Text shaping library
 License:        MIT
 URL:            http://freedesktop.org/wiki/Software/HarfBuzz
 Source0:        http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-%{version}.tar.xz
-Patch0:         harfbuzz.sgifixes.patch
+
+Patch100:       harfbuzz.sgifixes.patch
+
 BuildRequires:  cairo-devel
 BuildRequires:  freetype-devel
 BuildRequires:  glib2-devel
@@ -41,7 +43,8 @@ This package contains Harfbuzz ICU support library.
 
 
 %build
-%configure --disable-static --with-gobject --without-gtk-doc --enable-introspection
+#%%configure --disable-static --with-graphite2 --with-gobject --enable-introspection
+%configure --disable-static --without-graphite2 --with-gobject --enable-introspection
 
 make %{?_smp_mflags} V=1
 
@@ -49,6 +52,12 @@ make %{?_smp_mflags} V=1
 %install
 make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
+
+
+#%%ldconfig_scriptlets
+
+#%%ldconfig_scriptlets icu
+
 
 %files
 %license COPYING
