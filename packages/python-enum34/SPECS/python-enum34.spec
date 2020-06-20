@@ -1,0 +1,135 @@
+%if 0%{?fedora} || 0%{?rhel} > 7
+# Should not build for Python 3 for Fedora releases that provide
+# Python 3.4 (Fedora 22 or higher?).
+%endif
+
+Name:           python-enum34
+Version:        1.1.6
+Release:        9%{?dist}
+Summary:        Backport of Python 3.4 Enum
+License:        BSD
+BuildArch:      noarch
+URL:            https://pypi.python.org/pypi/enum34
+Source0:        https://files.pythonhosted.org/packages/source/e/enum34/enum34-%{version}.tar.gz
+
+BuildRequires:  python2-devel python2-setuptools
+
+%global _description\
+Python 3.4 introduced official support for enumerations.  This is a\
+backport of that feature to Python 3.3, 3.2, 3.1, 2.7, 2.5, 2.5, and 2.4.\
+\
+An enumeration is a set of symbolic names (members) bound to unique,\
+constant values. Within an enumeration, the members can be compared by\
+identity, and the enumeration itself can be iterated over.\
+\
+This module defines two enumeration classes that can be used to define\
+unique sets of names and values: Enum and IntEnum. It also defines one\
+decorator, unique, that ensures only unique member names are present\
+in an enumeration.\
+
+
+%description %_description
+
+%package -n python2-enum34
+Summary: %summary
+%{?python_provide:%python_provide python2-enum34}
+
+%description -n python2-enum34 %_description
+
+%prep
+%setup -q -n enum34-%{version}
+
+
+%build
+%py2_build
+
+%check
+export PREV_WD=`pwd`
+cd %{buildroot}/%{python2_sitelib}
+PYTHONPATH=".:${PYTHONPATH}" %{__python2} enum/test.py
+cd $PREV_WD
+
+%install
+%py2_install
+# remove docs from sitelib, we'll put them in doc dir instead
+rm -rf %{buildroot}%{python2_sitelib}/enum/{LICENSE,README,doc}
+
+%files -n python2-enum34
+%license enum/LICENSE
+%doc PKG-INFO enum/README enum/doc/enum.rst
+%{python2_sitelib}/*
+
+%changelog
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.6-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Sat Feb 02 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.6-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Sat Jul 14 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.6-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
+* Fri Apr 20 2018 Orion Poplawski <orion@nwra.com> - 1.1.6-6
+- Minor spec cleanup
+- Use %%license
+
+* Mon Feb 12 2018 Iryna Shcherbina <ishcherb@redhat.com> - 1.1.6-5
+- Update Python 2 dependency declarations to new packaging standards
+  (See https://fedoraproject.org/wiki/FinalizingFedoraSwitchtoPython3)
+
+* Fri Feb 09 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.6-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Sat Aug 19 2017 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl> - 1.1.6-3
+- Python 2 binary package renamed to python2-enum34
+  See https://fedoraproject.org/wiki/FinalizingFedoraSwitchtoPython3
+
+* Thu Jul 27 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.6-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
+* Thu Jun 15 2017 Eric Smith <brouhaha@fedoraproject.org> 1.1.6-1
+- New upstream version 1.1.6 (#1441428)
+- Update upstream tarball dir
+- Convert to newer build marcos
+- Update tests to pass in new build
+- These RPM spec changes were all provided by Greg Hellings.
+
+* Sat Feb 11 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.4-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
+* Tue Jul 19 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.4-6
+- https://fedoraproject.org/wiki/Changes/Automatic_Provides_for_Python_RPM_Packages
+
+* Wed Feb 24 2016 Robert Kuska <rkuska@redhat.com> - 1.0.4-5
+- Remove python3 subpackage, enum34 is now provided by python3
+
+* Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.4-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
+* Tue Nov 10 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.4-3
+- Rebuilt for https://fedoraproject.org/wiki/Changes/python3.5
+
+* Thu Jun 18 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.4-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
+* Wed Apr 08 2015 Eric Smith <brouhaha@fedoraproject.org> 1.0.4-1
+- Updated to latest upstream.
+
+* Mon Jul 21 2014 Matěj Cepl <mcepl@redhat.com> - 1.0-4
+- No, we don’t have python3 in RHEL-7 :'(
+
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
+* Wed May 28 2014 Kalev Lember <kalevlember@gmail.com> - 1.0-2
+- Rebuilt for https://fedoraproject.org/wiki/Changes/Python_3.4
+
+* Mon May 26 2014 Eric Smith <brouhaha@fedoraproject.org> 1.0-1
+- Updated to latest upstream.
+
+* Mon Mar 17 2014 Eric Smith <brouhaha@fedoraproject.org> 0.9.23-1
+- Updated to latest upstream.
+- Spec updated per review comments (#1033975).
+
+* Sun Nov 24 2013 Eric Smith <brouhaha@fedoraproject.org> 0.9.19-1
+- Initial version.
