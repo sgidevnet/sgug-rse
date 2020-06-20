@@ -1,8 +1,8 @@
-%if 0%{?fedora} || 0%{?rhel} > 6
+#%%if 0%%{?fedora} || 0%%{?rhel} > 6
 # keeping python3 subpackage as stdlib mock lives in a different namespace
 # Some people may have not fixed their imports
 %global with_python3 1
-%endif
+#%%endif
 
 # Not yet in Fedora buildroot
 %{!?python3_pkgversion:%global python3_pkgversion 3}
@@ -19,20 +19,20 @@ URL:            http://www.voidspace.org.uk/python/%{mod_name}/
 Source0:        https://pypi.python.org/packages/source/m/%{mod_name}/%{mod_name}-%{version}.tar.gz
 
 BuildArch:      noarch
-#BuildRequires:  python2-devel
-#BuildRequires:  python2-setuptools
-#BuildRequires:  python2-funcsigs
-#BuildRequires:  python2-pbr
+BuildRequires:  python2-devel
+BuildRequires:  python2-setuptools
+BuildRequires:  python2-funcsigs
+BuildRequires:  python2-pbr
 # For tests
-#BuildRequires:  python2-pytest
+BuildRequires:  python2-pytest
 
-#%%if 0#%%{?with_python3}
+%if 0%{?with_python3}
 BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
-#BuildRequires:  python3-pbr
+BuildRequires:  python3-pbr
 # For tests
-#BuildRequires:  python%{python3_pkgversion}-pytest
-#%%endif
+BuildRequires:  python%{python3_pkgversion}-pytest
+%endif
 
 
 %description
@@ -42,25 +42,25 @@ action, you can make assertions about which methods / attributes were used and
 arguments they were called with. You can also specify return values and set
 needed attributes in the normal way.
 
-#%%package -n python2-mock
-#Summary:        A Python Mocking and Patching Library for Testing
-#%%{?python_provide:#%%python_provide python2-#%%{mod_name}}
-#Requires:    python2-funcsigs
-#Requires:    python2-pbr
-#Requires:    python2-six >= 1.9.0
+%package -n python2-mock
+Summary:        A Python Mocking and Patching Library for Testing
+%{?python_provide:%python_provide python2-%{mod_name}}
+Requires:    python2-funcsigs
+Requires:    python2-pbr
+Requires:    python2-six >= 1.9.0
 
-#%%description -n python2-mock
-#Mock is a Python module that provides a core mock class. It removes the need
-#to create a host of stubs throughout your test suite. After performing an
-#action, you can make assertions about which methods / attributes were used and
-#arguments they were called with. You can also specify return values and set
+%description -n python2-mock
+Mock is a Python module that provides a core mock class. It removes the need
+to create a host of stubs throughout your test suite. After performing an
+action, you can make assertions about which methods / attributes were used and
+arguments they were called with. You can also specify return values and set
 
-#%%if 0%{?with_python3}
+%if 0%{?with_python3}
 %package -n python%{python3_pkgversion}-mock
 Summary:        A Python Mocking and Patching Library for Testing
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{mod_name}}
-#Requires:    python3-pbr
-#Requires:    python3-six >= 1.9.0
+Requires:    python3-pbr
+Requires:    python3-six >= 1.9.0
 
 %description -n python%{python3_pkgversion}-mock
 Mock is a Python module that provides a core mock class. It removes the need
@@ -68,7 +68,7 @@ to create a host of stubs throughout your test suite. After performing an
 action, you can make assertions about which methods / attributes were used and
 arguments they were called with. You can also specify return values and set
 needed attributes in the normal way.
-#%%endif
+%endif
 
 
 %prep
@@ -76,41 +76,44 @@ needed attributes in the normal way.
 
 
 %build
-#%%{py2_build}
-#%%if 0%{?with_python3}
+%{py2_build}
+%if 0%{?with_python3}
 %{py3_build}
-#%%endif
+%endif
 
 
 %check
-#%%{__python2} setup.py test
-#%%if 0%{?with_python3}
+%{__python2} setup.py test
+%if 0%{?with_python3}
 %{__python3} setup.py test
-#%%endif
+%endif
 
 %install
-#%%if 0%{?with_python3}
+%if 0%{?with_python3}
 %{py3_install}
-#%%endif
-#%%{py2_install}
+%endif
+%{py2_install}
 
 
-#%%files -n python2-mock
-#%%license LICENSE.txt
-#%%doc README.rst
-#%%{python2_sitelib}/*.egg-info
-#%%{python2_sitelib}/%{mod_name}
+%files -n python2-mock
+%license LICENSE.txt
+%doc README.rst
+%{python2_sitelib}/*.egg-info
+%{python2_sitelib}/%{mod_name}
 
-#%%if 0%{?with_python3}
+%if 0%{?with_python3}
 %files -n python%{python3_pkgversion}-mock
 %license LICENSE.txt
 %doc README.rst
 %{python3_sitelib}/*.egg-info
 %{python3_sitelib}/%{mod_name}
-#%%endif
+%endif
 
 
 %changelog
+* Sat Jun 20 2020 Daniel Hams <daniel.hams@gmail.com
+- Version that works without pip install shortcuts
+
 * Mon Jun 08 2020  HAL <notes2@gmx.de> - 3.0.5-3 
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
