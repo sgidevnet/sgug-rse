@@ -1,186 +1,80 @@
-Name:           pytest
-Version:        4.6.11
-Release:        1%{?dist}
-Summary:        Simple powerful testing with Python
+%global pypi_name pytest
+
+Name:           python2-%{pypi_name}
+Version:        4.4.1
+Release:        4%{?dist}
+Summary:        Simple powerful testing with Python 2
 License:        MIT
 URL:            https://pytest.org
 Source0:        %{pypi_source}
-
-# The test in this specfile use pytest-timeout
-# When building pytest for the first time with new Python version
-# that is not possible as it depends on pytest
-%bcond_with timeout
-
-# When building pytest for the first time with new Python version
-# we might not yet have all the BRs, this allows us to build without some that
-# are likely not yet built.
-# Pytest will skip the related tests, so we only conditionalize the BRs
-%bcond_with optional_tests
-
-# When building pytest for the first time with new Python version
-# we also don't have sphinx yet and cannot build docs.
-%bcond_with docs
-
-%if %{with docs}
-BuildRequires:  %{_bindir}/rst2html
-BuildRequires:  python3-pygments-pytest
-BuildRequires:  python3-sphinx
-BuildRequires:  python3-sphinx-removed-in
-BuildRequires:  python3-sphinxcontrib-trio
-BuildRequires:  make
-%endif
+# https://github.com/pytest-dev/pytest/issues/5046
+Patch0:         5045.patch
 
 BuildArch:      noarch
 
+BuildRequires:  python2-atomicwrites
+BuildRequires:  python2-attrs
+BuildRequires:  python2-devel
+BuildRequires:  python2-funcsigs
+BuildRequires:  python2-mock
+BuildRequires:  python2-more-itertools >= 4.0.0
+BuildRequires:  python2-pathlib2 >= 2.2.0
+BuildRequires:  python2-pluggy >= 0.9
+BuildRequires:  python2-py >= 1.5.0
+BuildRequires:  python2-setuptools
+BuildRequires:  python2-setuptools_scm
+BuildRequires:  python2-six
+
+%{?python_provide:%python_provide python2-%{pypi_name}}
+
 %description
-py.test provides simple, yet powerful testing for Python.
-
-
-%package -n python3-%{name}
-Summary:        Simple powerful testing with Python
-BuildRequires:  python3-atomicwrites
-BuildRequires:  python3-attrs
-BuildRequires:  python3-devel
-BuildRequires:  python3-hypothesis
-BuildRequires:  python3-more-itertools
-BuildRequires:  python3-packaging
-BuildRequires:  python3-pluggy >= 0.12
-BuildRequires:  python3-py >= 1.5.0
-BuildRequires:  python3-setuptools
-BuildRequires:  python3-setuptools_scm
-BuildRequires:  python3-six
-BuildRequires:  python3-wcwidth
-
-%if %{with timeout}
-BuildRequires:  python3-pytest-timeout
-%endif
-
-%if %{with optional_tests}
-BuildRequires:  python3-argcomplete
-BuildRequires:  python3-decorator
-BuildRequires:  python3-jinja2
-BuildRequires:  python3-nose
-BuildRequires:  python3-twisted
-%endif
-
-%{?python_provide:%python_provide python3-%{name}}
-Provides:       pytest = %{version}-%{release}
-Conflicts:      python-pytest < 4.6
-
-%description -n python3-%{name}
-py.test provides simple, yet powerful testing for Python.
+py.test provides simple, yet powerful testing for Python 2.
 
 %prep
-%autosetup -p1
+%autosetup -p1 -n %{pypi_name}-%{version}
 
 %build
-%py3_build
-
-%if %{with docs}
-for l in doc/* ; do
-  make -C $l html PYTHONPATH=$(pwd)/src SPHINXBUILD=%{_bindir}/sphinx-build-3
-done
-for f in README CHANGELOG CONTRIBUTING ; do
-  rst2html ${f}.rst > ${f}.html
-done
-%endif
+%py2_build
 
 %install
-%py3_install
-mv %{buildroot}%{_bindir}/pytest %{buildroot}%{_bindir}/pytest-%{python3_version}
-ln -snf pytest-%{python3_version} %{buildroot}%{_bindir}/pytest-3
-mv %{buildroot}%{_bindir}/py.test %{buildroot}%{_bindir}/py.test-%{python3_version}
-ln -snf py.test-%{python3_version} %{buildroot}%{_bindir}/py.test-3
-
-# We use 3.X per default
-ln -snf pytest-%{python3_version} %{buildroot}%{_bindir}/pytest
-ln -snf py.test-%{python3_version} %{buildroot}%{_bindir}/py.test
-
-%if %{with docs}
-mkdir -p _htmldocs/html
-for l in doc/* ; do
-  # remove hidden file
-  rm ${l}/_build/html/.buildinfo
-  mv ${l}/_build/html _htmldocs/html/${l##doc/}
-done
-%endif
+%py2_install
+mv %{buildroot}%{_bindir}/pytest %{buildroot}%{_bindir}/pytest-%{python2_version}
+ln -snf pytest-%{python2_version} %{buildroot}%{_bindir}/pytest-2
+mv %{buildroot}%{_bindir}/py.test %{buildroot}%{_bindir}/py.test-%{python2_version}
+ln -snf py.test-%{python2_version} %{buildroot}%{_bindir}/py.test-2
 
 # remove shebangs from all scripts
-find %{buildroot}%{python3_sitelib} \
+find %{buildroot}%{python2_sitelib} \
      -name '*.py' \
      -exec sed -i -e '1{/^#!/d}' {} \;
 
 %check
+# Metafunc tests use python2-hypothesis, which forms a dependency
+# cycle with pytest.
 PYTHONDONTWRITEBYTECODE=1 \
 PATH=%{buildroot}%{_bindir}:${PATH} \
-PYTHONPATH=%{buildroot}%{python3_sitelib} \
-  %{buildroot}%{_bindir}/pytest-%{python3_version} -r s testing \
-  %if %{with timeout}
-  --timeout=30
-  %endif
+PYTHONPATH=%{buildroot}%{python2_sitelib} \
+  %{buildroot}%{_bindir}/pytest-%{python2_version} -r s testing \
+  --ignore testing/python/metafunc.py
 
-%files -n python3-%{name}
-%if %{with docs}
-%doc CHANGELOG.html
-%doc README.html
-%doc CONTRIBUTING.html
-%doc _htmldocs/html
-%endif
+
+%files
 %license LICENSE
-%{_bindir}/pytest
-%{_bindir}/pytest-3
-%{_bindir}/pytest-%{python3_version}
-%{_bindir}/py.test
-%{_bindir}/py.test-3
-%{_bindir}/py.test-%{python3_version}
-%{python3_sitelib}/pytest-*.egg-info/
-%{python3_sitelib}/_pytest/
-%{python3_sitelib}/pytest.py
-%{python3_sitelib}/__pycache__/pytest.*
+%{_bindir}/pytest-2
+%{_bindir}/pytest-%{python2_version}
+%{_bindir}/py.test-2
+%{_bindir}/py.test-%{python2_version}
+%{python2_sitelib}/pytest-*.egg-info/
+%{python2_sitelib}/_pytest/
+%{python2_sitelib}/pytest.py*
+
 
 %changelog
-* Fri Jun  5 2020 Thomas Moschny <thomas.moschny@gmx.de> - 4.6.11-1
-- Update to 4.6.11.
-
-* Fri May 08 2020 Miro Hrončok <mhroncok@redhat.com> - 4.6.10-1
-- Update to 4.6.10.
-
-* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 4.6.9-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
-
-* Sun Jan  5 2020 Thomas Moschny <thomas.moschny@gmx.de> - 4.6.9-1
-- Update to 4.6.9.
-
-* Fri Jan  3 2020 Thomas Moschny <thomas.moschny@gmx.de> - 4.6.8-1
-- Update to 4.6.8.
-
-* Fri Dec 06 2019 Miro Hrončok <mhroncok@redhat.com> - 4.6.7-1
-- Update to 4.6.7
-
-* Fri Oct 25 2019 Thomas Moschny <thomas.moschny@gmx.de> - 4.6.6-1
-- Update to 4.6.6.
-
-* Thu Oct 03 2019 Miro Hrončok <mhroncok@redhat.com> - 4.6.5-4
-- Rebuilt for Python 3.8.0rc1 (#1748018)
-
-* Sat Aug 17 2019 Miro Hrončok <mhroncok@redhat.com> - 4.6.5-3
-- Rebuilt for Python 3.8
-
-* Thu Aug 15 2019 Miro Hrončok <mhroncok@redhat.com> - 4.6.5-2
-- Bootstrap for Python 3.8
-
-* Wed Aug 14 2019 Thomas Moschny <thomas.moschny@gmx.de> - 4.6.5-1
-- Update to 4.6.5.
-- Add missing BR on make.
-
-* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.6.4-3
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.4.1-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
-* Tue Jul 23 2019 Miro Hrončok <mhroncok@redhat.com> - 4.6.4-2
-- Fix a bad conflict
-
-* Mon Jul 01 2019 Miro Hrončok <mhroncok@redhat.com> - 4.6.4-1
-- Update to 4.6.4, move python2-pytest to its own source package
+* Mon Jul 01 2019 Miro Hrončok <mhroncok@redhat.com> - 4.4.1-3
+- Split python2-pytest from the pytest source package
 - Make /usr/bin/pytest and /usr/bin/py.test Python 3
 
 * Fri Jun 21 2019 Petr Viktorin <pviktori@redhat.com> - 4.4.1-2

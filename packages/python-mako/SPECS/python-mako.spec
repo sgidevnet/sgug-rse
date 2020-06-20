@@ -1,14 +1,14 @@
-%if 0%{?fedora} || 0%{?rhel} >= 8
+#%%if 0%%{?fedora} || 0%%{?rhel} >= 8
 %bcond_without python3
-%else
-%bcond_with python3
-%endif
+#%%else
+#%%bcond_with python3
+#%%endif
 
-%if 0%{?rhel} > 7
+#%%if 0%{?rhel} > 7
 %bcond_with python2
-%else
-%bcond_without python2
-%endif
+#%%else
+#%%bcond_without python2
+#%%endif
 
 %global upname Mako
 
@@ -24,25 +24,25 @@ Summary: Mako template library for Python
 URL: http://www.makotemplates.org/
 Source0: https://github.com/sqlalchemy/mako/archive/rel_%(echo %{version} | sed "s/\./_/g").tar.gz
 
-#%%if #%%{with python2}
-#BuildRequires: python2-devel
-#BuildRequires: python2-pytest
-#BuildRequires: python2-setuptools
-#BuildRequires: python2-markupsafe
+%if %{with python2}
+BuildRequires: python2-devel
+BuildRequires: python2-pytest
+BuildRequires: python2-setuptools
+BuildRequires: python2-markupsafe
 #BuildRequires: python2-beaker
-#BuildRequires: python2-nose
-#BuildRequires: python2-mock
-#%%endif #{with python2}
+BuildRequires: python2-nose
+BuildRequires: python2-mock
+%endif #{with python2}
 
-#%%if #%%{with python3}
+%if %{with python3}
 BuildRequires: python3-devel
-#BuildRequires: python3-pytest
+BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
 BuildRequires: python3-markupsafe
 #BuildRequires: python3-beaker
 BuildRequires: python3-mock
-#BuildRequires: python3-nose
-#%%endif #{with python3}
+BuildRequires: python3-nose
+%endif #{with python3}
 
 %global _description\
 Mako is a template library written in Python. It provides a familiar, non-XML\
@@ -56,8 +56,8 @@ calling and scoping semantics.
 
 %description %_description
 
-#%%if #%%{with python2}
-#%%package -n python2-mako
+%if %{with python2}
+%package -n python2-mako
 Summary: %summary
 Requires: python2-markupsafe
 
@@ -66,17 +66,17 @@ Recommends: python2-beaker
 
 %{?python_provide:%python_provide python2-mako}
 
-#%%description -n python2-mako #%%_description
-#%%endif #{with python2}
+%description -n python2-mako %_description
+%endif #{with python2}
 
 %package doc
 Summary: Documentation for the Mako template library for Python
 License: (MIT and Python) and (BSD or GPLv2)
-#%%if #%%{with python3}
-#Requires:   python3-mako = #%%{version}-#%%{release}
-#%%else
-#Requires:   python2-mako = #%%{version}-#%%{release}
-#%%endif #{with python3}
+%if %{with python3}
+Requires:   python3-mako = %{version}-%{release}
+%else
+Requires:   python2-mako = %{version}-%{release}
+%endif #{with python3}
 
 %description doc
 Mako is a template library written in Python. It provides a familiar, non-XML
@@ -91,19 +91,19 @@ calling and scoping semantics.
 This package contains documentation in text and HTML formats.
 
 
-#%%if #%%{with python3}
+%if %{with python3}
 %package -n python3-mako
 Summary: Mako template library for Python 3
 Requires: python3-markupsafe
 
 # Beaker is the preferred caching backend, but is not strictly necessary
-#Recommends: python3-beaker
+Recommends: python3-beaker
 
 %{?python_provide:%python_provide python3-mako}
 
-#%%if #%%{without python2}
-#Obsoletes: python2-mako < #%%{version}-#%%{release}
-#%%endif #{without python2}
+%if %{without python2}
+Obsoletes: python2-mako < %{version}-%{release}
+%endif #{without python2}
 
 %description -n python3-mako
 Mako is a template library written in Python. It provides a familiar, non-XML
@@ -116,66 +116,66 @@ and flexible models available, while also maintaining close ties to Python
 calling and scoping semantics.
 
 This package contains the mako module built for use with python3.
-#%%endif #{with python3}
+%endif #{with python3}
 
 %prep
 %autosetup -n mako-rel_%(echo %{version} | sed "s/\./_/g")
 
 
 %build
-#%%{?with_python2:#%%py2_build}
-#%%{?with_python3:
-%py3_build
+%{?with_python2:%py2_build}
+%{?with_python3:%py3_build}
 
 
 %install
-#%%{?with_python3:
-%py3_install
+%{?with_python3:%py3_install}
 
-#%%if #%%{with python2}
-# mv %{buildroot}/%{_bindir}/mako-render %{buildroot}/%{_bindir}/python3-mako-render
-#%%endif
+%if %{with python2}
+mv %{buildroot}/%{_bindir}/mako-render %{buildroot}/%{_bindir}/python3-mako-render
+%endif
 
-#%%{?with_python2:#%%py2_install}
+%{?with_python2:%py2_install}
 
 # These are supporting files for building the docs.  No need to ship
 rm -rf doc/build
 
 %check
-#%%if %{with python2}
-#py.test-2
-#%%endif #{with python2}
+%if %{with python2}
+py.test-2
+%endif #{with python2}
 
-#%%if 
-#%%{with python3}
+%if %{with python3}
 py.test-3
-#%%endif
+%endif
 
-#%%if %{with python2}
-#%%files -n python2-mako
-#%%license LICENSE
-#%%doc CHANGES README.rst examples
-#%%{_bindir}/mako-render
-#%%{python2_sitelib}/*
-#%%endif %{with python2}
+%if %{with python2}
+%files -n python2-mako
+%license LICENSE
+%doc CHANGES README.rst examples
+%{_bindir}/mako-render
+%{python2_sitelib}/*
+%endif %{with python2}
 
-#%%if #%%{with python3}
+%if %{with python3}
 %files -n python3-mako
 %license LICENSE
 %doc CHANGES README.rst examples
-#%%if #%%{with python2}
-#%%{_bindir}/python3-mako-render
-#%%else
+%if %{with python2}
+%{_bindir}/python3-mako-render
+%else
 %{_bindir}/mako-render
-#%%endif
+%endif
 %{python3_sitelib}/*
-#%%endif
+%endif
 
 %files doc
 %doc doc
 
 
 %changelog
+* Sat Jun 20 2020 Daniel Hams <daniel.hams@gmail.com>
+- Updated to install without pip install shortcut
+
 * Mon Jun 08 2020  HAL <notes2@gmx.de> - 1.1.0-2
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
