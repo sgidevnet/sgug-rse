@@ -1,0 +1,37 @@
+diff -Naur SGMLSpm.orig/Makefile SGMLSpm/Makefile
+--- SGMLSpm.orig/Makefile	1995-12-05 04:26:11.000000000 +0000
++++ SGMLSpm/Makefile	2020-06-20 15:43:38.486532994 +0000
+@@ -13,13 +13,13 @@
+ #
+ 
+ # Where is the binary for perl5 located on your system?
+-PERL = /usr/bin/perl
++PERL = /usr/sgug/bin/perl
+ 
+ # Where do you want the sgmlspl executable script to be installed?
+ BINDIR = /usr/local/bin
+ 
+ # Where do you put local perl5 libaries?
+-PERL5DIR = /usr/local/lib/perl5
++PERL5DIR = /usr/sgug/lib32/perl5
+ MODULEDIR = ${PERL5DIR}/SGMLS
+ 
+ # Where do you want to put sgmlspl specifications?
+@@ -53,7 +53,7 @@
+ dist: ${DIST}
+ 
+ ${BINDIR}/sgmlspl: sgmlspl.pl
+-	sed -e 's!/usr/bin/perl!${PERL}!' sgmlspl.pl > ${BINDIR}/sgmlspl
++	sed -e 's!/usr/sgug/bin/perl!${PERL}!' sgmlspl.pl > ${BINDIR}/sgmlspl
+ 	chmod a+x,a+r ${BINDIR}/sgmlspl
+ 
+ ${PERL5DIR}/SGMLS.pm: SGMLS.pm
+diff -Naur SGMLSpm.orig/sgmlspl.pl SGMLSpm/sgmlspl.pl
+--- SGMLSpm.orig/sgmlspl.pl	1995-12-03 13:46:31.000000000 +0000
++++ SGMLSpm/sgmlspl.pl	2020-06-20 15:44:03.618107432 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ ########################################################################
+ # sgmlspl: a simple SGML postprocesser for the SGMLS and NSGMLS
+ #          parsers (requires SGMLS.pm library).
