@@ -97,7 +97,7 @@ License: Python
 %global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
 %global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
 
-%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-irix
+%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}
 %global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-irix
 
 # All bytecode files are in a __pycache__ subdirectory, with a name
@@ -1188,74 +1188,74 @@ CheckPython optimized
 
 %{pylibdir}/pydoc_data
 
-%{dynload_dir}/_blake2.so
-%{dynload_dir}/_md5.so
-%{dynload_dir}/_sha1.so
-%{dynload_dir}/_sha256.so
-%{dynload_dir}/_sha3.so
-%{dynload_dir}/_sha512.so
+%{dynload_dir}/_blake2.%{SOABI_optimized}.so
+%{dynload_dir}/_md5.%{SOABI_optimized}.so
+%{dynload_dir}/_sha1.%{SOABI_optimized}.so
+%{dynload_dir}/_sha256.%{SOABI_optimized}.so
+%{dynload_dir}/_sha3.%{SOABI_optimized}.so
+%{dynload_dir}/_sha512.%{SOABI_optimized}.so
 
-%{dynload_dir}/_asyncio.so
-%{dynload_dir}/_bisect.so
-%{dynload_dir}/_bz2.so
-%{dynload_dir}/_codecs_cn.so
-%{dynload_dir}/_codecs_hk.so
-%{dynload_dir}/_codecs_iso2022.so
-%{dynload_dir}/_codecs_jp.so
-%{dynload_dir}/_codecs_kr.so
-%{dynload_dir}/_codecs_tw.so
-%{dynload_dir}/_contextvars.so
-%{dynload_dir}/_crypt.so
-%{dynload_dir}/_csv.so
-%{dynload_dir}/_ctypes.so
-%{dynload_dir}/_curses.so
-%{dynload_dir}/_curses_panel.so
-%{dynload_dir}/_dbm.so
-%{dynload_dir}/_decimal.so
-%{dynload_dir}/_elementtree.so
+%{dynload_dir}/_asyncio.%{SOABI_optimized}.so
+%{dynload_dir}/_bisect.%{SOABI_optimized}.so
+%{dynload_dir}/_bz2.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_cn.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_hk.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_iso2022.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_jp.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_kr.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_tw.%{SOABI_optimized}.so
+%{dynload_dir}/_contextvars.%{SOABI_optimized}.so
+%{dynload_dir}/_crypt.%{SOABI_optimized}.so
+%{dynload_dir}/_csv.%{SOABI_optimized}.so
+%{dynload_dir}/_ctypes.%{SOABI_optimized}.so
+%{dynload_dir}/_curses.%{SOABI_optimized}.so
+%{dynload_dir}/_curses_panel.%{SOABI_optimized}.so
+%{dynload_dir}/_dbm.%{SOABI_optimized}.so
+%{dynload_dir}/_decimal.%{SOABI_optimized}.so
+%{dynload_dir}/_elementtree.%{SOABI_optimized}.so
 %if %{with gdbm}
-%{dynload_dir}/_gdbm.so
+%{dynload_dir}/_gdbm.%{SOABI_optimized}.so
 %endif
-%{dynload_dir}/_hashlib.so
-%{dynload_dir}/_heapq.so
-%{dynload_dir}/_json.so
-%{dynload_dir}/_lsprof.so
-%{dynload_dir}/_lzma.so
-%{dynload_dir}/_multibytecodec.so
-%{dynload_dir}/_multiprocessing.so
-%{dynload_dir}/_opcode.so
-%{dynload_dir}/_pickle.so
-%{dynload_dir}/_posixsubprocess.so
-%{dynload_dir}/_queue.so
-%{dynload_dir}/_random.so
-%{dynload_dir}/_socket.so
-%{dynload_dir}/_sqlite3.so
-%{dynload_dir}/_ssl.so
-%{dynload_dir}/_struct.so
-%{dynload_dir}/array.so
-%{dynload_dir}/audioop.so
-%{dynload_dir}/binascii.so
-%{dynload_dir}/cmath.so
-%{dynload_dir}/_datetime.so
-%{dynload_dir}/fcntl.so
-%{dynload_dir}/grp.so
-%{dynload_dir}/math.so
-%{dynload_dir}/mmap.so
-%{dynload_dir}/nis.so
-#%%{dynload_dir}/ossaudiodev.so
-%{dynload_dir}/parser.so
-%{dynload_dir}/pyexpat.so
-%{dynload_dir}/readline.so
-%{dynload_dir}/resource.so
-%{dynload_dir}/select.so
-%{dynload_dir}/spwd.so
-%{dynload_dir}/syslog.so
-%{dynload_dir}/termios.so
-%{dynload_dir}/_testmultiphase.so
-%{dynload_dir}/unicodedata.so
-%{dynload_dir}/_uuid.so
-%{dynload_dir}/xxlimited.so
-%{dynload_dir}/zlib.so
+%{dynload_dir}/_hashlib.%{SOABI_optimized}.so
+%{dynload_dir}/_heapq.%{SOABI_optimized}.so
+%{dynload_dir}/_json.%{SOABI_optimized}.so
+%{dynload_dir}/_lsprof.%{SOABI_optimized}.so
+%{dynload_dir}/_lzma.%{SOABI_optimized}.so
+%{dynload_dir}/_multibytecodec.%{SOABI_optimized}.so
+%{dynload_dir}/_multiprocessing.%{SOABI_optimized}.so
+%{dynload_dir}/_opcode.%{SOABI_optimized}.so
+%{dynload_dir}/_pickle.%{SOABI_optimized}.so
+%{dynload_dir}/_posixsubprocess.%{SOABI_optimized}.so
+%{dynload_dir}/_queue.%{SOABI_optimized}.so
+%{dynload_dir}/_random.%{SOABI_optimized}.so
+%{dynload_dir}/_socket.%{SOABI_optimized}.so
+%{dynload_dir}/_sqlite3.%{SOABI_optimized}.so
+%{dynload_dir}/_ssl.%{SOABI_optimized}.so
+%{dynload_dir}/_struct.%{SOABI_optimized}.so
+%{dynload_dir}/array.%{SOABI_optimized}.so
+%{dynload_dir}/audioop.%{SOABI_optimized}.so
+%{dynload_dir}/binascii.%{SOABI_optimized}.so
+%{dynload_dir}/cmath.%{SOABI_optimized}.so
+%{dynload_dir}/_datetime.%{SOABI_optimized}.so
+%{dynload_dir}/fcntl.%{SOABI_optimized}.so
+%{dynload_dir}/grp.%{SOABI_optimized}.so
+%{dynload_dir}/math.%{SOABI_optimized}.so
+%{dynload_dir}/mmap.%{SOABI_optimized}.so
+%{dynload_dir}/nis.%{SOABI_optimized}.so
+#%%{dynload_dir}/ossaudiodev.%%{SOABI_optimized}.so
+%{dynload_dir}/parser.%{SOABI_optimized}.so
+%{dynload_dir}/pyexpat.%{SOABI_optimized}.so
+%{dynload_dir}/readline.%{SOABI_optimized}.so
+%{dynload_dir}/resource.%{SOABI_optimized}.so
+%{dynload_dir}/select.%{SOABI_optimized}.so
+%{dynload_dir}/spwd.%{SOABI_optimized}.so
+%{dynload_dir}/syslog.%{SOABI_optimized}.so
+%{dynload_dir}/termios.%{SOABI_optimized}.so
+%{dynload_dir}/_testmultiphase.%{SOABI_optimized}.so
+%{dynload_dir}/unicodedata.%{SOABI_optimized}.so
+%{dynload_dir}/_uuid.%{SOABI_optimized}.so
+%{dynload_dir}/xxlimited.%{SOABI_optimized}.so
+%{dynload_dir}/zlib.%{SOABI_optimized}.so
 
 %dir %{pylibdir}/site-packages/
 %dir %{pylibdir}/site-packages/__pycache__/
@@ -1408,7 +1408,7 @@ CheckPython optimized
 %if %{without flatpackage}
 %exclude %{pylibdir}/tkinter/test
 %endif
-%{dynload_dir}/_tkinter.so
+%{dynload_dir}/_tkinter.%{SOABI_optimized}.so
 %{pylibdir}/turtle.py
 %{pylibdir}/__pycache__/turtle*%{bytecode_suffixes}
 %dir %{pylibdir}/turtledemo
@@ -1426,11 +1426,11 @@ CheckPython optimized
 %{pylibdir}/distutils/tests
 %{pylibdir}/sqlite3/test
 %{pylibdir}/test
-%{dynload_dir}/_ctypes_test.so
-%{dynload_dir}/_testbuffer.so
-%{dynload_dir}/_testcapi.so
-%{dynload_dir}/_testimportmultiple.so
-%{dynload_dir}/_xxtestfuzz.so
+%{dynload_dir}/_ctypes_test.%{SOABI_optimized}.so
+%{dynload_dir}/_testbuffer.%{SOABI_optimized}.so
+%{dynload_dir}/_testcapi.%{SOABI_optimized}.so
+%{dynload_dir}/_testimportmultiple.%{SOABI_optimized}.so
+%{dynload_dir}/_xxtestfuzz.%{SOABI_optimized}.so
 %{pylibdir}/lib2to3/tests
 %{pylibdir}/tkinter/test
 %{pylibdir}/unittest/test
