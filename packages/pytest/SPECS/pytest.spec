@@ -1,5 +1,5 @@
 Name:           pytest
-Version:        4.6.9
+Version:        4.6.11
 Release:        1%{?dist}
 Summary:        Simple powerful testing with Python
 License:        MIT
@@ -9,17 +9,17 @@ Source0:        %{pypi_source}
 # The test in this specfile use pytest-timeout
 # When building pytest for the first time with new Python version
 # that is not possible as it depends on pytest
-%bcond_without timeout
+%bcond_with timeout
 
 # When building pytest for the first time with new Python version
 # we might not yet have all the BRs, this allows us to build without some that
 # are likely not yet built.
 # Pytest will skip the related tests, so we only conditionalize the BRs
-%bcond_without optional_tests
+%bcond_with optional_tests
 
 # When building pytest for the first time with new Python version
 # we also don't have sphinx yet and cannot build docs.
-%bcond_without docs
+%bcond_with docs
 
 %if %{with docs}
 BuildRequires:  %{_bindir}/rst2html
@@ -139,6 +139,15 @@ PYTHONPATH=%{buildroot}%{python3_sitelib} \
 %{python3_sitelib}/__pycache__/pytest.*
 
 %changelog
+* Fri Jun  5 2020 Thomas Moschny <thomas.moschny@gmx.de> - 4.6.11-1
+- Update to 4.6.11.
+
+* Fri May 08 2020 Miro Hrončok <mhroncok@redhat.com> - 4.6.10-1
+- Update to 4.6.10.
+
+* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 4.6.9-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
 * Sun Jan  5 2020 Thomas Moschny <thomas.moschny@gmx.de> - 4.6.9-1
 - Update to 4.6.9.
 
