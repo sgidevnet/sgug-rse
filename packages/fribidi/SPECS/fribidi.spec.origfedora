@@ -41,8 +41,6 @@ export CFLAGS="$CFLAGS -DPAGE_SIZE=4096"
 export CFLAGS="$RPM_OPT_FLAGS -DPAGE_SIZE=4096"
 %endif
 %endif
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
-export LIBS="-ldicl-0.1"
 %configure --disable-static --disable-docs
 make %{?_smp_mflags}
 
@@ -53,7 +51,7 @@ make check
 make DESTDIR=$RPM_BUILD_ROOT install INSTALL="install -p"
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 
-#%%ldconfig_scriptlets
+%ldconfig_scriptlets
 
 %files
 %doc README AUTHORS ChangeLog THANKS NEWS TODO
