@@ -1,8 +1,11 @@
 %global _changelog_trimtime %(date +%s -d "1 year ago")
 
+# To have an installed version with debug symbols
+#%%global __strip /bin/true
+
 Name: glib2
 Version: 2.62.6
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -136,7 +139,8 @@ touch -r gio/gdbus-2.0/codegen/config.py.in %{buildroot}%{_datadir}/glib-2.0/cod
 export PYTHONHASHSEED=0
 %py_byte_compile %{__python3} %{buildroot}%{_datadir}
 
-mv  %{buildroot}%{_bindir}/gio-querymodules %{buildroot}%{_bindir}/gio-querymodules-%{__isa_bits}
+# Don't do fedora multilib stuff on IRIX
+#mv  %{buildroot}%{_bindir}/gio-querymodules %{buildroot}%{_bindir}/gio-querymodules-%{__isa_bits}
 
 mkdir -p %{buildroot}%{_libdir}/gio/modules
 touch %{buildroot}%{_libdir}/gio/modules/giomodule.cache
@@ -144,10 +148,12 @@ touch %{buildroot}%{_libdir}/gio/modules/giomodule.cache
 %find_lang glib20
 
 %transfiletriggerin -- %{_libdir}/gio/modules
-gio-querymodules-%{__isa_bits} %{_libdir}/gio/modules &> /dev/null || :
+#gio-querymodules-%{__isa_bits} %{_libdir}/gio/modules &> /dev/null || :
+gio-querymodules %{_libdir}/gio/modules &> /dev/null || :
 
 %transfiletriggerpostun -- %{_libdir}/gio/modules
-gio-querymodules-%{__isa_bits} %{_libdir}/gio/modules &> /dev/null || :
+#gio-querymodules-%{__isa_bits} %{_libdir}/gio/modules &> /dev/null || :
+gio-querymodules %{_libdir}/gio/modules &> /dev/null || :
 
 %transfiletriggerin -- %{_datadir}/glib-2.0/schemas
 glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
@@ -240,6 +246,9 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Sun Jun 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-3
+- Correct more hardcoded paths that break mime lookups, remove more fedora multi-lib-isms
+
 * Sun May 31 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-2
 - Bug fix - include missing rpl_isnanf replacement func
 

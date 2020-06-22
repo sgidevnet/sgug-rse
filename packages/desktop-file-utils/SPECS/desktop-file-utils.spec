@@ -11,7 +11,7 @@ Source1: desktop-entry-mode-init.el
 License: GPLv2+
 
 BuildRequires:  gcc
-# BuildRequires: glib2-devel
+BuildRequires: glib2-devel
 BuildRequires: emacs
 Requires: emacs-filesystem
 Provides: emacs-%{pkg} = %{version}-%{release}
@@ -35,7 +35,7 @@ fixing it up in the process.
 
 %build
 %configure
-make %{?_smp_mflags}
+V=1 make %{?_smp_mflags}
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"

@@ -20,7 +20,7 @@
 Summary: GTK+ graphical user interface library
 Name: gtk2
 Version: 2.24.32
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: LGPLv2+
 URL: http://www.gtk.org
 #VCS: git:git://git.gnome.org/gtk+#gtk-2-24
@@ -29,7 +29,9 @@ Source2: update-gtk-immodules
 Source3: im-cedilla.conf
 Source4: update-gtk-immodules.1
 
-Patch1: system-python.patch
+# Use Python 3 in gtk-builder-convert
+# Accepted upstream: https://gitlab.gnome.org/GNOME/gtk/merge_requests/1080
+Patch1: python3.patch
 # https://bugzilla.gnome.org/show_bug.cgi?id=583273
 Patch2: icon-padding.patch
 # https://bugzilla.gnome.org/show_bug.cgi?id=599618
@@ -57,6 +59,8 @@ BuildRequires: pkgconfig(xcomposite)
 BuildRequires: pkgconfig(xdamage)
 BuildRequires: gettext
 BuildRequires: cups-devel
+# For setting shebang of gtk-builder-convert:
+BuildRequires: python3-devel
 # Bootstrap requirements
 BuildRequires: gtk-doc
 BuildRequires: automake
@@ -234,8 +238,8 @@ cp %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}/update-gtk-immodules
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/X11/xinit/xinput.d
 cp %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xinit/xinput.d
 
-# Explicitly use python2 shebang instead of ambiguous python
-sed -i -e '/^#!\// s/python$/python2/' $RPM_BUILD_ROOT%{_bindir}/gtk-builder-convert
+# Use python3 shebang instead of ambiguous python
+pathfix.py -pn -i %{__python3} $RPM_BUILD_ROOT%{_bindir}/gtk-builder-convert
 
 # Remove unpackaged files
 rm $RPM_BUILD_ROOT%{_libdir}/*.la
@@ -321,6 +325,11 @@ gtk-query-immodules-2.0-%{__isa_bits} --update-cache
 %doc tmpdocs/examples
 
 %changelog
+* Tue Sep 03 2019 Petr Viktorin <pviktori@redhat.com> - 2.24.32-6
+- Port gtk2-devel's gtk-builder-convert to Python 3
+  https://gitlab.gnome.org/GNOME/gtk/merge_requests/1080
+  https://bugzilla.redhat.com/show_bug.cgi?id=1737988
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.24.32-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

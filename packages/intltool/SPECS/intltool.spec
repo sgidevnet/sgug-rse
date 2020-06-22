@@ -13,10 +13,10 @@ Requires: automake
 Requires: gettext-devel
 Requires: perl(Getopt::Long)
 Requires: perl(XML::Parser)
-# BuildRequires: perl-generators
+BuildRequires: perl-generators
 BuildRequires: perl(Getopt::Long)
 BuildRequires: perl(XML::Parser)
-#BuildRequires: gettext
+BuildRequires: gettext
 # http://bugzilla.gnome.org/show_bug.cgi?id=568845
 # Dropping this patch per the last comment on that thread:
 # Martin Pitt: As the reporter of the bug I close this, as the new API du jour is gsettings,
