@@ -97,6 +97,9 @@ make test
 %{_mandir}/man3/URI::ldap.3*
 
 %changelog
+* Sun Jun 21 2020 David Stancu <dstancu@nyu.edu> - 1.76-6
+- Rebuilt for RSE
+
 * Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.76-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
