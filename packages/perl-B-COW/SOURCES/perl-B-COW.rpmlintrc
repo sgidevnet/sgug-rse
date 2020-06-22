@@ -1,0 +1,8 @@
+from Config import *
+
+# It can be spelled naïve or naive
+addFilter("spelling-error %description -l en_US naïve")
+
+# The link error is because of a weak __cxa_finalize symbol
+# Weak symbols do not need to be fulfilled
+addFilter("library-not-linked-against-libc /.*/COW.so")
