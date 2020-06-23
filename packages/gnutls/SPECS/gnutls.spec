@@ -134,6 +134,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 #make -C doc install-html DESTDIR=$RPM_BUILD_ROOT
 rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
+rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
 rm -f $RPM_BUILD_ROOT%{_libdir}/guile/2.2/guile-gnutls*.a
 rm -f $RPM_BUILD_ROOT%{_libdir}/guile/2.2/guile-gnutls*.la
 rm -f $RPM_BUILD_ROOT%{_libdir}/gnutls/libpkcs11mock1.*
