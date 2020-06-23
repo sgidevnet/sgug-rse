@@ -120,9 +120,13 @@ export CCASFLAGS="$CCASFLAGS -Wa,--generate-missing-build-notes=yes"
    --disable-non-suiteb-curves \
    --disable-guile \
    --with-default-trust-store-pkcs11="pkcs11:" \
-   --libdir=%{?__isa_bits==64:/usr/sgug/lib}%{!?__isa_bits==32:/usr/sgug/lib32}
+   --libdir=%{?__isa_bits==64:/usr/sgug/lib}%{!?__isa_bits==32:/usr/sgug/lib32} \
+   --prefix=/usr/sgug
 
-make 
+rm libtool
+cp /usr/sgug/bin/libtool libtool
+
+make %{?_smp_mflags} 
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
