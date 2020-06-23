@@ -1,0 +1,7 @@
+from Config import *
+
+# rpmlint can't tell if a macro is expanded or not; this one is correct
+addFilter("unexpanded-macro %description -l C %EXPORT_TAGS")
+
+# This is not a spelling error
+addFilter("spelling-error %description -l en_US coderefs -> ")
