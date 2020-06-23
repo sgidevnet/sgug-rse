@@ -1,0 +1,2 @@
+from Config import *
+addFilter("spelling-error %description -l en_US (destdir|installable|tmp) -> ")
