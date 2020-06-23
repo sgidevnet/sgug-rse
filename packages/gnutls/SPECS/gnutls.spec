@@ -96,25 +96,20 @@ manipulation tools.
 
 echo "SYSTEM=NORMAL" >> tests/system.prio
 
-autoreconf -vfi
-cp /usr/sgug/bin/libtool .
-
 # Note that we explicitly enable SHA1, as SHA1 deprecation is handled
 # via the crypto policies
 
 %build
-CCASFLAGS="$CCASFLAGS -Wa,--generate-missing-build-notes=yes"
-export CCASFLAGS
-
+export CCASFLAGS="$CCASFLAGS -Wa,--generate-missing-build-notes=yes"
 
 ./configure --prefix=/usr/sgug \
    --disable-option-checking \
-   --disable-doc \
    --disable-hardware-acceleration \
    --disable-padlock \
    --disable-strict-der-time \
    --disable-heartbeat-support \
    --disable-tests \
+   --disable-doc \
    --disable-full-test-suite \
    --disable-gcc-warnings \
    --disable-libdane \
@@ -124,8 +119,8 @@ export CCASFLAGS
    --disable-static \
    --disable-non-suiteb-curves \
    --disable-guile \
-   --with-default-trust-store-pkcs11="pkcs11:"
-
+   --with-default-trust-store-pkcs11="pkcs11:" \
+   --libdir=%{?__isa_bits==64:/usr/sgug/lib}%{!?__isa_bits==32:/usr/sgug/lib32}
 
 make 
 
@@ -166,22 +161,22 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/pkgconfig/gnutls-dane.pc
 %endif
 
 %{_libdir}/pkgconfig/*.pc
-%{_mandir}/man3/*
-%{_infodir}/gnutls*
-%{_infodir}/pkcs11-vision*
-%{_docdir}/manual/*
+#%{_mandir}/man3/*
+#%{_infodir}/gnutls*
+#%{_infodir}/pkcs11-vision*
+#%{_docdir}/manual/*
 
 %files utils
 %defattr(-,root,root,-)
 %{_bindir}/certtool
-%{_bindir}/tpmtool
+#%{_bindir}/tpmtool
 %{_bindir}/ocsptool
 %{_bindir}/psktool
 %{_bindir}/p11tool
 %{_bindir}/srptool
 %{_bindir}/gnutls*
-%{_mandir}/man1/*
-%doc doc/certtool.cfg
+#%{_mandir}/man1/*
+#%doc doc/certtool.cfg
 
 
 %changelog
