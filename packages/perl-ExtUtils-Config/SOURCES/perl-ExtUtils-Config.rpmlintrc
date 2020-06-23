@@ -1,0 +1,4 @@
+from Config import *
+
+# False positive
+addFilter("unexpanded-macro %description -l C %Config")
