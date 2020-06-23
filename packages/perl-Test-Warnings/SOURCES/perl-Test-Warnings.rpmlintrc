@@ -1,0 +1,3 @@
+from Config import *
+addFilter("spelling-error %description -l en_US NoWarnings -> ")
+addFilter("spelling-error %description -l en_US nowarnings -> ")
