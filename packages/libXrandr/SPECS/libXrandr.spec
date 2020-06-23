@@ -52,8 +52,8 @@ make install DESTDIR=$RPM_BUILD_ROOT
 
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 
-#%ldconfig_post
-#%ldconfig_postun
+#%%ldconfig_post
+#%%ldconfig_postun
 
 %files
 %doc AUTHORS COPYING

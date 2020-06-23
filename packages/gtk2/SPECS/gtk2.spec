@@ -20,7 +20,7 @@
 Summary: GTK+ graphical user interface library
 Name: gtk2
 Version: 2.24.32
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: LGPLv2+
 URL: http://www.gtk.org
 #VCS: git:git://git.gnome.org/gtk+#gtk-2-24
@@ -29,18 +29,21 @@ Source2: update-gtk-immodules
 Source3: im-cedilla.conf
 Source4: update-gtk-immodules.1
 
-Patch1: system-python.patch
+# Use Python 3 in gtk-builder-convert
+# Accepted upstream: https://gitlab.gnome.org/GNOME/gtk/merge_requests/1080
+Patch1: python3.patch
 # https://bugzilla.gnome.org/show_bug.cgi?id=583273
 Patch2: icon-padding.patch
 # https://bugzilla.gnome.org/show_bug.cgi?id=599618
 Patch8: tooltip-positioning.patch
 # https://bugzilla.gnome.org/show_bug.cgi?id=611313
 Patch15: window-dragging.patch
-Patch100:   gtk2.sgifixes.patch
 
 # Backported from upstream:
 Patch20: 0001-calendar-Use-the-new-OB-format-if-supported.patch
 Patch21: 0001-Fix-compiler-warnings-with-GCC-8.1.patch
+
+Patch100:   gtk2.sgifixes.patch
 
 BuildRequires: pkgconfig(atk) >= %{atk_version}
 BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
@@ -137,18 +140,21 @@ package.
 %package devel-docs
 Summary: Developer documentation for GTK+
 Requires: gtk2 = %{version}-%{release}
-BuildArch: noarch
+#BuildArch: noarch
 
 %description devel-docs
 This package contains developer documentation for the GTK+ widget toolkit.
 
 %prep
-#autoreconf -fi gtk+-%{version}
 %autosetup -n gtk+-%{version} -p1
 
+# A place to build the sgug patch
+#exit 1
+
 %build
-export CFLAGS='-fno-strict-aliasing %optflags'
+export CFLAGS='-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -fno-strict-aliasing %optflags'
 export XDG_DATA_DIRS=/usr/sgug/share
+export PERL=%{_bindir}/perl
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--disable-gtk-doc; fi;
  %configure $CONFIGFLAGS \
 	--enable-man		\
@@ -156,12 +162,14 @@ export XDG_DATA_DIRS=/usr/sgug/share
         --enable-xinerama       \
         --disable-glibtest      \
         --disable-gtk-doc-html  \
+        --disable-cups          \
 	--enable-debug		\
+        --with-xml-catalog=%{_sysconfdir}/xml/catalog
 )
 
-# fight unused direct deps
 rm libtool
 cp /usr/sgug/bin/libtool libtool
+# fight unused direct deps
 sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 make %{?_smp_mflags}
@@ -239,8 +247,8 @@ cp %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}/update-gtk-immodules
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/X11/xinit/xinput.d
 cp %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xinit/xinput.d
 
-# Explicitly use python2 shebang instead of ambiguous python
-sed -i -e 's/^#!.*$/#!\/usr\/sgug\/bin\/python/' $RPM_BUILD_ROOT%{_bindir}/gtk-builder-convert
+# Use python3 shebang instead of ambiguous python
+pathfix.py -pn -i %{__python3} $RPM_BUILD_ROOT%{_bindir}/gtk-builder-convert
 
 # Remove unpackaged files
 rm $RPM_BUILD_ROOT%{_libdir}/*.la
@@ -250,7 +258,7 @@ rm $RPM_BUILD_ROOT%{_bindir}/gtk-update-icon-cache
 rm $RPM_BUILD_ROOT%{_libdir}/*.a
 rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/*/*.a
 rm $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/*/*.a
-#rm $RPM_BUILD_ROOT%{_mandir}/man1/gtk-update-icon-cache.1*
+rm $RPM_BUILD_ROOT%{_mandir}/man1/gtk-update-icon-cache.1*
 
 touch $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/%{bin_version}/immodules.cache
 
@@ -286,7 +294,7 @@ gtk-query-immodules-2.0-%{__isa_bits} --update-cache
 %{_datadir}/themes/Raleigh
 %ghost %{_libdir}/gtk-2.0/%{bin_version}/immodules.cache
 %{_libdir}/girepository-1.0
-#%%{_mandir}/man1/gtk-query-immodules-2.0*
+%{_mandir}/man1/gtk-query-immodules-2.0*
 #%%{_mandir}/man1/update-gtk-immodules.1.gz
 
 %files immodules
@@ -317,7 +325,7 @@ gtk-query-immodules-2.0-%{__isa_bits} --update-cache
 %{_bindir}/gtk-demo
 %{_datadir}/gtk-2.0/demo
 %{_datadir}/gir-1.0
-#%%{_mandir}/man1/gtk-builder-convert.1.gz
+%{_mandir}/man1/gtk-builder-convert.1.gz
 
 %files devel-docs
 %{_datadir}/gtk-doc
@@ -326,6 +334,9 @@ gtk-query-immodules-2.0-%{__isa_bits} --update-cache
 #%%doc tmpdocs/examples
 
 %changelog
+* Sun Jun 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.24.32-6
+- Upgrade to latest from fc31, fix up cups, xml-catalog, icon catalog, use python3, fix up compilation bug with IRIX headers
+
 * Mon Jun 15 2020  HAL <notes2@gmx.de> - 2.24.32-5
 - compiles on Irix 6.5 with sgug-rse gcc 9.2. Not perfect yet, needs some finetuning. 
 

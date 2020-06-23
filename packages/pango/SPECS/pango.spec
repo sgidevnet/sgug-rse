@@ -15,7 +15,7 @@ Summary: System for layout and rendering of internationalized text
 License: LGPLv2+
 URL: http://www.pango.org
 Source0: https://download.gnome.org/sources/%{name}/1.43/%{name}-%{version}.tar.xz
-Patch0: pango-fixes-pkg-config.patch
+#Patch0: pango-fixes-pkg-config.patch
 
 BuildRequires: pkgconfig(cairo) >= %{cairo_version}
 BuildRequires: pkgconfig(freetype2) >= %{freetype_version}
@@ -32,7 +32,7 @@ BuildRequires: help2man
 BuildRequires: meson
 BuildRequires: gcc gcc-c++
 
-#Requires: glib2%{?_isa} >= %{glib2_version}
+Requires: glib2%{?_isa} >= %{glib2_version}
 Requires: freetype%{?_isa} >= %{freetype_version}
 Requires: fontconfig%{?_isa} >= %{fontconfig_version}
 Requires: cairo%{?_isa} >= %{cairo_version}
@@ -56,7 +56,7 @@ quality text handling and graphics rendering.
 %package devel
 Summary: Development files for pango
 Requires: pango%{?_isa} = %{version}-%{release}
-#Requires: glib2-devel%{?_isa} >= %{glib2_version}
+Requires: glib2-devel%{?_isa} >= %{glib2_version}
 Requires: freetype-devel%{?_isa} >= %{freetype_version}
 Requires: fontconfig-devel%{?_isa} >= %{fontconfig_version}
 Requires: cairo-devel%{?_isa} >= %{cairo_version}
@@ -76,7 +76,7 @@ the functionality of the installed %{name} package.
 
 %prep
 %setup -q -n pango-%{version}
-%patch0 -p1 -b .pc
+#%patch0 -p1 -b .pc
 
 %build
 export LD_LIBRARYN32_PATH=%{_builddir}/pango-1.43.0/mips-sgug-irix/pango/:$LD_LIBRARYN32_PATH

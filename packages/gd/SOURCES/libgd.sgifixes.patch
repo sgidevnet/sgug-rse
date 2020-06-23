@@ -1,0 +1,9 @@
+diff -Naur libgd-2.2.5.orig/src/bdftogd libgd-2.2.5/src/bdftogd
+--- libgd-2.2.5.orig/src/bdftogd	2017-08-30 04:05:55.000000000 +0000
++++ libgd-2.2.5/src/bdftogd	2020-06-22 13:57:29.772995636 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/usr/sgug/bin/perl -w
+ 
+ #
+ # Simple convertor from bdf to gd font format.

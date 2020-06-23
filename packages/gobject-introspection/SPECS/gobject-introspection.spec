@@ -4,7 +4,7 @@
 
 Name:           gobject-introspection
 Version:        1.62.0
-Release:        1%{?dist}
+Release:        7%{?dist}
 Summary:        Introspection system for GObject-based libraries
 
 License:        GPLv2+, LGPLv2+, MIT
@@ -20,7 +20,7 @@ BuildRequires:  flex
 BuildRequires:  fontconfig-devel
 BuildRequires:  freetype-devel
 BuildRequires:  gettext
-#BuildRequires:  glib2-devel >= %{glib2_version}
+BuildRequires:  glib2-devel >= %{glib2_version}
 #BuildRequires:  gtk-doc
 BuildRequires:  libffi-devel
 BuildRequires:  libX11-devel
@@ -30,10 +30,10 @@ BuildRequires:  libxml2-devel
 #BuildRequires:  mesa-libGL-devel
 BuildRequires:  meson
 BuildRequires:  python3-devel
-#BuildRequires:  python3-mako
+BuildRequires:  python3-mako
 BuildRequires:  python3-markdown
 
-#Requires:       glib2%{?_isa} >= %{glib2_version}
+Requires:       glib2%{?_isa} >= %{glib2_version}
 
 %description
 GObject Introspection can scan C header and source files in order to
@@ -47,7 +47,7 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 # Not always, but whatever, it's a tiny dep to pull in
 Requires:       libtool
 # For g-ir-doctool
-#Requires:       python3-mako
+Requires:       python3-mako
 # This package only works with the Python version it was built with
 # https://bugzilla.redhat.com/show_bug.cgi?id=1691064
 Requires:       (python(abi) = %{python3_version} if python3)
@@ -57,6 +57,11 @@ Libraries and headers for gobject-introspection
 
 %prep
 %autosetup -p1
+
+# Fix some hardcoded paths
+perl -pi -e "s|/usr/share|%{_datadir}|g" giscanner/transformer.py
+perl -pi -e "s|/usr/share|%{_datadir}|g" giscanner/utils.py
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" giscanner/dumper.py
 
 %build
 export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-irix/girepository/:$LD_LIBRARYN32_PATH
@@ -83,12 +88,15 @@ export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-ir
 %{_datadir}/gobject-introspection-1.0/
 %{_datadir}/aclocal/introspection.m4
 %{_mandir}/man1/*.gz
-#%%dir %{_datadir}/gtk-doc
-#%%dir %{_datadir}/gtk-doc/html
+#%%dir %%{_datadir}/gtk-doc
+#%%dir %%{_datadir}/gtk-doc/html
 #%%{_datadir}/gtk-doc/html/gi/
 
 %changelog
-* Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
+* Sat Jun 20 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-7
+- Fix some hardcoded paths + reenable deps now we have packaged enough python pieces
+
+* Fri May 1 2020 HAL <hal@null.not> - 1.16.0-6
 - some slight changes so it will build on Irix 6.5 and gcc 9.2
 
 * Mon Sep 09 2019 Kalev Lember <klember@redhat.com> - 1.62.0-1

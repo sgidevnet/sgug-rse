@@ -1,0 +1,28 @@
+diff -u -r swig-4.0.1-orig/configure.ac swig-4.0.1/configure.ac
+--- swig-4.0.1-orig/configure.ac	2020-06-20 04:06:36.308774480 +0000
++++ swig-4.0.1/configure.ac	2020-06-20 04:25:27.244389640 +0000
+@@ -162,7 +162,7 @@
+                 fi
+             fi ;;
+ 	*-*-irix5*) LDSHARED="ld -shared";;
+-	*-*-irix6*) LDSHARED="ld ${SGI_ABI} -shared -all";;
++	*-*-irix6*) LDSHARED="$CC -shared";;
+ 	*-*-sunos4*) LDSHARED="ld";;
+ 	*-*-solaris*) LDSHARED="ld -G";;
+ 	*-*-hp*) LDSHARED="ld -b";;
+@@ -260,7 +260,6 @@
+ then
+ 	case $host in
+ 	*-*-solaris*) RPATH='-R. -R$(exec_prefix)/lib';;
+-        *-*-irix*) RPATH='-rpath .:$(exec_prefix)/lib';;
+ 	*-*-linux*) RPATH='-Xlinker -rpath $(exec_prefix)/lib -Xlinker -rpath .';;
+ 	*)	RPATH='';;
+ 	esac
+@@ -280,7 +279,6 @@
+ 	*-*-linux*) LINKFORSHARED="-Xlinker -export-dynamic";;
+ 	*-*-next*) LINKFORSHARED="-u libsys_s";;
+ 	*-sco-sysv*) LINKFORSHARED="-Bdynamic -dy -Wl,-Bexport";;
+-	*-*-irix6*) LINKFORSHARED="-all";;
+ 	esac
+ fi
+ AC_MSG_RESULT($LINKFORSHARED)

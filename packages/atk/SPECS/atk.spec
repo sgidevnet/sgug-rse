@@ -54,7 +54,7 @@ needed for development of applications or toolkits which use ATK.
 %{_datadir}/gir-1.0
 
 %changelog
-* Sun Jun 07 2020  Alexander Tafarte <notes2@gmx.de> - 2.35.1-2
+* Sun Jun 07 2020  Alexander Tafarte <notes2@gmx.de> - 2.34.1-2
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
 * Tue Sep 10 2019 Kalev Lember <klember@redhat.com> - 2.34.1-1
