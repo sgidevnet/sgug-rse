@@ -104,12 +104,12 @@ export CCASFLAGS="$CCASFLAGS -Wa,--generate-missing-build-notes=yes"
 
 ./configure --prefix=/usr/sgug \
    --disable-option-checking \
+   --disable-doc \
    --disable-hardware-acceleration \
    --disable-padlock \
    --disable-strict-der-time \
    --disable-heartbeat-support \
    --disable-tests \
-   --disable-doc \
    --disable-full-test-suite \
    --disable-gcc-warnings \
    --disable-libdane \
