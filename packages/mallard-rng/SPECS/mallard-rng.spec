@@ -30,7 +30,7 @@ final.
 %install
 %make_install
 
-
+#rm -f $RPM_BUILD_ROOT/usr/sgug/share/pkgconfig/mallard-rng.pc
 %post
 xmlcatalog --noout --add 'nextCatalog' 'file://%{_sysconfdir}/xml/mallard/catalog' "" %{_sysconfdir}/xml/catalog &> /dev/null || :
 
@@ -43,7 +43,7 @@ xmlcatalog --noout --del 'file://%{_sysconfdir}/xml/mallard/catalog' %{_sysconfd
 %doc AUTHORS NEWS README
 %license COPYING
 %{_datadir}/xml/mallard
-%{_datadir}/pkgconfig
+%{_datadir}/pkgconfig/*
 %{_sysconfdir}/xml/mallard
 %config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/xml/mallard/catalog
 
