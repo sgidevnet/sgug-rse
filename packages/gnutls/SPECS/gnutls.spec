@@ -184,7 +184,6 @@ export gl_cv_func_select_detects_ebadf=no
            --disable-static \
            --disable-openssl-compatibility \
            --disable-non-suiteb-curves \
-           --with-system-priority-file=%{_sysconfdir}/crypto-policies/back-ends/gnutls.config \
            --with-default-trust-store-pkcs11="pkcs11:" \
            --htmldir=%{_docdir}/manual \
 %if %{with guile}
@@ -199,11 +198,12 @@ export gl_cv_func_select_detects_ebadf=no
 %else
            --disable-dane \
 %endif
-           --disable-rpath \
-           --with-default-priority-string="@SYSTEM"
+           --disable-rpath
 
 # Unused on sgug
+#           --with-system-priority-file=%{_sysconfdir}/crypto-policies/back-ends/gnutls.config \
 #           --with-trousers-lib=%{_libdir}/libtspi.so.1 \
+#           --with-default-priority-string="@SYSTEM"
 #
 
 rm libtool
