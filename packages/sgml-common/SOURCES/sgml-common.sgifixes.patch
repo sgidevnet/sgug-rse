@@ -1,0 +1,9 @@
+diff -u -r sgml-common-0.6.3-orig/config/sgml.conf sgml-common-0.6.3/config/sgml.conf
+--- sgml-common-0.6.3-orig/config/sgml.conf	2000-11-17 08:36:11.000000000 +0000
++++ sgml-common-0.6.3/config/sgml.conf	2020-06-27 11:34:21.992957840 +0000
+@@ -1,3 +1,3 @@
+ # /etc/sgml/sgml.conf conformant with LSB
+-SGML_BASE_DIR=/usr/share/sgml
+-SGML_CATALOGS_DIR=/etc/sgml
++SGML_BASE_DIR=/usr/sgug/share/sgml
++SGML_CATALOGS_DIR=/usr/sgug/etc/sgml
