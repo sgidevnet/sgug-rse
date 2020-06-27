@@ -52,6 +52,7 @@ make %{?_smp_mflags} V=1
 %check
 # without RPATH this needs to be set to test the compiled library
 export LD_LIBRARY_PATH=$(pwd)/lib/.libs
+export LD_LIBRARYN32_PATH=%{buildroot}%{_libdir}
 make %{?_smp_mflags} -C tests check VALGRIND=env
 
 %install
@@ -73,6 +74,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la \
 %{_libdir}/libidn.so.11*
 
 %changelog
+* Thu Jun 25 2020  HAL <notes2@gmx.de> - 1.34.4
+- compiles on Irix 6.5 with sgug-rse gcc 9.2. fix all tests
+
 * Wed May 13 2020  Alexander Tafarte <notes2@gmx.de> -1.34.4 
 - compiles on Irix 6.5 with sgug-rse gcc 9.2 , 84/87 tests pass (1 skipped).
 

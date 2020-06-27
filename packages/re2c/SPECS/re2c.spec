@@ -43,9 +43,6 @@ make tests
 
 
 %changelog
-* Fri Apr 17 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.1-3
-- Import into wip
-
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.1-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
