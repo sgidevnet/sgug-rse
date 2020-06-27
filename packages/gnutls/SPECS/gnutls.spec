@@ -3,25 +3,45 @@ Version:	3.6.14
 Release: 1%{?dist}
 Patch1:	gnutls-3.6.7-no-now-guile.patch
 Patch2:	gnutls-3.2.7-rpath.patch
+#%bcond_without dane
+#%if 0%{?rhel}
+#%bcond_with guile
+#%bcond_without fips
+#%else
+#%bcond_without guile
+#%bcond_without fips
+#%endif
+# We don't have guile of fips on sgug, yet
+%bcond_with guile
+%bcond_with fips
 
 Summary: A TLS protocol implementation
 Name: gnutls
 # The libraries are LGPLv2.1+, utilities are GPLv3+
 License: GPLv3+ and LGPLv2+
-#BuildRequires: p11-kit-devel >= 0.21.3, gettext-devel
-#BuildRequires: zlib-devel, readline-devel, libtasn1-devel >= 4.3
+BuildRequires: p11-kit-devel >= 0.21.3, gettext-devel
+BuildRequires: zlib-devel, readline-devel, libtasn1-devel >= 4.3
 #BuildRequires: libtool, automake, autoconf, texinfo
+BuildRequires: libtool, automake, autoconf
 #BuildRequires: autogen-libopts-devel >= 5.18 autogen
-#BuildRequires: nettle-devel >= 3.5.1
+BuildRequires: nettle-devel >= 3.5.1
 #BuildRequires: trousers-devel >= 0.3.11.2
-#BuildRequires: libidn2-devel
-#BuildRequires: libunistring-devel
+BuildRequires: libidn2-devel
+BuildRequires: libunistring-devel
 #BuildRequires: gperf, net-tools, datefudge, softhsm, gcc, gcc-c++
+BuildRequires: gperf, gcc, gcc-c++
 #BuildRequires: gnupg2
 #%if %{with fips}
 #BuildRequires: fipscheck
 #%endif
 
+# for a sanity check on cert loading
+BuildRequires: p11-kit-trust, ca-certificates
+#Requires: crypto-policies
+Requires: p11-kit-trust
+Requires: libtasn1 >= 4.3
+Requires: nettle >= 3.4.1
+#Recommends: trousers >= 0.3.11.2
 
 #%if %{with dane}
 #BuildRequires: unbound-devel unbound-libs
@@ -45,13 +65,31 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Summary: Development files for the %{name} package
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-c++%{?_isa} = %{version}-%{release}
+#%if %{with dane}
+#Requires: %{name}-dane%{?_isa} = %{version}-%{release}
+#%endif
 Requires: pkgconfig
 
 %package utils
 License: GPLv3+
 Summary: Command line tools for TLS protocol
 Requires: %{name}%{?_isa} = %{version}-%{release}
+#%if %{with dane}
+#Requires: %{name}-dane%{?_isa} = %{version}-%{release}
+#%endif
 
+#%if %{with dane}
+#%package dane
+#Summary: A DANE protocol implementation for GnuTLS
+#Requires: %{name}%{?_isa} = %{version}-%{release}
+#%endif
+
+#%if %{with guile}
+#%package guile
+#Summary: Guile bindings for the GNUTLS library
+#Requires: %{name}%{?_isa} = %{version}-%{release}
+#Requires: guile22
+#%endif
 
 %description
 GnuTLS is a secure communications library implementing the SSL, TLS and DTLS 
@@ -85,8 +123,29 @@ other required structures.
 This package contains command line TLS client and server and certificate
 manipulation tools.
 
+# %if %{with dane}
+# %description dane
+# GnuTLS is a secure communications library implementing the SSL, TLS and DTLS 
+# protocols and technologies around them. It provides a simple C language 
+# application programming interface (API) to access the secure communications 
+# protocols as well as APIs to parse and write X.509, PKCS #12, OpenPGP and 
+# other required structures. 
+# This package contains library that implements the DANE protocol for verifying
+# TLS certificates through DNSSEC.
+# %endif
+
+# %if %{with guile}
+# %description guile
+# GnuTLS is a secure communications library implementing the SSL, TLS and DTLS 
+# protocols and technologies around them. It provides a simple C language 
+# application programming interface (API) to access the secure communications 
+# protocols as well as APIs to parse and write X.509, PKCS #12, OpenPGP and 
+# other required structures. 
+# This package contains Guile bindings for the library.
+# %endif
 
 %prep
+#gpgv2 --keyring %{SOURCE2} %{SOURCE1} %{SOURCE0}
 
 %autosetup -p1
 
@@ -100,38 +159,71 @@ echo "SYSTEM=NORMAL" >> tests/system.prio
 # via the crypto policies
 
 %build
-export CCASFLAGS="$CCASFLAGS -Wa,--generate-missing-build-notes=yes"
+CCASFLAGS="$CCASFLAGS -Wa,--generate-missing-build-notes=yes"
+export CCASFLAGS
 
-./configure --prefix=/usr/sgug \
-   --disable-option-checking \
-   --disable-doc \
-   --disable-hardware-acceleration \
-   --disable-padlock \
-   --disable-strict-der-time \
-   --disable-heartbeat-support \
-   --disable-tests \
-   --disable-full-test-suite \
-   --disable-gcc-warnings \
-   --disable-libdane \
-   --disable-nls \
-   --disable-rpath \
-   --enable-sha1-support \
-   --disable-static \
-   --disable-non-suiteb-curves \
-   --disable-guile \
-   --with-default-trust-store-pkcs11="pkcs11:" \
-   --libdir=%{?__isa_bits==64:/usr/sgug/lib}%{!?__isa_bits==32:/usr/sgug/lib32} \
-   --prefix=/usr/sgug
+## These should be checked by m4/guile.m4 instead of configure.ac
+## taking into account of _guile_suffix
+#guile_snarf=%{_bindir}/guile-snarf2.2
+#export guile_snarf
+#GUILD=%{_bindir}/guild2.2
+#export GUILD
+
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+
+# Hints to autoconf so that some gnulib tests pass
+export gl_cv_func_select_supports0=no
+export gl_cv_func_select_detects_ebadf=no
+
+%configure --with-libtasn1-prefix=%{_prefix} \
+%if %{with fips}
+           --enable-fips140-mode \
+%endif
+	   --enable-sha1-support \
+           --disable-static \
+           --disable-openssl-compatibility \
+           --disable-non-suiteb-curves \
+           --with-system-priority-file=%{_sysconfdir}/crypto-policies/back-ends/gnutls.config \
+           --with-default-trust-store-pkcs11="pkcs11:" \
+           --htmldir=%{_docdir}/manual \
+%if %{with guile}
+           --enable-guile \
+           --with-guile-extension-dir=%{_libdir}/guile/2.2 \
+%else
+           --disable-guile \
+%endif
+%if %{with dane}
+           --with-unbound-root-key-file=/var/lib/unbound/root.key \
+           --enable-dane \
+%else
+           --disable-dane \
+%endif
+           --disable-rpath \
+           --with-default-priority-string="@SYSTEM"
+
+# Unused on sgug
+#           --with-trousers-lib=%{_libdir}/libtspi.so.1 \
+#
 
 rm libtool
-cp /usr/sgug/bin/libtool libtool
+cp %{_bindir}/libtool libtool
 
-make %{?_smp_mflags} 
+make %{?_smp_mflags} V=1
+
+# %if %{with fips}
+# %define __spec_install_post \
+# 	%{?__debug_package:%{__debug_install_post}} \
+# 	%{__arch_install_post} \
+# 	%{__os_install_post} \
+# 	fipshmac -d $RPM_BUILD_ROOT%{_libdir} $RPM_BUILD_ROOT%{_libdir}/libgnutls.so.30.*.* \
+# 	file=`basename $RPM_BUILD_ROOT%{_libdir}/libgnutls.so.30.*.hmac` && mv $RPM_BUILD_ROOT%{_libdir}/$file $RPM_BUILD_ROOT%{_libdir}/.$file && ln -s .$file $RPM_BUILD_ROOT%{_libdir}/.libgnutls.so.30.hmac \
+# %{nil}
+# %endif
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
-
-#make -C doc install-html DESTDIR=$RPM_BUILD_ROOT
+make -C doc install-html DESTDIR=$RPM_BUILD_ROOT
 rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
@@ -142,14 +234,16 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/gnutls/libpkcs11mock1.*
 rm -f $RPM_BUILD_ROOT%{_libdir}/pkgconfig/gnutls-dane.pc
 %endif
 
-#%find_lang gnutls
+%find_lang gnutls
 
+%check
+make check %{?_smp_mflags}
 
-%files -n gnutls
+%files -f gnutls.lang
 %defattr(-,root,root,-)
 %{_libdir}/libgnutls.so.30*
 %if %{with fips}
-%{_libdir}/.libgnutls.so.30*.hmac
+#%%{_libdir}/.libgnutls.so.30*.hmac
 %endif
 %doc README.md AUTHORS NEWS THANKS
 %license LICENSE doc/COPYING doc/COPYING.LESSER
@@ -162,14 +256,14 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/pkgconfig/gnutls-dane.pc
 %{_includedir}/*
 %{_libdir}/libgnutls*.so
 %if %{with fips}
-%{_libdir}/.libgnutls.so.*.hmac
+#%%{_libdir}/.libgnutls.so.*.hmac
 %endif
 
 %{_libdir}/pkgconfig/*.pc
-#%{_mandir}/man3/*
-#%{_infodir}/gnutls*
-#%{_infodir}/pkcs11-vision*
-#%{_docdir}/manual/*
+%{_mandir}/man3/*
+%{_infodir}/gnutls*
+%{_infodir}/pkcs11-vision*
+%{_docdir}/manual/*
 
 %files utils
 %defattr(-,root,root,-)
@@ -179,10 +273,28 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/pkgconfig/gnutls-dane.pc
 %{_bindir}/psktool
 %{_bindir}/p11tool
 %{_bindir}/srptool
+#%if %{with dane}
+#%{_bindir}/danetool
+#%endif
 %{_bindir}/gnutls*
-#%{_mandir}/man1/*
-#%doc doc/certtool.cfg
+%{_mandir}/man1/*
+%doc doc/certtool.cfg
 
+# %if %{with dane}
+# %files dane
+# %defattr(-,root,root,-)
+# %{_libdir}/libgnutls-dane.so.*
+# %endif
+
+# %if %{with guile}
+# %files guile
+# %defattr(-,root,root,-)
+# %{_libdir}/guile/2.2/guile-gnutls*.so*
+# %{_libdir}/guile/2.2/site-ccache/gnutls.go
+# %{_libdir}/guile/2.2/site-ccache/gnutls/extra.go
+# %{_datadir}/guile/site/2.2/gnutls.scm
+# %{_datadir}/guile/site/2.2/gnutls/extra.scm
+# %endif
 
 %changelog
 * Thu Jun  4 2020 Daiki Ueno <dueno@redhat.com> - 3.6.14-1
