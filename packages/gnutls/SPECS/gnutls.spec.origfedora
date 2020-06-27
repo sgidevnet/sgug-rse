@@ -16,16 +16,16 @@ Summary: A TLS protocol implementation
 Name: gnutls
 # The libraries are LGPLv2.1+, utilities are GPLv3+
 License: GPLv3+ and LGPLv2+
-#BuildRequires: p11-kit-devel >= 0.21.3, gettext-devel
-#BuildRequires: zlib-devel, readline-devel, libtasn1-devel >= 4.3
-#BuildRequires: libtool, automake, autoconf, texinfo
-#BuildRequires: autogen-libopts-devel >= 5.18 autogen
-#BuildRequires: nettle-devel >= 3.5.1
-#BuildRequires: trousers-devel >= 0.3.11.2
-#BuildRequires: libidn2-devel
-#BuildRequires: libunistring-devel
-#BuildRequires: gperf, net-tools, datefudge, softhsm, gcc, gcc-c++
-#BuildRequires: gnupg2
+BuildRequires: p11-kit-devel >= 0.21.3, gettext-devel
+BuildRequires: zlib-devel, readline-devel, libtasn1-devel >= 4.3
+BuildRequires: libtool, automake, autoconf, texinfo
+BuildRequires: autogen-libopts-devel >= 5.18 autogen
+BuildRequires: nettle-devel >= 3.5.1
+BuildRequires: trousers-devel >= 0.3.11.2
+BuildRequires: libidn2-devel
+BuildRequires: libunistring-devel
+BuildRequires: gperf, net-tools, datefudge, softhsm, gcc, gcc-c++
+BuildRequires: gnupg2
 %if %{with fips}
 BuildRequires: fipscheck
 %endif
