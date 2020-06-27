@@ -1,7 +1,7 @@
 Summary: A DSSSL implementation
 Name: openjade
 Version: 1.3.2
-Release: 61%{?dist}
+Release: 62%{?dist}
 Requires: sgml-common
 URL: http://openjade.sourceforge.net/
 Source: http://download.sourceforge.net/openjade/openjade-%{version}.tar.gz
@@ -33,6 +33,7 @@ Provides: jade = %{version}-%{release}
 
 BuildRequires:  gcc-c++
 BuildRequires: opensp-devel
+BuildRequires: docbook-dtds >= 1.0-74
 
 BuildRequires: perl-interpreter
 
@@ -120,6 +121,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.so $RPM_BUILD_ROOT%{_libdir}/*.la $RPM_BUILD_R
 %{_datadir}/sgml/%{name}-%{version}
 
 %changelog
+* Sat Jun 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.2-62
+- Force dependency on needed docbook-utils version with fixes
+
 * Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.2-61
 - Import into wip, fix up
 
