@@ -138,6 +138,9 @@ touch $RPM_BUILD_ROOT%{_datadir}/t1lib/{FontDatabase,t1lib.config}
 
 
 %changelog
+* Thu Jun 25 2020  HAL <notes2@gmx.de> - 5.1.2-25
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 5.1.2-25
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
