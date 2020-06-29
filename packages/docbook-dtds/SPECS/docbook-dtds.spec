@@ -8,7 +8,7 @@
 
 Name: docbook-dtds
 Version: 1.0
-Release: 73%{?dist}
+Release: 74%{?dist}
 
 Summary: SGML and XML document type definitions for DocBook
 
@@ -304,7 +304,7 @@ do
   if [ -f %{_prefix}/etc/sgml/sgml-docbook-$v.cat ]
   then
     $catcmd --sgml --del %{_prefix}/etc/sgml/sgml-docbook-$v.cat \
-      %{_prefix}/share/sgml/openjade-1.3.1/catalog 2>/dev/null
+      %{_prefix}/share/sgml/openjade-%{openjadever}/catalog 2>/dev/null
   fi
 done
 
@@ -475,6 +475,9 @@ do
 done
 
 %changelog
+* Sat Jun 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0-74
+- Correct hard reference to (wrong) openjade directory to use the global macro defined here in the spec
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.0-73
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
