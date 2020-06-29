@@ -1,0 +1,3 @@
+addFilter('spelling-error.*formatter')
+addFilter('spelling-error.*pycodestyle')
+addFilter('no-manual-page-for-binary black-3*')

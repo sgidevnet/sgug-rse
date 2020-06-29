@@ -1,0 +1,25 @@
+From 511799120b60f4544e11435d7cc8d17e71e542d7 Mon Sep 17 00:00:00 2001
+From: Michael Simacek <msimacek@redhat.com>
+Date: Mon, 12 Feb 2018 13:55:00 +0100
+Subject: [PATCH] Adapt test launcher for our envirnoment
+
+---
+ run-tests.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/run-tests.py b/run-tests.py
+index 4bedd15..a79799f 100755
+--- a/run-tests.py
++++ b/run-tests.py
+@@ -100,7 +100,7 @@ def run_pytest(display):
+ def main():
+     check_dependencies()
+     call([I3_BINARY, '--version'])
+-    display = get_open_display()
++    display = get_open_display() + 1
+ 
+     with start_server(display) as server:
+         result = run_pytest(display)
+-- 
+2.17.1
+

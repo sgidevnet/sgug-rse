@@ -1,0 +1,10 @@
+diff --git a/raven/conf/defaults.py b/raven/conf/defaults.py
+index 073e01a..32c81b8 100644
+--- a/raven/conf/defaults.py
++++ b/raven/conf/defaults.py
+@@ -47,4 +47,4 @@ try:
+     import certifi
+     CA_BUNDLE = certifi.where()
+ except ImportError:
+-    CA_BUNDLE = os.path.join(ROOT, 'data', 'cacert.pem')
++    CA_BUNDLE = '/etc/pki/tls/certs/ca-bundle.crt'

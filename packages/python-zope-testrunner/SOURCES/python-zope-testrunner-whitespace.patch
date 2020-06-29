@@ -1,0 +1,28 @@
+--- src/zope/testrunner/tests/testrunner-subunit.rst.orig	2019-10-19 03:47:03.000000000 -0600
++++ src/zope/testrunner/tests/testrunner-subunit.rst	2020-03-01 16:26:36.275183090 -0700
+@@ -472,10 +472,9 @@ Let's run tests including a module with
+     test: sample2.badsyntax
+     tags: zope:import_error
+     error: sample2.badsyntax [
+-    Traceback (most recent call last):
+       File "/home/benji/workspace/all-the-trunks/zope.testrunner/src/zope/testrunner/testrunner-ex/sample2/badsyntax.py", line 16
+         importx unittest
+-                       ^
++                ^
+     SyntaxError: invalid syntax
+     ]
+     test: sample2.sample21.sampletests_i
+--- src/zope/testrunner/tests/testrunner-subunit-v2.rst.orig	2019-10-19 03:47:03.000000000 -0600
++++ src/zope/testrunner/tests/testrunner-subunit-v2.rst	2020-03-01 16:26:47.243166265 -0700
+@@ -439,10 +439,9 @@ Let's run tests including a module with
+     id=sample2.badsyntax status=inprogress
+     id=sample2.badsyntax
+     traceback (text/x-traceback...)
+-    Traceback (most recent call last):
+       File "/home/benji/workspace/all-the-trunks/zope.testrunner/src/zope/testrunner/testrunner-ex/sample2/badsyntax.py", line 16
+         importx unittest
+-                       ^
++                ^
+     SyntaxError: invalid syntax
+     <BLANKLINE>
+     id=sample2.badsyntax status=fail tags=(zope:import_error)

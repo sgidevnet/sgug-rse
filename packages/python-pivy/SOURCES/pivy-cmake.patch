@@ -1,0 +1,26 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2,7 +2,10 @@ project(pivy_cmake_setup NONE)
+ cmake_minimum_required(VERSION 3.5)
+ 
+ 
+-find_package(Coin CONFIG REQUIRED)
++#find_package(Coin CONFIG REQUIRED)
++set(Coin_INCLUDE_DIR "/usr/include/Coin4")
++set(Coin_LIB_DIR "/usr/lib64/")
++set(Coin_VERSION "4.0.0")
+ 
+ if (Coin_INCLUDE_DIR)
+     MESSAGE(STATUS "COIN_FOUND: true")
+@@ -16,7 +19,10 @@ MESSAGE(STATUS "COIN_VERSION: ${Coin_VER
+ 
+ 
+ 
+-find_package(soqt CONFIG QUIET)
++#find_package(soqt CONFIG QUIET)
++set(SoQt_INCLUDE_DIRS "/usr/include/Coin4")
++set(SoQt_LIBRARY_DIRS "/usr/lib64")
++set(SoQt_VERSION "1.6.0")
+ 
+ if (SoQt_INCLUDE_DIRS)
+     MESSAGE(STATUS "SOQT_FOUND: true")

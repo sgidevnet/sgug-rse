@@ -1,0 +1,25 @@
+From f9a4ec2caab09f28e72d59cad1b5859a1534f02b Mon Sep 17 00:00:00 2001
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Date: Sat, 24 Oct 2015 13:11:13 +0200
+Subject: [PATCH 2/2] don't hack distutils with C/LDFLAGS
+
+Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+---
+ setup.py | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index 29ecdbc..3aa4b2d 100644
+--- a/setup.py
++++ b/setup.py
+@@ -111,7 +111,6 @@ def main():
+             get_pybind_include, PybindBuildExtCommand)
+     check_pybind11()
+ 
+-    hack_distutils()
+     conf = get_config(get_config_schema(),
+             warn_about_no_config=False)
+ 
+-- 
+2.21.0
+

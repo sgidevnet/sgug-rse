@@ -1,0 +1,29 @@
+From bb61823fdfe3c7ab67b2db6c04b2ba66a856c091 Mon Sep 17 00:00:00 2001
+From: Sindre Hansen <sindrehansen92@gmail.com>
+Date: Thu, 21 Feb 2019 10:27:00 +0100
+Subject: [PATCH] Add special import case for python 2.7
+
+Python 2.7 still needs to import directly from collections and not
+from collections.abc as Python 3.* should.
+---
+ pygraphviz/agraph.py | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/pygraphviz/agraph.py b/pygraphviz/agraph.py
+index 35c9d58..d468aa4 100644
+--- a/pygraphviz/agraph.py
++++ b/pygraphviz/agraph.py
+@@ -17,7 +17,12 @@
+ import sys
+ import threading
+ import warnings
+-from collections.abc import MutableMapping
++try:
++    # Python 3
++    from collections.abc import MutableMapping
++except ImportError:
++    # Python 2.7
++    from collections import MutableMapping
+ 
+ from . import graphviz as gv
+ 

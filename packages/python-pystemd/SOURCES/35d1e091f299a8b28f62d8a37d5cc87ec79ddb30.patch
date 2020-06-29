@@ -1,0 +1,47 @@
+From 35d1e091f299a8b28f62d8a37d5cc87ec79ddb30 Mon Sep 17 00:00:00 2001
+From: Thomas A Caswell <tcaswell@gmail.com>
+Date: Mon, 1 Apr 2019 22:13:57 -0700
+Subject: [PATCH] MNT: use public ast module in setup.py (#33)
+
+Summary:
+The `Str` object is no longer in in `_ast` is py38, switch
+to using the public `ast` module instead.
+
+https://github.com/python/cpython/pull/9445
+https://bugs.python.org/issue32892
+Pull Request resolved: https://github.com/facebookincubator/pystemd/pull/33
+
+Differential Revision: D14721271
+
+Pulled By: aleivag
+
+fbshipit-source-id: 1367f300f74f037983e5f6e51f7af8990f416759
+---
+ setup.py | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index 2504449..5e165a0 100644
+--- a/setup.py
++++ b/setup.py
+@@ -16,7 +16,6 @@
+ import time
+ from pathlib import Path
+ 
+-import _ast
+ from setuptools import setup
+ from setuptools.extension import Extension
+ 
+@@ -36,9 +35,9 @@
+ __version__ = [
+     expr.value.s
+     for expr in parsed_file.body
+-    if isinstance(expr, _ast.Assign)
+-    and isinstance(expr.targets[0], _ast.Name)
+-    and isinstance(expr.value, _ast.Str)
++    if isinstance(expr, ast.Assign)
++    and isinstance(expr.targets[0], ast.Name)
++    and isinstance(expr.value, ast.Str)
+     and expr.targets[0].id == "__version__"
+ ][0]
+ 

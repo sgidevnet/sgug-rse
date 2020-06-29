@@ -1,0 +1,91 @@
+From 1303e9a3797c48b1681532c7c7e2d70a64907258 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Thu, 5 Jul 2018 15:46:58 +1000
+Subject: [PATCH 5/5] use OrderedDict for attributes and namespaces
+
+This is to ensure consistent iteration order, mainly so that the tests
+will work regardless of dict hashing behaviour which varies across
+Python 2 and 3. It should be nicer for callers as well.
+---
+ xmltramp.py | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/xmltramp.py b/xmltramp.py
+index 0653112..d3f1541 100644
+--- a/xmltramp.py
++++ b/xmltramp.py
+@@ -10,6 +10,10 @@
+ 	text_type = unicode
+ except NameError: # PY3
+ 	text_type = str
++try:
++	from collections import OrderedDict
++except ImportError: # PY<=2.6
++	OrderedDict = dict
+ 
+ def isstr(f): return isinstance(f, type('')) or isinstance(f, type(u''))
+ def islst(f): return isinstance(f, type(())) or isinstance(f, type([]))
+@@ -26,18 +30,18 @@ class Element:
+ 	def __init__(self, name, attrs=None, children=None, prefixes=None):
+ 		if islst(name) and name[0] == None: name = name[1]
+ 		if attrs:
+-			na = {}
++			na = OrderedDict()
+ 			for k in attrs.keys():
+ 				if islst(k) and k[0] == None: na[k[1]] = attrs[k]
+ 				else: na[k] = attrs[k]
+ 			attrs = na
+ 		
+ 		self._name = name
+-		self._attrs = attrs or {}
++		self._attrs = attrs or OrderedDict()
+ 		self._dir = children or []
+ 		
+-		prefixes = prefixes or {}
+-		self._prefixes = dict(zip(prefixes.values(), prefixes.keys()))
++		prefixes = prefixes or OrderedDict()
++		self._prefixes = OrderedDict(zip(prefixes.values(), prefixes.keys()))
+ 		
+ 		if prefixes: self._dNS = prefixes.get(None, None)
+ 		else: self._dNS = None
+@@ -67,7 +71,7 @@ def arep(a, inprefixes, addns=1):
+ 			
+ 			return out
+ 		
+-		inprefixes = inprefixes or {u'http://www.w3.org/XML/1998/namespace':'xml'}
++		inprefixes = inprefixes or OrderedDict({u'http://www.w3.org/XML/1998/namespace':'xml'})
+ 		
+ 		# need to call first to set inprefixes:
+ 		attributes = arep(self._attrs, inprefixes, recursive) 
+@@ -217,7 +221,7 @@ class Seeder(EntityResolver, DTDHandler, ContentHandler, ErrorHandler):
+ 	def __init__(self):
+ 		self.stack = []
+ 		self.ch = ''
+-		self.prefixes = {}
++		self.prefixes = OrderedDict()
+ 		ContentHandler.__init__(self)
+ 		
+ 	def startPrefixMapping(self, prefix, uri):
+@@ -231,7 +235,7 @@ def startElementNS(self, name, qname, attrs):
+ 		if ch and not ch.isspace(): self.stack[-1]._dir.append(ch)
+ 
+ 		attrs = dict(attrs)
+-		newprefixes = {}
++		newprefixes = OrderedDict()
+ 		for k in self.prefixes.keys():
+ 			if self.prefixes[k]:
+ 				newprefixes[k] = self.prefixes[k][-1]
+@@ -333,8 +337,8 @@ def unittest():
+ 	</doc>""")
+ 
+ 	assert repr(d) == '<doc version="2.7182818284590451">...</doc>'
+-	assert d.__repr__(1) == '<doc xmlns:bbc="http://example.org/bbc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://example.org/bar" version="2.7182818284590451"><author>John Polk and John Palfrey</author><dc:creator>John Polk</dc:creator><dc:creator>John Palfrey</dc:creator><bbc:show bbc:station="4">Buffy</bbc:show></doc>'
+-	assert d.__repr__(1,1) == '<doc xmlns:bbc="http://example.org/bbc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://example.org/bar" version="2.7182818284590451">\n\t<author>John Polk and John Palfrey</author>\n\t<dc:creator>John Polk</dc:creator>\n\t<dc:creator>John Palfrey</dc:creator>\n\t<bbc:show bbc:station="4">Buffy</bbc:show>\n</doc>'
++	assert d.__repr__(1) == '<doc xmlns="http://example.org/bar" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:bbc="http://example.org/bbc" version="2.7182818284590451"><author>John Polk and John Palfrey</author><dc:creator>John Polk</dc:creator><dc:creator>John Palfrey</dc:creator><bbc:show bbc:station="4">Buffy</bbc:show></doc>'
++	assert d.__repr__(1,1) == '<doc xmlns="http://example.org/bar" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:bbc="http://example.org/bbc" version="2.7182818284590451">\n\t<author>John Polk and John Palfrey</author>\n\t<dc:creator>John Polk</dc:creator>\n\t<dc:creator>John Palfrey</dc:creator>\n\t<bbc:show bbc:station="4">Buffy</bbc:show>\n</doc>'
+ 
+ 	assert repr(parse("<doc xml:lang='en' />")) == '<doc xml:lang="en"></doc>'
+ 
+-- 
+2.14.4
+

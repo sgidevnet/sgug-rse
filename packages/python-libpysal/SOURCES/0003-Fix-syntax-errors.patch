@@ -1,0 +1,194 @@
+From b3fa9570ed8521e6825066a08dea1358999935a8 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Sat, 8 Feb 2020 23:48:55 -0500
+Subject: [PATCH 3/5] Fix syntax errors.
+
+* Fix invalid escape sequences in strings.
+* Fix invalid use of `is not`.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ libpysal/io/fileio.py         |  2 +-
+ libpysal/io/iohandlers/wk1.py |  2 +-
+ libpysal/io/util/wkt.py       | 12 +++++++-----
+ libpysal/weights/distance.py  | 10 +++++-----
+ libpysal/weights/spintW.py    |  4 ++--
+ libpysal/weights/util.py      |  2 +-
+ libpysal/weights/weights.py   | 10 +++++-----
+ 7 files changed, 22 insertions(+), 20 deletions(-)
+
+diff --git a/libpysal/io/fileio.py b/libpysal/io/fileio.py
+index bbc55064..a057088c 100644
+--- a/libpysal/io/fileio.py
++++ b/libpysal/io/fileio.py
+@@ -40,7 +40,7 @@ class FileIO(object, metaclass=FileIO_MetaCls):  # should be a type?
+ 
+ 
+     How this works:
+-    FileIO.open(\*args) == FileIO(\*args)
++    FileIO.open(\\*args) == FileIO(\\*args)
+     When creating a new instance of FileIO the .__new__ method intercepts
+     .__new__ parses the filename to determine the fileType
+     next, .__registry and checked for that type.
+diff --git a/libpysal/io/iohandlers/wk1.py b/libpysal/io/iohandlers/wk1.py
+index 939bcf4d..2eb71ed6 100644
+--- a/libpysal/io/iohandlers/wk1.py
++++ b/libpysal/io/iohandlers/wk1.py
+@@ -20,7 +20,7 @@ class Wk1IO(fileio.FileIO):
+     Wk1 starts the row (column) number from 0 and
+     uses little endian binary endcoding.
+     In PySAL, when the number of observations is n,
+-    it is assumed that each cell of a n\*n(=m) matrix either is a blank or
++    it is assumed that each cell of a n\\*n(=m) matrix either is a blank or
+     have a number.
+ 
+     The internal structure of a Wk1 file written by PySAL is as follows:
+diff --git a/libpysal/io/util/wkt.py b/libpysal/io/util/wkt.py
+index 4f582847..0a5c9a0b 100644
+--- a/libpysal/io/util/wkt.py
++++ b/libpysal/io/util/wkt.py
+@@ -56,11 +56,13 @@ class WKTParser:
+     See local doctest output for the items not tested...
+ 
+     """
+-    regExes = {'typeStr': re.compile('^\s*([\w\s]+)\s*\(\s*(.*)\s*\)\s*$'),
+-               'spaces': re.compile('\s+'),
+-               'parenComma': re.compile('\)\s*,\s*\('),
+-               'doubleParenComma': re.compile('\)\s*\)\s*,\s*\(\s*\('),  # can't use {2} here
+-               'trimParens': re.compile('^\s*\(?(.*?)\)?\s*$')}
++    regExes = {
++        'typeStr': re.compile(r'^\s*([\w\s]+)\s*\(\s*(.*)\s*\)\s*$'),
++        'spaces': re.compile(r'\s+'),
++        'parenComma': re.compile(r'\)\s*,\s*\('),
++        'doubleParenComma': re.compile(r'\)\s*\)\s*,\s*\(\s*\('),  # can't use {2} here
++        'trimParens': re.compile(r'^\s*\(?(.*?)\)?\s*$'),
++    }
+ 
+     def __init__(self):
+         self.parsers = p = {}
+diff --git a/libpysal/weights/distance.py b/libpysal/weights/distance.py
+index 8ee6eee8..2e9552cd 100644
+--- a/libpysal/weights/distance.py
++++ b/libpysal/weights/distance.py
+@@ -351,31 +351,31 @@ class Kernel(W):
+ 
+                   .. math::
+ 
+-                      K(z) = (1 - |z|) \ if |z| \le 1
++                      K(z) = (1 - |z|) \\ if |z| \\le 1
+ 
+                   uniform
+ 
+                   .. math::
+ 
+-                      K(z) = 1/2 \ if |z| \le 1
++                      K(z) = 1/2 \\ if |z| \\le 1
+ 
+                   quadratic
+ 
+                   .. math::
+ 
+-                      K(z) = (3/4)(1-z^2) \ if |z| \le 1
++                      K(z) = (3/4)(1-z^2) \\ if |z| \\le 1
+ 
+                   quartic
+ 
+                   .. math::
+ 
+-                      K(z) = (15/16)(1-z^2)^2 \ if |z| \le 1
++                      K(z) = (15/16)(1-z^2)^2 \\ if |z| \\le 1
+ 
+                   gaussian
+ 
+                   .. math::
+ 
+-                      K(z) = (2\pi)^{(-1/2)} exp(-z^2 / 2)
++                      K(z) = (2\\pi)^{(-1/2)} exp(-z^2 / 2)
+ 
+     eps         : float
+                   adjustment to ensure knn distance range is closed on the
+diff --git a/libpysal/weights/spintW.py b/libpysal/weights/spintW.py
+index 9a69abc3..48545bce 100644
+--- a/libpysal/weights/spintW.py
++++ b/libpysal/weights/spintW.py
+@@ -50,13 +50,13 @@ def ODW(Wo, Wd, transform='r', silence_warnings=True):
+            0.  , 0.  , 0.  , 0.  , 0.  ])
+ 
+     """
+-    if Wo.transform is not 'b':
++    if Wo.transform != 'b':
+         try:
+             Wo.tranform = 'b'
+         except:
+             raise AttributeError('Wo is not binary and cannot be transformed to '
+                     'binary. Wo must be binary or suitably transformed to binary.')
+-    if Wd.transform is not 'b':
++    if Wd.transform != 'b':
+         try:
+             Wd.tranform = 'b'
+         except:
+diff --git a/libpysal/weights/util.py b/libpysal/weights/util.py
+index 363fe4a5..75e5d286 100644
+--- a/libpysal/weights/util.py
++++ b/libpysal/weights/util.py
+@@ -530,7 +530,7 @@ def higher_order_sp(w, k=2, shortest_path=True, diagonal=False, **kwargs):
+ 
+ 
+ def w_local_cluster(w):
+-    """
++    r"""
+     Local clustering coefficients for each unit as a node in a graph. [ws]_
+ 
+     Parameters
+diff --git a/libpysal/weights/weights.py b/libpysal/weights/weights.py
+index d4ed5ade..16f2488c 100644
+--- a/libpysal/weights/weights.py
++++ b/libpysal/weights/weights.py
+@@ -404,7 +404,7 @@ class W(object):
+ 
+     @property
+     def s0(self):
+-        """s0 is defined as
++        r"""s0 is defined as
+ 
+         .. math::
+ 
+@@ -418,7 +418,7 @@ class W(object):
+ 
+     @property
+     def s1(self):
+-        """s1 is defined as
++        r"""s1 is defined as
+ 
+         .. math::
+ 
+@@ -450,7 +450,7 @@ class W(object):
+ 
+     @property
+     def s2(self):
+-        """s2 is defined as
++        r"""s2 is defined as
+ 
+         .. math::
+ 
+@@ -1027,7 +1027,7 @@ class W(object):
+     transform = property(get_transform, set_transform)
+ 
+     def asymmetry(self, intrinsic=True):
+-        """
++        r"""
+         Asymmetry check.
+ 
+         Parameters
+@@ -1366,7 +1366,7 @@ class WSP(object):
+ 
+     @property
+     def s0(self):
+-        """s0 is defined as:
++        r"""s0 is defined as:
+ 
+         .. math::
+ 
+-- 
+2.21.1
+

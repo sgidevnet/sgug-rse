@@ -1,0 +1,21 @@
+diff -uNr a/verboselogs/pylint.py b/verboselogs/pylint.py
+--- a/verboselogs/pylint.py	2017-08-07 12:45:42.000000000 -0700
++++ b/verboselogs/pylint.py	2019-03-13 16:52:01.048252829 -0700
+@@ -11,6 +11,10 @@
+ """
+ 
+ from astroid import MANAGER, scoped_nodes, nodes
++from astroid.__pkginfo__ import numversion
++
++
++scoped_nodes_class = scoped_nodes.ClassDef if numversion >= (2, 0) else scoped_nodes.Class
+ 
+ 
+ def register(linter):
+@@ -32,5 +36,5 @@
+ 
+ 
+ # Register the above methods with Pylint.
+-MANAGER.register_transform(scoped_nodes.Class, verboselogs_class_transform)
++MANAGER.register_transform(scoped_nodes_class, verboselogs_class_transform)
+ MANAGER.register_transform(scoped_nodes.Module, verboselogs_module_transform)

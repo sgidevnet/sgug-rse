@@ -1,0 +1,69 @@
+From 53d56bd2c6080280798b021c596c9d783ad832dc Mon Sep 17 00:00:00 2001
+From: Stanislav Levin <slev@altlinux.org>
+Date: Wed, 29 May 2019 12:01:38 +0300
+Subject: [PATCH] Fix Pytest4.x compatibility errors
+
+The next two errors were fixed:
+```
+[pytest] sections in setup.cfg files should now be named [tool:pytest] to
+avoid conflicts with other distutils commands.
+```
+
+```
+Calling a fixture function directly, as opposed to request them in a test
+function, is deprecated.
+```
+
+Signed-off-by: Stanislav Levin <slev@altlinux.org>
+---
+ dbfread/test_read_and_length.py | 22 +++++++++++-----------
+ setup.cfg                       |  2 +-
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/dbfread/test_read_and_length.py b/dbfread/test_read_and_length.py
+index 593fa18..c380e8c 100644
+--- a/dbfread/test_read_and_length.py
++++ b/dbfread/test_read_and_length.py
+@@ -24,19 +24,19 @@ def loaded_table():
+                     u'BIRTHDATE': datetime.date(1979, 12, 22),
+                     u'MEMO': u'Deleted Guy memo'}]
+ 
+-def test_len():
+-    assert len(table()) == 2
+-    assert len(table().deleted) == 1
++def test_len(table, loaded_table):
++    assert len(table) == 2
++    assert len(table.deleted) == 1
+ 
+-    assert len(loaded_table()) == 2
+-    assert len(loaded_table().deleted) == 1
++    assert len(loaded_table) == 2
++    assert len(loaded_table.deleted) == 1
+ 
+-def test_list():
+-    assert list(table()) == records
+-    assert list(table().deleted) == deleted_records
++def test_list(table, loaded_table):
++    assert list(table) == records
++    assert list(table.deleted) == deleted_records
+     
+-    assert list(loaded_table()) == records
+-    assert list(loaded_table().deleted) == deleted_records
++    assert list(loaded_table) == records
++    assert list(loaded_table.deleted) == deleted_records
+ 
+     # This should not return old style table which was a subclass of list.
+-    assert not isinstance(table(), list)
++    assert not isinstance(table, list)
+diff --git a/setup.cfg b/setup.cfg
+index 5158a53..41bdb52 100644
+--- a/setup.cfg
++++ b/setup.cfg
+@@ -3,6 +3,6 @@ universal = 1
+ 
+ [easy_install]
+ 
+-[pytest]
++[tool:pytest]
+ norecursedirs = build dist examples
+ 

@@ -1,0 +1,11 @@
+--- pybtex/database/input/bibtexml.py.orig	2020-01-26 04:42:39.000000000 -0700
++++ pybtex/database/input/bibtexml.py	2020-03-27 10:38:52.697396281 -0600
+@@ -21,7 +21,7 @@
+ 
+ from __future__ import unicode_literals
+ 
+-from xml.etree import cElementTree as ET
++from xml.etree import ElementTree as ET
+ 
+ from pybtex.database import Entry, Person
+ from pybtex.database.input import BaseParser

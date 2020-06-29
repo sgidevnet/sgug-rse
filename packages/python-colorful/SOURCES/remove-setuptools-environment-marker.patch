@@ -1,0 +1,40 @@
+From 9f1ccc9265834008300615b2a8bcc39fbbd42de0 Mon Sep 17 00:00:00 2001
+From: Carl George <carl@george.computer>
+Date: Wed, 13 Feb 2019 14:21:14 -0600
+Subject: [PATCH] Remove setuptools environment marker
+
+The colorama Windows requirement is utilizing the platform_system environment
+marker.  Support for environment markers was added in setuptools 20.2.  Since
+that optional dependency doesn't matter for Fedora, we can patch it out and
+remain compatible with the older RHEL python-setuptools.
+
+https://setuptools.readthedocs.io/en/latest/history.html#id357
+---
+ setup.py | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index bc7d64e..19b671b 100644
+--- a/setup.py
++++ b/setup.py
+@@ -60,12 +60,6 @@ def read_version():
+     long_description = desc_file.read()
+ 
+ 
+-#: Holds the requirements for colorful
+-requirements = [
+-    'colorama;platform_system=="Windows"'
+-]
+-
+-
+ if __name__ == '__main__':
+ 
+     setup(
+@@ -82,7 +76,6 @@ def read_version():
+         include_package_data=True,
+         package_data={'': ['colorful/data/*.txt', 'colorful/data/*.json', 'README.md']},
+         packages=find_packages(exclude=['*tests*']),
+-        install_requires=requirements,
+         classifiers=[
+             'Development Status :: 5 - Production/Stable',
+             'Environment :: Console',

@@ -1,0 +1,11 @@
+--- ase/cli/info.py.orig	2013-06-21 15:53:02.000000000 +0200
++++ ase/cli/info.py	2014-01-17 13:16:22.802013016 +0100
+@@ -14,7 +14,7 @@
+    opts, args = p.parse_args()
+ 
+    if len(args) == 0:
+-      p.error()
++      p.error('Incorrect number of arguments')
+ 
+    for f in args:
+       if os.path.isfile(f):

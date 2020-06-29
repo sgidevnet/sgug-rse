@@ -1,0 +1,5 @@
+# MANUAL PAGES
+addFilter(r'no-manual-page-for-binary humanfriendly$')
+
+# SPELLING ERRORS
+addFilter(r'spelling-error .* en_US (pathnames|timespans|substring)( ->|$)')

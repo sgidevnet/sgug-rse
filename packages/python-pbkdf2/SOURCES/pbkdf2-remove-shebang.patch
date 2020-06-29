@@ -1,0 +1,9 @@
+diff --git pbkdf2.py pbkdf2.py
+index 937a99a..b0c8b92 100644
+--- pbkdf2.py
++++ pbkdf2.py
+@@ -1,4 +1,3 @@
+-#!/usr/bin/python
+ # -*- coding: ascii -*-
+ ###########################################################################
+ # pbkdf2 - PKCS#5 v2.0 Password-Based Key Derivation

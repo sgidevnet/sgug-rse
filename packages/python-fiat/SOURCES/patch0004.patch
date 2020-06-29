@@ -1,0 +1,25 @@
+From 3b17d82a5678746234247bad3b9c019f49bc00ad Mon Sep 17 00:00:00 2001
+From: David Ham <david.ham@imperial.ac.uk>
+Date: Fri, 9 Aug 2019 11:46:19 +0100
+Subject: [PATCH] fix xfails in test_fiat
+
+---
+ test/unit/test_fiat.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/unit/test_fiat.py b/test/unit/test_fiat.py
+index eec0bd8..a2b2c79 100644
+--- a/test/unit/test_fiat.py
++++ b/test/unit/test_fiat.py
+@@ -96,7 +96,7 @@ def test_basis_derivatives_scaling():
+             assert np.isclose(tab[(2,)][1][p], 0.0)
+ 
+ 
+-xfail_impl = pytest.mark.xfail(strict=True, raises=NotImplementedError)
++xfail_impl = lambda element: pytest.param(element, marks=pytest.mark.xfail(strict=True, raises=NotImplementedError))
+ elements = [
+     "Lagrange(I, 1)",
+     "Lagrange(I, 2)",
+-- 
+2.10.5
+

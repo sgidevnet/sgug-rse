@@ -1,0 +1,13 @@
+diff --git a/test.sh b/test.sh
+index 013a041..d130f32 100755
+--- a/test.sh
++++ b/test.sh
+@@ -121,7 +121,7 @@ img2pdf()
+ {
+ 	# we use --without-pdfrw to better "grep" the result and because we
+ 	# cannot write palette based images otherwise
+-	$img2pdfprog --without-pdfrw --producer="" --nodate "$1" > "$2" 2>/dev/null
++	python3 $img2pdfprog -v --without-pdfrw --producer="" --nodate "$1" > "$2"
+ }
+ 
+ tests=51 # number of tests

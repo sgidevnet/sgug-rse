@@ -1,0 +1,27 @@
+From b9aebcfc971d55fa6f2bf0e895e34a19994b6fd3 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Thu, 5 Jul 2018 15:42:35 +1000
+Subject: [PATCH 4/5] empty slice is slice(None, None, None) on Python 3
+
+On Python 2, the empty slice is slice(0, 9223372036854775807, None) so
+this extra conditional was not necessary.
+---
+ xmltramp.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xmltramp.py b/xmltramp.py
+index e2522f2..0653112 100644
+--- a/xmltramp.py
++++ b/xmltramp.py
+@@ -135,7 +135,7 @@ def __getitem__(self, n):
+ 			return self._dir[n]
+ 		elif isinstance(n, slice(0).__class__):
+ 			# numerical slices
+-			if isinstance(n.start, type(0)): return self._dir[n.start:n.stop]
++			if n.start is None or isinstance(n.start, type(0)): return self._dir[n.start:n.stop]
+ 			
+ 			# d['foo':] == all <foo>s
+ 			n = n.start
+-- 
+2.14.4
+

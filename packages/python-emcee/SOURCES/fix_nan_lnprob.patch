@@ -1,0 +1,12 @@
+diff -ur emcee-2.2.1/emcee/tests.py emcee-2.2.1.btest/emcee/tests.py
+--- emcee-2.2.1/emcee/tests.py	2016-07-15 10:12:21.000000000 +0200
++++ emcee-2.2.1.btest/emcee/tests.py	2019-07-11 11:48:15.264302724 +0200
+@@ -178,7 +178,7 @@
+ 
+         # If a walker is right at zero, ``lnprobfn`` returns ``np.nan``.
+         p0 = self.p0
+-        p0[0] = 0.0
++        p0[0] = np.zeros_like(p0[0])
+ 
+         try:
+             self.check_sampler(p0=p0)

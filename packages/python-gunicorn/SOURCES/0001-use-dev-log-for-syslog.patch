@@ -1,0 +1,22 @@
+From 4bf056a23856dab615cad7cb8707956e5b2a6598 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Wed, 2 Jan 2013 11:48:54 +1000
+Subject: [PATCH 1/2] use /dev/log for syslog
+
+
+diff --git a/gunicorn/config.py b/gunicorn/config.py
+index aa97894..98e7783 100644
+--- a/gunicorn/config.py
++++ b/gunicorn/config.py
+@@ -1367,7 +1367,7 @@ class SyslogTo(Setting):
+         default = "unix:///var/run/syslog"
+     elif PLATFORM in ('freebsd', 'dragonfly', ):
+         default = "unix:///var/run/log"
+-    elif PLATFORM == "openbsd":
++    elif PLATFORM in ('openbsd', 'linux'):
+         default = "unix:///dev/log"
+     else:
+         default = "udp://localhost:514"
+-- 
+2.17.1
+

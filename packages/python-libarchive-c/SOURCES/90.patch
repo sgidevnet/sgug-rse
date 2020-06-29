@@ -1,0 +1,31 @@
+From 4358b7beb422a57e20ef1777c3d05e049e89b338 Mon Sep 17 00:00:00 2001
+From: Orion Poplawski <orion@nwra.com>
+Date: Sun, 19 May 2019 15:01:49 -0600
+Subject: [PATCH] Add zstd support
+
+---
+ libarchive/ffi.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libarchive/ffi.py b/libarchive/ffi.py
+index 755eb71..698d6ba 100644
+--- a/libarchive/ffi.py
++++ b/libarchive/ffi.py
+@@ -167,7 +167,7 @@ def ffi(name, argtypes, restype, errcheck=None):
+ 
+ READ_FILTERS = set((
+     'all', 'bzip2', 'compress', 'grzip', 'gzip', 'lrzip', 'lzip', 'lzma',
+-    'lzop', 'none', 'rpm', 'uu', 'xz', 'lz4'
++    'lzop', 'none', 'rpm', 'uu', 'xz', 'lz4', 'zstd'
+ ))
+ for f_name in list(READ_FILTERS):
+     try:
+@@ -229,7 +229,7 @@ def ffi(name, argtypes, restype, errcheck=None):
+ 
+ WRITE_FILTERS = set((
+     'b64encode', 'bzip2', 'compress', 'grzip', 'gzip', 'lrzip', 'lzip', 'lzma',
+-    'lzop', 'uuencode', 'xz', 'lz4'
++    'lzop', 'uuencode', 'xz', 'lz4', 'zstd'
+ ))
+ for f_name in list(WRITE_FILTERS):
+     try:

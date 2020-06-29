@@ -1,0 +1,13 @@
+# use like this:
+# rpmlint --file python-eccodes.rpmlintrc *.rpm
+# example: addFilter ("^foo-.*regex-match-for-rpmlint-warning")
+
+# NOTE: as stated in the review request by the reviewer
+# " do not remove objects.inv.  That file is used by sphinx to create
+#   cross-links between documentation for different modules. 
+#   If some other python module someday wants to refer to the 
+#   eccodes documentation, it will need objects.inv to do so."
+# So add 2 filters to prevent rpmlint from complaining about this file.
+
+addFilter ("python3-eccodes.*: W: wrong-file-end-of-line-encoding /usr/share/doc/python3-eccodes/html/objects.inv")
+addFilter ("python3-eccodes.*: W: file-not-utf8 /usr/share/doc/python3-eccodes/html/objects.inv")

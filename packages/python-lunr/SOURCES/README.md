@@ -1,0 +1,3 @@
+# python-lunr
+
+This Python version of Lunr.js aims to bring the simple and powerful full text search capabilities into Python guaranteeing results as close as the original implementation as possible.

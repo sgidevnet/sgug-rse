@@ -1,0 +1,12 @@
+diff -up ./setup.py.orig ./setup.py
+--- ./setup.py.orig	2018-08-02 18:37:34.000000000 +0200
++++ ./setup.py	2018-08-06 11:25:14.496926373 +0200
+@@ -27,7 +27,7 @@ nspkg_packages.sort(key = lambda x: len(
+ meta_package = ['azure-mgmt', 'azure']
+ 
+ # So content packages are:
+-content_package = [p for p in packages if p not in meta_package+nspkg_packages]
++content_package = [p for p in packages if p not in meta_package+['azure-sdk-tools']]
+ # Move azure-common at the beginning
+ content_package.remove("azure-common")
+ content_package.insert(0, "azure-common")

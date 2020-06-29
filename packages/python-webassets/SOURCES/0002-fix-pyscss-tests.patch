@@ -1,0 +1,50 @@
+From 3798d8a4c1f41bb1415ebe2efc9a150f231794ef Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Mon, 16 Jul 2018 11:32:27 +1000
+Subject: [PATCH 2/5] fix pyscss tests
+
+---
+ tests/test_filters.py | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/tests/test_filters.py b/tests/test_filters.py
+index f01e13f..e4e37d4 100644
+--- a/tests/test_filters.py
++++ b/tests/test_filters.py
+@@ -10,6 +10,7 @@
+ from mock import patch, Mock, DEFAULT
+ from distutils.spawn import find_executable
+ import re
++from io import BytesIO
+ from webassets.utils import StringIO
+ from webassets import Environment
+ from webassets.exceptions import FilterError
+@@ -1029,7 +1030,7 @@ def setup(self):
+ 
+     def test(self):
+         self.mkbundle('foo.scss', filters='pyscss', output='out.css').build()
+-        assert self.get('out.css') == 'h1 {\n  color: #ff0000;\n}\na {\n  color: #ff8000;\n}\n'
++        assert self.get('out.css') == 'h1 {\n  color: red; }\n\n  a {\n    color: #ff8000; }\n'
+ 
+     def test_assets(self):
+         try:
+@@ -1037,14 +1038,14 @@ def test_assets(self):
+             # Travis does not support PNG files, see
+             # https://github.com/travis-ci/travis-ci/issues/746
+             from PIL import Image
+-            Image.new('RGB', (10,10)).save(StringIO(), 'png')
++            Image.new('RGB', (10,10)).save(BytesIO(), 'png')
+         except (ImportError, IOError):
+             raise SkipTest()
+         self.create_files({'noise.scss': 'h1 {background: background-noise()}'})
+         self.mkbundle('noise.scss', filters='pyscss', output='out.css').build()
+ 
+         assert doctest_match(
+-            'h1 {\n  background: url("...png");\n}\n',
++            'h1 {\n  background: url("...png"); }\n',
+             self.get('out.css'),)
+ 
+ 
+-- 
+2.17.1
+

@@ -1,0 +1,52 @@
+--- a/websockets/test_protocol.py	2017-08-21 19:42:07.788929215 +0200
++++ b/websockets/test_protocol.py	2017-08-21 19:42:01.260805760 +0200
+@@ -741,49 +741,3 @@
+
+     # There is no test_local_close_during_send because this cannot really
+     # happen, considering that writes are serialized.
+-
+-
+-class ServerTests(CommonTests, unittest.TestCase):
+-
+-    def test_close_handshake_timeout(self):
+-        # Timeout is expected in 10ms.
+-        self.protocol.timeout = 10 * MS
+-        # Check the timing within -1/+9ms for robustness.
+-        with self.assertCompletesWithin(9 * MS, 19 * MS):
+-            # Unlike previous tests, no close frame will be received in
+-            # response. The server will stop waiting for the close frame and
+-            # timeout.
+-            self.loop.run_until_complete(self.protocol.close(reason='close'))
+-        self.assertConnectionClosed(1006, '')
+-
+-
+-class ClientTests(CommonTests, unittest.TestCase):
+-
+-    def setUp(self):
+-        super().setUp()
+-        self.protocol.is_client = True
+-
+-    def test_close_handshake_timeout(self):
+-        # Timeout is expected in 2 * 10 = 20ms.
+-        self.protocol.timeout = 10 * MS
+-        # Check the timing within -1/+9ms for robustness.
+-        with self.assertCompletesWithin(19 * MS, 29 * MS):
+-            # Unlike previous tests, no close frame will be received in
+-            # response and the connection will not be closed. The client will
+-            # stop waiting for the close frame and timeout, then stop waiting
+-            # for the connection close and timeout again.
+-            self.loop.run_until_complete(self.protocol.close(reason='close'))
+-        self.assertConnectionClosed(1006, '')
+-
+-    def test_eof_received_timeout(self):
+-        # Timeout is expected in 10ms.
+-        self.protocol.timeout = 10 * MS
+-        # Check the timing within -1/+9ms for robustness.
+-        with self.assertCompletesWithin(9 * MS, 19 * MS):
+-            # Unlike previous tests, the close frame will be received in
+-            # response but the connection will not be closed. The client will
+-            # stop waiting for the connection close and timeout.
+-            self.receive_frame(self.close_frame)
+-            self.loop.run_until_complete(self.protocol.close(reason='close'))
+-
+-        self.assertConnectionClosed(1000, 'close')

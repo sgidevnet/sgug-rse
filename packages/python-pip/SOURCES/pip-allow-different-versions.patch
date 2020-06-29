@@ -1,0 +1,27 @@
+--- /usr/bin/pip3	2019-11-12 17:37:34.793131862 +0100
++++ pip3	2019-11-12 17:40:42.014107134 +0100
+@@ -2,7 +2,23 @@
+ # -*- coding: utf-8 -*-
+ import re
+ import sys
+-from pip._internal.cli.main import main
++
++try:
++    from pip._internal.cli.main import main
++except ImportError:
++    try:
++        from pip._internal.main import main
++    except ImportError:
++        try:
++            # If the user has downgraded pip, the above import will fail.
++            # Let's try older methods of invoking it:
++
++            # pip 19 uses this
++            from pip._internal import main
++        except ImportError:
++            # older pip versions use this
++            from pip import main
++
+ if __name__ == '__main__':
+     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+     sys.exit(main())

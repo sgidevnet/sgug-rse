@@ -1,0 +1,23 @@
+From 12de82aa48a7faeb5bfc618a226f2cc388e2eb4d Mon Sep 17 00:00:00 2001
+From: Maciek Nowacki <nowacki@ualberta.ca>
+Date: Fri, 17 Apr 2020 10:49:20 -0600
+Subject: [PATCH] added METH_VARARGS to PyKAdminPrincipal_modify in
+ PyKAdminPrincipal_methods[] for Python 3 _ctypes compatibility
+
+---
+ src/PyKAdminPrincipalObject.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/PyKAdminPrincipalObject.c b/src/PyKAdminPrincipalObject.c
+index 5adbc99..94e489b 100644
+--- a/src/PyKAdminPrincipalObject.c
++++ b/src/PyKAdminPrincipalObject.c
+@@ -954,7 +954,7 @@ static PyMethodDef PyKAdminPrincipal_methods[] = {
+     {"randkey",         (PyCFunction)PyKAdminPrincipal_randomize_key,    METH_NOARGS,   kDOCSTRING_RANDKEY},
+     {"randomize_key",   (PyCFunction)PyKAdminPrincipal_randomize_key,    METH_NOARGS,   kDOCSTRING_RANDKEY},
+ 
+-    {"modify",           (PyCFunction)PyKAdminPrincipal_modify,            METH_KEYWORDS, kDOCSTRING_MODIFY},
++    {"modify",           (PyCFunction)PyKAdminPrincipal_modify,            METH_VARARGS | METH_KEYWORDS, kDOCSTRING_MODIFY},
+ 
+     {"commit",           (PyCFunction)PyKAdminPrincipal_commit,           METH_NOARGS,   kDOCSTRING_COMMIT},
+     {"reload",           (PyCFunction)PyKAdminPrincipal_reload,           METH_NOARGS,   kDOCSTRING_RELOAD},

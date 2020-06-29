@@ -1,0 +1,32 @@
+From 6b5748fcac4d67c9b3a93b2376e48176351e0db0 Mon Sep 17 00:00:00 2001
+From: Carl George <carl@george.computer>
+Date: Sun, 12 Apr 2020 17:49:48 -0500
+Subject: [PATCH] Drop vcversioner
+
+Directly set the version and install_requires.  Remove the
+setup_requires.
+---
+ setup.py | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index e4b3372..2c94c3f 100755
+--- a/setup.py
++++ b/setup.py
+@@ -5,8 +5,11 @@ from setuptools import setup
+ setup(
+     name="txWS",
+     py_modules=["txws"],
+-    setup_requires=["vcversioner", "six"],
+-    vcversioner={},
++    version="0.9.1",
++    install_requires=[
++        'Twisted',
++        'six',
++    ],
+     author="Corbin Simpson",
+     author_email="simpsoco@osuosl.org",
+     description="Twisted WebSockets wrapper",
+-- 
+2.26.0
+

@@ -1,0 +1,32 @@
+diff --git a/setup.py b/setup.py
+index eeebc16..8a4fb71 100644
+--- a/setup.py
++++ b/setup.py
+@@ -2,18 +2,7 @@
+ from setuptools import setup
+ 
+ packages = \
+-['tests', 'tomlkit']
+-
+-package_data = \
+-{'': ['*'],
+- 'tests': ['examples/*',
+-           'examples/invalid/*',
+-           'examples/json/*',
+-           'toml-test/*',
+-           'toml-test/tests/*',
+-           'toml-test/tests/invalid-encoder/*',
+-           'toml-test/tests/invalid/*',
+-           'toml-test/tests/valid/*']}
++['tomlkit']
+ 
+ extras_require = \
+ {':python_version >= "2.7" and python_version < "2.8"': ['enum34>=1.1,<2.0',
+@@ -31,7 +20,6 @@ setup_kwargs = {
+     'maintainer_email': None,
+     'url': 'https://github.com/sdispater/tomlkit',
+     'packages': packages,
+-    'package_data': package_data,
+     'extras_require': extras_require,
+     'python_requires': '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
+ }

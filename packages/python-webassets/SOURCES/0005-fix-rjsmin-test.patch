@@ -1,0 +1,31 @@
+From fb7a700c12f9bc7ebc9772993885ea16794834fb Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Fri, 7 Oct 2016 13:57:39 +1000
+Subject: [PATCH 5/5] fix rjsmin test
+
+On Python 2, the output file will be a str (bytes) encoded as UTF-8 so
+this assertion was passing. But on Python 3 it will be str (Unicode
+characters) so the UTF-8 byte escapes don't match real characters.
+
+This version of the assertion gives the right answer on both
+Python 2 and Python 3.
+---
+ tests/test_filters.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/test_filters.py b/tests/test_filters.py
+index a25143f..3b2152b 100644
+--- a/tests/test_filters.py
++++ b/tests/test_filters.py
+@@ -561,7 +561,7 @@ def test_rjsmin(self):
+         except ImportError:
+             raise SkipTest()
+         self.mkbundle('foo.js', filters='rjsmin', output='out.js').build()
+-        assert self.get('out.js') == 'function foo(bar){var dummy;document.write(bar);var a="\xc3\x9cn\xc3\xadc\xc3\xb4d\xc3\xa8";}'
++        assert self.get('out.js') == 'function foo(bar){var dummy;document.write(bar);var a="Ünícôdè";}'
+ 
+     def test_jspacker(self):
+         self.mkbundle('foo.js', filters='jspacker', output='out.js').build()
+-- 
+2.17.1
+

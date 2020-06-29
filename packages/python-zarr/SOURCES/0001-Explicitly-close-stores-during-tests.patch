@@ -1,0 +1,1057 @@
+From 4c73a0f1cdc9af4781158b4782fd42963909030a Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Wed, 5 Jun 2019 17:36:38 -0400
+Subject: [PATCH] Explicitly close stores during tests.
+
+This is especially troublesome on 32-bit systems with LMDB, as opening
+an LMDB store maps 2**28 blocks, and letting the gc clean them up can
+cause excess memory pressure. Eventually, this results in LMDB tests
+failing to open a store because it can't find a 2**28 block to mmap.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ docs/release.rst             |  11 +++
+ zarr/tests/test_core.py      | 161 ++++++++++++++++++++++++++++++++++-
+ zarr/tests/test_hierarchy.py |  57 +++++++++++++
+ zarr/tests/test_storage.py   |  70 +++++++++++++++
+ 4 files changed, 297 insertions(+), 2 deletions(-)
+
+diff --git a/docs/release.rst b/docs/release.rst
+index f4d8bb1..509ad05 100644
+--- a/docs/release.rst
++++ b/docs/release.rst
+@@ -1,6 +1,17 @@
+ Release notes
+ =============
+ 
++.. _release_2.4.1:
++
++2.4.1
++-----
++
++Bug fixes
++~~~~~~~~~
++
++* Explicitly close stores during testing.
++  By :user:`Elliott Sales de Andrade <QuLogic>`; :issue:`442`
++
+ .. _release_2.4.0:
+ 
+ 2.4.0
+diff --git a/zarr/tests/test_core.py b/zarr/tests/test_core.py
+index 33c8835..81254fe 100644
+--- a/zarr/tests/test_core.py
++++ b/zarr/tests/test_core.py
+@@ -89,6 +89,9 @@ class TestArray(unittest.TestCase):
+             if not isinstance(k, expected_type):  # pragma: no cover
+                 pytest.fail("Non-text key: %s" % repr(k))
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_store_has_binary_values(self):
+         # Initialize array
+         np.random.seed(42)
+@@ -101,6 +104,9 @@ class TestArray(unittest.TestCase):
+             except TypeError:  # pragma: no cover
+                 pytest.fail("Non-bytes-like value: %s" % repr(v))
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_store_has_bytes_values(self):
+         # Test that many stores do hold bytes values.
+         # Though this is not a strict requirement.
+@@ -114,6 +120,9 @@ class TestArray(unittest.TestCase):
+         # Check in-memory array only contains `bytes`
+         assert all([isinstance(v, bytes) for v in z.chunk_store.values()])
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_nbytes_stored(self):
+ 
+         # dict as store
+@@ -131,6 +140,9 @@ class TestArray(unittest.TestCase):
+         except TypeError:
+             pass
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     # noinspection PyStatementEffect
+     def test_array_1d(self):
+         a = np.arange(1050)
+@@ -212,6 +224,9 @@ class TestArray(unittest.TestCase):
+         assert_array_equal(b[190:310], z[190:310])
+         assert_array_equal(a[310:], z[310:])
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_array_1d_fill_value(self):
+         for fill_value in -1, 0, 1, 10:
+ 
+@@ -226,6 +241,9 @@ class TestArray(unittest.TestCase):
+             assert_array_equal(a[190:310], z[190:310])
+             assert_array_equal(f[310:], z[310:])
+ 
++            if hasattr(z.store, 'close'):
++                z.store.close()
++
+     def test_array_1d_set_scalar(self):
+         # test setting the contents of an array with a scalar value
+ 
+@@ -243,6 +261,9 @@ class TestArray(unittest.TestCase):
+             z[:] = value
+             assert_array_equal(a, z[:])
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_array_1d_selections(self):
+         # light test here, full tests in test_indexing
+ 
+@@ -285,6 +306,9 @@ class TestArray(unittest.TestCase):
+         z.oindex[bix] = 9
+         assert_array_equal(9, z.oindex[bix])
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     # noinspection PyStatementEffect
+     def test_array_2d(self):
+         a = np.arange(10000).reshape((1000, 10))
+@@ -393,6 +417,9 @@ class TestArray(unittest.TestCase):
+         assert_array_equal(a[310:], z[310:])
+         assert_array_equal(a[:, 7:], z[:, 7:])
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_array_2d_edge_case(self):
+         # this fails with filters - chunks extend beyond edge of array, messes with delta
+         # filter if no fill value?
+@@ -405,6 +432,9 @@ class TestArray(unittest.TestCase):
+         actual = z[:]
+         assert_array_equal(expect, actual)
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_array_2d_partial(self):
+         z = self.create_array(shape=(1000, 10), chunks=(100, 2), dtype='i4',
+                               fill_value=0)
+@@ -445,6 +475,9 @@ class TestArray(unittest.TestCase):
+         assert -1 == z[2, 2]
+         assert -1 == z[-1, -1]
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_array_order(self):
+ 
+         # 1D
+@@ -460,6 +493,9 @@ class TestArray(unittest.TestCase):
+             z[:] = a
+             assert_array_equal(a, z[:])
+ 
++            if hasattr(z.store, 'close'):
++                z.store.close()
++
+         # 2D
+         a = np.arange(10000).reshape((100, 100))
+         for order in 'C', 'F':
+@@ -474,6 +510,9 @@ class TestArray(unittest.TestCase):
+             actual = z[:]
+             assert_array_equal(a, actual)
+ 
++            if hasattr(z.store, 'close'):
++                z.store.close()
++
+     def test_setitem_data_not_shared(self):
+         # check that data don't end up being shared with another array
+         # https://github.com/alimanfoo/zarr/issues/79
+@@ -483,29 +522,41 @@ class TestArray(unittest.TestCase):
+         assert_array_equal(z[:], np.arange(20, dtype='i4'))
+         a[:] = 0
+         assert_array_equal(z[:], np.arange(20, dtype='i4'))
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+     def test_hexdigest(self):
+         # Check basic 1-D array
+         z = self.create_array(shape=(1050,), chunks=100, dtype='<i4')
+         assert '063b02ff8d9d3bab6da932ad5828b506ef0a6578' == z.hexdigest()
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # Check basic 1-D array with different type
+         z = self.create_array(shape=(1050,), chunks=100, dtype='<f4')
+         assert 'f97b84dc9ffac807415f750100108764e837bb82' == z.hexdigest()
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # Check basic 2-D array
+         z = self.create_array(shape=(20, 35,), chunks=10, dtype='<i4')
+         assert 'c7190ad2bea1e9d2e73eaa2d3ca9187be1ead261' == z.hexdigest()
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # Check basic 1-D array with some data
+         z = self.create_array(shape=(1050,), chunks=100, dtype='<i4')
+         z[200:400] = np.arange(200, 400, dtype='i4')
+         assert '14470724dca6c1837edddedc490571b6a7f270bc' == z.hexdigest()
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # Check basic 1-D array with attributes
+         z = self.create_array(shape=(1050,), chunks=100, dtype='<i4')
+         z.attrs['foo'] = 'bar'
+         assert '2a1046dd99b914459b3e86be9dde05027a07d209' == z.hexdigest()
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+     def test_resize_1d(self):
+ 
+@@ -542,6 +593,9 @@ class TestArray(unittest.TestCase):
+         assert (105,) == z.shape
+         assert (105,) == z[:].shape
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_resize_2d(self):
+ 
+         z = self.create_array(shape=(105, 105), chunks=(10, 10), dtype='i4',
+@@ -586,6 +640,9 @@ class TestArray(unittest.TestCase):
+         assert (105, 105) == z.shape
+         assert (105, 105) == z[:].shape
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_append_1d(self):
+ 
+         a = np.arange(105)
+@@ -613,6 +670,9 @@ class TestArray(unittest.TestCase):
+         assert (10,) == z.chunks
+         assert_array_equal(f, z[:])
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_append_2d(self):
+ 
+         a = np.arange(105*105, dtype='i4').reshape((105, 105))
+@@ -633,6 +693,9 @@ class TestArray(unittest.TestCase):
+         actual = z[:]
+         assert_array_equal(e, actual)
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_append_2d_axis(self):
+ 
+         a = np.arange(105*105, dtype='i4').reshape((105, 105))
+@@ -651,6 +714,9 @@ class TestArray(unittest.TestCase):
+         assert (10, 10) == z.chunks
+         assert_array_equal(e, z[:])
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_append_bad_shape(self):
+         a = np.arange(100)
+         z = self.create_array(shape=a.shape, chunks=10, dtype=a.dtype)
+@@ -658,11 +724,15 @@ class TestArray(unittest.TestCase):
+         b = a.reshape(10, 10)
+         with pytest.raises(ValueError):
+             z.append(b)
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+     def test_read_only(self):
+ 
+         z = self.create_array(shape=1000, chunks=100)
+         assert not z.read_only
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         z = self.create_array(shape=1000, chunks=100, read_only=True)
+         assert z.read_only
+@@ -685,6 +755,9 @@ class TestArray(unittest.TestCase):
+         with pytest.raises(PermissionError):
+             z.set_mask_selection(np.ones(z.shape, dtype=bool), 42)
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_pickle(self):
+ 
+         # setup array
+@@ -721,6 +794,9 @@ class TestArray(unittest.TestCase):
+         assert attrs_cache == z2.attrs.cache
+         assert_array_equal(a, z2[:])
+ 
++        if hasattr(z2.store, 'close'):
++            z2.store.close()
++
+     def test_np_ufuncs(self):
+         z = self.create_array(shape=(100, 100), chunks=(10, 10))
+         a = np.arange(10000).reshape(100, 100)
+@@ -737,18 +813,26 @@ class TestArray(unittest.TestCase):
+         assert_array_equal(np.take(a, indices, axis=1),
+                            np.take(z, indices, axis=1))
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+         # use zarr array as indices or condition
+         zc = self.create_array(shape=condition.shape, dtype=condition.dtype,
+                                chunks=10, filters=None)
+         zc[:] = condition
+         assert_array_equal(np.compress(condition, a, axis=0),
+                            np.compress(zc, a, axis=0))
++        if hasattr(zc.store, 'close'):
++            zc.store.close()
++
+         zi = self.create_array(shape=indices.shape, dtype=indices.dtype,
+                                chunks=10, filters=None)
+         zi[:] = indices
+         # this triggers __array__() call with dtype argument
+         assert_array_equal(np.take(a, indices, axis=1),
+                            np.take(a, zi, axis=1))
++        if hasattr(zi.store, 'close'):
++            zi.store.close()
+ 
+     # noinspection PyStatementEffect
+     def test_0len_dim_1d(self):
+@@ -783,6 +867,9 @@ class TestArray(unittest.TestCase):
+         with pytest.raises(IndexError):
+             z[0] = 42
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     # noinspection PyStatementEffect
+     def test_0len_dim_2d(self):
+         # Test behavioud for 2D array with a zero-length dimension.
+@@ -820,6 +907,9 @@ class TestArray(unittest.TestCase):
+         with pytest.raises(IndexError):
+             z[:, 0] = 42
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     # noinspection PyStatementEffect
+     def test_array_0d(self):
+         # test behaviour for array with 0 dimensions
+@@ -867,6 +957,9 @@ class TestArray(unittest.TestCase):
+         with pytest.raises(ValueError):
+             z[...] = np.array([1, 2, 3])
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_nchunks_initialized(self):
+ 
+         z = self.create_array(shape=100, chunks=10)
+@@ -877,6 +970,9 @@ class TestArray(unittest.TestCase):
+         z[:] = 42
+         assert 10 == z.nchunks_initialized
+ 
++        if hasattr(z.store, 'close'):
++            z.store.close()
++
+     def test_array_dtype_shape(self):
+ 
+         dt = "(2, 2)f4"
+@@ -897,6 +993,8 @@ class TestArray(unittest.TestCase):
+                     assert fill_value == z.fill_value
+                 z[...] = a
+                 assert_array_equal(a, z[...])
++                if hasattr(z.store, 'close'):
++                    z.store.close()
+ 
+     def check_structured_array(self, d, fill_values):
+         for a in (d, d[:0]):
+@@ -937,6 +1035,9 @@ class TestArray(unittest.TestCase):
+                     for f in a.dtype.names:
+                         assert_array_equal(a[f], z[f])
+ 
++                if hasattr(z.store, 'close'):
++                    z.store.close()
++
+     def test_structured_array(self):
+         d = np.array([(b'aaa', 1, 4.2),
+                       (b'bbb', 2, 8.4),
+@@ -971,6 +1072,8 @@ class TestArray(unittest.TestCase):
+             a = np.arange(z.shape[0], dtype=dtype)
+             z[:] = a
+             assert_array_equal(a, z[:])
++            if hasattr(z.store, 'close'):
++                z.store.close()
+ 
+         # floats
+         for dtype in 'f2', 'f4', 'f8':
+@@ -979,6 +1082,8 @@ class TestArray(unittest.TestCase):
+             a = np.linspace(0, 1, z.shape[0], dtype=dtype)
+             z[:] = a
+             assert_array_almost_equal(a, z[:])
++            if hasattr(z.store, 'close'):
++                z.store.close()
+ 
+         # complex
+         for dtype in 'c8', 'c16':
+@@ -988,6 +1093,8 @@ class TestArray(unittest.TestCase):
+             a -= 1j * a
+             z[:] = a
+             assert_array_almost_equal(a, z[:])
++            if hasattr(z.store, 'close'):
++                z.store.close()
+ 
+         # datetime, timedelta
+         for base_type in 'Mm':
+@@ -1000,6 +1107,8 @@ class TestArray(unittest.TestCase):
+                                       dtype='i8').view(dtype)
+                 z[:] = a
+                 assert_array_equal(a, z[:])
++                if hasattr(z.store, 'close'):
++                    z.store.close()
+ 
+         # check that datetime generic units are not allowed
+         with pytest.raises(ValueError):
+@@ -1016,7 +1125,9 @@ class TestArray(unittest.TestCase):
+         # an object_codec is required for object arrays, but allow to be provided via
+         # filters to maintain API backwards compatibility
+         with pytest.warns(FutureWarning):
+-            self.create_array(shape=10, chunks=3, dtype=object, filters=[MsgPack()])
++            z = self.create_array(shape=10, chunks=3, dtype=object, filters=[MsgPack()])
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # create an object array using msgpack
+         z = self.create_array(shape=10, chunks=3, dtype=object, object_codec=MsgPack())
+@@ -1032,6 +1143,8 @@ class TestArray(unittest.TestCase):
+         assert z[4] == {'a': 'b', 'c': 'd'}
+         a = z[:]
+         assert a.dtype == object
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # create an object array using pickle
+         z = self.create_array(shape=10, chunks=3, dtype=object, object_codec=Pickle())
+@@ -1047,6 +1160,8 @@ class TestArray(unittest.TestCase):
+         assert z[4] == {'a': 'b', 'c': 'd'}
+         a = z[:]
+         assert a.dtype == object
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # create an object array using JSON
+         z = self.create_array(shape=10, chunks=3, dtype=object, object_codec=JSON())
+@@ -1062,6 +1177,8 @@ class TestArray(unittest.TestCase):
+         assert z[4] == {'a': 'b', 'c': 'd'}
+         a = z[:]
+         assert a.dtype == object
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+     def test_object_arrays_vlen_text(self):
+ 
+@@ -1078,6 +1195,8 @@ class TestArray(unittest.TestCase):
+         a = z[:]
+         assert a.dtype == object
+         assert_array_equal(data, a)
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # convenience API
+         z = self.create_array(shape=data.shape, dtype=str)
+@@ -1085,23 +1204,33 @@ class TestArray(unittest.TestCase):
+         assert isinstance(z.filters[0], VLenUTF8)
+         z[:] = data
+         assert_array_equal(data, z[:])
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         z = self.create_array(shape=data.shape, dtype=object, object_codec=MsgPack())
+         z[:] = data
+         assert_array_equal(data, z[:])
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         z = self.create_array(shape=data.shape, dtype=object, object_codec=JSON())
+         z[:] = data
+         assert_array_equal(data, z[:])
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         z = self.create_array(shape=data.shape, dtype=object, object_codec=Pickle())
+         z[:] = data
+         assert_array_equal(data, z[:])
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         z = self.create_array(shape=data.shape, dtype=object,
+                               object_codec=Categorize(greetings, dtype=object))
+         z[:] = data
+         assert_array_equal(data, z[:])
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+     def test_object_arrays_vlen_bytes(self):
+ 
+@@ -1119,6 +1248,8 @@ class TestArray(unittest.TestCase):
+         a = z[:]
+         assert a.dtype == object
+         assert_array_equal(data, a)
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # convenience API
+         z = self.create_array(shape=data.shape, dtype=bytes)
+@@ -1126,10 +1257,14 @@ class TestArray(unittest.TestCase):
+         assert isinstance(z.filters[0], VLenBytes)
+         z[:] = data
+         assert_array_equal(data, z[:])
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         z = self.create_array(shape=data.shape, dtype=object, object_codec=Pickle())
+         z[:] = data
+         assert_array_equal(data, z[:])
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+     def test_object_arrays_vlen_array(self):
+ 
+@@ -1155,6 +1290,8 @@ class TestArray(unittest.TestCase):
+             a = z[:]
+             assert a.dtype == object
+             compare_arrays(data, a, codec.dtype)
++            if hasattr(z.store, 'close'):
++                z.store.close()
+ 
+         # convenience API
+         for item_type in 'int', '<u4':
+@@ -1164,6 +1301,8 @@ class TestArray(unittest.TestCase):
+             assert z.filters[0].dtype == np.dtype(item_type)
+             z[:] = data
+             compare_arrays(data, z[:], np.dtype(item_type))
++            if hasattr(z.store, 'close'):
++                z.store.close()
+ 
+     def test_object_arrays_danger(self):
+ 
+@@ -1175,6 +1314,8 @@ class TestArray(unittest.TestCase):
+             z[0] = 'foo'
+         with pytest.raises(RuntimeError):
+             z[:] = 42
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+         # do something else dangerous
+         data = greetings * 10
+@@ -1188,12 +1329,16 @@ class TestArray(unittest.TestCase):
+             with pytest.raises(RuntimeError):
+                 # noinspection PyStatementEffect
+                 v[:]
++            if hasattr(z.store, 'close'):
++                z.store.close()
+ 
+     def test_object_codec_warnings(self):
+ 
+         with pytest.warns(UserWarning):
+             # provide object_codec, but not object dtype
+-            self.create_array(shape=10, chunks=5, dtype='i4', object_codec=JSON())
++            z = self.create_array(shape=10, chunks=5, dtype='i4', object_codec=JSON())
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+     def test_zero_d_iter(self):
+         a = np.array(1, dtype=int)
+@@ -1205,6 +1350,8 @@ class TestArray(unittest.TestCase):
+         with pytest.raises(TypeError):
+             # noinspection PyStatementEffect
+             list(z)
++        if hasattr(z.store, 'close'):
++            z.store.close()
+ 
+     def test_iter(self):
+         params = (
+@@ -1228,6 +1375,8 @@ class TestArray(unittest.TestCase):
+             z[:] = a
+             for expect, actual in zip_longest(a, z):
+                 assert_array_equal(expect, actual)
++            if hasattr(z.store, 'close'):
++                z.store.close()
+ 
+     def test_compressors(self):
+         compressors = [
+@@ -1241,6 +1390,8 @@ class TestArray(unittest.TestCase):
+             assert np.all(a[0:100] == 1)
+             a[:] = 1
+             assert np.all(a[:] == 1)
++            if hasattr(a.store, 'close'):
++                a.store.close()
+ 
+     def test_endian(self):
+         dtype = np.dtype('float32')
+@@ -1251,6 +1402,10 @@ class TestArray(unittest.TestCase):
+         a2[:] = 1
+         x2 = a2[:]
+         assert_array_equal(x1, x2)
++        if hasattr(a1.store, 'close'):
++            a1.store.close()
++        if hasattr(a2.store, 'close'):
++            a2.store.close()
+ 
+     def test_attributes(self):
+         a = self.create_array(shape=10, chunks=10, dtype='i8')
+@@ -1261,6 +1416,8 @@ class TestArray(unittest.TestCase):
+         attrs = json_loads(a.store[a.attrs.key])
+         assert 'foo' in attrs and attrs['foo'] == 'bar'
+         assert 'bar' in attrs and attrs['bar'] == 'foo'
++        if hasattr(a.store, 'close'):
++            a.store.close()
+ 
+ 
+ class TestArrayWithPath(TestArray):
+diff --git a/zarr/tests/test_hierarchy.py b/zarr/tests/test_hierarchy.py
+index 69741d7..70e7282 100644
+--- a/zarr/tests/test_hierarchy.py
++++ b/zarr/tests/test_hierarchy.py
+@@ -68,6 +68,8 @@ class TestGroup(unittest.TestCase):
+         assert isinstance(g.info, InfoReporter)
+         assert isinstance(repr(g.info), str)
+         assert isinstance(g.info._repr_html_(), str)
++        if hasattr(store, 'close'):
++            store.close()
+ 
+     def test_group_init_2(self):
+         store, chunk_store = self.create_store()
+@@ -79,12 +81,16 @@ class TestGroup(unittest.TestCase):
+         assert '/foo/bar' == g.name
+         assert 'bar' == g.basename
+         assert isinstance(g.attrs, Attributes)
++        if hasattr(store, 'close'):
++            store.close()
+ 
+     def test_group_init_errors_1(self):
+         store, chunk_store = self.create_store()
+         # group metadata not initialized
+         with pytest.raises(ValueError):
+             Group(store, chunk_store=chunk_store)
++        if hasattr(store, 'close'):
++            store.close()
+ 
+     def test_group_init_errors_2(self):
+         store, chunk_store = self.create_store()
+@@ -92,6 +98,8 @@ class TestGroup(unittest.TestCase):
+         # array blocks group
+         with pytest.raises(ValueError):
+             Group(store, chunk_store=chunk_store)
++        if hasattr(store, 'close'):
++            store.close()
+ 
+     def test_create_group(self):
+         g1 = self.create_group()
+@@ -162,6 +170,9 @@ class TestGroup(unittest.TestCase):
+         assert isinstance(g7, Group)
+         assert g7.path == 'z'
+ 
++        if hasattr(g1.store, 'close'):
++            g1.store.close()
++
+     def test_require_group(self):
+         g1 = self.create_group()
+ 
+@@ -203,6 +214,9 @@ class TestGroup(unittest.TestCase):
+         assert isinstance(g7, Group)
+         assert g7.path == 'z'
+ 
++        if hasattr(g1.store, 'close'):
++            g1.store.close()
++
+     def test_create_dataset(self):
+         g = self.create_group()
+ 
+@@ -277,6 +291,9 @@ class TestGroup(unittest.TestCase):
+         assert d.compressor.codec_id == 'zlib'
+         assert 1 == d.compressor.level
+ 
++        if hasattr(g.store, 'close'):
++            g.store.close()
++
+     def test_require_dataset(self):
+         g = self.create_group()
+ 
+@@ -321,6 +338,9 @@ class TestGroup(unittest.TestCase):
+             g.require_dataset('foo', shape=1000, chunks=100, dtype='i2',
+                               exact=True)
+ 
++        if hasattr(g.store, 'close'):
++            g.store.close()
++
+     def test_create_errors(self):
+         g = self.create_group()
+ 
+@@ -374,6 +394,9 @@ class TestGroup(unittest.TestCase):
+         with pytest.raises(PermissionError):
+             g.require_dataset('zzz', shape=100, chunks=10)
+ 
++        if hasattr(g.store, 'close'):
++            g.store.close()
++
+     def test_create_overwrite(self):
+         try:
+             for method_name in 'create_dataset', 'create', 'empty', 'zeros', \
+@@ -397,6 +420,9 @@ class TestGroup(unittest.TestCase):
+                                             overwrite=True)
+                 assert (400,) == d.shape
+                 assert isinstance(g['foo'], Group)
++
++                if hasattr(g.store, 'close'):
++                    g.store.close()
+         except NotImplementedError:
+             pass
+ 
+@@ -624,6 +650,9 @@ class TestGroup(unittest.TestCase):
+         assert g1.visitvalues(visitor1) is True
+         assert g1.visititems(visitor1) is True
+ 
++        if hasattr(g1.store, 'close'):
++            g1.store.close()
++
+     def test_empty_getitem_contains_iterators(self):
+         # setup
+         g = self.create_group()
+@@ -634,6 +663,9 @@ class TestGroup(unittest.TestCase):
+         assert 0 == len(g)
+         assert 'foo' not in g
+ 
++        if hasattr(g.store, 'close'):
++            g.store.close()
++
+     def test_iterators_recurse(self):
+         # setup
+         g1 = self.create_group()
+@@ -658,6 +690,9 @@ class TestGroup(unittest.TestCase):
+         assert 'zab' == arrays_recurse[0][0]
+         assert g1['foo']['bar']['zab'] == arrays_recurse[0][1]
+ 
++        if hasattr(g1.store, 'close'):
++            g1.store.close()
++
+     def test_getattr(self):
+         # setup
+         g1 = self.create_group()
+@@ -670,6 +705,9 @@ class TestGroup(unittest.TestCase):
+         # test that hasattr returns False instead of an exception (issue #88)
+         assert not hasattr(g1, 'unexistingattribute')
+ 
++        if hasattr(g1.store, 'close'):
++            g1.store.close()
++
+     def test_setitem(self):
+         g = self.create_group()
+         try:
+@@ -685,6 +723,8 @@ class TestGroup(unittest.TestCase):
+             assert 42 == g['foo'][()]
+         except NotImplementedError:
+             pass
++        if hasattr(g.store, 'close'):
++            g.store.close()
+ 
+     def test_delitem(self):
+         g = self.create_group()
+@@ -703,6 +743,8 @@ class TestGroup(unittest.TestCase):
+             assert 'foo' in g
+             assert 'bar' not in g
+             assert 'bar/baz' not in g
++        if hasattr(g.store, 'close'):
++            g.store.close()
+ 
+     def test_move(self):
+         g = self.create_group()
+@@ -750,6 +792,9 @@ class TestGroup(unittest.TestCase):
+         except NotImplementedError:
+             pass
+ 
++        if hasattr(g.store, 'close'):
++            g.store.close()
++
+     def test_array_creation(self):
+         grp = self.create_group()
+ 
+@@ -785,6 +830,9 @@ class TestGroup(unittest.TestCase):
+         assert isinstance(j, Array)
+         assert_array_equal(np.arange(100), j[:])
+ 
++        if hasattr(grp.store, 'close'):
++            grp.store.close()
++
+         grp = self.create_group(read_only=True)
+         with pytest.raises(PermissionError):
+             grp.create('aa', shape=100, chunks=10)
+@@ -809,6 +857,9 @@ class TestGroup(unittest.TestCase):
+         with pytest.raises(PermissionError):
+             grp.full_like('aa', a)
+ 
++        if hasattr(grp.store, 'close'):
++            grp.store.close()
++
+     def test_paths(self):
+         g1 = self.create_group()
+         g2 = g1.create_group('foo/bar')
+@@ -840,6 +891,9 @@ class TestGroup(unittest.TestCase):
+         with pytest.raises(ValueError):
+             g1['foo/../bar']
+ 
++        if hasattr(g1.store, 'close'):
++            g1.store.close()
++
+     def test_pickle(self):
+ 
+         # setup group
+@@ -867,6 +921,9 @@ class TestGroup(unittest.TestCase):
+         assert isinstance(g2['foo'], Group)
+         assert isinstance(g2['foo/bar'], Array)
+ 
++        if hasattr(g2.store, 'close'):
++            g2.store.close()
++
+     def test_context_manager(self):
+ 
+         with self.create_group() as g:
+diff --git a/zarr/tests/test_storage.py b/zarr/tests/test_storage.py
+index 38acbd1..a0c8412 100644
+--- a/zarr/tests/test_storage.py
++++ b/zarr/tests/test_storage.py
+@@ -70,12 +70,18 @@ class StoreTests(object):
+                 # noinspection PyStatementEffect
+                 del store['foo']
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_set_invalid_content(self):
+         store = self.create_store()
+ 
+         with pytest.raises(TypeError):
+             store['baz'] = list(range(5))
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_clear(self):
+         store = self.create_store()
+         store['foo'] = b'bar'
+@@ -86,6 +92,9 @@ class StoreTests(object):
+         assert 'foo' not in store
+         assert 'baz' not in store
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_pop(self):
+         store = self.create_store()
+         store['foo'] = b'bar'
+@@ -106,6 +115,9 @@ class StoreTests(object):
+         v = store.pop('xxx', None)
+         assert v is None
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_popitem(self):
+         store = self.create_store()
+         store['foo'] = b'bar'
+@@ -116,6 +128,9 @@ class StoreTests(object):
+         with pytest.raises(KeyError):
+             store.popitem()
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_writeable_values(self):
+         store = self.create_store()
+ 
+@@ -125,6 +140,9 @@ class StoreTests(object):
+         store['foo3'] = array.array('B', b'bar')
+         store['foo4'] = np.frombuffer(b'bar', dtype='u1')
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_update(self):
+         store = self.create_store()
+         assert 'foo' not in store
+@@ -133,6 +151,9 @@ class StoreTests(object):
+         assert b'bar' == store['foo']
+         assert b'quux' == store['baz']
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_iterators(self):
+         store = self.create_store()
+ 
+@@ -157,6 +178,9 @@ class StoreTests(object):
+         assert ({('a', b'aaa'), ('b', b'bbb'), ('c/d', b'ddd'), ('c/e/f', b'fff')} ==
+                 set(store.items()))
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_pickle(self):
+ 
+         # setup store
+@@ -182,6 +206,9 @@ class StoreTests(object):
+         assert b'bar' == store2['foo']
+         assert b'quux' == store2['baz']
+ 
++        if hasattr(store2, 'close'):
++            store2.close()
++
+     def test_getsize(self):
+         store = self.create_store()
+         if isinstance(store, dict) or hasattr(store, 'getsize'):
+@@ -202,6 +229,9 @@ class StoreTests(object):
+             assert 15 == getsize(store)
+             assert 5 == getsize(store, 'spong')
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     # noinspection PyStatementEffect
+     def test_hierarchy(self):
+         # setup
+@@ -336,6 +366,9 @@ class StoreTests(object):
+             assert 'c/d' in store
+             assert 'c/e/f' in store
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_init_array(self):
+         store = self.create_store()
+         init_array(store, shape=1000, chunks=100)
+@@ -350,6 +383,9 @@ class StoreTests(object):
+         assert default_compressor.get_config() == meta['compressor']
+         assert meta['fill_value'] is None
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_init_array_overwrite(self):
+         self._test_init_array_overwrite('F')
+ 
+@@ -399,6 +435,9 @@ class StoreTests(object):
+             assert (100,) == meta['chunks']
+             assert np.dtype('i4') == meta['dtype']
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_init_array_path(self):
+         path = 'foo/bar'
+         store = self.create_store()
+@@ -415,6 +454,9 @@ class StoreTests(object):
+         assert default_compressor.get_config() == meta['compressor']
+         assert meta['fill_value'] is None
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def _test_init_array_overwrite_path(self, order):
+         # setup
+         path = 'foo/bar'
+@@ -450,6 +492,9 @@ class StoreTests(object):
+             assert (100,) == meta['chunks']
+             assert np.dtype('i4') == meta['dtype']
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_init_array_overwrite_group(self):
+         # setup
+         path = 'foo/bar'
+@@ -475,6 +520,9 @@ class StoreTests(object):
+             assert (100,) == meta['chunks']
+             assert np.dtype('i4') == meta['dtype']
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def _test_init_array_overwrite_chunk_store(self, order):
+         # setup
+         store = self.create_store()
+@@ -511,12 +559,20 @@ class StoreTests(object):
+             assert '0' not in chunk_store
+             assert '1' not in chunk_store
+ 
++        if hasattr(store, 'close'):
++            store.close()
++        if hasattr(chunk_store, 'close'):
++            chunk_store.close()
++
+     def test_init_array_compat(self):
+         store = self.create_store()
+         init_array(store, shape=1000, chunks=100, compressor='none')
+         meta = decode_array_metadata(store[array_meta_key])
+         assert meta['compressor'] is None
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def test_init_group(self):
+         store = self.create_store()
+         init_group(store)
+@@ -526,6 +582,9 @@ class StoreTests(object):
+         meta = decode_group_metadata(store[group_meta_key])
+         assert ZARR_FORMAT == meta['zarr_format']
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def _test_init_group_overwrite(self, order):
+         # setup
+         store = self.create_store()
+@@ -558,6 +617,9 @@ class StoreTests(object):
+         with pytest.raises(ValueError):
+             init_group(store)
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def _test_init_group_overwrite_path(self, order):
+         # setup
+         path = 'foo/bar'
+@@ -590,6 +652,9 @@ class StoreTests(object):
+             meta = decode_group_metadata(store[path + '/' + group_meta_key])
+             assert ZARR_FORMAT == meta['zarr_format']
+ 
++        if hasattr(store, 'close'):
++            store.close()
++
+     def _test_init_group_overwrite_chunk_store(self, order):
+         # setup
+         store = self.create_store()
+@@ -627,6 +692,11 @@ class StoreTests(object):
+         with pytest.raises(ValueError):
+             init_group(store)
+ 
++        if hasattr(store, 'close'):
++            store.close()
++        if hasattr(chunk_store, 'close'):
++            chunk_store.close()
++
+ 
+ class TestMappingStore(StoreTests, unittest.TestCase):
+ 
+-- 
+2.21.0
+

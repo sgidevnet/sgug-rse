@@ -1,0 +1,900 @@
+From 8aceef59a63536ff7cfe2e8ae5c7660970aa2589 Mon Sep 17 00:00:00 2001
+From: ClockSelect <mrrraow@gmail.com>
+Date: Sun, 21 Aug 2016 05:44:39 +0200
+Subject: [PATCH 01/11] New commands for myevic
+
+---
+ README.rst        |  30 ++++++++++++++
+ evic/cli.py       | 119 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ evic/dataflash.py |   7 ++++
+ evic/device.py    |  30 +++++++++++++-
+ 4 files changed, 184 insertions(+), 2 deletions(-)
+
+diff --git a/README.rst b/README.rst
+index 3e426d1..eb71212 100644
+--- a/README.rst
++++ b/README.rst
+@@ -125,3 +125,33 @@ Use  ``--no-verify`` to disable verification for APROM or data flash. To disable
+ ::
+ 
+     $ evic-usb upload --no-verify aprom --no-verify dataflash firmware.bin
++
++Reset the device:
++
++::
++
++    $ evic-usb reset
++
++Dump any part of the flash memory:
++
++::
++
++    $ evic-usb fmc-read -o out.bin -s startaddr -l length
++
++Example to read the parameters flash memory:
++
++::
++
++    $ evic-usb fmc-read -o out.bin -s 122880 -l 4096
++
++Setup date and time of the device to the current time:
++
++::
++
++    $ evic-usb time
++
++Take a screenshot of the device display:
++
++::
++
++    $ evic-usb screenshot -o outfile.[png|jpg|...]
+diff --git a/evic/cli.py b/evic/cli.py
+index 9d81038..95d02c0 100644
+--- a/evic/cli.py
++++ b/evic/cli.py
+@@ -24,6 +24,8 @@
+ import struct
+ from time import sleep
+ from contextlib import contextmanager
++from datetime import datetime
++from PIL import Image
+ 
+ import click
+ 
+@@ -31,6 +33,7 @@
+ 
+ from .device import DeviceInfo
+ 
++
+ @contextmanager
+ def handle_exceptions(*exceptions):
+     """Context for handling exceptions."""
+@@ -108,6 +111,24 @@ def read_dataflash(dev, verify):
+     return dataflash
+ 
+ 
++def fmc_read(dev, start, len):
++    """Reads the device data flash.
++
++    Args:
++        dev: evic.HIDTransfer object.
++
++    Returns:
++        evic.DataFlash object containing the device data flash.
++    """
++
++    # Read the data flash
++    with handle_exceptions(IOError):
++        click.echo("Reading data flash...", nl=False)
++        fmemory = dev.fmc_read(start, len)
++
++    return fmemory
++
++
+ def print_device_info(device_info, dataflash):
+     """Prints the device information found from data flash.
+ 
+@@ -237,6 +258,57 @@ def upload(inputfile, encrypted, dataflashfile, noverify):
+         dev.write_aprom(aprom)
+ 
+ 
++@usb.command('reset')
++def reset():
++    """Resets the device."""
++
++    dev = evic.HIDTransfer()
++
++    # Connect the device
++    connect(dev)
++
++    # Restart
++    click.echo("Restarting the device...", nl=False)
++    dev.reset()
++    sleep(2)
++    click.secho("OK", fg='green', nl=False, bold=True)
++
++
++@usb.command('time')
++def time():
++    """Sets the device date/time to now."""
++
++    dev = evic.HIDTransfer()
++
++    # Connect the device
++    connect(dev)
++
++    # Read the data flash
++    dataflash = read_dataflash(dev, 1)
++
++    # Get the device info
++    device_info = dev.devices.get(dataflash.product_id,
++                                  DeviceInfo("Unknown device", None, None))
++
++    # Print the device information
++    print_device_info(device_info, dataflash)
++
++    dt = datetime.now()
++    dataflash.df_year = dt.year
++    dataflash.df_month = dt.month
++    dataflash.df_day = dt.day
++    dataflash.df_hour = dt.hour
++    dataflash.df_minute = dt.minute
++    dataflash.df_second = dt.second
++
++    # Write data flash to the device
++    with handle_exceptions(IOError):
++        click.echo("Writing data flash...", nl=False)
++        sleep(0.1)
++        dev.write_dataflash(dataflash)
++        click.secho("OK", fg='green', bold=True)
++
++
+ @usb.command('upload-logo')
+ @click.argument('inputfile', type=click.File('rb'))
+ @click.option('--invert', '-i', is_flag=True,
+@@ -329,6 +401,7 @@ def dumpdataflash(output, noverify):
+     device_info = dev.devices.get(dataflash.product_id,
+                                   DeviceInfo("Unknown device", None, None))
+ 
++
+     # Print the device information
+     print_device_info(device_info, dataflash)
+ 
+@@ -338,6 +411,52 @@ def dumpdataflash(output, noverify):
+         output.write(dataflash.array)
+ 
+ 
++@usb.command('fmcread')
++@click.option('--output', '-o', type=click.File('wb'), required=True)
++@click.option('--start', '-s', type=click.INT, required=True)
++@click.option('--length', '-l', type=click.INT, required=True)
++def fmcread(output, start, length):
++    """Write device flash memory to a file."""
++
++    dev = evic.HIDTransfer()
++
++    # Connect the device
++    connect(dev)
++
++    # Print the USB info of the device
++    print_usb_info(dev)
++
++    # Read the data flash
++    fmemory = fmc_read(dev, start, length)
++
++    # Write the data flash to the file
++    with handle_exceptions(IOError):
++        click.echo("Writing flash memory to the file...", nl=False)
++        output.write(fmemory)
++
++
++@usb.command('screenshot')
++@click.option('--output', '-o', type=click.File('wb'), required=True)
++def screenshot(output):
++    """Take a screenshot."""
++
++    dev = evic.HIDTransfer()
++
++    # Connect the device
++    connect(dev)
++
++    # Read the screen data
++    data = dev.read_screen()
++
++    # create the image from screen data
++    im = Image.fromstring("1",(64,128),bytes(data))
++
++    # Write the image to the file
++    with handle_exceptions(IOError):
++        click.echo("Writing image to the file...", nl=False)
++        im.save(output,"PNG")
++
++
+ @usb.command('reset-dataflash')
+ def resetdataflash():
+     """Reset device data flash."""
+diff --git a/evic/dataflash.py b/evic/dataflash.py
+index 31abb2a..0c61651 100644
+--- a/evic/dataflash.py
++++ b/evic/dataflash.py
+@@ -46,6 +46,13 @@ class DataFlash(binstruct.StructTemplate):
+     fw_version = binstruct.Int32Field(256)
+     ldrom_version = binstruct.Int32Field(260)
+ 
++    df_year = binstruct.Int16Field(320)
++    df_month = binstruct.Int8Field(322)
++    df_day = binstruct.Int8Field(323)
++    df_hour = binstruct.Int8Field(324)
++    df_minute = binstruct.Int8Field(325)
++    df_second = binstruct.Int8Field(326)
++
+     def verify(self, checksum):
+         """Verifies the data flash against given checksum.
+ 
+diff --git a/evic/device.py b/evic/device.py
+index 383c234..6ba39a4 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -53,7 +53,6 @@ class HIDTransfer(object):
+                'E052': DeviceInfo("eVic-VTC Mini", ['W007'], (64, 40)),
+                'E056': DeviceInfo("CUBOID MINI", None, (64, 40)),
+                'E060': DeviceInfo("Cuboid", None, (64, 40)),
+-               'E079': DeviceInfo("eVic VTC Dual", None, (64, 40)),
+                'E083': DeviceInfo("eGrip II", None, (64, 40)),
+                'E092': DeviceInfo("eVic AIO", None, (64, 40)),
+                'E115': DeviceInfo("eVic VTwo mini", None, (64, 40)),
+@@ -70,7 +69,6 @@ class HIDTransfer(object):
+                'W014': DeviceInfo("Reuleaux RX200", None, None),
+                'W016': DeviceInfo("CENTURION", None, None),
+                'W018': DeviceInfo("Reuleaux RX2/3", None, (64, 48)),
+-               'W026': DeviceInfo("Reuleaux RX75", None, (64, 48)),
+                'W033': DeviceInfo("Reuleaux RX200S", None, None)
+               }
+ 
+@@ -163,6 +161,34 @@ def read_dataflash(self):
+ 
+         return (dataflash, checksum)
+ 
++    def fmc_read(self, start, length):
++        """Reads the device flash memory.
++
++        Returns:
++            An array containing the data flash memory content.
++        """
++
++        # Send the command for reading the data flash
++        self.send_command(0xC0, start, length)
++
++        # Read the dataflash
++        buf = self.read(length)
++        return (buf)
++
++    def read_screen(self):
++        """Reads the screen memory.
++
++        Returns:
++            An array containing the screen.
++        """
++
++        # Send the command for reading the screen buffer
++        self.send_command(0xC1, 0, 0x400)
++
++        # Read the data
++        buf = self.read(0x400)
++        return (buf)
++
+     def write(self, data):
+         """Writes data to the device.
+ 
+
+From 8a929790b971bad8bd2d40568db9b2609aa09f63 Mon Sep 17 00:00:00 2001
+From: ClockSelect <mrrraow@gmail.com>
+Date: Sun, 4 Sep 2016 10:53:51 +0200
+Subject: [PATCH 02/11] Logo dimensions for Presa 75 running myevic firmware
+
+---
+ evic/device.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/evic/device.py b/evic/device.py
+index 6ba39a4..33be1b5 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -62,7 +62,7 @@ class HIDTransfer(object):
+                'M041': DeviceInfo("iStick Pico", None, (96, 16)),
+                'M045': DeviceInfo("iStick Pico Mega", None, (96, 16)),
+                'M046': DeviceInfo("iPower", None, (96, 16)),
+-               'W007': DeviceInfo("Presa TC75W", ['E052'], None),
++               'W007': DeviceInfo("Presa TC75W", ['E052'], (64,40)),
+                'W010': DeviceInfo("Classic", None, None),
+                'W011': DeviceInfo("Lite", None, None),
+                'W013': DeviceInfo("Stout", None, None),
+
+From 6b6368e0af4ce2a52448c3733c5caf8190716b83 Mon Sep 17 00:00:00 2001
+From: ClockSelect <mrrraow@gmail.com>
+Date: Wed, 7 Sep 2016 13:05:44 +0200
+Subject: [PATCH 03/11] Fix time accuracy
+
+---
+ evic/cli.py | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/evic/cli.py b/evic/cli.py
+index 95d02c0..9d774bd 100644
+--- a/evic/cli.py
++++ b/evic/cli.py
+@@ -293,18 +293,17 @@ def time():
+     # Print the device information
+     print_device_info(device_info, dataflash)
+ 
+-    dt = datetime.now()
+-    dataflash.df_year = dt.year
+-    dataflash.df_month = dt.month
+-    dataflash.df_day = dt.day
+-    dataflash.df_hour = dt.hour
+-    dataflash.df_minute = dt.minute
+-    dataflash.df_second = dt.second
+-
+     # Write data flash to the device
+     with handle_exceptions(IOError):
+         click.echo("Writing data flash...", nl=False)
+         sleep(0.1)
++        dt = datetime.now()
++        dataflash.df_year = dt.year
++        dataflash.df_month = dt.month
++        dataflash.df_day = dt.day
++        dataflash.df_hour = dt.hour
++        dataflash.df_minute = dt.minute
++        dataflash.df_second = dt.second
+         dev.write_dataflash(dataflash)
+         click.secho("OK", fg='green', bold=True)
+ 
+
+From c56807c6586b6bf8e556314e6bdfcb81bd4b54c8 Mon Sep 17 00:00:00 2001
+From: ClockSelect <mrrraow@gmail.com>
+Date: Sat, 8 Oct 2016 05:03:12 +0200
+Subject: [PATCH 04/11] Generic HID input command and LDROM update feature
+
+---
+ evic/cli.py    | 76 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ evic/device.py | 34 ++++++++++++++++++++++++++
+ 2 files changed, 110 insertions(+)
+
+diff --git a/evic/cli.py b/evic/cli.py
+index 9d774bd..607e97d 100644
+--- a/evic/cli.py
++++ b/evic/cli.py
+@@ -129,6 +129,24 @@ def fmc_read(dev, start, len):
+     return fmemory
+ 
+ 
++def hid_command(dev, cmd, start, len):
++    """Sends a HID command.
++
++    Args:
++        dev: evic.HIDTransfer object.
++
++    Returns:
++        evic.DataFlash object containing the device data flash.
++    """
++
++    # Send the command
++    with handle_exceptions(IOError):
++        click.echo("Sending command...", nl=False)
++        fmemory = dev.hid_command(cmd, start, len)
++
++    return fmemory
++
++
+ def print_device_info(device_info, dataflash):
+     """Prints the device information found from data flash.
+ 
+@@ -258,6 +276,39 @@ def upload(inputfile, encrypted, dataflashfile, noverify):
+         dev.write_aprom(aprom)
+ 
+ 
++@usb.command('upload-ldrom')
++@click.argument('inputfile', type=click.File('rb'))
++def upload_ldrom(inputfile):
++    """Upload an LDROM image to the device."""
++
++    dev = evic.HIDTransfer()
++
++    # Connect the device
++    connect(dev)
++
++    # Print the USB info of the device
++    print_usb_info(dev)
++
++    # Read the data flash
++    dataflash = read_dataflash(dev, False)
++
++    # Get the device info
++    device_info = dev.devices.get(dataflash.product_id,
++                                  DeviceInfo("Unknown device", None, None))
++
++    # Print the device information
++    print_device_info(device_info, dataflash)
++
++    # Read the LDROM image
++    ldrom = evic.APROM(inputfile.read())
++
++    # Write data flash to the device
++    with handle_exceptions(IOError):
++        # Write LDROM to the device
++        click.echo("Writing LDROM...", nl=False)
++        dev.write_ldrom(ldrom)
++
++
+ @usb.command('reset')
+ def reset():
+     """Resets the device."""
+@@ -434,6 +485,31 @@ def fmcread(output, start, length):
+         output.write(fmemory)
+ 
+ 
++@usb.command('hidcmd')
++@click.option('--output', '-o', type=click.File('wb'), required=True)
++@click.option('--command', '-c', type=click.INT, required=True)
++@click.option('--start', '-s', type=click.INT, required=True)
++@click.option('--length', '-l', type=click.INT, required=True)
++def hidcmd(command, output, start, length):
++    """Send a HID command to the device."""
++
++    dev = evic.HIDTransfer()
++
++    # Connect the device
++    connect(dev)
++
++    # Print the USB info of the device
++    print_usb_info(dev)
++
++    # Send the command
++    response = hid_command(dev, command, start, length)
++
++    # Write the data flash to the file
++    with handle_exceptions(IOError):
++        click.echo("Writing command response to the file...", nl=False)
++        output.write(response)
++
++
+ @usb.command('screenshot')
+ @click.option('--output', '-o', type=click.File('wb'), required=True)
+ def screenshot(output):
+diff --git a/evic/device.py b/evic/device.py
+index 33be1b5..7f27e8f 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -175,6 +175,20 @@ def fmc_read(self, start, length):
+         buf = self.read(length)
+         return (buf)
+ 
++    def hid_command(self, cmd, start, length):
++        """Send a HID command to the device.
++
++        Returns:
++            An array containing command response.
++        """
++
++        # Send the command for reading the data flash
++        self.send_command(cmd, start, length)
++
++        # Read the response
++        buf = self.read(length)
++        return (buf)
++
+     def read_screen(self):
+         """Reads the screen memory.
+ 
+@@ -294,6 +308,17 @@ def write_flash(self, data, start):
+ 
+         self.write(data)
+ 
++    def write_ldflash(self, data):
++        """Writes data to the flash memory.
++        """
++
++        end = len(data)
++
++        # Send the command for writing the data
++        self.send_command(0x3C, 0x100000, end)
++
++        self.write(data)
++
+     def write_aprom(self, aprom):
+         """Writes the APROM to the device.
+ 
+@@ -303,6 +328,15 @@ def write_aprom(self, aprom):
+ 
+         self.write_flash(aprom.data, 0)
+ 
++    def write_ldrom(self, ldrom):
++        """Writes the LDROM to the device.
++
++        Args:
++            aprom: A BinFile object containing an unencrypted LDROM image.
++        """
++
++        self.write_ldflash(ldrom.data)
++
+     def write_logo(self, logo):
+         """Writes the logo to the the device.
+ 
+
+From d30ce886d0ce4fae6eb6cfe7695d64838fe0d70f Mon Sep 17 00:00:00 2001
+From: ClockSelect <mrrraow@gmail.com>
+Date: Mon, 24 Jul 2017 22:40:25 +0200
+Subject: [PATCH 05/11] Add devices VTC Dual & Primo Mini
+
+---
+ evic/device.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/evic/device.py b/evic/device.py
+index 7f27e8f..a5764b7 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -56,7 +56,9 @@ class HIDTransfer(object):
+                'E083': DeviceInfo("eGrip II", None, (64, 40)),
+                'E092': DeviceInfo("eVic AIO", None, (64, 40)),
+                'E115': DeviceInfo("eVic VTwo mini", None, (64, 40)),
++               'E079': DeviceInfo("eVic VTC Dual", None, (64, 40)),
+                'E150': DeviceInfo("eVic Basic", None, (64, 40)),
++               'E196': DeviceInfo("eVic Primo Mini", None, (64, 40)),
+                'M011': DeviceInfo("iStick TC100W", None, None),
+                'M037': DeviceInfo("ASTER", None, (96, 16)),
+                'M041': DeviceInfo("iStick Pico", None, (96, 16)),
+
+From 928f39032e6d2a16a35186d1632b77d63b62ba5c Mon Sep 17 00:00:00 2001
+From: Timofey Titovets <nefelim4ag@gmail.com>
+Date: Sun, 22 Jan 2017 16:02:35 +0300
+Subject: [PATCH 06/11] Notes about autosync time on device
+
+Signed-off-by: Timofey Titovets <nefelim4ag@gmail.com>
+---
+ README.rst                        | 5 +++++
+ scripts/evic-usb-rtc-sync.service | 6 ++++++
+ udev/99-nuvoton-hid.rules         | 3 +++
+ 3 files changed, 14 insertions(+)
+ create mode 100644 scripts/evic-usb-rtc-sync.service
+
+diff --git a/README.rst b/README.rst
+index eb71212..2948b43 100644
+--- a/README.rst
++++ b/README.rst
+@@ -79,6 +79,11 @@ Allowing non-root access to the device
+ 
+ The file ``udev/99-nuvoton-hid.rules`` contains an example set of rules for setting the device permissions to ``0666``.  Copy the file to the directory ``/etc/udev/rules.d/`` to use it.
+ 
++Autosync time when device connected
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++The file ``scripts/evic-usb-rtc-sync.service`` + ``udev/99-nuvoton-hid.rules`` is a example of how to auto sync time
++
+ Usage
+ -------
+ See  ``--help`` for more information on a given command.
+diff --git a/scripts/evic-usb-rtc-sync.service b/scripts/evic-usb-rtc-sync.service
+new file mode 100644
+index 0000000..e756dd2
+--- /dev/null
++++ b/scripts/evic-usb-rtc-sync.service
+@@ -0,0 +1,6 @@
++[Unit]
++Description=Evic RTC sync
++
++[Service]
++ExecStart=/bin/bash -c 'lsusb -d 0416:5020 && evic-usb time'
++RemainAfterExit=yes
+diff --git a/udev/99-nuvoton-hid.rules b/udev/99-nuvoton-hid.rules
+index 0ee1b6f..6c6a9bb 100644
+--- a/udev/99-nuvoton-hid.rules
++++ b/udev/99-nuvoton-hid.rules
+@@ -3,3 +3,6 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="0416", ATTRS{idProduct}=="5020", MODE="0666"
+ 
+ # HIDAPI/hidraw
+ KERNEL=="hidraw*", ATTRS{busnum}=="1", ATTRS{idVendor}=="0416", ATTRS{idProduct}=="5020", MODE="0666"
++
++# HIDAPI/libusb RTC Sync
++ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0416", ATTRS{idProduct}=="5020", RUN+="/usr/bin/systemctl restart evic-usb-rtc-sync"
+
+From 5d30503fad0d7b4deac8c5b20020461420c1eacc Mon Sep 17 00:00:00 2001
+From: Thomas Spigel <thomas.spigel@gmail.com>
+Date: Sat, 7 Jan 2017 10:19:31 +0100
+Subject: [PATCH 07/11] Added support for Wismec Presa 100W, with logo upload
+ support 64x40
+
+---
+ evic/device.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/evic/device.py b/evic/device.py
+index a5764b7..ca8eeae 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -65,6 +65,7 @@ class HIDTransfer(object):
+                'M045': DeviceInfo("iStick Pico Mega", None, (96, 16)),
+                'M046': DeviceInfo("iPower", None, (96, 16)),
+                'W007': DeviceInfo("Presa TC75W", ['E052'], (64,40)),
++               'W017': DeviceInfo("Presa TC100W", None, (64, 40)),
+                'W010': DeviceInfo("Classic", None, None),
+                'W011': DeviceInfo("Lite", None, None),
+                'W013': DeviceInfo("Stout", None, None),
+
+From 51b9eb6aa81af43af0bb2356a5c4109899046afd Mon Sep 17 00:00:00 2001
+From: Arne Zellentin <arne.zellentin@kernelconcepts.de>
+Date: Tue, 11 Apr 2017 17:21:17 +0200
+Subject: [PATCH 08/11] added support for Wismec Predator 228
+
+---
+ evic/device.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/evic/device.py b/evic/device.py
+index ca8eeae..0d60901 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -72,7 +72,9 @@ class HIDTransfer(object):
+                'W014': DeviceInfo("Reuleaux RX200", None, None),
+                'W016': DeviceInfo("CENTURION", None, None),
+                'W018': DeviceInfo("Reuleaux RX2/3", None, (64, 48)),
+-               'W033': DeviceInfo("Reuleaux RX200S", None, None)
++               'W026': DeviceInfo("Reuleaux RX75", None, (64, 48)),
++               'W033': DeviceInfo("Reuleaux RX200S", None, None),
++               'W078': DeviceInfo("Predator 228", None, (64, 48))
+               }
+ 
+     # 0x43444948
+
+From 0e445578bcaa30c2e12e533fe95e3093d0771af1 Mon Sep 17 00:00:00 2001
+From: yanbec <github@yannickbecker.de>
+Date: Fri, 12 May 2017 13:43:02 +0200
+Subject: [PATCH 09/11] Added logo support for RX200s
+
+According to Wismec logo support for RX200s is supported since FW V4.02. Tested with FW 4.13.
+---
+ evic/device.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/evic/device.py b/evic/device.py
+index 0d60901..db65447 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -73,7 +73,7 @@ class HIDTransfer(object):
+                'W016': DeviceInfo("CENTURION", None, None),
+                'W018': DeviceInfo("Reuleaux RX2/3", None, (64, 48)),
+                'W026': DeviceInfo("Reuleaux RX75", None, (64, 48)),
+-               'W033': DeviceInfo("Reuleaux RX200S", None, None),
++               'W033': DeviceInfo("Reuleaux RX200S", None, (64, 48))
+                'W078': DeviceInfo("Predator 228", None, (64, 48))
+               }
+ 
+
+From 9ff63462f4c5a4739c74d902f4b5166d13ea199d Mon Sep 17 00:00:00 2001
+From: Jan Sperling <sperling@b1-systems.de>
+Date: Wed, 20 Dec 2017 12:04:34 +0100
+Subject: [PATCH 10/11] add new devices and update list of tested devices
+
+---
+ README.rst     | 53 ++++++++++++++++++++++++++++++------------------
+ evic/device.py | 63 ++++++++++++++++++++++++++++++++++------------------------
+ 2 files changed, 71 insertions(+), 45 deletions(-)
+
+diff --git a/README.rst b/README.rst
+index 2948b43..685d647 100644
+--- a/README.rst
++++ b/README.rst
+@@ -10,28 +10,43 @@ Evic is a USB programmer for devices based on the Joyetech Evic VTC Mini.
+ Supported devices
+ ---------------------
+ 
+-* eVic VTwo*
+-* Evic VTC Mini
+-* Cuboid Mini
+-* Cuboid
+-* eVic VTC Dual*
+-* eGrip II*
+-* eVic AIO*
+-* eVic VTwo mini*
+-* eVic Basic*
+-* iStick TC100W*
+-* ASTER*
+-* iStick Pico
+-* iStick Pico Mega*
+-* iPower*
+-* Presa TC75W*
++* Joyetech eVic VTwo*
++* Joyetech eVic VTwo mini
++* Joyetech evic VTC Mini
++* Joyetech eVic VTC Dual*
++* Joyetech eVic AIO*
++* Joyetech eVic Basic*
++* Joyetech eVic Primo*
++* Joyetech eVic Primo Mini*
++* Joyetech eVic Primo 2.0*
++* Joyetech Cuboid
++* Joyetech Cuboid Mini
++* Joyetech Cuboid 200*
++* Joyetech eGrip II*
++* Eleaf iStick QC 200W*
++* Eleaf iStick TC100W*
++* Eleaf iStick TC200W*
++* Eleaf iStick Pico
++* Eleaf iStick Pico RDTA*
++* Eleaf iStick Pico Mega*
++* Eleaf iStick Pico Dual*
++* Eleaf iStick Power*
++* Eleaf ASTER*
++* Wismec Presa TC75W
++* Wismec Presa TC100W*
++* Wismec Reuleaux RX2/3
++* Wismec Reuleaux RX200*
++* Wismec Reuleaux RX200S*
++* Wismec Reuleaux RX75
++* Wismec Reuleaux RX300*
++* Wismec Reuleaux RXmini*
++* Wismec Predator 228
+ * Vaporflask Classic*
+ * Vaporflask Lite*
+ * Vaporflask Stout*
+-* Reuleaux RX200*
+-* CENTURION*
+-* Reuleaux RX2/3*
+-* Reuleaux RX200S*
++* Beyondvape Centurion*
++* Vaponaute La Petit Box*
++* Vapor Shark SwitchBox RX*
+ 
+ \*Untested
+ 
+diff --git a/evic/device.py b/evic/device.py
+index db65447..86c37df 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -49,32 +49,43 @@ class HIDTransfer(object):
+ 
+     vid = 0x0416
+     pid = 0x5020
+-    devices = {'E043': DeviceInfo("eVic VTwo", None, (64, 40)),
+-               'E052': DeviceInfo("eVic-VTC Mini", ['W007'], (64, 40)),
+-               'E056': DeviceInfo("CUBOID MINI", None, (64, 40)),
+-               'E060': DeviceInfo("Cuboid", None, (64, 40)),
+-               'E083': DeviceInfo("eGrip II", None, (64, 40)),
+-               'E092': DeviceInfo("eVic AIO", None, (64, 40)),
+-               'E115': DeviceInfo("eVic VTwo mini", None, (64, 40)),
+-               'E079': DeviceInfo("eVic VTC Dual", None, (64, 40)),
+-               'E150': DeviceInfo("eVic Basic", None, (64, 40)),
+-               'E196': DeviceInfo("eVic Primo Mini", None, (64, 40)),
+-               'M011': DeviceInfo("iStick TC100W", None, None),
+-               'M037': DeviceInfo("ASTER", None, (96, 16)),
+-               'M041': DeviceInfo("iStick Pico", None, (96, 16)),
+-               'M045': DeviceInfo("iStick Pico Mega", None, (96, 16)),
+-               'M046': DeviceInfo("iPower", None, (96, 16)),
+-               'W007': DeviceInfo("Presa TC75W", ['E052'], (64,40)),
+-               'W017': DeviceInfo("Presa TC100W", None, (64, 40)),
+-               'W010': DeviceInfo("Classic", None, None),
+-               'W011': DeviceInfo("Lite", None, None),
+-               'W013': DeviceInfo("Stout", None, None),
+-               'W014': DeviceInfo("Reuleaux RX200", None, None),
+-               'W016': DeviceInfo("CENTURION", None, None),
+-               'W018': DeviceInfo("Reuleaux RX2/3", None, (64, 48)),
+-               'W026': DeviceInfo("Reuleaux RX75", None, (64, 48)),
+-               'W033': DeviceInfo("Reuleaux RX200S", None, (64, 48))
+-               'W078': DeviceInfo("Predator 228", None, (64, 48))
++    devices = {'E043': DeviceInfo("Joyetech eVic VTwo", None, (64, 40)),
++               'E052': DeviceInfo("Joyetech eVic VTC Mini", ['W007'], (64, 40)),
++               'E056': DeviceInfo("Joyetech Cuboid Mini", None, (64, 40)),
++               'E060': DeviceInfo("Joyetech Cuboid", None, (64, 40)),
++               'E079': DeviceInfo("Joyetech eVic VTC Dual", None, (64, 40)),
++               'E083': DeviceInfo("Joyetech eGrip II", None, (64, 40)),
++               'E092': DeviceInfo("Joyetech eVic AIO", None, (64, 40)),
++               'E115': DeviceInfo("Joyetech eVic VTwo mini", None, (64, 40)),
++               'E150': DeviceInfo("Joyetech eVic Basic", None, (64, 40)),
++               'E166': DeviceInfo("Joyetech Cuboid 200", None, (64, 40)),
++               'E182': DeviceInfo("Joyetech eVic Primo", None, (64, 40)),
++               'E196': DeviceInfo("Joyetech eVic Primo Mini", None, (64, 40)),
++               'E203': DeviceInfo("Joyetech eVic Primo 2.0", None, (64, 40)),
++               'M011': DeviceInfo("Eleaf iStick TC100W", None, (96, 16)),
++               'M037': DeviceInfo("Eleaf ASTER", None, (96, 16)),
++               'M038': DeviceInfo("Eleaf iStick Pico RDTA", None, (96, 16)),
++               'M041': DeviceInfo("Eleaf iStick Pico", None, (96, 16)),
++               'M045': DeviceInfo("Eleafi Stick Pico Mega", None, (96, 16)),
++               'M046': DeviceInfo("Eleaf iStick Power", None, (96, 16)),
++               'M065': DeviceInfo("Eleaf iStick Pico Dual", None, (96, 16)),
++               'M972': DeviceInfo("Eleaf iStick TC200W", None, (96, 16)),
++               'M973': DeviceInfo("Eleaf iStick QC 200W", None, (96, 16)),
++               'W007': DeviceInfo("Wismec Presa TC75W", ['E052'], (64, 40)),
++               'W010': DeviceInfo("Vaporflask Classic", None, (96, 16)),
++               'W011': DeviceInfo("Vaporflask Lite", None, (96, 16)),
++               'W013': DeviceInfo("Vaporflask Stout", None, (96, 16)),
++               'W014': DeviceInfo("Wismec Reuleaux RX200", None, (96, 16)),
++               'W016': DeviceInfo("Beyondvape Centurion", None, None),
++               'W017': DeviceInfo("Wismec Presa TC100W", None, (64, 40)),
++               'W018': DeviceInfo("Wismec Reuleaux RX2/3", None, (64, 48)),
++               'W026': DeviceInfo("Wismec Reuleaux RX75", None, (64, 48)),
++               'W033': DeviceInfo("Wismec Reuleaux RX200S", None, (64, 48)),
++               'W043': DeviceInfo("Vaponaute La Petit Box", None, (64, 48)),
++               'W057': DeviceInfo("Vapor Shark SwitchBox RX", None, (96, 16)),
++               'W069': DeviceInfo("Wismec Reuleaux RX300", None, (64, 48)),
++               'W073': DeviceInfo("Wismec Reuleaux RXmini", None, (64, 48)),
++               'W078': DeviceInfo("Wismec Predator 228", None, (64, 48)),
+               }
+ 
+     # 0x43444948
+
+From 8aff6c405d7801f903275811dd690ee9bf6826a7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Esser?= <besser82@fedoraproject.org>
+Date: Sat, 6 Jan 2018 15:23:36 +0100
+Subject: [PATCH 11/11] Add some documentation about new commands
+
+---
+ README.rst     | 6 +++---
+ evic/cli.py    | 5 ++++-
+ evic/device.py | 2 ++
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/README.rst b/README.rst
+index 685d647..9b3d620 100644
+--- a/README.rst
++++ b/README.rst
+@@ -152,7 +152,7 @@ Reset the device:
+ 
+     $ evic-usb reset
+ 
+-Dump any part of the flash memory:
++Dump any part of the flash memory (May not work with all firmwares):
+ 
+ ::
+ 
+@@ -164,13 +164,13 @@ Example to read the parameters flash memory:
+ 
+     $ evic-usb fmc-read -o out.bin -s 122880 -l 4096
+ 
+-Setup date and time of the device to the current time:
++Setup date and time of the device to the current time (For firmwares supporting clock display):
+ 
+ ::
+ 
+     $ evic-usb time
+ 
+-Take a screenshot of the device display:
++Take a screenshot of the device display (May not work with all firmwares):
+ 
+ ::
+ 
+diff --git a/evic/cli.py b/evic/cli.py
+index 607e97d..3733e87 100644
+--- a/evic/cli.py
++++ b/evic/cli.py
+@@ -327,7 +327,10 @@ def reset():
+ 
+ @usb.command('time')
+ def time():
+-    """Sets the device date/time to now."""
++    """Sets the device date/time to now.
++    Works only with devices and/or firmwares
++    supporting a clock-screen on the display.
++    """
+ 
+     dev = evic.HIDTransfer()
+ 
+diff --git a/evic/device.py b/evic/device.py
+index 86c37df..0a76ec8 100644
+--- a/evic/device.py
++++ b/evic/device.py
+@@ -179,6 +179,7 @@ def read_dataflash(self):
+ 
+     def fmc_read(self, start, length):
+         """Reads the device flash memory.
++        May not work with all devices or firmwares.
+ 
+         Returns:
+             An array containing the data flash memory content.
+@@ -207,6 +208,7 @@ def hid_command(self, cmd, start, length):
+ 
+     def read_screen(self):
+         """Reads the screen memory.
++        May not work with all devices or firmwares.
+ 
+         Returns:
+             An array containing the screen.

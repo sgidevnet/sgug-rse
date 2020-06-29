@@ -1,0 +1,16 @@
+diff -Naur python-ase-3.8.1.3440.orig/ase/gui/ag.py python-ase-3.8.1.3440/ase/gui/ag.py
+--- python-ase-3.8.1.3440.orig/ase/gui/ag.py	2013-11-22 16:00:05.000000000 +0100
++++ python-ase-3.8.1.3440/ase/gui/ag.py	2013-12-10 11:32:31.915511000 +0100
+@@ -93,11 +93,8 @@
+                     parser.error(e.args[0])
+                 else:
+                     parser.error(e.args[1] + ': ' + e.filename)
+-        elif sys.stdin.isatty():
+-            images.initialize([Atoms()])
+         else:
+-            from ase.db import connect
+-            images.initialize([connect(sys.stdin, 'json')[0]])
++            images.initialize([Atoms()])
+ 
+         if opt.interpolate:
+             images.interpolate(opt.interpolate)

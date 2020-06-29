@@ -1,0 +1,9 @@
+# THIS FILE IS FOR WHITELISTING RPMLINT ERRORS AND WARNINGS IN TASKOTRON
+# https://fedoraproject.org/wiki/Taskotron/Tasks/dist.rpmlint#Whitelisting_errors
+
+# objects.inv is not a text file
+addFilter(r'W: wrong-file-end-of-line-encoding .*objects\.inv')
+addFilter(r'W: file-not-utf8 .*objects\.inv')
+
+# We use the versions of jquery and js-underscore that sphinx gives us
+addFilter(r'W: unversioned-explicit-provides bundled\((jquery|js-underscore)\)')

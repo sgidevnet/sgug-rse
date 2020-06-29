@@ -1,0 +1,21 @@
+commit 6fbe83c0b83bbff15d09516013c59b467300de9f
+Author: Tom Hughes <tom@compton.nu>
+Date:   Tue Mar 3 16:09:14 2020 +0000
+
+    Update test results for proj 6.x
+
+diff --git a/test/python_tests/projection_test.py b/test/python_tests/projection_test.py
+index 316632928..36403220f 100644
+--- a/test/python_tests/projection_test.py
++++ b/test/python_tests/projection_test.py
+@@ -152,8 +152,8 @@ def test_proj_antimeridian_bbox():
+     assert_box2d_almost_equal(rev_ext, better)
+ 
+     # checks for not being snapped (ie. not antimeridian)
+-    normal = mapnik.Box2d(148.766759749, -60.1222810238,
+-                          159.95484893, -24.9771195151)
++    normal = mapnik.Box2d(148.763992289, -60.1221489796,
++                          159.95484765, -24.9771194494)
+     buffered_query_ext = mapnik.Box2d(274000, 3087000, 276000, 7173000)
+     fwd_ext = prj_trans_fwd.forward(buffered_query_ext, PROJ_ENVELOPE_POINTS)
+     assert_box2d_almost_equal(fwd_ext, normal)

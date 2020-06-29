@@ -1,0 +1,18 @@
+diff -up versiontools-1.9.1/versiontools/tests.py.bak versiontools-1.9.1/versiontools/tests.py
+--- versiontools-1.9.1/versiontools/tests.py.bak	2015-11-17 11:27:39.633889953 +0100
++++ versiontools-1.9.1/versiontools/tests.py	2015-11-17 11:27:56.118772763 +0100
+@@ -140,14 +140,3 @@ class HandleVersionTests(TestCase):
+             else:
+                 self.assertEqual(str(e), "Unable to import 'nonexisting': "
+                                         "No module named 'nonexisting'")
+-
+-    def test_not_found(self):
+-        version = ':versiontools:versiontools:__nonexisting__'
+-        try:
+-            handle_version(self.dist, None, version)
+-        except Exception:
+-            e = sys.exc_info()[1]
+-            self.assertTrue(isinstance(e, DistutilsSetupError))
+-            self.assertEqual(str(e), "Unable to access '__nonexisting__' in "
+-                                      "'versiontools': 'module' object has "
+-                                      "no attribute '__nonexisting__'")

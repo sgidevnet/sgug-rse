@@ -1,0 +1,325 @@
+diff --git a/pyipmi/fields.py b/pyipmi/fields.py
+index 91457d0..c03a267 100644
+--- a/pyipmi/fields.py
++++ b/pyipmi/fields.py
+@@ -4,6 +4,7 @@
+ import array
+ 
+ from .errors import DecodingError
++from .utils import py3_array_tobytes
+ 
+ 
+ class VersionField(object):
+@@ -37,10 +38,10 @@ class VersionField(object):
+         """`data` is array.array"""
+         self.major = data[0]
+ 
+-        if data[1] is 0xff:
++        if data[1] == 0xff:
+             self.minor = data[1]
+         elif data[1] <= 0x99:
+-            self.minor = int(data[1:2].tostring().decode('bcd+'))
++            self.minor = int(py3_array_tobytes(data[1:2]).decode('bcd+'))
+         else:
+             raise DecodingError()
+ 
+diff --git a/pyipmi/hpm.py b/pyipmi/hpm.py
+index d7cb9da..5de95f4 100644
+--- a/pyipmi/hpm.py
++++ b/pyipmi/hpm.py
+@@ -29,7 +29,7 @@ from .errors import CompletionCodeError, HpmError, IpmiTimeoutError
+ from .msgs import create_request_by_name
+ from .msgs import constants
+ from .utils import check_completion_code, bcd_search, chunks
+-from .utils import py3dec_unic_bytes_fix, bytes2 as bytes
++from .utils import py3dec_unic_bytes_fix, bytes2 as bytes, py3_array_tobytes
+ from .state import State
+ from .fields import VersionField
+ 
+@@ -203,7 +203,7 @@ class Hpm(object):
+             try:
+                 status = self.get_upgrade_status()
+                 if status.command_in_progress is not expected_cmd \
+-                        and status.command_in_progress is not 0x34:
++                        and status.command_in_progress != 0x34:
+                     pass
+                 if status.last_completion_code \
+                         == CC_LONG_DURATION_CMD_IN_PROGRESS:
+@@ -474,9 +474,11 @@ class ComponentPropertyCurrentVersion(ComponentProperty):
+ class ComponentPropertyDescriptionString(ComponentProperty):
+ 
+     def _from_rsp_data(self, data):
+-        self.description = py3dec_unic_bytes_fix(array('B', data).tostring())
++        descr = py3_array_tobytes(array('B', data))
++        descr = py3dec_unic_bytes_fix(descr)
+         # strip '\x00'
+-        self.description = self.description.replace('\0', '')
++        descr = descr.replace('\0', '')
++        self.description = descr
+ 
+ 
+ class ComponentPropertyRollbackVersion(ComponentProperty):
+diff --git a/pyipmi/interfaces/ipmb.py b/pyipmi/interfaces/ipmb.py
+index 8acf96f..5d4d06a 100644
+--- a/pyipmi/interfaces/ipmb.py
++++ b/pyipmi/interfaces/ipmb.py
+@@ -20,6 +20,7 @@ from ..logger import log
+ from ..msgs import (create_message, create_request_by_name,
+                     encode_message, decode_message, constants)
+ from ..utils import check_completion_code
++from ..utils import py3_array_tobytes, py3_array_frombytes
+ 
+ 
+ def checksum(data):
+@@ -62,7 +63,7 @@ class IpmbHeaderReq(IpmbHeader):
+         data.append(self.rq_sa)
+         data.append(self.rq_seq << 2 | self.rq_lun)
+         data.append(self.cmd_id)
+-        return data.tostring()
++        return py3_array_tobytes(data)
+ 
+     def decode(self):
+         raise NotImplementedError()
+@@ -93,14 +94,13 @@ def encode_ipmb_msg(header, data):
+     Returns the message as bytestring.
+     """
+     msg = array('B')
+-
+-    msg.fromstring(header.encode())
++    py3_array_frombytes(msg, header.encode())
+     if data is not None:
+         a = array('B')
+-        a.fromstring(data)
++        py3_array_frombytes(a, data)
+         msg.extend(a)
+     msg.append(checksum(msg[3:]))
+-    return msg.tostring()
++    return py3_array_tobytes(msg)
+ 
+ 
+ def encode_send_message(payload, rq_sa, rs_sa, channel, seq, tracking=1):
+diff --git a/pyipmi/interfaces/ipmitool.py b/pyipmi/interfaces/ipmitool.py
+index 8d6d97f..80532e8 100644
+--- a/pyipmi/interfaces/ipmitool.py
++++ b/pyipmi/interfaces/ipmitool.py
+@@ -25,7 +25,7 @@ from ..errors import IpmiTimeoutError
+ from ..logger import log
+ from ..msgs import encode_message, decode_message, create_message
+ from ..msgs.constants import CC_OK
+-from ..utils import py3dec_unic_bytes_fix, ByteBuffer
++from ..utils import py3dec_unic_bytes_fix, ByteBuffer, py3_array_tobytes
+ 
+ 
+ class Ipmitool(object):
+@@ -49,9 +49,9 @@ class Ipmitool(object):
+                                interface_type)
+ 
+         self.re_completion_code = re.compile(
+-                b"Unable to send RAW command \(.*rsp=(0x[0-9a-f]+)\)")
++                br"Unable to send RAW command \(.*rsp=(0x[0-9a-f]+)\)")
+         self.re_timeout = re.compile(
+-                b"Unable to send RAW command \(.*cmd=0x[0-9a-f]+\)")
++                br"Unable to send RAW command \(.*cmd=0x[0-9a-f]+\)")
+ 
+         self._session = None
+ 
+@@ -135,7 +135,7 @@ class Ipmitool(object):
+         log().debug('IPMI RX: {:s}'.format(
+             ''.join('%02x ' % b for b in array('B', data))))
+ 
+-        return data.tostring()
++        return py3_array_tobytes(data)
+ 
+     def send_and_receive(self, req):
+         log().debug('IPMI Request [%s]', req)
+@@ -144,7 +144,7 @@ class Ipmitool(object):
+         req_data.push_string(encode_message(req))
+ 
+         rsp_data = self.send_and_receive_raw(req.target, req.lun, req.netfn,
+-                                             req_data.tostring())
++                                             py3_array_tobytes(req_data))
+ 
+         rsp = create_message(req.netfn + 1, req.cmdid, req.group_extension)
+         decode_message(rsp, rsp_data)
+diff --git a/pyipmi/interfaces/rmcp.py b/pyipmi/interfaces/rmcp.py
+index d6e35be..ff7a95e 100644
+--- a/pyipmi/interfaces/rmcp.py
++++ b/pyipmi/interfaces/rmcp.py
+@@ -32,7 +32,7 @@ from ..logger import log
+ from ..interfaces.ipmb import (IpmbHeaderReq, encode_ipmb_msg,
+                                encode_bridged_message, decode_bridged_message,
+                                rx_filter)
+-from ..utils import check_completion_code
++from ..utils import check_completion_code, py3_array_tobytes
+ 
+ 
+ CLASS_NORMAL_MSG = 0x00
+@@ -262,7 +262,7 @@ class IpmiMsg(object):
+         else:
+             raise NotSupportedError('authentication type %s' % auth_type)
+ 
+-        pdu += array('B', [data_len]).tostring()
++        pdu += py3_array_tobytes(array('B', [data_len]))
+ 
+         if sdu is not None:
+             pdu += sdu
+diff --git a/pyipmi/lan.py b/pyipmi/lan.py
+index 0a2b04b..bff61de 100644
+--- a/pyipmi/lan.py
++++ b/pyipmi/lan.py
+@@ -58,7 +58,7 @@ class Lan(object):
+                              revision_only=0):
+         req = create_request_by_name('GetLanConfigurationParameters')
+         req.command.get_parameter_revision_only = revision_only
+-        if revision_only is not 1:
++        if revision_only != 1:
+             req.command.channel_number = channel
+             req.parameter_selector = parameter_selector
+             req.set_selector = set_selector
+diff --git a/pyipmi/sdr.py b/pyipmi/sdr.py
+index d5ede24..b079f99 100644
+--- a/pyipmi/sdr.py
++++ b/pyipmi/sdr.py
+@@ -374,13 +374,13 @@ class SdrFullSensorRecord(SdrCommon):
+         elif capabilities & THRESHOLD_MASK == THRESHOLD_IS_FIXED:
+             self.capabilities.append('threshold_fixed')
+         # sensor event message control support
+-        if (capabilities & 0x03) is 0:
++        if (capabilities & 0x03) == 0:
+             pass
+-        if (capabilities & 0x03) is 1:
++        if (capabilities & 0x03) == 1:
+             pass
+-        if (capabilities & 0x03) is 2:
++        if (capabilities & 0x03) == 2:
+             pass
+-        if (capabilities & 0x03) is 3:
++        if (capabilities & 0x03) == 3:
+             pass
+ 
+     def _from_data(self, data):
+diff --git a/pyipmi/utils.py b/pyipmi/utils.py
+index bba9db3..04ff91b 100644
+--- a/pyipmi/utils.py
++++ b/pyipmi/utils.py
+@@ -21,27 +21,44 @@ from .msgs import constants
+ from .errors import DecodingError, CompletionCodeError
+ 
+ 
++_PY3 = (sys.version_info >= (3,))
++
++
+ def py3enc_unic_bytes_fix(dat):
+     # python 3 unicode fix
+-    if isinstance(dat, str) and int(sys.version[0]) > 2:
++    if isinstance(dat, str) and _PY3:
+         dat = dat.encode('raw_unicode_escape')
+     return dat
+ 
+ 
+ def py3dec_unic_bytes_fix(dat):
+     # python 3 unicode fix
+-    if int(sys.version[0]) > 2:
++    if _PY3:
+         return dat.decode('raw_unicode_escape')
+     return dat
+ 
+ 
+ def bytes2(dat, enc):
+     # python 2-3 workaround
+-    if int(sys.version[0]) > 2:
++    if _PY3:
+         return bytes(dat, enc)
+     return dat
+ 
+ 
++def py3_array_frombytes(msg, data):
++    if _PY3:
++        return msg.frombytes(data)
++    else:
++        return msg.fromstring(data)
++
++
++def py3_array_tobytes(msg):
++    if _PY3:
++        return msg.tobytes()
++    else:
++        return msg.tostring()
++
++
+ def check_completion_code(cc):
+     if cc != constants.CC_OK:
+         raise CompletionCodeError(cc)
+@@ -74,12 +91,15 @@ class ByteBuffer(object):
+         return value
+ 
+     def push_string(self, value):
+-        self.array.fromstring(value)
++        if _PY3 and isinstance(value, str):
++            # Encode Unicode to UTF-8
++            value = value.encode()
++        py3_array_frombytes(self.array, value)
+ 
+     def pop_string(self, length):
+         string = self.array[0:length]
+         del self.array[0:length]
+-        return string.tostring()
++        return py3_array_tobytes(string)
+         # return py3dec_unic_bytes_fix(string.tostring())
+ 
+     def pop_slice(self, length):
+@@ -91,7 +111,7 @@ class ByteBuffer(object):
+         return c
+ 
+     def tostring(self):
+-        return self.array.tostring()
++        return py3_array_tobytes(self.array)
+ 
+     def extend(self, data):
+         self.array.extend(data)
+@@ -123,7 +143,7 @@ def bcd_decode(encoded_input):
+     chars = list()
+     try:
+         for data in encoded_input:
+-            if int(sys.version[0]) == 2:
++            if not _PY3:
+                 data = ord(data)
+             chars.append(BCD_MAP[data >> 4 & 0xf] + BCD_MAP[data & 0xf])
+         return (''.join(chars), len(encoded_input) * 2)
+@@ -132,12 +152,13 @@ def bcd_decode(encoded_input):
+ 
+ 
+ def bcd_search(name):
+-    if name != 'bcd+':
++    # Python 3.9 normalizes 'bcd+' as 'bcd_'
++    if name not in ('bcd+', 'bcd'):
+         return None
+     return codecs.CodecInfo(name='bcd+', encode=bcd_encode, decode=bcd_decode)
+ 
+ 
+ def is_string(string):
+-    if sys.version_info[0] >= 3:
++    if _PY3:
+         return isinstance(string, str)
+     return isinstance(string, basestring)
+diff --git a/tests/interfaces/test_rmcp.py b/tests/interfaces/test_rmcp.py
+index fdfee77..ed24832 100644
+--- a/tests/interfaces/test_rmcp.py
++++ b/tests/interfaces/test_rmcp.py
+@@ -9,6 +9,7 @@ from pyipmi import Target
+ from pyipmi.session import Session
+ from pyipmi.interfaces.rmcp import (AsfMsg, AsfPing, AsfPong, IpmiMsg,
+                                     Rmcp, RmcpMsg)
++from pyipmi.utils import py3_array_tobytes
+ 
+ 
+ class TestRmcpMsg:
+@@ -82,7 +83,7 @@ class TestIpmiMsg:
+         eq_(psw, b'admin\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+ 
+     def test_ipmimsg_pack_with_data(self):
+-        data = array.array('B', (1, 2, 3, 4)).tostring()
++        data = py3_array_tobytes(array.array('B', (1, 2, 3, 4)))
+         m = IpmiMsg()
+         pdu = m.pack(data)
+         eq_(pdu, b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x01\x02\x03\x04')

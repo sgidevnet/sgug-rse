@@ -1,0 +1,36 @@
+From 58203081e5cc828ec50f8df92cdc40f100c0b1c5 Mon Sep 17 00:00:00 2001
+From: James McKinney <26463+jpmckinney@users.noreply.github.com>
+Date: Sat, 27 Apr 2019 13:29:41 -0400
+Subject: [PATCH] Get tests passing related to csvsql and type inference, #1027
+
+---
+ tests/test_utilities/test_csvsql.py  | 2 +-
+ tests/test_utilities/test_sql2csv.py | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tests/test_utilities/test_csvsql.py b/tests/test_utilities/test_csvsql.py
+index e6ec4af5..4f47980a 100644
+--- a/tests/test_utilities/test_csvsql.py
++++ b/tests/test_utilities/test_csvsql.py
+@@ -197,7 +197,7 @@ def test_before_after_insert(self):
+         utility.run()
+         output = output_file.getvalue()
+         output_file.close()
+-        self.assertEqual(output, 'a,b,c\n1,2,3\n0,5,6\n')
++        self.assertEqual(output, 'a,b,c\n1,2.0,3.0\n0,5.0,6.0\n')
+ 
+     def test_no_prefix_unique_constraint(self):
+         self.get_output(['--db', 'sqlite:///' + self.db_file, '--insert', 'examples/dummy.csv', '--unique-constraint', 'a'])
+diff --git a/tests/test_utilities/test_sql2csv.py b/tests/test_utilities/test_sql2csv.py
+index a0c3d3e6..200ef55d 100644
+--- a/tests/test_utilities/test_sql2csv.py
++++ b/tests/test_utilities/test_sql2csv.py
+@@ -45,7 +45,7 @@ def csvsql(self, csv_file, db=None):
+         if not db:
+             db = 'sqlite:///' + self.db_file
+ 
+-        args = ['--db', db, '--tables', 'foo', '--insert', csv_file]
++        args = ['--db', db, '--tables', 'foo', '--insert', csv_file, '--no-inference']
+ 
+         utility = CSVSQL(args)
+         utility.run()

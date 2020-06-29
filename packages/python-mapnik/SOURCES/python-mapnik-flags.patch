@@ -1,0 +1,50 @@
+From e2873912f21a7c1f73ded766ebea96ef2f9e5a29 Mon Sep 17 00:00:00 2001
+From: Tom Hughes <tom@compton.nu>
+Date: Sat, 11 Jul 2015 00:30:09 +0100
+Subject: [PATCH 1/5] Don't try and edit compiler settings
+
+---
+ setup.py | 20 --------------------
+ 1 file changed, 20 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index a19fbb36e..f2f34fad0 100755
+--- a/setup.py
++++ b/setup.py
+@@ -82,24 +82,6 @@ class WhichBoostCommand(Command):
+         print("\n".join(get_boost_library_names()))
+ 
+ 
+-cflags = sysconfig.get_config_var('CFLAGS')
+-sysconfig._config_vars['CFLAGS'] = re.sub(
+-    ' +', ' ', cflags.replace('-g ', '').replace('-Os', '').replace('-arch i386', ''))
+-opt = sysconfig.get_config_var('OPT')
+-sysconfig._config_vars['OPT'] = re.sub(
+-    ' +', ' ', opt.replace('-g ', '').replace('-Os', ''))
+-ldshared = sysconfig.get_config_var('LDSHARED')
+-sysconfig._config_vars['LDSHARED'] = re.sub(
+-    ' +', ' ', ldshared.replace('-g ', '').replace('-Os', '').replace('-arch i386', ''))
+-ldflags = sysconfig.get_config_var('LDFLAGS')
+-sysconfig._config_vars['LDFLAGS'] = re.sub(
+-    ' +', ' ', ldflags.replace('-g ', '').replace('-Os', '').replace('-arch i386', ''))
+-pycflags = sysconfig.get_config_var('PY_CFLAGS')
+-sysconfig._config_vars['PY_CFLAGS'] = re.sub(
+-    ' +', ' ', pycflags.replace('-g ', '').replace('-Os', '').replace('-arch i386', ''))
+-sysconfig._config_vars['CFLAGSFORSHARED'] = ''
+-os.environ['ARCHFLAGS'] = ''
+-
+ if os.environ.get("MASON_BUILD", "false") == "true":
+     # run bootstrap.sh to get mason builds
+     subprocess.call(['./bootstrap.sh'])
+@@ -243,8 +225,6 @@ if sys.platform == 'darwin':
+     linkflags.append('-mmacosx-version-min=10.11')
+ else:
+     linkflags.append('-lrt')
+-    linkflags.append('-Wl,-z,origin')
+-    linkflags.append('-Wl,-rpath=$ORIGIN/lib')
+ 
+ if os.environ.get("CC", False) == False:
+     os.environ["CC"] = check_output([mapnik_config, '--cxx'])
+-- 
+2.21.0
+

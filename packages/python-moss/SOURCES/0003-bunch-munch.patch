@@ -1,0 +1,44 @@
+From c0576ccc6a066b26b89f62bd60a932c6f7067ab7 Mon Sep 17 00:00:00 2001
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Date: Sun, 11 Feb 2018 14:23:19 +0100
+Subject: [PATCH 3/3] =?UTF-8?q?bunch=20=E2=86=92=20munch?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Bunch is dead in upstream for really long time.
+
+Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+---
+ moss/__init__.py | 2 +-
+ setup.py         | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/moss/__init__.py b/moss/__init__.py
+index 7b7f5bc..06ec5f1 100644
+--- a/moss/__init__.py
++++ b/moss/__init__.py
+@@ -5,6 +5,6 @@ from . import design
+ from . import glm
+ from . import mosaic
+ from . import external
+-from .external.bunch import Bunch
++from munch import Munch as Bunch
+ 
+ __version__ = "0.5"
+diff --git a/setup.py b/setup.py
+index 38f13ef..62fdc29 100644
+--- a/setup.py
++++ b/setup.py
+@@ -30,7 +30,7 @@ if __name__ == "__main__":
+         URL=URL,
+         download_url=DOWNLOAD_URL,
+         packages=['moss', 'moss.tests', 'moss.psychophys', 'moss.external'],
+-        install_requires=["matplotlib", "numpy", "nibabel", "pandas",
++        install_requires=["matplotlib", "munch", "numpy", "nibabel", "pandas",
+                           "scikit-learn", "scipy", "seaborn", "six"],
+         tests_require=["nose", "pytest"],
+         scripts=["bin/" + s for s in ["check_mni_reg", "recon_movie",
+-- 
+2.16.1
+

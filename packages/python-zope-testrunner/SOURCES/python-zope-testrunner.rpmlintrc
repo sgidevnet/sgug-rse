@@ -1,0 +1,5 @@
+# THIS FILE IS FOR WHITELISTING RPMLINT ERRORS AND WARNINGS IN TASKOTRON
+# https://fedoraproject.org/wiki/Taskotron/Tasks/dist.rpmlint#Whitelisting_errors
+
+# Ignore ugly code needed to build documentation and test
+addFilter(r'E: hardcoded-library-path')

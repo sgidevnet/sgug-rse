@@ -1,0 +1,65 @@
+From ea6d1c1d22f3267aafb251f85c0cda6d40c5c5b7 Mon Sep 17 00:00:00 2001
+From: Geoffrey Thomas <geofft@twosigma.com>
+Date: Fri, 25 Aug 2017 15:09:06 -0400
+Subject: [PATCH 1/2] patcher: workaround for monotonic "no suitable
+ implementation"
+
+In some cases -- notably with Python 2.7.13 and the default hub -- the
+process of importing the hub involves calling code in a module we
+monkey-patch. This leads to recursive imports: the first eventlet
+function will call get_hub(), which will try to import the hub, which
+will call a monkey-patched module, which will call get_hub() and try to
+import the hub again.
+
+To avoid this, make sure the hub is fully imported before
+monkey-patching anything.
+
+https://github.com/eventlet/eventlet/issues/401
+(cherry picked from commit b756447bab51046dfc6f1e0e299cc997ab343701)
+---
+ AUTHORS             |  2 ++
+ eventlet/patcher.py | 11 +++++++++++
+ 2 files changed, 13 insertions(+)
+
+diff --git a/AUTHORS b/AUTHORS
+index c5b94a7..af77252 100644
+--- a/AUTHORS
++++ b/AUTHORS
+@@ -150,3 +150,5 @@ Thanks To
+ * Yuichi Bando
+ * Feng
+ * Aayush Kasurde
++* Linbing
++* Geoffrey Thomas
+diff --git a/eventlet/patcher.py b/eventlet/patcher.py
+index c0ef377..172906c 100644
+--- a/eventlet/patcher.py
++++ b/eventlet/patcher.py
+@@ -1,6 +1,7 @@
+ import imp
+ import sys
+ 
++import eventlet
+ from eventlet.support import six
+ 
+ 
+@@ -222,6 +223,16 @@ def monkey_patch(**on):
+ 
+     It's safe to call monkey_patch multiple times.
+     """
++
++    # Workaround for import cycle observed as following in monotonic
++    # RuntimeError: no suitable implementation for this system
++    # see https://github.com/eventlet/eventlet/issues/401#issuecomment-325015989
++    #
++    # Make sure the hub is completely imported before any
++    # monkey-patching, or we risk recursion if the process of importing
++    # the hub calls into monkey-patched modules.
++    eventlet.hubs.get_hub()
++
+     accepted_args = set(('os', 'select', 'socket',
+                          'thread', 'time', 'psycopg', 'MySQLdb',
+                          'builtins', 'subprocess'))
+-- 
+2.13.5
+

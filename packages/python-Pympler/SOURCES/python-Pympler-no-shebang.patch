@@ -1,0 +1,8 @@
+diff -up Pympler-0.6/pympler/asizeof.py.no-shebang Pympler-0.6/pympler/asizeof.py
+--- Pympler-0.6/pympler/asizeof.py.no-shebang	2019-02-26 10:41:26.402867320 +0100
++++ Pympler-0.6/pympler/asizeof.py	2019-02-26 10:41:39.852650912 +0100
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ # Copyright, license and disclaimer are at the very end of this file.
+ 

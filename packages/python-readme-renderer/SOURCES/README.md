@@ -1,0 +1,7 @@
+# python-readme-renderer
+
+Upstream: https://github.com/pypa/readme_renderer
+
+Readme Renderer is a library that will safely render arbitrary README files into
+HTML. It is designed to be used in Warehouse to render the long_description for packages. It can
+handle Markdown, reStructuredText (.rst), and plain text.

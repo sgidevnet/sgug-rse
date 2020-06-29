@@ -1,0 +1,48 @@
+From 7480fcdc8c6585d3f8ac67fe9a4dff0ebb0e479e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miro=20Hron=C4=8Dok?= <miro@hroncok.cz>
+Date: Thu, 2 May 2019 15:39:00 +0200
+Subject: [PATCH] Python 3.8: tarfile.filemode is gone, use stat.filemode if
+ available
+
+    >           mode = tarfile.filemode(entry.mode)[1:]
+    E           AttributeError: module 'tarfile' has no attribute 'filemode'
+---
+ tests/__init__.py | 6 +++++-
+ tox.ini           | 2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/tests/__init__.py b/tests/__init__.py
+index 7e922aa..bfca007 100644
+--- a/tests/__init__.py
++++ b/tests/__init__.py
+@@ -6,6 +6,10 @@
+ from os.path import abspath, dirname, join
+ from stat import S_ISREG
+ import tarfile
++try:
++    from stat import filemode
++except ImportError:  # Python 2
++    filemode = tarfile.filemode
+ 
+ from libarchive import file_reader
+ 
+@@ -83,7 +87,7 @@ def get_tarinfos(location):
+                 path += '/'
+             # libarchive introduces prefixes such as h prefix for
+             # hardlinks: tarfile does not, so we ignore the first char
+-            mode = tarfile.filemode(entry.mode)[1:]
++            mode = filemode(entry.mode)[1:]
+             yield {
+                 'path': path,
+                 'mtime': entry.mtime,
+diff --git a/tox.ini b/tox.ini
+index 8973837..1f6b04f 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -1,5 +1,5 @@
+ [tox]
+-envlist=py27,py34,py35,py36
++envlist=py27,py34,py35,py36,py37,py38
+ skipsdist=True
+ 
+ [testenv]

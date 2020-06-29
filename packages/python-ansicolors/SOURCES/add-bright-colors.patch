@@ -1,0 +1,41 @@
+From e35bca7b989e751923b053713f98e6030cd8d48f Mon Sep 17 00:00:00 2001
+From: FrNecas <fifinecas@seznam.cz>
+Date: Mon, 5 Mar 2018 19:45:40 +0100
+Subject: [PATCH] Add option to use bright colors
+
+Signed-off-by: FrNecas <fifinecas@seznam.cz>
+---
+ colors/colors.py | 3 +++
+ show_colors.py   | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/colors/colors.py b/colors/colors.py
+index 3112497..1c02c5b 100644
+--- a/colors/colors.py
++++ b/colors/colors.py
+@@ -66,6 +66,9 @@ def _color_code(spec, base):
+     """
+     if is_string(spec):
+         spec = spec.strip().lower()
++        if spec.startswith('bright'):
++            base += 60
++            spec = spec[6:]
+ 
+     if spec == 'default':
+         return _join(base + 9)
+diff --git a/show_colors.py b/show_colors.py
+index c18e5be..0a43007 100755
+--- a/show_colors.py
++++ b/show_colors.py
+@@ -22,7 +22,7 @@ def test_styles(bg, fg):
+ # test on standard 80-column terminal
+ 
+ colors  = [None,] + list(COLORS[:8])
+-brights = list(COLORS[8:])
++brights = ['bright' + c for c in COLORS]
+ 
+ for bg in colors:
+     for fg in colors:
+-- 
+2.14.3
+

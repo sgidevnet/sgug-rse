@@ -1,0 +1,11 @@
+diff -up dpkt-1.8.7/tox.ini.orig dpkt-1.8.7/tox.ini
+--- dpkt-1.8.7/tox.ini.orig	2016-04-10 10:02:08.853657036 +0200
++++ dpkt-1.8.7/tox.ini	2016-04-10 10:02:14.106667536 +0200
+@@ -8,7 +8,6 @@ deps =
+     coverage
+     pytest
+     pytest-cov
+-    stdeb
+ commands =
+     py.test --cov=dpkt dpkt
+     coverage combine

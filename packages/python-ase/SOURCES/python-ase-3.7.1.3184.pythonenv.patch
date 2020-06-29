@@ -1,0 +1,278 @@
+diff -Naur python-ase-3.7.1.3184.orig/ase/calculators/castep.py python-ase-3.7.1.3184/ase/calculators/castep.py
+--- python-ase-3.7.1.3184.orig/ase/calculators/castep.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/calculators/castep.py	2013-06-21 18:55:15.787386759 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/python
+ # -*- coding: utf-8 -*-
+ """This module defines an interface to CASTEP for
+     use by the ASE (Webpage: http://wiki.fysik.dtu.dk/ase)
+diff -Naur python-ase-3.7.1.3184.orig/ase/calculators/jacapo/setup.py python-ase-3.7.1.3184/ase/calculators/jacapo/setup.py
+--- python-ase-3.7.1.3184.orig/ase/calculators/jacapo/setup.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/calculators/jacapo/setup.py	2013-06-21 18:55:15.385385219 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ from distutils.core import setup
+ from glob import glob
+diff -Naur python-ase-3.7.1.3184.orig/ase/calculators/lammps.py python-ase-3.7.1.3184/ase/calculators/lammps.py
+--- python-ase-3.7.1.3184.orig/ase/calculators/lammps.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/ase/calculators/lammps.py	2013-06-21 18:55:15.687386376 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ # lammps.py (2011/03/29)
+ # An ASE calculator for the LAMMPS classical MD code available from
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/ag.py python-ase-3.7.1.3184/ase/gui/ag.py
+--- python-ase-3.7.1.3184.orig/ase/gui/ag.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/ag.py	2013-06-21 18:55:18.014395291 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ # Copyright 2008, 2009
+ # CAMd (see accompanying license files for details).
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/constraints.py python-ase-3.7.1.3184/ase/gui/constraints.py
+--- python-ase-3.7.1.3184.orig/ase/gui/constraints.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/constraints.py	2013-06-21 18:55:18.113395670 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ from math import sqrt
+ 
+ import gtk
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/dft.py python-ase-3.7.1.3184/ase/gui/dft.py
+--- python-ase-3.7.1.3184.orig/ase/gui/dft.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/dft.py	2013-06-21 18:55:17.838394617 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ from math import sqrt
+ 
+ import gtk
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/execute.py python-ase-3.7.1.3184/ase/gui/execute.py
+--- python-ase-3.7.1.3184.orig/ase/gui/execute.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/execute.py	2013-06-21 18:55:17.997395226 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ import __future__
+ import gtk
+ from gettext import gettext as _
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/graphs.py python-ase-3.7.1.3184/ase/gui/graphs.py
+--- python-ase-3.7.1.3184.orig/ase/gui/graphs.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/graphs.py	2013-06-21 18:55:17.986395184 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ from math import sqrt
+ 
+ import gtk
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/movie.py python-ase-3.7.1.3184/ase/gui/movie.py
+--- python-ase-3.7.1.3184.orig/ase/gui/movie.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/movie.py	2013-06-21 18:55:17.964395099 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ import gtk
+ from gettext import gettext as _
+ import gobject
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/render.py python-ase-3.7.1.3184/ase/gui/render.py
+--- python-ase-3.7.1.3184.orig/ase/gui/render.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/render.py	2013-06-21 18:55:17.920394931 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ import gtk
+ from gettext import gettext as _
+ from ase.gui.widgets import pack, Help, oops
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/repeat.py python-ase-3.7.1.3184/ase/gui/repeat.py
+--- python-ase-3.7.1.3184.orig/ase/gui/repeat.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/repeat.py	2013-06-21 18:55:17.777394383 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ import gtk
+ from math import sqrt
+ from gettext import gettext as _
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/settings.py python-ase-3.7.1.3184/ase/gui/settings.py
+--- python-ase-3.7.1.3184.orig/ase/gui/settings.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/settings.py	2013-06-21 18:55:17.784394410 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ import gtk
+ from ase.gui.widgets import pack
+ from gettext import gettext as _
+diff -Naur python-ase-3.7.1.3184.orig/ase/gui/view.py python-ase-3.7.1.3184/ase/gui/view.py
+--- python-ase-3.7.1.3184.orig/ase/gui/view.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/gui/view.py	2013-06-21 18:55:17.764394333 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ # Emacs: treat this as -*- python -*-
+ 
+diff -Naur python-ase-3.7.1.3184.orig/ase/infrared.py python-ase-3.7.1.3184/ase/infrared.py
+--- python-ase-3.7.1.3184.orig/ase/infrared.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/infrared.py	2013-06-21 18:55:14.946383537 +0200
+@@ -107,7 +107,6 @@
+ 
+     Example:
+ 
+-    >>> #!/usr/bin/env python
+ 
+     >>> from ase.io import read
+     >>> from ase.calculators.siesta import Siesta
+diff -Naur python-ase-3.7.1.3184.orig/ase/lattice/compounds.py python-ase-3.7.1.3184/ase/lattice/compounds.py
+--- python-ase-3.7.1.3184.orig/ase/lattice/compounds.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/lattice/compounds.py	2013-06-21 18:55:17.195392153 +0200
+@@ -86,7 +86,6 @@
+ 
+      Example::
+ 
+-         #!/usr/bin/env python
+     
+          from ase.lattice.hexagonal import *
+          from ase.lattice.compounds import *
+@@ -131,7 +130,6 @@
+      O    .3059 0   1/4  .0068  .0083 .00046  .0042 .00058  .0012
+ 
+      Example:
+-     #!/usr/bin/env python
+      from ase.lattice.hexagonal import *
+      from ase.lattice.compounds import *
+      import ase.io as io
+diff -Naur python-ase-3.7.1.3184.orig/ase/test/castep/castep_interface.py python-ase-3.7.1.3184/ase/test/castep/castep_interface.py
+--- python-ase-3.7.1.3184.orig/ase/test/castep/castep_interface.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/test/castep/castep_interface.py	2013-06-21 18:55:16.650390065 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/python
+ """Simple shallow test of the CASTEP interface"""
+ 
+ import os
+diff -Naur python-ase-3.7.1.3184.orig/ase/test/vasp/vasp_Al_volrelax.py python-ase-3.7.1.3184/ase/test/vasp/vasp_Al_volrelax.py
+--- python-ase-3.7.1.3184.orig/ase/test/vasp/vasp_Al_volrelax.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/test/vasp/vasp_Al_volrelax.py	2013-06-21 18:55:16.468389368 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/python
+ 
+ """
+ Run VASP tests to ensure that relaxation with the VASP calculator works.
+diff -Naur python-ase-3.7.1.3184.orig/ase/test/vasp/vasp_co.py python-ase-3.7.1.3184/ase/test/vasp/vasp_co.py
+--- python-ase-3.7.1.3184.orig/ase/test/vasp/vasp_co.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/test/vasp/vasp_co.py	2013-06-21 18:55:16.461389341 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/python
+ 
+ """
+ Run some VASP tests to ensure that the VASP calculator works. This
+diff -Naur python-ase-3.7.1.3184.orig/ase/test/vtk_data.py python-ase-3.7.1.3184/ase/test/vtk_data.py
+--- python-ase-3.7.1.3184.orig/ase/test/vtk_data.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/test/vtk_data.py	2013-06-21 18:55:16.228388448 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ import sys
+ 
+diff -Naur python-ase-3.7.1.3184.orig/ase/test/vtk_pipeline.py python-ase-3.7.1.3184/ase/test/vtk_pipeline.py
+--- python-ase-3.7.1.3184.orig/ase/test/vtk_pipeline.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/test/vtk_pipeline.py	2013-06-21 18:55:16.688390211 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ from ase.visualize.vtk import requirevtk
+ 
+diff -Naur python-ase-3.7.1.3184.orig/ase/thermochemistry.py python-ase-3.7.1.3184/ase/thermochemistry.py
+--- python-ase-3.7.1.3184.orig/ase/thermochemistry.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/thermochemistry.py	2013-06-21 18:55:17.586393651 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ """Modules for calculating thermochemical information from computational
+ outputs."""
+ 
+diff -Naur python-ase-3.7.1.3184.orig/ase/utils/adsorb.py python-ase-3.7.1.3184/ase/utils/adsorb.py
+--- python-ase-3.7.1.3184.orig/ase/utils/adsorb.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/utils/adsorb.py	2013-06-21 18:55:14.640382365 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ # Copyright 2010 CAMd
+ # (see accompanying license files for details).
+diff -Naur python-ase-3.7.1.3184.orig/ase/utils/molecule_test.py python-ase-3.7.1.3184/ase/utils/molecule_test.py
+--- python-ase-3.7.1.3184.orig/ase/utils/molecule_test.py	2013-05-16 09:53:16.000000000 +0200
++++ python-ase-3.7.1.3184/ase/utils/molecule_test.py	2013-06-21 18:55:14.631382330 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ """This module defines extensible classes for running tests on molecules.
+ 
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/ase_castep_demo.py python-ase-3.7.1.3184/doc/ase/calculators/ase_castep_demo.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/ase_castep_demo.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/ase_castep_demo.py	2013-06-21 18:55:19.635401501 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/python
+ """This simple demo calculates the total energy of CO molecules
+ using once LDA and once PBE as xc-functional. Obviously
+ some parts in this scripts are longer than necessary, but are shown
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/dftb_ex1_relax.py python-ase-3.7.1.3184/doc/ase/calculators/dftb_ex1_relax.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/dftb_ex1_relax.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/dftb_ex1_relax.py	2013-06-21 18:55:19.653401570 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ import os
+ 
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/dftb_ex2_relax.py python-ase-3.7.1.3184/doc/ase/calculators/dftb_ex2_relax.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/dftb_ex2_relax.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/dftb_ex2_relax.py	2013-06-21 18:55:19.628401474 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/python
+ 
+ from ase.io import read, write
+ from ase.calculators.dftb import Dftb
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/gromacs_example_mm_relax2.py python-ase-3.7.1.3184/doc/ase/calculators/gromacs_example_mm_relax2.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/gromacs_example_mm_relax2.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/gromacs_example_mm_relax2.py	2013-06-21 18:55:19.716401812 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ """ 
+     An example for using gromacs calculator in ase.
+     Atom positions are relaxed.
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/gromacs_example_mm_relax.py python-ase-3.7.1.3184/doc/ase/calculators/gromacs_example_mm_relax.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/gromacs_example_mm_relax.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/gromacs_example_mm_relax.py	2013-06-21 18:55:19.691401716 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ """ An example for using gromacs calculator in ase.
+     Atom positions are relaxed.
+     A sample call:
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/test_ase_qmmm_manyqm.py python-ase-3.7.1.3184/doc/ase/calculators/test_ase_qmmm_manyqm.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/test_ase_qmmm_manyqm.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/test_ase_qmmm_manyqm.py	2013-06-21 18:55:19.622401451 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ """ demo run for ase_qmmm_manyqm calculator """
+ 
+ #  ./test_ase_qmmm_manyqm.py gromacs_mm-relax.g96
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/turbomole_ex1_relax.py python-ase-3.7.1.3184/doc/ase/calculators/turbomole_ex1_relax.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/turbomole_ex1_relax.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/turbomole_ex1_relax.py	2013-06-21 18:55:19.671401639 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ import os
+ 
+ from ase.io import read,write
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/turbomole_ex2_diffuse_usingNEB.py python-ase-3.7.1.3184/doc/ase/calculators/turbomole_ex2_diffuse_usingNEB.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/turbomole_ex2_diffuse_usingNEB.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/turbomole_ex2_diffuse_usingNEB.py	2013-06-21 18:55:19.697401739 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ import os
+ 
+diff -Naur python-ase-3.7.1.3184.orig/doc/ase/calculators/turbomole_ex3_restart_diffuse_usingNEB.py python-ase-3.7.1.3184/doc/ase/calculators/turbomole_ex3_restart_diffuse_usingNEB.py
+--- python-ase-3.7.1.3184.orig/doc/ase/calculators/turbomole_ex3_restart_diffuse_usingNEB.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/ase/calculators/turbomole_ex3_restart_diffuse_usingNEB.py	2013-06-21 18:55:19.703401762 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ 
+ import os
+ 
+diff -Naur python-ase-3.7.1.3184.orig/doc/exercises/siesta2/siesta2.py python-ase-3.7.1.3184/doc/exercises/siesta2/siesta2.py
+--- python-ase-3.7.1.3184.orig/doc/exercises/siesta2/siesta2.py	2013-05-16 09:53:15.000000000 +0200
++++ python-ase-3.7.1.3184/doc/exercises/siesta2/siesta2.py	2013-06-21 18:55:19.774402034 +0200
+@@ -1,4 +1,3 @@
+-#!/usr/bin/env python
+ from ase.io import read
+ from ase.constraints import FixAtoms
+ from ase.calculators.siesta import Siesta

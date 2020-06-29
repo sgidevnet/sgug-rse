@@ -1,0 +1,15 @@
+# This is just temporary, when upstream merges PRs it can be removed
+# https://github.com/pypa/pip/pull/7959
+# https://github.com/ActiveState/appdirs/pull/144
+# https://github.com/psf/requests/pull/5410
+# https://github.com/chardet/chardet/pull/192
+addFilter(r'(non-executable-script|wrong-script-interpreter) .+/pip/_internal/__init__.py\b')
+addFilter(r'(non-executable-script|wrong-script-interpreter) .+/pip/_vendor/appdirs.py\b')
+addFilter(r'(non-executable-script|wrong-script-interpreter) .+/pip/_vendor/requests/certs.py\b')
+addFilter(r'(non-executable-script|wrong-script-interpreter) .+/pip/_vendor/chardet/cli/chardetect.py\b')
+
+# We ship README with the main package but not with the wheel
+addFilter(r'python-pip-wheel.noarch: W: no-documentation')
+
+# SPELLING ERRORS
+addFilter(r'W: spelling-error .* venv')

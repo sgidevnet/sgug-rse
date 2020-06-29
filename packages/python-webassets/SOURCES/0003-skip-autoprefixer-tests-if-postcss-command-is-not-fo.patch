@@ -1,0 +1,27 @@
+From e04bdd21674160af02192ad6d180314959a98e67 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Tue, 6 Sep 2016 12:56:17 +1000
+Subject: [PATCH 3/5] skip autoprefixer tests if postcss command is not found
+
+---
+ tests/test_filters.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/tests/test_filters.py b/tests/test_filters.py
+index e4e37d4..2c917e7 100644
+--- a/tests/test_filters.py
++++ b/tests/test_filters.py
+@@ -1525,6 +1525,10 @@ class TestAutoprefixer6Filter(TempEnvironmentHelper):
+         """
+     }
+ 
++    def setup(self):
++        if not find_executable('postcss'):
++            raise SkipTest()
++
+     def test_first(self):
+         self.mkbundle('test.css', filters='autoprefixer6', output='output.css').build()
+         out = self.get('output.css')
+-- 
+2.17.1
+

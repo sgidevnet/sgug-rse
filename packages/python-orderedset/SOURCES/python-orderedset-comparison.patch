@@ -1,0 +1,51 @@
+See https://github.com/simonpercivall/orderedset/pull/22.
+
+--- a/lib/orderedset/_orderedset.pyx
++++ b/lib/orderedset/_orderedset.pyx
+@@ -499,13 +499,15 @@ class OrderedSet(_OrderedSet, MutableSet
+         return NotImplemented
+ 
+     def __ge__(self, other):
+-        ret = self < other
+-        if ret is NotImplemented:
+-            return ret
+-        return not ret
++        if isinstance(other, Set):
++            return len(self) >= len(other) and set(self) >= set(other)
++        elif isinstance(other, list):
++            return len(self) >= len(other) and list(self) >= list(other)
++        return NotImplemented
+ 
+     def __gt__(self, other):
+-        ret = self <= other
+-        if ret is NotImplemented:
+-            return ret
+-        return not ret
++        if isinstance(other, Set):
++            return len(self) > len(other) and set(self) > set(other)
++        elif isinstance(other, list):
++            return len(self) > len(other) and list(self) > list(other)
++        return NotImplemented
+--- a/tests/test_orderedset.py
++++ b/tests/test_orderedset.py
+@@ -371,6 +371,20 @@ class TestOrderedset(unittest.TestCase):
+         self.assertGreater(oset1, set(oset3))
+         self.assertGreater(oset1, list(oset3))
+ 
++        oset4 = OrderedSet(self.lst[1:])
++
++        self.assertFalse(oset3 < oset4)
++        self.assertFalse(oset3 < set(oset4))
++        self.assertFalse(oset3 < list(oset4))
++        self.assertFalse(oset3 >= oset4)
++        self.assertFalse(oset3 >= set(oset4))
++        self.assertFalse(oset3 >= list(oset4))
++        self.assertFalse(oset3 < oset4)
++        self.assertFalse(oset3 < set(oset4))
++        self.assertFalse(oset3 < list(oset4))
++        self.assertFalse(oset3 >= oset4)
++        self.assertFalse(oset3 >= set(oset4))
++        self.assertFalse(oset3 >= list(oset4))
+ 
+ if __name__ == '__main__':
+     unittest.main()

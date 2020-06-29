@@ -1,0 +1,26 @@
+From 74e1b8d808dcf3234438f47758d9456d05a36e28 Mon Sep 17 00:00:00 2001
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Date: Sun, 11 Feb 2018 14:11:27 +0100
+Subject: [PATCH 2/3] remove use of deprecated/removed scipy.stats.ss
+
+Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+---
+ moss/statistical.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/moss/statistical.py b/moss/statistical.py
+index 0a4644c..d1f3d9e 100644
+--- a/moss/statistical.py
++++ b/moss/statistical.py
+@@ -579,7 +579,7 @@ def vectorized_correlation(x, y):
+     my = y.mean(axis=-1)
+     xm, ym = x - mx[..., None], y - my[..., None]
+     r_num = np.add.reduce(xm * ym, axis=-1)
+-    r_den = np.sqrt(stats.ss(xm, axis=-1) * stats.ss(ym, axis=-1))
++    r_den = np.sqrt(np.sum(xm ** 2, axis=-1) * np.sum(ym ** 2, axis=-1))
+     r = r_num / r_den
+     return r
+ 
+-- 
+2.16.1
+

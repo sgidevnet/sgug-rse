@@ -1,0 +1,64 @@
+From 9869d3f4e1bf19624616029c88b703cce39a1fc2 Mon Sep 17 00:00:00 2001
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Date: Sun, 11 Feb 2018 13:52:22 +0100
+Subject: [PATCH 1/3] put real dependencies into metadata
+
+Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+---
+ setup.py | 29 +++--------------------------
+ 1 file changed, 3 insertions(+), 26 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index c29d0eb..38f13ef 100644
+--- a/setup.py
++++ b/setup.py
+@@ -17,36 +17,10 @@ VERSION = '0.5'
+ 
+ from setuptools import setup
+ 
+-def check_dependencies():
+-
+-    # Just make sure dependencies exist, I haven't rigorously
+-    # tested what the minimal versions that will work are
+-    needed_deps = ["numpy", "pandas", "scipy", "sklearn",
+-                   "matplotlib", "seaborn", "six"]
+-    missing_deps = []
+-    for dep in needed_deps:
+-        try:
+-            __import__(dep)
+-        except ImportError:
+-            missing_deps.append(dep)
+-
+-    if missing_deps:
+-        missing = ", ".join(missing_deps)
+-        raise ImportError("Missing dependencies: %s" % missing)
+-
+-
+ if __name__ == "__main__":
+     if os.path.exists('MANIFEST'):
+         os.remove('MANIFEST')
+ 
+-    import sys
+-    if not (len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
+-            sys.argv[1] in ('--help-commands',
+-                            '--version',
+-                            'egg_info',
+-                            'clean'))):
+-        check_dependencies()
+-
+     setup(name=DISTNAME,
+         maintainer=MAINTAINER,
+         maintainer_email=MAINTAINER_EMAIL,
+@@ -56,6 +30,9 @@ if __name__ == "__main__":
+         URL=URL,
+         download_url=DOWNLOAD_URL,
+         packages=['moss', 'moss.tests', 'moss.psychophys', 'moss.external'],
++        install_requires=["matplotlib", "numpy", "nibabel", "pandas",
++                          "scikit-learn", "scipy", "seaborn", "six"],
++        tests_require=["nose", "pytest"],
+         scripts=["bin/" + s for s in ["check_mni_reg", "recon_movie",
+                                       "recon_status", "recon_qc",
+                                       "recon_process_stats", "warp_qc",
+-- 
+2.16.1
+

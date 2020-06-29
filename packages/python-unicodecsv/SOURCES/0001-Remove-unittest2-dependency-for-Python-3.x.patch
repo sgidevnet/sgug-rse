@@ -1,0 +1,30 @@
+From c914be0b675ef8d2b1aee51dbe136ab2bd47b92e Mon Sep 17 00:00:00 2001
+From: Javier Pena <jpena@redhat.com>
+Date: Thu, 3 Oct 2019 14:53:14 +0200
+Subject: [PATCH] Remove unittest2 dependency for Python 3.x
+
+We do not need unittest2 in Python 3.x, so import unittest in that
+case.
+---
+ unicodecsv/test.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/unicodecsv/test.py b/unicodecsv/test.py
+index f3d0377..484f38b 100644
+--- a/unicodecsv/test.py
++++ b/unicodecsv/test.py
+@@ -8,7 +8,10 @@ import os
+ import string
+ import sys
+ import tempfile
+-import unittest2 as unittest
++if sys.version_info >= (3, 0):
++    import unittest
++else:
++    import unittest2 as unittest
+ from codecs import EncodedFile
+ from io import BytesIO
+ 
+-- 
+2.21.0
+

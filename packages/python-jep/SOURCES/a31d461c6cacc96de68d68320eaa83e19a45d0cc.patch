@@ -1,0 +1,22 @@
+From a31d461c6cacc96de68d68320eaa83e19a45d0cc Mon Sep 17 00:00:00 2001
+From: Ben Steffensmeier <ben.steffensmeier@gmail.com>
+Date: Mon, 17 Feb 2020 20:13:25 -0600
+Subject: [PATCH] Stop using daemon thread in test using sub-interpreter for
+ python 3.9 compatibility.
+
+---
+ src/test/java/jep/test/TestSharedModulesThreads.java | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/test/java/jep/test/TestSharedModulesThreads.java b/src/test/java/jep/test/TestSharedModulesThreads.java
+index e97c9184..c1b1da6e 100644
+--- a/src/test/java/jep/test/TestSharedModulesThreads.java
++++ b/src/test/java/jep/test/TestSharedModulesThreads.java
+@@ -49,7 +49,6 @@ public static void main(String[] args) throws Throwable {
+             testFunction.append("    success = True");
+             interp.eval(testFunction.toString());
+             interp.eval("t = threading.Thread(target=testFunction)");
+-            interp.eval("t.daemon = True");
+             interp.eval("t.start()");
+             interp.eval("t.join()");
+             /*

@@ -1,0 +1,4 @@
+- nevr: python-chai-1.1.1-5
+  changelog: >
+    Update to 1.1.1 with the proper py2 and py3 packages
+  update_type: enhancement

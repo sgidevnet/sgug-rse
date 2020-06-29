@@ -1,0 +1,2 @@
+Core is BSD, but code in native/log.c and native/log.h is covered by
+the Apache Software License 2.0.

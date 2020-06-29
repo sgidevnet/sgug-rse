@@ -1,0 +1,15 @@
+diff -r 48058c4309dd passlib/utils/__init__.py
+--- a/passlib/utils/__init__.py Fri Nov 22 16:08:33 2019 -0500
++++ b/passlib/utils/__init__.py Fri Feb 28 02:10:14 2020 +0100
+@@ -791,7 +791,10 @@
+                 raise ValueError("null character in secret")
+             if isinstance(hash, bytes):
+                 hash = hash.decode("ascii")
+-            result = _crypt(secret, hash)
++            try:
++                result = _crypt(secret, hash)
++            except OSError:
++                result = None
+             if not result or result[0] in _invalid_prefixes:
+                 return None
+             return result

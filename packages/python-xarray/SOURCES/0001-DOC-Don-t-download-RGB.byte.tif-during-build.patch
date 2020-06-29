@@ -1,0 +1,40 @@
+From 75584dd2b3d7c7411220bb21ee751002d51498c7 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Fri, 15 Mar 2019 22:31:18 -0400
+Subject: [PATCH 1/4] DOC: Don't download RGB.byte.tif during build.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ doc/gallery/plot_rasterio.py     | 2 +-
+ doc/gallery/plot_rasterio_rgb.py | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/doc/gallery/plot_rasterio.py b/doc/gallery/plot_rasterio.py
+index 99eb1fd1..3d797296 100644
+--- a/doc/gallery/plot_rasterio.py
++++ b/doc/gallery/plot_rasterio.py
+@@ -23,7 +23,7 @@ from rasterio.warp import transform
+ import xarray as xr
+ 
+ # Read the data
+-url = "https://github.com/mapbox/rasterio/raw/master/tests/data/RGB.byte.tif"
++url = "RGB.byte.tif"
+ da = xr.open_rasterio(url)
+ 
+ # Compute the lon/lat coordinates with rasterio.warp.transform
+diff --git a/doc/gallery/plot_rasterio_rgb.py b/doc/gallery/plot_rasterio_rgb.py
+index 758d4cd3..f2a7b2db 100644
+--- a/doc/gallery/plot_rasterio_rgb.py
++++ b/doc/gallery/plot_rasterio_rgb.py
+@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
+ import xarray as xr
+ 
+ # Read the data
+-url = "https://github.com/mapbox/rasterio/raw/master/tests/data/RGB.byte.tif"
++url = "RGB.byte.tif"
+ da = xr.open_rasterio(url)
+ 
+ # The data is in UTM projection. We have to set it manually until
+-- 
+2.21.1
+

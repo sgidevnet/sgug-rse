@@ -1,0 +1,40 @@
+From 6f3b8d5e0a003107072aa020d8b802cfec42fceb Mon Sep 17 00:00:00 2001
+From: "Matthias C. M. Troffaes" <matthias.troffaes@gmail.com>
+Date: Wed, 15 Jan 2020 16:16:05 +0000
+Subject: [PATCH 3/3] Update deprecated tag.
+
+---
+ test/test_backend.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/test/test_backend.py b/test/test_backend.py
+index b134fb4..f5dfc42 100644
+--- a/test/test_backend.py
++++ b/test/test_backend.py
+@@ -21,12 +21,12 @@ def test_text():
+ 
+ 
+ def test_tag():
+-    tag = Tag('emph', 'hello')
++    tag = Tag('em', 'hello')
+     assert render_str(tag) == '<emphasis>hello</emphasis>'
+ 
+ 
+ def test_tag_text():
+-    tag = Tag('emph', Text('hello', ' world'))
++    tag = Tag('em', Text('hello', ' world'))
+     assert render_str(tag) == '<emphasis>hello world</emphasis>'
+ 
+ 
+@@ -72,7 +72,7 @@ def test_href_text():
+ 
+ 
+ def test_render_sequence():
+-    text = Text('hello ', Tag('emph', 'world'))
++    text = Text('hello ', Tag('em', 'world'))
+     assert render_str(text) == 'hello <emphasis>world</emphasis>'
+ 
+ 
+-- 
+2.25.3
+

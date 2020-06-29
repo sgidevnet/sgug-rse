@@ -1,0 +1,11 @@
+diff -up parsedatetime-2.1/tox.ini.orig parsedatetime-2.1/tox.ini
+--- parsedatetime-2.1/tox.ini.orig	2016-03-10 08:51:01.196099858 +0100
++++ parsedatetime-2.1/tox.ini	2016-03-10 08:51:05.129104799 +0100
+@@ -1,6 +1,6 @@
+ [tox]
+ # this assumes that you have python2.7, python3.5, etc in PATH
+-envlist = py27, py35
++envlist = py27, py34, py35
+ 
+ [testenv]
+ deps = PyICU

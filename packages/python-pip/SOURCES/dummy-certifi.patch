@@ -1,0 +1,27 @@
+From 09bf87d33141a5c06a1d410839d162262baa16c4 Mon Sep 17 00:00:00 2001
+From: Tomas Hrnciar <thrnciar@redhat.com>
+Date: Sun, 26 Apr 2020 21:38:44 +0200
+Subject: [PATCH] Dummy certifi patch
+
+---
+ src/pip/_vendor/certifi/core.py | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/pip/_vendor/certifi/core.py b/src/pip/_vendor/certifi/core.py
+index 56b52a3c..e99043f0 100644
+--- a/src/pip/_vendor/certifi/core.py
++++ b/src/pip/_vendor/certifi/core.py
+@@ -21,9 +21,7 @@ except ImportError:
+ 
+ 
+ def where():
+-    f = os.path.dirname(__file__)
+-
+-    return os.path.join(f, "cacert.pem")
++    return '/etc/pki/tls/certs/ca-bundle.crt'
+
+
+ def contents():
+--
+2.23.0
+

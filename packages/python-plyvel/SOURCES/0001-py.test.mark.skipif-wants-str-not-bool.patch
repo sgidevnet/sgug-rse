@@ -1,0 +1,25 @@
+From 904eae8477a95b01d0ea0673e4e4bcf28fb24e92 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Thu, 19 Dec 2013 16:16:42 +1000
+Subject: [PATCH] py.test.mark.skipif wants str not bool
+
+---
+ test/test_plyvel.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/test_plyvel.py b/test/test_plyvel.py
+index 29fff75..ae31ccf 100644
+--- a/test/test_plyvel.py
++++ b/test/test_plyvel.py
+@@ -105,7 +105,7 @@ def test_invalid_open(db_dir):
+ 
+ 
+ # XXX: letter casing of encoding names differs between Python 2 and 3
+-@pytest.mark.skipif(sys.getfilesystemencoding().lower() != 'utf-8',
++@pytest.mark.skipif("sys.getfilesystemencoding().lower() != 'utf-8'",
+                     reason="requires UTF-8 file system encoding")
+ def test_open_unicode_name(db_dir):
+     db_dir = os.path.join(db_dir, 'úñîçøđê_name')
+-- 
+1.8.3.1
+

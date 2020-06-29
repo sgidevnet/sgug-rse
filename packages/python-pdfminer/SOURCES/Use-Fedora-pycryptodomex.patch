@@ -1,0 +1,28 @@
+diff -uPNr pdfminer.six-20181108.orig/pdfminer/pdfdocument.py pdfminer.six-20181108/pdfminer/pdfdocument.py
+--- pdfminer.six-20181108.orig/pdfminer/pdfdocument.py	2018-11-08 12:07:11.000000000 -0500
++++ pdfminer.six-20181108/pdfminer/pdfdocument.py	2019-01-08 20:37:22.720729270 -0500
+@@ -9,9 +9,9 @@
+ except ImportError:
+     import md5
+ try:
+-    from Crypto.Cipher import ARC4
+-    from Crypto.Cipher import AES
+-    from Crypto.Hash import SHA256
++    from Cryptodome.Cipher import ARC4
++    from Cryptodome.Cipher import AES
++    from Cryptodome.Hash import SHA256
+ except ImportError:
+     AES = SHA256 = None
+     from . import arcfour as ARC4
+diff -uPNr pdfminer.six-20181108.orig/setup.py pdfminer.six-20181108/setup.py
+--- pdfminer.six-20181108.orig/setup.py	2018-11-08 12:07:11.000000000 -0500
++++ pdfminer.six-20181108/setup.py	2019-01-08 20:37:32.681737861 -0500
+@@ -3,7 +3,7 @@
+ 
+ import pdfminer as package
+ 
+-requires = ['six', 'pycryptodome', 'sortedcontainers']
++requires = ['six', 'pycryptodomex', 'sortedcontainers']
+ if sys.version_info >= (3, 0):
+     requires.append('chardet')
+ 

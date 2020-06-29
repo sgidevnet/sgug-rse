@@ -1,0 +1,30 @@
+[ python-getmac-0.6.0-1.fc30 ]
+
+# bugfix, security, enhancement, newpackage (required)
+type=newpackage
+
+# testing, stable
+request=testing
+
+# Bug numbers: 1234,9876
+bugs=1638431
+
+
+# Here is where you give an explanation of your update.
+# Content can span multiple lines, as long as they are indented deeper than
+# the first line. For example,
+# notes=first line
+#     second line
+#     and so on
+notes=initial packaging
+
+# Enable request automation based on the stable/unstable karma thresholds
+autokarma=True
+stable_karma=3
+unstable_karma=-3
+
+# Automatically close bugs when this marked as stable
+close_bugs=True
+
+# Suggest that users restart after update
+suggest_reboot=False

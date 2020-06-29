@@ -1,0 +1,12 @@
+diff -up jellyfish-0.5.2/jellyfish/test.py.orig jellyfish-0.5.2/jellyfish/test.py
+--- jellyfish-0.5.2/jellyfish/test.py.orig	2016-02-04 10:22:53.493059734 +0100
++++ jellyfish-0.5.2/jellyfish/test.py	2016-02-04 10:23:00.156068232 +0100
+@@ -15,7 +15,7 @@ def assertAlmostEqual(a, b, places=3):
+ 
+ 
+ if platform.python_implementation() == 'CPython':
+-    implementations = ['python', 'c']
++    implementations = ['python']
+ else:
+     implementations = ['python']
+ 

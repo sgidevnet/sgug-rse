@@ -1,0 +1,5 @@
+from Config import addFilter
+
+
+addFilter('python-pymongo-debugsource.*no-documentation')
+addFilter('spelling-error.*traversable')

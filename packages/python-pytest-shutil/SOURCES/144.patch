@@ -1,0 +1,22 @@
+From 2d6709e2fc7fba1e0d61e8dad03fa68bf19a9b0f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miro=20Hron=C4=8Dok?= <miro@hroncok.cz>
+Date: Sun, 18 Aug 2019 10:46:37 +0200
+Subject: [PATCH] pytest-shutil: Only require contextlib2 on Python 2
+
+---
+ pytest-shutil/setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pytest-shutil/setup.py b/pytest-shutil/setup.py
+index 70cc354..57f710d 100644
+--- a/pytest-shutil/setup.py
++++ b/pytest-shutil/setup.py
+@@ -24,7 +24,7 @@
+ 
+ install_requires = ['six',
+                     'execnet',
+-                    'contextlib2',
++                    'contextlib2;python_version<"3"',
+                     'pytest',
+                     'path.py',
+                     'mock',

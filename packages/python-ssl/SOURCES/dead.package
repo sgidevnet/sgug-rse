@@ -1,0 +1,4 @@
+In fact this package was never released on Fedora
+and only applies to python < 2.6 so on Oct 15th 2009
+that was only EPEL 4 and 5.
+Steve Traylen <steve.traylen@cern.ch>

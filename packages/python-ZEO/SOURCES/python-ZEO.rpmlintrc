@@ -1,0 +1,8 @@
+# THIS FILE IS FOR WHITELISTING RPMLINT ERRORS AND WARNINGS IN TASKOTRON
+# https://fedoraproject.org/wiki/Taskotron/Tasks/dist.rpmlint#Whitelisting_errors
+
+# The PEM files are for testing only
+addFilter(r'python3-ZEO\.noarch: W: pem-certificate .*tests')
+
+# There are no man pages, and help2man won't work either
+addFilter(r'W: no-manual-page-for-binary')

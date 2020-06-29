@@ -1,0 +1,17 @@
+diff --git a/xunitparser.py b/xunitparser.py
+index d72fe2b..a067c04 100644
+--- a/xunitparser.py
++++ b/xunitparser.py
+@@ -129,6 +129,12 @@ class TestSuite(unittest.TestSuite):
+         self.stdout = None
+         self.stderr = None
+ 
++    # Since python3.4 references to each TestCase in the suite
++    # are removed after a call to TestSuite.run(). We override
++    # this function to restore the previous behaviour that
++    # we make use of.
++    def _removeTestAtIndex(self, idx):
++        pass
+ 
+ class Parser(object):
+     TC_CLASS = TestCase

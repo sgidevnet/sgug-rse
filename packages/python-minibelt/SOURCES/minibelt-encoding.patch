@@ -1,0 +1,19 @@
+--- minibelt-0.1.1/setup.py	2013-11-23 22:10:01.000000000 +0100
++++ minibelt-0.1.1p/setup.py	2015-09-13 18:46:45.276144848 +0200
+@@ -8,6 +8,7 @@
+ )))
+ 
+ from minibelt import __version__
++from io import open
+ 
+ setup(
+ 
+@@ -17,7 +18,7 @@
+     py_modules=['minibelt'],
+     author_email="lesametlemax@gmail.com",
+     description="One-file utility module filled with helper functions for day to day Python programming",
+-    long_description=open('README.rst').read(),
++    long_description=open('README.rst', encoding='utf-8').read(),
+     classifiers=[
+         'Programming Language :: Python',
+         "Intended Audience :: Information Technology",

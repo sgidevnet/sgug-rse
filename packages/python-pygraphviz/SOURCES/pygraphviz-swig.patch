@@ -1,0 +1,29 @@
+--- a/pygraphviz/graphviz.i.orig	2018-09-10 16:07:12.000000000 -0600
++++ b/pygraphviz/graphviz.i	2018-10-11 11:11:44.010380342 -0600
+@@ -162,7 +162,7 @@ int       agisstrict(Agraph_t * g);
+ 
+ /* nodes */
+ Agnode_t *agnode(Agraph_t *g, char *name, int createflag);
+-Agnode_t *agidnode(Agraph_t * g, unsigned long id, int createflag); 
++Agnode_t *agidnode(Agraph_t * g, IDTYPE id, int createflag); 
+ Agnode_t *agsubnode(Agraph_t *g, Agnode_t *n, int createflag);
+ Agnode_t *agfstnode(Agraph_t *g);
+ Agnode_t *agnxtnode(Agraph_t *g, Agnode_t *n);
+@@ -175,7 +175,7 @@ Agnode_t *agprvnode(Agraph_t * g, Agnode
+ Agedge_t *agedge(Agraph_t * g, Agnode_t * t, Agnode_t * h,
+  		char *name, int createflag);
+ Agedge_t *agidedge(Agraph_t * g, Agnode_t * t, Agnode_t * h,
+- 		  unsigned long id, int createflag);
++ 		  IDTYPE id, int createflag);
+ Agedge_t *agsubedge(Agraph_t * g, Agedge_t * e, int createflag);
+ Agedge_t *agfstin(Agraph_t * g, Agnode_t * n);
+ Agedge_t *agnxtin(Agraph_t * g, Agedge_t * e);
+@@ -235,7 +235,7 @@ int      agsafeset(void *obj, char *name
+ 
+ /* styled from gv.cpp in Graphviz to handle <> html data in label */
+ %inline %{
+-  int agattr_label(Agraph_t *g, int kind, char *name, char *val)
++  Agsym_t *agattr_label(Agraph_t *g, int kind, char *name, char *val)
+ {
+     int len;
+     char *hs;

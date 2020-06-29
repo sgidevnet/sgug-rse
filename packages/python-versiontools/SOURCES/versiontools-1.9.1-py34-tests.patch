@@ -1,0 +1,26 @@
+--- versiontools/tests.py.orig	2015-05-27 16:53:42.497134369 -0500
++++ versiontools/tests.py	2015-05-27 17:04:26.721049909 -0500
+@@ -23,7 +23,7 @@
+ from unittest import TestCase
+ 
+ from versiontools import Version
+-from versiontools.setuptools_hooks import version as handle_version 
++from versiontools.setuptools_hooks import version as handle_version
+ 
+ 
+ class VersionFormattingTests(TestCase):
+@@ -134,8 +134,12 @@
+         except Exception:
+             e = sys.exc_info()[1]
+             self.assertTrue(isinstance(e, DistutilsSetupError))
+-            self.assertEqual(str(e), "Unable to import 'nonexisting': "
+-                                      "No module named nonexisting")
++            if sys.version_info[:1] < (3,):
++                self.assertEqual(str(e), "Unable to import 'nonexisting': "
++                                        "No module named nonexisting")
++            else:
++                self.assertEqual(str(e), "Unable to import 'nonexisting': "
++                                        "No module named 'nonexisting'")
+ 
+     def test_not_found(self):
+         version = ':versiontools:versiontools:__nonexisting__'

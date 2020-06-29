@@ -1,0 +1,12 @@
+diff -Naur xml2rfc-2.4.2-orig/xml2rfc/writers/paginated_txt.py xml2rfc-2.4.2/xml2rfc/writers/paginated_txt.py
+--- xml2rfc-2.4.2-orig/xml2rfc/writers/paginated_txt.py	2013-06-01 15:03:21.000000000 -0400
++++ xml2rfc-2.4.2/xml2rfc/writers/paginated_txt.py	2013-08-31 21:29:08.703400961 -0400
+@@ -161,7 +161,7 @@
+     def emit(self, text):
+         """Write text to the output buffer if it's not just a blank
+            line at the top of the page"""
+-        if self.page_length == 1 and text.strip() == '':
++        if self.page_length == 1 and not isinstance(text, list) and text.strip() == '':
+             return 
+         if isinstance(text, basestring):
+             self.output.append(text)

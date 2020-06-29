@@ -1,0 +1,30 @@
+From 5912d4ecdc9d8cedb4e813dacc6fa5b22f01cf5c Mon Sep 17 00:00:00 2001
+From: Andrew Bauer <zonexpertconsulting@outlook.com>
+Date: Wed, 17 Jun 2020 09:33:52 -0500
+Subject: [PATCH] python 3 compatibility
+
+---
+ pysignals/saferef.py    | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/pysignals/saferef.py b/pysignals/saferef.py
+index 8bcfd8a..4a4d79c 100644
+--- a/pysignals/saferef.py
++++ b/pysignals/saferef.py
+@@ -118,12 +118,12 @@ def remove(weak, self=self):
+                 try:
+                     if callable( function ):
+                         function( self )
+-                except Exception, e:
++                except Exception as e:
+                     try:
+                         traceback.print_exc()
+-                    except AttributeError, err:
+-                        print '''Exception during saferef %s cleanup function %s: %s'''%(
+-                            self, function, e
++                    except AttributeError:
++                        print('Exception during saferef %s cleanup function %s: %s' % (
++                            self, function, e)
+                         )
+         self.deletionMethods = [onDelete]
+         self.key = self.calculateKey( target )

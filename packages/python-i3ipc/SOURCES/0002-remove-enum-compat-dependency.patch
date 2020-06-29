@@ -1,0 +1,36 @@
+From 4cc59d5550eab1eb3f0679461fd9c86449b407bc Mon Sep 17 00:00:00 2001
+From: Tony Crisci <tony@dubstepdish.com>
+Date: Wed, 11 Sep 2019 10:00:20 -0400
+Subject: [PATCH] remove enum-compat dependency
+
+fixes #128
+---
+ requirements.txt | 1 -
+ setup.py         | 2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/requirements.txt b/requirements.txt
+index b64dcde..1364914 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -3,7 +3,6 @@ pytest
+ pytest-asyncio
+ pytest-timeout
+ 
+-enum-compat
+ yapf
+ flake8
+ 
+diff --git a/setup.py b/setup.py
+index 6ca4490..ff97f03 100644
+--- a/setup.py
++++ b/setup.py
+@@ -7,7 +7,7 @@
+ from setuptools import setup, find_packages
+ 
+ REQUIRES_PYTHON = '>=3.4.0'
+-REQUIRED = ['enum-compat', 'python-xlib']
++REQUIRED = ['python-xlib']
+ EXTRAS = {}
+ 
+ here = os.path.abspath(os.path.dirname(__file__))

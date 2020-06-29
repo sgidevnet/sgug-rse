@@ -1,0 +1,36 @@
+diff -up ./tests/unit/common/monitored_resource_util/test_monitored_resource.py.orig ./tests/unit/common/monitored_resource_util/test_monitored_resource.py
+--- ./tests/unit/common/monitored_resource_util/test_monitored_resource.py.orig	2020-02-04 00:55:23.000000000 +0100
++++ ./tests/unit/common/monitored_resource_util/test_monitored_resource.py	2020-05-22 09:47:36.792815035 +0200
+@@ -21,7 +21,7 @@ import mock
+ from opencensus.common.monitored_resource import monitored_resource
+ 
+ if sys.version_info < (3,):
+-    import unittest2 as unittest
++    import unittest
+ else:
+     import unittest
+ 
+diff -up ./tests/unit/log/test_log.py.orig ./tests/unit/log/test_log.py
+--- ./tests/unit/log/test_log.py.orig	2020-02-04 00:55:23.000000000 +0100
++++ ./tests/unit/log/test_log.py	2020-05-22 09:47:36.793815010 +0200
+@@ -21,7 +21,7 @@ import mock
+ from opencensus import log
+ 
+ if sys.version_info < (3,):
+-    import unittest2 as unittest
++    import unittest
+ else:
+     import unittest
+ 
+diff -up ./tests/unit/metrics/test_transport.py.orig ./tests/unit/metrics/test_transport.py
+--- ./tests/unit/metrics/test_transport.py.orig	2020-02-04 00:55:23.000000000 +0100
++++ ./tests/unit/metrics/test_transport.py	2020-05-22 09:47:36.793815010 +0200
+@@ -21,7 +21,7 @@ import mock
+ from opencensus.metrics import transport
+ 
+ if sys.version_info < (3,):
+-    import unittest2 as unittest
++    import unittest
+ else:
+     import unittest
+ 

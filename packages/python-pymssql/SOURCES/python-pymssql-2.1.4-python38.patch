@@ -1,0 +1,12 @@
+diff -up ./setup.py.orig ./setup.py
+--- ./setup.py.orig	2018-08-28 19:54:30.000000000 +0200
++++ ./setup.py	2019-07-30 17:04:51.265081505 +0200
+@@ -156,8 +156,6 @@ SYSTEM = platform.system()
+ 
+ print("setup.py: platform.system() => %r" % SYSTEM)
+ print("setup.py: platform.architecture() => %r" % (platform.architecture(),))
+-if SYSTEM == 'Linux':
+-    print("setup.py: platform.linux_distribution() => %r" % (platform.linux_distribution(),))
+ if SYSTEM != 'Windows':
+     print("setup.py: platform.libc_ver() => %r" % (platform.libc_ver(),))
+ 

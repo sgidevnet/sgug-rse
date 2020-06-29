@@ -1,0 +1,29 @@
+From afcb422fe37e3c5419042e0e9b9f34bd3c1979b5 Mon Sep 17 00:00:00 2001
+From: Tristan Cacqueray <tdecacqu@redhat.com>
+Date: Mon, 2 Jan 2017 05:32:49 +0000
+Subject: [PATCH] Fix sphinx extension conflict
+
+This change removes the pngmath extensions to fix the doc building error
+happening with 1.4.8:
+
+sphinx.ext.mathjax: other math package is already loaded
+---
+ docs/conf.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/docs/conf.py b/docs/conf.py
+index 44fc54e..d46c107 100644
+--- a/docs/conf.py
++++ b/docs/conf.py
+@@ -25,7 +25,7 @@ import sys, os
+ 
+ # Add any Sphinx extension module names here, as strings. They can be extensions
+ # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.mathjax', 'sphinx.ext.ifconfig', 'sphinx.ext.viewcode']
++extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo', 'sphinx.ext.mathjax', 'sphinx.ext.ifconfig', 'sphinx.ext.viewcode']
+ 
+ # Add any paths that contain templates here, relative to this directory.
+ templates_path = ['_templates']
+-- 
+2.7.3
+

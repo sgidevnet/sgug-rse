@@ -1,0 +1,3 @@
+Core is BSD, but code in pyvex_c is GPL because it links statically
+against VEX. The files e4c_lite.h, host_generic_maddf.c, and
+host_generic_maddf.h are LGPL.

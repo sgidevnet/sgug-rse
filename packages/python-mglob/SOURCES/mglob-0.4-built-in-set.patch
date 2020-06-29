@@ -1,0 +1,15 @@
+--- mglob.py.orig	2012-01-27 03:23:12.760751705 +0100
++++ mglob.py	2012-01-27 03:23:51.565854475 +0100
+@@ -69,7 +69,11 @@
+ 
+ 
+ import os,glob,fnmatch,sys
+-from sets import Set as set
++try:
++    from sets import Set as set
++except ImportError:
++    # we are likely running with python3, where set is built-in
++    pass
+ 
+                 
+ def expand(flist,exp_dirs = False):

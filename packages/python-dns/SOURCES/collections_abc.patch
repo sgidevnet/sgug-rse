@@ -1,0 +1,22 @@
+diff -ru dnspython-1.16.0-orig/dns/namedict.py dnspython-1.16.0/dns/namedict.py
+--- dnspython-1.16.0-orig/dns/namedict.py	2018-12-01 10:25:27.000000000 -0500
++++ dnspython-1.16.0/dns/namedict.py	2020-01-21 19:48:57.266576401 -0500
+@@ -27,12 +27,16 @@
+ 
+ """DNS name dictionary"""
+ 
+-import collections
+ import dns.name
+ from ._compat import xrange
+ 
++try:
++    from collections.abc import MutableMapping
++except ImportError:
++    from collections import MutableMapping
+ 
+-class NameDict(collections.MutableMapping):
++
++class NameDict(MutableMapping):
+     """A dictionary whose keys are dns.name.Name objects.
+ 
+     In addition to being like a regular Python dictionary, this

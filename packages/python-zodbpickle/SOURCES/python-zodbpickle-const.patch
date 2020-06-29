@@ -1,0 +1,20 @@
+--- src/zodbpickle/_pickle_33.c.orig	2019-11-09 02:12:16.000000000 -0700
++++ src/zodbpickle/_pickle_33.c	2019-11-11 08:38:37.314461925 -0700
+@@ -1633,7 +1633,7 @@ save_long(PicklerObject *self, PyObject
+             goto error;
+     }
+     else {
+-        char *string;
++        const char *string;
+ 
+         /* proto < 2: write the repr and newline.  This is quadratic-time (in
+            the number of digits), in both directions.  We add a trailing 'L'
+@@ -2929,7 +2929,7 @@ save_pers(PicklerObject *self, PyObject
+         }
+         else {
+             PyObject *pid_str = NULL;
+-            char *pid_ascii_bytes;
++            const char *pid_ascii_bytes;
+             Py_ssize_t size;
+ 
+             pid_str = PyObject_Str(pid);

@@ -1,0 +1,33 @@
+From bc95d0d73a1ab2f25ce7074bf0de803892eced54 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Fri, 15 Mar 2019 22:48:25 -0400
+Subject: [PATCH 2/4] DOC: Skip examples using unpackaged dependencies.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ doc/io.rst | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/doc/io.rst b/doc/io.rst
+index e9109432..3e95540c 100644
+--- a/doc/io.rst
++++ b/doc/io.rst
+@@ -498,6 +498,7 @@ installed xarray can convert a ``DataArray`` into a ``Cube`` using
+ :py:meth:`DataArray.to_iris`:
+ 
+ .. ipython:: python
++    :verbatim:
+ 
+     da = xr.DataArray(np.random.rand(4, 5), dims=['x', 'y'],
+                       coords=dict(x=[10, 20, 30, 40],
+@@ -510,6 +511,7 @@ Conversely, we can create a new ``DataArray`` object from a ``Cube`` using
+ :py:meth:`DataArray.from_iris`:
+ 
+ .. ipython:: python
++    :verbatim:
+ 
+     da_cube = xr.DataArray.from_iris(cube)
+     da_cube
+-- 
+2.21.1
+

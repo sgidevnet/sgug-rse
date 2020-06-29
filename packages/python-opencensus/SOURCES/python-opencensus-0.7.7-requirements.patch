@@ -1,0 +1,24 @@
+diff -up ./contrib/opencensus-ext-mysql/setup.py.orig ./contrib/opencensus-ext-mysql/setup.py
+--- ./contrib/opencensus-ext-mysql/setup.py.orig	2020-02-04 00:55:23.000000000 +0100
++++ ./contrib/opencensus-ext-mysql/setup.py	2020-06-15 15:28:21.235305644 +0200
+@@ -39,7 +39,7 @@ setup(
+     include_package_data=True,
+     long_description=open('README.rst').read(),
+     install_requires=[
+-        'mysql-connector >= 2.1.6, < 3.0.0',
++        'mysql-connector-python',
+         'opencensus >= 0.7.0, < 1.0.0',
+         'opencensus-ext-dbapi >= 0.1.2, < 1.0.0',
+     ],
+diff -up ./contrib/opencensus-ext-postgresql/setup.py.orig ./contrib/opencensus-ext-postgresql/setup.py
+--- ./contrib/opencensus-ext-postgresql/setup.py.orig	2020-02-04 00:55:23.000000000 +0100
++++ ./contrib/opencensus-ext-postgresql/setup.py	2020-06-15 14:37:09.874237805 +0200
+@@ -40,7 +40,7 @@ setup(
+     long_description=open('README.rst').read(),
+     install_requires=[
+         'opencensus >= 0.7.0, < 1.0.0',
+-        'psycopg2-binary >= 2.7.3.1',
++        'psycopg2 >= 2.7.3.1',
+     ],
+     extras_require={},
+     license='Apache-2.0',

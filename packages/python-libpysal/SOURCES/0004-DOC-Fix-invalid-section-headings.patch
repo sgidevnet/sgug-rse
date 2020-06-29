@@ -1,0 +1,103 @@
+From d76c7fc761738743f000163d4d25c7c7bcf9ddce Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Sun, 9 Feb 2020 01:37:51 -0500
+Subject: [PATCH 4/5] DOC: Fix invalid section headings.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ libpysal/cg/sphere.py | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/libpysal/cg/sphere.py b/libpysal/cg/sphere.py
+index 007fd6ec..65ef6e38 100644
+--- a/libpysal/cg/sphere.py
++++ b/libpysal/cg/sphere.py
+@@ -254,8 +254,8 @@ def lonlat(pointslist):
+ 
+     newpts      : list with tuples of points in lon-lat order
+ 
+-    Example
+-    -------
++    Examples
++    --------
+     >>> points = [(41.981417, -87.893517), (41.980396, -87.776787), (41.980906, -87.696450)]
+     >>> newpoints = lonlat(points)
+     >>> newpoints
+@@ -278,8 +278,8 @@ def haversine(x):
+     -------
+          : square of sine of half the radian (the haversine formula)
+ 
+-    Example
+-    -------
++    Examples
++    --------
+     >>> haversine(math.pi)     # is 180 in radians, hence sin of 90 = 1
+     1.0
+ 
+@@ -311,15 +311,15 @@ def radangle(p0, p1):
+     -------
+     d     : radian angle in radians
+ 
+-    Example
+-    -------
++    Examples
++    --------
+     >>> p0 = (-87.893517, 41.981417)
+     >>> p1 = (-87.519295, 41.657498)
+     >>> radangle(p0,p1)
+     0.007460167953189258
+ 
+-    Note
+-    ----
++    Notes
++    -----
+     Uses haversine formula, function haversine and degree to radian
+     conversion lambda function d2r
+ 
+@@ -351,8 +351,8 @@ def harcdist(p0, p1, lonx=True, radius=RADIUS_EARTH_KM):
+     -------
+     d        : distance in units specified, km, miles or radians (for None)
+ 
+-    Example
+-    -------
++    Examples
++    --------
+     >>> p0 = (-87.893517, 41.981417)
+     >>> p1 = (-87.519295, 41.657498)
+     >>> harcdist(p0,p1)
+@@ -360,8 +360,8 @@ def harcdist(p0, p1, lonx=True, radius=RADIUS_EARTH_KM):
+     >>> harcdist(p0,p1,radius=None)
+     0.007460167953189258
+ 
+-    Note
+-    ----
++    Notes
++    -----
+     Uses radangle function to compute radian angle
+ 
+     """
+@@ -397,8 +397,8 @@ def geointerpolate(p0, p1, t, lonx=True):
+                depending on setting of lonx; in other words, the same
+                order is used as for the input
+ 
+-    Example
+-    -------
++    Examples
++    --------
+     >>> p0 = (-87.893517, 41.981417)
+     >>> p1 = (-87.519295, 41.657498)
+     >>> geointerpolate(p0,p1,0.1)          # using lon-lat
+@@ -454,8 +454,8 @@ def geogrid(pup, pdown, k, lonx=True):
+               starting with the top row and moving to the bottom; coordinate tuples
+               are returned in same order as input
+ 
+-    Example
+-    -------
++    Examples
++    --------
+     >>> pup = (42.023768,-87.946389)    # Arlington Heights IL
+     >>> pdown = (41.644415,-87.524102)  # Hammond, IN
+     >>> geogrid(pup,pdown,3,lonx=False)
+-- 
+2.21.1
+

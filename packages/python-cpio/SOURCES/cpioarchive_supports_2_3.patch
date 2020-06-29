@@ -1,0 +1,65 @@
+--- cpioarchive.py.orig	2006-01-03 19:49:29.000000000 +0000
++++ cpioarchive.py	2015-08-14 17:06:40.580092327 +0100
+@@ -1,3 +1,5 @@
++from __future__ import absolute_import
++
+ """ cpioarchive: Support for cpio archives
+ Copyright (C) 2006 Ignacio Vazquez-Abrams """
+ 
+@@ -54,7 +56,7 @@
+     """Close this cpio entry. Further calls to methods will raise an
+ exception."""
+     self.closed=True
+-    
++
+   def flush(self):
+     """Flush the entry (no-op)."""
+     pass
+@@ -77,7 +79,7 @@
+ 
+   def seek(self, offset, whence=0):
+     """Move to new position within an entry.
+-    
++
+ Keyword arguments:
+ offset -- Byte count
+ whence -- Describes how offset is used.
+@@ -107,7 +109,7 @@
+   def open(name=None, mode='r', fileobj=None):
+     """Open a cpio archive. Defers to CpioArchive.__init__()."""
+     return CpioArchive(name, mode, fileobj)
+-  
++
+   def __init__(self, name=None, mode='r', fileobj=None):
+     """Open a cpio archive.
+ 
+@@ -140,6 +142,9 @@
+     if not self.external:
+       self.file.close()
+ 
++  def __next__(self):
++    return self.next()
++
+   def next(self):
+     """Return the next entry in the archive."""
+     if self.closed:
+@@ -154,8 +159,8 @@
+     return iter(self._infos)
+ 
+   def _readfile(self, name):
+-    self._readobj(file(name, 'rb'))
+-    
++    self._readobj(open(name, 'rb'))
++
+   def _readobj(self, fileobj):
+     self.file=fileobj
+     start=self.file.tell()
+@@ -168,7 +173,7 @@
+       if not ce.name=="TRAILER!!!":
+         self._infos.append(ce)
+       else:
+-	return
++        return
+       self.file.seek((4-(self.file.tell()-istart)%4)%4, 1)
+       self.file.seek(self._infos[-1].size, 1)
+       self.file.seek((4-(self.file.tell()-istart)%4)%4, 1)

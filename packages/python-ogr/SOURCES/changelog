@@ -1,0 +1,44 @@
+* Wed Apr 01 2020 Jan Sakalos <sakalosj@gmail.com> - 0.11.1-1
+- patch release: 0.11.1
+
+* Sat Mar 07 2020 Jiri Popelka <jpopelka@redhat.com> - 0.11.0-1
+- New upstream release 0.11.0
+
+* Tue Jan 28 2020 Frantisek Lachman <flachman@redhat.com> - 0.10.0-1
+- New upstream release 0.10.0
+
+* Wed Dec 04 2019 Frantisek Lachman <flachman@redhat.com> - 0.9.0-1
+- New upstream release 0.9.0
+
+* Mon Sep 30 2019 Frantisek Lachman <flachman@redhat.com> - 0.8.0-1
+- New upstream release 0.8.0
+
+* Wed Sep 11 2019 Frantisek Lachman <flachman@redhat.com> - 0.7.0-1
+- New upstream release 0.7.0
+
+* Tue Jul 23 2019 Frantisek Lachman <flachman@redhat.com> - 0.6.0-1
+- New upstream release 0.6.0
+
+* Fri Jun 28 2019 Frantisek Lachman <flachman@redhat.com> - 0.5.0-1
+- New upstream release: 0.5.0
+
+* Tue Jun 11 2019 Jiri Popelka <jpopelka@redhat.com> - 0.4.0-1
+- New upstream release: 0.4.0
+
+* Tue May 14 2019 Jiri Popelka <jpopelka@redhat.com> - 0.3.1-1
+- patch release: 0.3.1
+
+* Mon May 13 2019 Jiri Popelka <jpopelka@redhat.com> - 0.3.0-1
+- New upstream release: 0.3.0
+
+* Wed Mar 27 2019 Tomas Tomecek <ttomecek@redhat.com> - 0.2.0-1
+- New upstream release: 0.2.0
+
+* Mon Mar 18 2019 Tomas Tomecek <ttomecek@redhat.com> - 0.1.0-1
+- New upstream release: 0.1.0
+
+* Thu Feb 28 2019 Frantisek Lachman <flachman@redhat.com> - 0.0.3-1
+- New upstream release 0.0.3
+
+* Tue Feb 26 2019 Tomas Tomecek <ttomecek@redhat.com> - 0.0.2-1
+- Initial package.

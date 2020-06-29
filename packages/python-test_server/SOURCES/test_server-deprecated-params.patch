@@ -1,0 +1,19 @@
+diff -rNu test_server-0.0.31.old/test_server/server.py test_server-0.0.31/test_server/server.py
+--- test_server-0.0.31.old/test_server/server.py	2018-05-05 20:01:28.000000000 +0200
++++ test_server-0.0.31/test_server/server.py	2018-11-01 21:58:26.331632215 +0100
+@@ -227,7 +227,14 @@
+ 
+ 
+ class TestServer(object):
+-    def __init__(self, port=0, address='127.0.0.1'):
++    def __init__(self, port=0, address='127.0.0.1', engine=None):
++        if engine:
++            # be nice to expectations of old API
++            import warnings
++            text = "value of parameter engine is ignored with version 0.0.31"
++            text += " and param might get removed later"
++            warnings.warn(text, DeprecationWarning)
++
+         self.request = {}
+         self.response = {}
+         self.response_once = {}

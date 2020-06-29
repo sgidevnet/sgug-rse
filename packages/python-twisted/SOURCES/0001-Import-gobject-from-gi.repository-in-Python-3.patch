@@ -1,0 +1,32 @@
+From 2e99044f6785e9bd0c252cee4349feab9bb9bb66 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Robert-Andr=C3=A9=20Mauchin?= <zebob.m@gmail.com>
+Date: Wed, 22 May 2019 18:13:32 +0200
+Subject: [PATCH 1/2] Import gobject from gi.repository in Python 3
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Robert-André Mauchin <zebob.m@gmail.com>
+---
+ src/twisted/internet/gtk2reactor.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/twisted/internet/gtk2reactor.py b/src/twisted/internet/gtk2reactor.py
+index faf123464..19d97445c 100644
+--- a/src/twisted/internet/gtk2reactor.py
++++ b/src/twisted/internet/gtk2reactor.py
+@@ -42,7 +42,10 @@ try:
+ except (ImportError, AttributeError):
+     pass # maybe we're using pygtk before this hack existed.
+ 
+-import gobject
++try:
++    import gobject
++except ImportError:
++    from gi.repository import GObject as gobject
+ if hasattr(gobject, "threads_init"):
+     # recent versions of python-gtk expose this. python-gtk=2.4.1
+     # (wrapping glib-2.4.7) does. python-gtk=2.0.0 (wrapping
+-- 
+2.21.0
+

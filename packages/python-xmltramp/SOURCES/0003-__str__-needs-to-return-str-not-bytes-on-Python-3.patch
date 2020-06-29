@@ -1,0 +1,36 @@
+From 3dd8fe4955d28e8dee1c890d487288163a760419 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Thu, 5 Jul 2018 15:42:10 +1000
+Subject: [PATCH 3/5] __str__ needs to return str not bytes on Python 3
+
+---
+ xmltramp.py | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/xmltramp.py b/xmltramp.py
+index a3a188f..e2522f2 100644
+--- a/xmltramp.py
++++ b/xmltramp.py
+@@ -5,6 +5,7 @@
+ __credits__ = "Many thanks to pjz, bitsko, and DanC."
+ __copyright__ = "(C) 2003-2006 Aaron Swartz. GNU GPL 2."
+ 
++import sys
+ try:
+ 	text_type = unicode
+ except NameError: # PY3
+@@ -107,7 +108,10 @@ def __unicode__(self):
+ 		return ' '.join(text.split())
+ 		
+ 	def __str__(self):
+-		return self.__unicode__().encode('utf-8')
++		if sys.version_info[0] > 2:
++			return self.__unicode__()
++		else:
++			return self.__unicode__().encode('utf-8')
+ 	
+ 	def __getattr__(self, n):
+ 		if n[0] == '_': raise AttributeError("Use foo['"+n+"'] to access the child element.")
+-- 
+2.14.4
+

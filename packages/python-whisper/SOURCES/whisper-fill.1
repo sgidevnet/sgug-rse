@@ -1,0 +1,22 @@
+.TH WHISPER-FILL 1
+.SH NAME
+whisper-fill \- copy missing metrics from src into dst
+.SH SYNOPSYS
+.nf
+.fam C
+\fbwhisper-fill\fP src_path dst_path
+.fam T
+.fi
+.SH DESCRIPTION
+Copies data from src in dst, if missing. Unlike whisper-merge, don't overwrite data that's already present in the target file, but instead, only add the missing data (e.g. where the gaps in the target file are). Because no values are overwritten, no data or precision gets lost. Also, unlike whisper-merge, try to take the highest-precision archive to provide the data, instead of the one with the largest retention.
+.PP
+.SH OPTIONS
+.TP
+.B
+\-h, \-\-help
+Show the embedded help.
+.SH AUTHOR
+\fBwhisper\fP is a fixed size database, created by Chris Davis.
+.PP
+This manual page was written by Piotr Popieluch <piotr1212@gmail.com>, for the Fedora
+project (but may be used by others).

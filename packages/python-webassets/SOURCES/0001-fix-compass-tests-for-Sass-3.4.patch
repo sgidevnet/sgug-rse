@@ -1,0 +1,28 @@
+From d199a45c0dd5353b0200fdce1e2783da74e1b4fa Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Thu, 21 Jul 2016 15:05:58 +1000
+Subject: [PATCH 1/5] fix compass tests for Sass 3.4
+
+---
+ tests/test_filters.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/tests/test_filters.py b/tests/test_filters.py
+index 75325a6..f01e13f 100644
+--- a/tests/test_filters.py
++++ b/tests/test_filters.py
+@@ -1125,7 +1125,10 @@ def setup(self):
+ 
+     def test_compass(self):
+         self.mkbundle('foo.sass', filters='compass', output='out.css').build()
+-        assert doctest_match("""/* ... */\nh1 {\n  font-family: "Verdana";\n  color: white;\n}\n""", self.get('out.css'))
++        assert (# Sass <= 3.3
++                doctest_match("""/* ... */\nh1 {\n  font-family: "Verdana";\n  color: white;\n}\n""", self.get('out.css')) or
++                # Sass 3.4+
++                doctest_match("""/* ... */\nh1 {\n  font-family: "Verdana";\n  color: #FFFFFF;\n}\n""", self.get('out.css')))
+ 
+     def test_compass_with_imports(self):
+         self.mkbundle('import.scss', filters='compass', output='out.css').build()
+-- 
+2.17.1
+

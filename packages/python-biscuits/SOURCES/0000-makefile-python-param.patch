@@ -1,0 +1,13 @@
+diff --git a/Makefile b/Makefile
+index b48c021..634530c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,6 +1,7 @@
++PYTHON = python
+ compile:
+ 	cython -3 biscuits.pyx
+-	python setup.py build_ext --inplace
++	$(PYTHON) setup.py build_ext --inplace
+ develop:
+ 	python setup.py develop
+ test:

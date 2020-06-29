@@ -1,0 +1,25 @@
+From ebffe91861a95f00ecb4d7c03e209147d547c0d6 Mon Sep 17 00:00:00 2001
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Date: Sat, 24 Oct 2015 12:55:47 +0200
+Subject: [PATCH 1/2] disable executing git submodule
+
+Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+---
+ setup.py | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index 1b71cb5..29ecdbc 100644
+--- a/setup.py
++++ b/setup.py
+@@ -110,7 +110,6 @@ def main():
+             check_pybind11, check_git_submodules, ExtensionUsingNumpy,
+             get_pybind_include, PybindBuildExtCommand)
+     check_pybind11()
+-    check_git_submodules()
+ 
+     hack_distutils()
+     conf = get_config(get_config_schema(),
+-- 
+2.21.0
+

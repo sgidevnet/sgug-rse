@@ -1,0 +1,26 @@
+--- exirel-epub-d6db4535273d/setup.py.orig	2016-02-23 17:29:08.756985439 +0100
++++ exirel-epub-d6db4535273d/setup.py	2016-02-23 17:30:58.044003646 +0100
+@@ -1,5 +1,5 @@
+ # -*- coding: utf-8 -*-
+-from distutils.core import setup
++from setuptools import setup
+ 
+ 
+ with open("README.txt") as f:
+@@ -7,7 +7,7 @@
+ 
+ 
+ setup(name='epub',
+-      version='0.5.0',
++      version='0.5.2',
+       description='Library to open and read files in the epub version 2.',
+       long_description=long_description,
+       author='Florian Strzelecki',
+@@ -15,6 +15,7 @@
+       license='LGPL',
+       url='http://epub.exirel.me',
+       packages=['epub'],
++      test_suite='test',
+       classifiers=['Development Status :: 4 - Beta',
+                    'Intended Audience :: Developers',
+                    'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',

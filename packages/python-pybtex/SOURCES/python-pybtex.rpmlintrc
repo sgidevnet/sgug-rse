@@ -1,0 +1,15 @@
+# THIS FILE IS FOR WHITELISTING RPMLINT ERRORS AND WARNINGS IN TASKOTRON
+# https://fedoraproject.org/wiki/Taskotron/Tasks/dist.rpmlint#Whitelisting_errors
+
+# The dictionary is missing some technical terms
+addFilter(r'W: spelling-error .* bst')
+
+# The objects.inv file is not text
+addFilter(r'W: wrong-file-end-of-line-encoding .*objects.inv')
+addFilter(r'W: file-not-utf8 .*objects.inv')
+
+# The helper scripts have no man pages
+addFilter(r'W: no-manual-page-for-binary pybtex-(convert|format)')
+
+# We use the versions of jquery and js-underscore that sphinx gives us
+addFilter(r'W: unversioned-explicit-provides bundled\((jquery|js-underscore)\)')

@@ -1,0 +1,23 @@
+From 91955e9b197d3b8a0eec73a06b9f3f4287944bae Mon Sep 17 00:00:00 2001
+From: Sebastian Ramacher <sebastian+dev@ramacher.at>
+Date: Tue, 15 Sep 2015 21:59:03 +0200
+Subject: [PATCH] Fix issue with Cython 0.23
+
+Signed-off-by: Sebastian Ramacher <sebastian+dev@ramacher.at>
+---
+ libdiscid/cdiscid.pxd | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libdiscid/cdiscid.pxd b/libdiscid/cdiscid.pxd
+index 3e01ca1..43d6031 100644
+--- a/libdiscid/cdiscid.pxd
++++ b/libdiscid/cdiscid.pxd
+@@ -39,7 +39,7 @@ cdef extern from "discid-wrapper.h":
+   int discid_get_track_offset(DiscId *d, int track_num)
+   int discid_get_track_length(DiscId *d, int track_num)
+ 
+-  ctypedef enum discid_feature:
++  cdef enum discid_feature:
+     DISCID_FEATURE_READ
+     DISCID_FEATURE_MCN
+     DISCID_FEATURE_ISRC

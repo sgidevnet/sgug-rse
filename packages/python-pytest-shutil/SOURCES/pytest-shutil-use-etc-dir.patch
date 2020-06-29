@@ -1,0 +1,14 @@
+diff -Nur pytest-shutil-1.2.6.orig/tests/integration/test_cmdline_integration.py pytest-shutil-1.2.6/tests/integration/test_cmdline_integration.py
+--- pytest-shutil-1.2.6.orig/tests/integration/test_cmdline_integration.py	2017-02-17 03:28:54.000000000 -0800
++++ pytest-shutil-1.2.6/tests/integration/test_cmdline_integration.py	2017-08-15 11:51:30.741090511 -0700
+@@ -5,6 +5,6 @@
+ 
+ def test_chdir():
+     here = os.getcwd()
+-    with cmdline.chdir('/bin'):
+-        assert os.getcwd() == '/bin'
+-    assert os.getcwd() == here
+\ No newline at end of file
++    with cmdline.chdir('/etc'):
++        assert os.getcwd() == '/etc'
++    assert os.getcwd() == here

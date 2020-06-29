@@ -1,0 +1,73 @@
+diff --git a/tests/test_adapter.py b/tests/test_adapter.py
+index 7394f26..58eeac8 100644
+--- a/tests/test_adapter.py
++++ b/tests/test_adapter.py
+@@ -1,4 +1,4 @@
+-import mock
++from unittest import mock
+ import pytest
+ 
+ from requests import Session
+diff --git a/tests/test_cache_control.py b/tests/test_cache_control.py
+index 74bfa7b..f14abec 100644
+--- a/tests/test_cache_control.py
++++ b/tests/test_cache_control.py
+@@ -2,7 +2,7 @@
+ Unit tests that verify our caching methods work correctly.
+ """
+ import pytest
+-from mock import ANY, Mock
++from unittest.mock import ANY, Mock
+ import time
+ 
+ from cachecontrol import CacheController
+diff --git a/tests/test_etag.py b/tests/test_etag.py
+index 2b8e027..0d605e5 100644
+--- a/tests/test_etag.py
++++ b/tests/test_etag.py
+@@ -1,6 +1,6 @@
+ import pytest
+ 
+-from mock import Mock, patch
++from unittest.mock import Mock, patch
+ 
+ import requests
+ 
+diff --git a/tests/test_expires_heuristics.py b/tests/test_expires_heuristics.py
+index 2adc95b..796e41a 100644
+--- a/tests/test_expires_heuristics.py
++++ b/tests/test_expires_heuristics.py
+@@ -4,7 +4,7 @@ import time
+ from email.utils import formatdate, parsedate
+ from datetime import datetime
+ 
+-from mock import Mock
++from unittest.mock import Mock
+ from requests import Session, get
+ from requests.structures import CaseInsensitiveDict
+ 
+diff --git a/tests/test_serialization.py b/tests/test_serialization.py
+index 8d8ade4..bb97a91 100644
+--- a/tests/test_serialization.py
++++ b/tests/test_serialization.py
+@@ -1,7 +1,7 @@
+ import msgpack
+ import requests
+ 
+-from mock import Mock
++from unittest.mock import Mock
+ 
+ from cachecontrol.compat import pickle
+ from cachecontrol.serialize import Serializer
+diff --git a/tests/test_storage_redis.py b/tests/test_storage_redis.py
+index d7b3afc..3c8d122 100644
+--- a/tests/test_storage_redis.py
++++ b/tests/test_storage_redis.py
+@@ -1,6 +1,6 @@
+ from datetime import datetime
+ 
+-from mock import Mock
++from unittest.mock import Mock
+ from cachecontrol.caches import RedisCache
+ 
+ 

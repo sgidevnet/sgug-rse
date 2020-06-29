@@ -1,0 +1,50 @@
+From 601d3b02df7f664051feba0340c3618cf8474acd Mon Sep 17 00:00:00 2001
+From: Kagami Hiiragi <kagami@genshiken.org>
+Date: Wed, 22 Jan 2020 16:33:41 +0100
+Subject: [PATCH] Import PyIOBase_Type at module time
+
+Fixes #74 and https://bugzilla.redhat.com/show_bug.cgi?id=1792949#c3.
+---
+ pygraphviz/graphviz.i | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/pygraphviz/graphviz.i b/pygraphviz/graphviz.i
+index 68265ce..7cd674f 100644
+--- a/pygraphviz/graphviz.i
++++ b/pygraphviz/graphviz.i
+@@ -13,14 +13,33 @@
+ 
+ %{
+ #if PY_VERSION_HEX >= 0x03000000
+-extern PyTypeObject PyIOBase_Type;
++static PyObject *PyIOBase_TypeObj;
++
++static int init_file_emulator(void)
++{
++    PyObject *io = PyImport_ImportModule("_io");
++    if (io == NULL)
++        return -1;
++    PyIOBase_TypeObj = PyObject_GetAttrString(io, "_IOBase");
++    if (PyIOBase_TypeObj == NULL)
++        return -1;
++    return 0;
++}
++#endif
++%}
++
++%init %{
++#if PY_VERSION_HEX >= 0x03000000
++if (init_file_emulator() < 0) {
++    return NULL;
++}
+ #endif
+ %}
+ 
+ %typemap(in) FILE* (int fd, PyObject *mode_obj, PyObject *mode_byte_obj, char *mode) {
+ %#if PY_VERSION_HEX >= 0x03000000 || defined(PYPY_VERSION)
+ %#if !defined(PYPY_VERSION)
+-    if (!PyObject_IsInstance($input, (PyObject *)&PyIOBase_Type)) {
++    if (!PyObject_IsInstance($input, PyIOBase_TypeObj)) {
+         PyErr_SetString(PyExc_TypeError, "not a file handle");
+         return NULL;
+     }

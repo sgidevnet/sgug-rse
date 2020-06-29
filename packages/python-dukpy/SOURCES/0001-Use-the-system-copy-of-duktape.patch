@@ -1,0 +1,48 @@
+From 8a4ef7812dbca9500b14e4d4f9440cc3329aafa7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Zbigniew=20J=C4=99drzejewski-Szmek?= <zbyszek@in.waw.pl>
+Date: Thu, 13 Jun 2019 11:21:23 +0200
+Subject: [PATCH] Use the system copy of duktape
+
+This is just a quick hack. To make this upstreamable, which version is
+chosen should be made configurable.
+---
+ setup.py    | 5 ++++-
+ src/dukpy.h | 2 +-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index e8157087c2..9015a0cd43 100755
+--- a/setup.py
++++ b/setup.py
+@@ -9,6 +9,9 @@ if not hasattr(sys, 'getwindowsversion'):
+     cflags.append('-fvisibility=hidden')
+ 
+ sources = glob.glob('src/*.c') + glob.glob('src/duktape/*.c')
++
++ldflags = ['-lduktape']
++
+ version = '0.3'
+ 
+ if __name__ == '__main__':
+@@ -20,7 +23,7 @@ if __name__ == '__main__':
+         description='JavaScript runtime environment for Python',
+         url='https://github.com/kovidgoyal/dukpy',
+         ext_modules=[
+-            Extension('dukpy', sources=sources, extra_compile_args=cflags),
++            Extension('dukpy', sources=sources, extra_compile_args=cflags, extra_link_args=ldflags),
+         ],
+         test_suite='tests',
+         classifiers=[
+diff --git a/src/dukpy.h b/src/dukpy.h
+index 330494770b..551c3d8c4f 100644
+--- a/src/dukpy.h
++++ b/src/dukpy.h
+@@ -4,7 +4,7 @@
+ #endif
+ #include <Python.h>
+ 
+-#include "duktape/duktape.h"
++#include "duktape.h"
+ #include "duktape/duk_v1_compat.h"
+ #include "duktape/duk_module_duktape.h"
+ 

@@ -1,0 +1,35 @@
+--- a/wand/api.py	2019-07-08 21:19:35.000000000 -0400
++++ b/wand/api.py	2019-07-30 10:51:03.821374690 -0400
+@@ -136,31 +136,9 @@
+ try:
+     libraries = load_library()
+ except (OSError, IOError):
+-    msg = 'http://docs.wand-py.org/en/latest/guide/install.html'
+-    if sys.platform.startswith(('dragonfly', 'freebsd')):
+-        msg = 'pkg install'
+-    elif sys.platform == 'win32':
+-        msg += '#install-imagemagick-on-windows'
+-    elif sys.platform == 'darwin':
+-        mac_pkgmgrs = {'brew': 'brew install freetype imagemagick',
+-                       'port': 'port install imagemagick'}
+-        for pkgmgr in mac_pkgmgrs:
+-            with os.popen('which ' + pkgmgr) as f:
+-                if f.read().strip():
+-                    msg = mac_pkgmgrs[pkgmgr]
+-                    break
+-        else:
+-            msg += '#install-imagemagick-on-mac'
+-    else:
+-        distname, _, __ = platform.linux_distribution()
+-        distname = (distname or '').lower()
+-        if distname in ('debian', 'ubuntu'):
+-            msg = 'apt-get install libmagickwand-dev'
+-        elif distname in ('fedora', 'centos', 'redhat'):
+-            msg = 'yum install ImageMagick-devel'
+     raise ImportError('MagickWand shared library not found.\n'
+                       'You probably had not installed ImageMagick library.\n'
+-                      'Try to install:\n  ' + msg)
++                      'Try to install:\n  dnf install ImageMagick-devel')
+
+ #: (:class:`ctypes.CDLL`) The MagickWand library.
+ library = libraries[0]

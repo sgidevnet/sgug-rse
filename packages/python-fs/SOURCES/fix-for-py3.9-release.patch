@@ -1,0 +1,72 @@
+diff -urN pyfilesystem2-2.4.11-old/fs/test.py pyfilesystem2-2.4.11/fs/test.py
+--- pyfilesystem2-2.4.11-old/fs/test.py	2019-09-07 20:26:42.000000000 +0530
++++ pyfilesystem2-2.4.11/fs/test.py	2020-05-28 21:37:44.655506430 +0530
+@@ -1061,7 +1061,7 @@
+         self.fs.makedirs("foo/bar/baz/")
+ 
+         error_msg = "resource 'foo/bar/egg/test.txt' not found"
+-        with self.assertRaisesRegexp(errors.ResourceNotFound, error_msg):
++        with self.assertRaisesRegex(errors.ResourceNotFound, error_msg):
+             self.fs.remove("foo/bar/egg/test.txt")
+ 
+     def test_removedir(self):
+diff -urN pyfilesystem2-2.4.11-old/tests/test_iotools.py pyfilesystem2-2.4.11/tests/test_iotools.py
+--- pyfilesystem2-2.4.11-old/tests/test_iotools.py	2019-09-07 20:26:42.000000000 +0530
++++ pyfilesystem2-2.4.11/tests/test_iotools.py	2020-05-28 21:37:01.853039587 +0530
+@@ -26,7 +26,7 @@
+ 
+         with self.fs.openbin("foo.bin") as f:
+             data = f.read()
+-            self.assert_(isinstance(data, bytes))
++            self.assertTrue(isinstance(data, bytes))
+ 
+         with self.fs.openbin("text.txt", "wb") as f:
+             f.write(UNICODE_TEXT.encode("utf-8"))
+diff -urN pyfilesystem2-2.4.11-old/tests/test_path.py pyfilesystem2-2.4.11/tests/test_path.py
+--- pyfilesystem2-2.4.11-old/tests/test_path.py	2019-09-07 20:26:42.000000000 +0530
++++ pyfilesystem2-2.4.11/tests/test_path.py	2020-05-28 21:36:28.600676906 +0530
+@@ -152,14 +152,14 @@
+         self.assertEqual(splitext(".foo"), (".foo", ""))
+ 
+     def test_recursepath(self):
+-        self.assertEquals(recursepath("/"), ["/"])
+-        self.assertEquals(recursepath("hello"), ["/", "/hello"])
+-        self.assertEquals(recursepath("/hello/world/"), ["/", "/hello", "/hello/world"])
+-        self.assertEquals(
++        self.assertEqual(recursepath("/"), ["/"])
++        self.assertEqual(recursepath("hello"), ["/", "/hello"])
++        self.assertEqual(recursepath("/hello/world/"), ["/", "/hello", "/hello/world"])
++        self.assertEqual(
+             recursepath("/hello/world/", reverse=True), ["/hello/world", "/hello", "/"]
+         )
+-        self.assertEquals(recursepath("hello", reverse=True), ["/hello", "/"])
+-        self.assertEquals(recursepath("", reverse=True), ["/"])
++        self.assertEqual(recursepath("hello", reverse=True), ["/hello", "/"])
++        self.assertEqual(recursepath("", reverse=True), ["/"])
+ 
+     def test_isbase(self):
+         self.assertTrue(isbase("foo", "foo/bar"))
+@@ -178,7 +178,7 @@
+ 
+     def test_isdotfile(self):
+         for path in [".foo", ".svn", "foo/.svn", "foo/bar/.svn", "/foo/.bar"]:
+-            self.assert_(isdotfile(path))
++            self.assertTrue(isdotfile(path))
+ 
+         for path in ["asfoo", "df.svn", "foo/er.svn", "foo/bar/test.txt", "/foo/bar"]:
+             self.assertFalse(isdotfile(path))
+@@ -201,10 +201,10 @@
+             self.assertEqual(basename(path), test_basename)
+ 
+     def test_iswildcard(self):
+-        self.assert_(iswildcard("*"))
+-        self.assert_(iswildcard("*.jpg"))
+-        self.assert_(iswildcard("foo/*"))
+-        self.assert_(iswildcard("foo/{}"))
++        self.assertTrue(iswildcard("*"))
++        self.assertTrue(iswildcard("*.jpg"))
++        self.assertTrue(iswildcard("foo/*"))
++        self.assertTrue(iswildcard("foo/{}"))
+         self.assertFalse(iswildcard("foo"))
+         self.assertFalse(iswildcard("img.jpg"))
+         self.assertFalse(iswildcard("foo/bar"))

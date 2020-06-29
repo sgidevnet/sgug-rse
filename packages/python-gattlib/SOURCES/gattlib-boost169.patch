@@ -1,0 +1,14 @@
+--- gattlib-0.20150805/setup.py~	2019-01-29 17:25:40.212393451 +0000
++++ gattlib-0.20150805/setup.py	2019-01-29 17:26:26.885304964 +0000
+@@ -19,9 +19,9 @@
+     glib_libs = [x.strip() for x in glib_libs if x]
+ 
+     if sys.version_info.major == 3:
+-        boost_libs = ["boost_python3"]
++        boost_libs = ["boost_python" + str(sys.version_info[0]) + str(sys.version_info[1])]
+     else:
+-        boost_libs = ["boost_python"]
++        boost_libs = ["boost_python27"]
+     extension_modules = [
+         Extension(
+             'gattlib',

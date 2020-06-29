@@ -1,0 +1,11 @@
+diff -up ./setup.py.orig ./setup.py
+--- ./setup.py.orig	2017-07-02 22:17:54.301963250 +0200
++++ ./setup.py	2017-07-02 22:35:20.420699087 +0200
+@@ -472,7 +472,6 @@ setup(
+       "Operating System :: Unix",
+     ],
+     zip_safe = False,
+-    setup_requires=['setuptools_git'],
+     tests_require=['pytest', 'unittest2'],
+     ext_modules = ext_modules(),
+ 

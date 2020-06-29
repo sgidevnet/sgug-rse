@@ -1,0 +1,22 @@
+From 027d11ddbad14c1ed41b2661f47ca76e39723d45 Mon Sep 17 00:00:00 2001
+From: Shaun Jackman <sjackman@gmail.com>
+Date: Thu, 1 Nov 2018 16:29:26 -0700
+Subject: [PATCH] Fix graphviz_wrap.c _wrap_agwrite for Pypy3
+
+---
+ pygraphviz/graphviz_wrap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pygraphviz/graphviz_wrap.c b/pygraphviz/graphviz_wrap.c
+index 3b0b75d..adf0411 100644
+--- a/pygraphviz/graphviz_wrap.c
++++ b/pygraphviz/graphviz_wrap.c
+@@ -3537,7 +3537,7 @@ SWIGINTERN PyObject *_wrap_agwrite(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
+     }
+ #endif
+     mode_obj2 = PyObject_GetAttrString(obj1, "mode");
+-#if !defined(PYPY_VERSION)
++#if PY_VERSION_HEX >= 0x03000000
+     mode_byte_obj2 = PyUnicode_AsUTF8String(mode_obj2);
+ #else
+     mode_byte_obj2 = mode_obj2;

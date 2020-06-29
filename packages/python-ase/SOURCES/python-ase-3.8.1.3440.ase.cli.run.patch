@@ -1,0 +1,14 @@
+--- ase/cli/run.py.orig	2013-10-02 11:43:14.000000000 +0200
++++ ase/cli/run.py	2014-01-17 13:16:01.853605096 +0100
+@@ -105,7 +105,10 @@
+             return
+ 
+         if self.calculator_name is None:
+-            self.calculator_name = names.pop(0)
++            if names:
++                self.calculator_name = names.pop(0)
++            else:
++                parser.error('Missing calculator name')
+ 
+         if self.opts.plugin:
+             runner = self.get_runner()

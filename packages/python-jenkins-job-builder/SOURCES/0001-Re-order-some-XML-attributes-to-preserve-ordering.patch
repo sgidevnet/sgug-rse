@@ -1,0 +1,101 @@
+From ae2b5da71cfdd7de084b44efd2481d99104da180 Mon Sep 17 00:00:00 2001
+From: Mattia Rizzolo <mattia@mapreri.org>
+Date: Fri, 31 Jan 2020 19:04:18 +0100
+Subject: [PATCH] Re-order some XML attributes, to preserve ordering
+
+Python 3.8 changed things, so now the order of the attributes is not
+alphabetic anymore but reflect the order they where added.
+See this CPython commit for more details:
+https://github.com/python/cpython/commit/63673916464bace8e2147357395fdf3497967ecb
+
+This lets the testsuite pass with both CPython 3.8 as well as previous
+versions.
+
+Change-Id: I315abda0465d882d9673c9a7faac0990e38b6840
+Signed-off-by: Mattia Rizzolo <mattia@mapreri.org>
+---
+ jenkins_jobs/modules/project_pipeline.py | 4 ++--
+ jenkins_jobs/modules/project_workflow.py | 2 +-
+ jenkins_jobs/modules/wrappers.py         | 8 ++++----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/jenkins_jobs/modules/project_pipeline.py b/jenkins_jobs/modules/project_pipeline.py
+index 3248c30..774a4b8 100644
+--- a/jenkins_jobs/modules/project_pipeline.py
++++ b/jenkins_jobs/modules/project_pipeline.py
+@@ -93,8 +93,8 @@ class Pipeline(jenkins_jobs.modules.base.Base):
+                 xml_parent,
+                 "definition",
+                 {
+-                    "plugin": "workflow-cps",
+                     "class": "org.jenkinsci.plugins." "workflow.cps.CpsFlowDefinition",
++                    "plugin": "workflow-cps",
+                 },
+             )
+             XML.SubElement(xml_definition, "script").text = data["dsl"]
+@@ -103,9 +103,9 @@ class Pipeline(jenkins_jobs.modules.base.Base):
+                 xml_parent,
+                 "definition",
+                 {
+-                    "plugin": "workflow-cps",
+                     "class": "org.jenkinsci.plugins.workflow.cps."
+                     "CpsScmFlowDefinition",
++                    "plugin": "workflow-cps",
+                 },
+             )
+         else:
+diff --git a/jenkins_jobs/modules/project_workflow.py b/jenkins_jobs/modules/project_workflow.py
+index 731f725..4478f93 100644
+--- a/jenkins_jobs/modules/project_workflow.py
++++ b/jenkins_jobs/modules/project_workflow.py
+@@ -66,8 +66,8 @@ class Workflow(jenkins_jobs.modules.base.Base):
+             xml_parent,
+             "definition",
+             {
+-                "plugin": "workflow-cps",
+                 "class": "org.jenkinsci.plugins." "workflow.cps.CpsFlowDefinition",
++                "plugin": "workflow-cps",
+             },
+         )
+ 
+diff --git a/jenkins_jobs/modules/wrappers.py b/jenkins_jobs/modules/wrappers.py
+index 26de754..8814121 100644
+--- a/jenkins_jobs/modules/wrappers.py
++++ b/jenkins_jobs/modules/wrappers.py
+@@ -990,7 +990,7 @@ def rbenv(registry, xml_parent, data):
+ 
+     ro_class = "Jenkins::Tasks::BuildWrapperProxy"
+     ro = XML.SubElement(
+-        rpo, "ruby-object", {"ruby-class": ro_class, "pluginid": "rbenv"}
++        rpo, "ruby-object", {"pluginid": "rbenv", "ruby-class": ro_class}
+     )
+ 
+     XML.SubElement(
+@@ -998,7 +998,7 @@ def rbenv(registry, xml_parent, data):
+     ).text = "rbenv"
+ 
+     o = XML.SubElement(
+-        ro, "object", {"ruby-class": "RbenvWrapper", "pluginid": "rbenv"}
++        ro, "object", {"pluginid": "rbenv", "ruby-class": "RbenvWrapper"}
+     )
+ 
+     mapping = [
+@@ -1020,8 +1020,8 @@ def rbenv(registry, xml_parent, data):
+     for elem in mapping:
+         (optname, xmlname, val) = elem[:3]
+         elem_tag = o.find(xmlname)
+-        elem_tag.set("ruby-class", "String")
+         elem_tag.set("pluginid", "rbenv")
++        elem_tag.set("ruby-class", "String")
+ 
+     ignore_local_class = "FalseClass"
+ 
+@@ -1033,7 +1033,7 @@ def rbenv(registry, xml_parent, data):
+     XML.SubElement(
+         o,
+         "ignore__local__version",
+-        {"ruby-class": ignore_local_class, "pluginid": "rbenv"},
++        {"pluginid": "rbenv", "ruby-class": ignore_local_class},
+     )
+ 
+ 

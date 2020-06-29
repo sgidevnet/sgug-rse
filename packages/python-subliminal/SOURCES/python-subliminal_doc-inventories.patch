@@ -1,0 +1,42 @@
+diff -rupN subliminal-2.0.5/docs/conf.py subliminal-2.0.5-new/docs/conf.py
+--- subliminal-2.0.5/docs/conf.py	2016-09-03 21:43:35.000000000 +0200
++++ subliminal-2.0.5-new/docs/conf.py	2017-09-03 21:45:51.924735838 +0200
+@@ -303,17 +303,18 @@ texinfo_documents = [
+ 
+ # Example configuration for intersphinx: refer to the Python standard library.
+ intersphinx_mapping = {
+-    'python': ('http://docs.python.org/3.5', None),
+-    'guessit': ('http://guessit.readthedocs.org/en/latest', None),
+-    'babelfish': ('http://babelfish.readthedocs.org/en/latest', None),
+-    'dogpilecache': ('http://dogpilecache.readthedocs.org/en/latest', None),
+-    'dogpilecore': ('http://dogpilecore.readthedocs.org/en/latest', None),
+-    'stevedore': ('http://docs.openstack.org/developer/stevedore', None),
+-    'click': ('http://click.pocoo.org/4', None),
+-    'rarfile': ('http://rarfile.readthedocs.org/en/latest/', None)
++    'python': ('/usr/share/doc/python3-docs/html/', None),
++    'guessit': ('/usr/share/doc/python-guessit-doc/html/', None),
++#    'babelfish': ('http://babelfish.readthedocs.org/en/latest', None),
++#    'dogpilecache': ('http://dogpilecache.readthedocs.org/en/latest', None),
++#    'dogpilecore': ('http://dogpilecore.readthedocs.org/en/latest', None),
++#    'stevedore': ('http://docs.openstack.org/developer/stevedore', None),
++#    'click': ('http://click.pocoo.org/4', None),
++#    'rarfile': ('http://rarfile.readthedocs.org/en/latest/', None)
+ }
+ 
+ 
++
+ # -- Options for autodoc -------------------------------------------------------
+ autodoc_member_order = 'bysource'
+ 
+diff -rupN subliminal-2.0.5/docs/Makefile subliminal-2.0.5-new/docs/Makefile
+--- subliminal-2.0.5/docs/Makefile	2016-09-03 21:43:35.000000000 +0200
++++ subliminal-2.0.5-new/docs/Makefile	2017-09-03 21:46:26.636654245 +0200
+@@ -2,7 +2,7 @@
+ #
+ 
+ # You can set these variables from the command line.
+-SPHINXOPTS    = -n -W
++SPHINXOPTS    = -n
+ SPHINXBUILD   = sphinx-build
+ PAPER         =
+ BUILDDIR      = _build

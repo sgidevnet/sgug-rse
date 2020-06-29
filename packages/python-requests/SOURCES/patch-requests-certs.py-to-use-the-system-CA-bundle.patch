@@ -1,0 +1,46 @@
+From aad5590d5ea47dc54cfd97da54f2640014f7d39d Mon Sep 17 00:00:00 2001
+From: Jeremy Cline <jcline@redhat.com>
+Date: Thu, 13 Dec 2018 10:55:29 -0500
+Subject: [PATCH] Patch requests/certs.py to use the system CA bundle
+
+Signed-off-by: Jeremy Cline <jcline@redhat.com>
+---
+ requests/certs.py | 8 +++++++-
+ setup.py          | 1 -
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/requests/certs.py b/requests/certs.py
+index d1a378d7..5eb2f1a9 100644
+--- a/requests/certs.py
++++ b/requests/certs.py
+@@ -11,8 +11,14 @@ only one — the one from the certifi package.
+ If you are packaging Requests, e.g., for a Linux distribution or a managed
+ environment, you can change the definition of where() to return a separately
+ packaged CA bundle.
++
++This Fedora-patched package returns "/etc/pki/tls/certs/ca-bundle.crt" provided
++by the ca-certificates RPM package.
+ """
+-from certifi import where
++def where():
++    """Return the absolute path to the system CA bundle."""
++    return '/etc/pki/tls/certs/ca-bundle.crt'
++
+ 
+ if __name__ == '__main__':
+     print(where())
+diff --git a/setup.py b/setup.py
+index 2da9ba07..851d9a42 100755
+--- a/setup.py
++++ b/setup.py
+@@ -45,7 +45,6 @@ requires = [
+     'chardet>=3.0.2,<4',
+     'idna>=2.5,<3',
+     'urllib3>=1.21.1,<1.26,!=1.25.0,!=1.25.1',
+-    'certifi>=2017.4.17'
+ 
+ ]
+ test_requirements = [
+-- 
+2.24.1
+

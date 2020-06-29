@@ -1,0 +1,54 @@
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Fri, 31 Mar 2017 17:49:01 +0300
+Subject: [PATCH] Use relative imports during tests
+
+Sometimes you're testing package not from ~/Projects/pyaes or something,
+but from ~/Projects/python-pyaes. Let's allow people to rename a
+project's top-level directory.
+
+Also let's allow run tests from ./tests/ as well.
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+
+diff --git a/tests/test-aes.py b/tests/test-aes.py
+index afa59aa..35d0a4f 100644
+--- a/tests/test-aes.py
++++ b/tests/test-aes.py
+@@ -22,7 +22,8 @@
+ 
+ 
+ import sys
+-sys.path.append('../pyaes')
++sys.path.append('./')
++sys.path.append('../')
+ 
+ from pyaes import *
+ 
+diff --git a/tests/test-blockfeeder.py b/tests/test-blockfeeder.py
+index 41bd487..9781253 100644
+--- a/tests/test-blockfeeder.py
++++ b/tests/test-blockfeeder.py
+@@ -22,7 +22,8 @@
+ 
+ 
+ import sys
+-sys.path.append('../pyaes')
++sys.path.append('./')
++sys.path.append('../')
+ 
+ import os
+ import random
+diff --git a/tests/test-util.py b/tests/test-util.py
+index db30918..3b1ae7e 100644
+--- a/tests/test-util.py
++++ b/tests/test-util.py
+@@ -22,7 +22,8 @@
+ 
+ 
+ import sys
+-sys.path.append('../pyaes')
++sys.path.append('./')
++sys.path.append('../')
+ 
+ from pyaes.util import append_PKCS7_padding, strip_PKCS7_padding
+ 

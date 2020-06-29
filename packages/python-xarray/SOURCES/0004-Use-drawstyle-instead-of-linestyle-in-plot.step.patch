@@ -1,0 +1,78 @@
+From 7c9e266e5a2460391700a54da1c14e35205536a6 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Sat, 31 Aug 2019 04:24:59 -0400
+Subject: [PATCH 4/4] Use drawstyle instead of linestyle in plot.step.
+
+Mixing the two is deprecated in Matplotlib 3.1, and breaks the doc build
+if warnings are set to errors (which they are in new IPython sphinx
+extensions.)
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ xarray/plot/plot.py  | 18 +++++++++---------
+ xarray/plot/utils.py |  4 ++--
+ 2 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/xarray/plot/plot.py b/xarray/plot/plot.py
+index 98131887..302cac05 100644
+--- a/xarray/plot/plot.py
++++ b/xarray/plot/plot.py
+@@ -329,7 +329,7 @@ def line(
+     return primitive
+ 
+ 
+-def step(darray, *args, where="pre", linestyle=None, ls=None, **kwargs):
++def step(darray, *args, where="pre", drawstyle=None, ds=None, **kwargs):
+     """
+     Step plot of DataArray index against values
+ 
+@@ -359,16 +359,16 @@ def step(darray, *args, where="pre", linestyle=None, ls=None, **kwargs):
+     if where not in {"pre", "post", "mid"}:
+         raise ValueError("'where' argument to step must be " "'pre', 'post' or 'mid'")
+ 
+-    if ls is not None:
+-        if linestyle is None:
+-            linestyle = ls
++    if ds is not None:
++        if drawstyle is None:
++            drawstyle = ds
+         else:
+-            raise TypeError("ls and linestyle are mutually exclusive")
+-    if linestyle is None:
+-        linestyle = ""
+-    linestyle = "steps-" + where + linestyle
++            raise TypeError("ds and drawstyle are mutually exclusive")
++    if drawstyle is None:
++        drawstyle = ""
++    drawstyle = "steps-" + where + drawstyle
+ 
+-    return line(darray, *args, linestyle=linestyle, **kwargs)
++    return line(darray, *args, drawstyle=drawstyle, **kwargs)
+ 
+ 
+ def hist(
+diff --git a/xarray/plot/utils.py b/xarray/plot/utils.py
+index cb3bef6d..e6c15037 100644
+--- a/xarray/plot/utils.py
++++ b/xarray/plot/utils.py
+@@ -465,7 +465,7 @@ def _resolve_intervals_1dplot(xval, yval, xlabel, ylabel, kwargs):
+     """
+ 
+     # Is it a step plot? (see matplotlib.Axes.step)
+-    if kwargs.get("linestyle", "").startswith("steps-"):
++    if kwargs.get("drawstyle", "").startswith("steps-"):
+ 
+         # Convert intervals to double points
+         if _valid_other_type(np.array([xval, yval]), [pd.Interval]):
+@@ -476,7 +476,7 @@ def _resolve_intervals_1dplot(xval, yval, xlabel, ylabel, kwargs):
+             yval, xval = _interval_to_double_bound_points(yval, xval)
+ 
+         # Remove steps-* to be sure that matplotlib is not confused
+-        del kwargs["linestyle"]
++        del kwargs["drawstyle"]
+ 
+     # Is it another kind of plot?
+     else:
+-- 
+2.21.1
+

@@ -1,0 +1,60 @@
+From 68b118be1e14e22b032fcafc93a0a279888a24fb Mon Sep 17 00:00:00 2001
+From: Adam Williamson <awilliam@redhat.com>
+Date: Wed, 3 Jun 2020 14:43:58 -0700
+Subject: [PATCH] expression tests: adjust starred expression for Python 3.9
+ (#1441)
+
+As discussed in #1441, Python 3.9's new parser will not parse
+`(*starred)` even using `compile()` with the `PyCF_ONLY_AST`
+flag (as `ast.parse()` does), it raises a `SyntaxError`. This
+breaks the four tests that use this file with Python 3.9.
+Upstream does not consider this to be a bug - see
+https://bugs.python.org/issue40848#msg370643 - so we must
+adjust the expression. As suggested by @JelleZijlstra, this just
+adds a comma, which makes the new parser happy with it (the old
+parser is fine with this form also).
+
+Signed-off-by: Adam Williamson <awilliam@redhat.com>
+---
+ tests/data/expression.diff | 2 +-
+ tests/data/expression.py   | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/tests/data/expression.diff b/tests/data/expression.diff
+index 8c9e8a7..f47ee1c 100644
+--- a/tests/data/expression.diff
++++ b/tests/data/expression.diff
+@@ -179,7 +179,7 @@
+ -((i ** 2) for i, _ in ((1, 'a'), (2, 'b'), (3, 'c')))
+ +((i ** 2) for i, _ in ((1, "a"), (2, "b"), (3, "c")))
+  (((i ** 2) + j) for i in (1, 2, 3) for j in (1, 2, 3))
+- (*starred)
++ (*starred,)
+ -{"id": "1","type": "type","started_at": now(),"ended_at": now() + timedelta(days=10),"priority": 1,"import_session_id": 1,**kwargs}
+ +{
+ +    "id": "1",
+diff --git a/tests/data/expression.py b/tests/data/expression.py
+index 3bcf52b..6a04db8 100644
+--- a/tests/data/expression.py
++++ b/tests/data/expression.py
+@@ -146,7 +146,7 @@ SomeName
+ ((i ** 2) for i in (1, 2, 3))
+ ((i ** 2) for i, _ in ((1, 'a'), (2, 'b'), (3, 'c')))
+ (((i ** 2) + j) for i in (1, 2, 3) for j in (1, 2, 3))
+-(*starred)
++(*starred,)
+ {"id": "1","type": "type","started_at": now(),"ended_at": now() + timedelta(days=10),"priority": 1,"import_session_id": 1,**kwargs}
+ a = (1,)
+ b = 1,
+@@ -431,7 +431,7 @@ SomeName
+ ((i ** 2) for i in (1, 2, 3))
+ ((i ** 2) for i, _ in ((1, "a"), (2, "b"), (3, "c")))
+ (((i ** 2) + j) for i in (1, 2, 3) for j in (1, 2, 3))
+-(*starred)
++(*starred,)
+ {
+     "id": "1",
+     "type": "type",
+-- 
+2.26.2
+

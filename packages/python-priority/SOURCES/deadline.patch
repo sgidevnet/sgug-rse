@@ -1,0 +1,21 @@
+diff --git a/test/test_priority.py b/test/test_priority.py
+index c98a28d..db84be6 100644
+--- a/test/test_priority.py
++++ b/test/test_priority.py
+@@ -12,7 +12,7 @@ import itertools
+ 
+ import pytest
+ 
+-from hypothesis import given
++from hypothesis import given, settings
+ from hypothesis.strategies import (
+     integers, lists, tuples, sampled_from
+ )
+@@ -488,6 +488,7 @@ class TestPriorityTreeOutput(object):
+     of the tree is "good enough": that it meets certain requirements on
+     fairness and equidistribution.
+     """
++    @settings(deadline=500)
+     @given(STREAMS_AND_WEIGHTS)
+     def test_period_of_repetition(self, streams_and_weights):
+         """

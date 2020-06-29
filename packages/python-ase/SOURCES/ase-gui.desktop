@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Name=ase-gui
+GenericName=ase-gui
+Comment=Atomic Simulation Environment GUI
+Categories=GTK;Science;Chemistry;Physics;Education;
+Exec=ase-gui
+Icon=ase
+Terminal=false
+Type=Application
+Name[en_US]=ase-gui
+GenericName[en_US]=ase-gui
+Comment[en_US]=Atomic Simulation Environment GUI
+

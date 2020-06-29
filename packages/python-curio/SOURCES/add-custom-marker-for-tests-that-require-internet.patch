@@ -1,0 +1,31 @@
+diff -Nurp curio-1.1.orig/setup.cfg curio-1.1/setup.cfg
+--- curio-1.1.orig/setup.cfg	2020-03-01 06:37:06.000000000 -0600
++++ curio-1.1/setup.cfg	2020-03-17 22:42:53.274876389 -0500
+@@ -8,6 +8,8 @@ max-complexity = 15
+ testpaths = tests
+ addopts = --verbose
+ 	--ignore=setup.py --ignore=docs/conf.py
++markers =
++    internet: mark tests as requiring internet connectivity (deselect with '-m "not internet"')
+ 
+ [egg_info]
+ tag_build = 
+diff -Nurp curio-1.1.orig/tests/test_network.py curio-1.1/tests/test_network.py
+--- curio-1.1.orig/tests/test_network.py	2020-03-01 06:36:48.000000000 -0600
++++ curio-1.1/tests/test_network.py	2020-03-17 22:42:11.655683887 -0500
+@@ -250,6 +250,7 @@ def test_ssl_wrapping(kernel):
+ 
+     kernel.run(main())
+ 
++@pytest.mark.internet
+ def test_ssl_outgoing(kernel):
+     async def main():
+         c = await network.open_connection('google.com', 443, ssl=True, server_hostname='google.com')
+@@ -312,6 +313,7 @@ def test_ssl_manual_wrapping(kernel):
+ 
+     kernel.run(main())
+ 
++@pytest.mark.internet
+ def test_errors(kernel):
+     async def main():
+         with pytest.raises(ValueError):

@@ -1,0 +1,38 @@
+From 5ea579e2bce2c97563ff778a9b3336c7b9051f3d Mon Sep 17 00:00:00 2001
+From: Sindre Hansen <sindrehansen92@gmail.com>
+Date: Thu, 21 Feb 2019 10:12:44 +0100
+Subject: [PATCH] Fix deprecation warnings
+
+Fixes the following deprecation warnings:
+
+DeprecationWarning: Using or importing the ABCs from 'collections'
+instead of from 'collections.abc' is deprecated, and in 3.8 it will
+stop working
+
+DeprecationWarning: invalid escape sequence \s
+---
+ pygraphviz/agraph.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pygraphviz/agraph.py b/pygraphviz/agraph.py
+index 8f72024..35c9d58 100644
+--- a/pygraphviz/agraph.py
++++ b/pygraphviz/agraph.py
+@@ -17,7 +17,7 @@
+ import sys
+ import threading
+ import warnings
+-from collections import MutableMapping
++from collections.abc import MutableMapping
+ 
+ from . import graphviz as gv
+ 
+@@ -141,7 +141,7 @@ def __init__(self, thing=None,
+             elif hasattr(thing, 'own'):  # a Swig pointer - graph handle
+                 handle = thing
+             elif is_string_like(thing):
+-                pattern = re.compile('(strict)?\s*(graph|digraph).*{.*}\s*',
++                pattern = re.compile(r'(strict)?\s*(graph|digraph).*{.*}\s*',
+                                      re.DOTALL)
+                 if pattern.match(thing):
+                     string = thing  # this is a dot format graph in a string

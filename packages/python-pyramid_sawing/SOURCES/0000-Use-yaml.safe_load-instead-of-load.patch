@@ -1,0 +1,39 @@
+From 2d97d25ec64b4c64d762e90235cd4478efc4eea6 Mon Sep 17 00:00:00 2001
+From: Randy Barlow <randy@electronsweatshop.com>
+Date: Tue, 23 Apr 2019 15:05:22 -0400
+Subject: [PATCH] Use yaml.safe_load() instead of load().
+
+yaml.load() is unsafe[0], and calling load() wtihout a Loader
+parameter is deprecated. This leads to the following warning:
+
+pyramid_sawing/main.py:57: YAMLLoadWarning: calling yaml.load()
+    without Loader=... is deprecated, as the default Loader is
+    unsafe. Please read https://msg.pyyaml.org/load for full
+    details.
+  logging_config = yaml.load(f)
+
+This commit adjusts the package to use yaml.safe_load() instead.
+
+[0] https://pyyaml.org/wiki/PyYAMLDocumentation#loading-yaml
+
+Signed-off-by: Randy Barlow <randy@electronsweatshop.com>
+---
+ pyramid_sawing/main.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pyramid_sawing/main.py b/pyramid_sawing/main.py
+index d4678e1..4869590 100644
+--- a/pyramid_sawing/main.py
++++ b/pyramid_sawing/main.py
+@@ -54,7 +54,7 @@ def includeme(config):
+                        .format(PREFIX, PROJECT))
+ 
+     with open(file, 'r') as f:
+-        logging_config = yaml.load(f)
++        logging_config = yaml.safe_load(f)
+ 
+     dictConfig(logging_config)
+ 
+-- 
+2.21.0
+

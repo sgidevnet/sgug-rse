@@ -1,0 +1,45 @@
+From fd80f1bd65e1fde4f2505dd0b2065b21659d12a4 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Mon, 16 Jul 2018 00:52:13 -0400
+Subject: [PATCH] Increase tolerance for new FreeType.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ tests/test_pytest_mpl.py | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/tests/test_pytest_mpl.py b/tests/test_pytest_mpl.py
+index 1fa0379..064f39b 100644
+--- a/tests/test_pytest_mpl.py
++++ b/tests/test_pytest_mpl.py
+@@ -23,7 +23,7 @@ baseline_dir_remote = 'http://matplotlib.github.io/pytest-mpl/' + baseline_subdi
+ WIN = sys.platform.startswith('win')
+ 
+ 
+-@pytest.mark.mpl_image_compare(baseline_dir=baseline_dir_local)
++@pytest.mark.mpl_image_compare(baseline_dir=baseline_dir_local, tolerance=7.1)
+ def test_succeeds():
+     fig = plt.figure()
+     ax = fig.add_subplot(1, 1, 1)
+@@ -52,7 +52,8 @@ def test_succeeds_faulty_mirror():
+ 
+ class TestClass(object):
+ 
+-    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir_local)
++    @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir_local,
++                                   tolerance=7.1)
+     def test_succeeds(self):
+         fig = plt.figure()
+         ax = fig.add_subplot(1, 1, 1)
+@@ -210,7 +211,7 @@ class TestClassWithSetup(object):
+         self.x = [1, 2, 3]
+ 
+     @pytest.mark.mpl_image_compare(baseline_dir=baseline_dir_local,
+-                                   filename='test_succeeds.png')
++                                   filename='test_succeeds.png', tolerance=7.1)
+     def test_succeeds(self):
+         fig = plt.figure()
+         ax = fig.add_subplot(1, 1, 1)
+-- 
+2.17.1
+

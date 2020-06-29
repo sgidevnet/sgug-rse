@@ -1,0 +1,110 @@
+diff -ru dnspython-1.16.0-orig/dns/name.py dnspython-1.16.0/dns/name.py
+--- dnspython-1.16.0-orig/dns/name.py	2018-12-05 08:35:40.000000000 -0500
++++ dnspython-1.16.0/dns/name.py	2020-01-22 01:07:53.319289996 -0500
+@@ -195,16 +195,10 @@
+         self.allow_pure_ascii = allow_pure_ascii
+         self.strict_decode = strict_decode
+ 
+-    def is_all_ascii(self, label):
+-        for c in label:
+-            if ord(c) > 0x7f:
+-                return False
+-        return True
+-
+     def encode(self, label):
+         if label == '':
+             return b''
+-        if self.allow_pure_ascii and self.is_all_ascii(label):
++        if self.allow_pure_ascii and is_all_ascii(label):
+             return label.encode('ascii')
+         if not have_idna_2008:
+             raise NoIDNA2008
+@@ -230,6 +224,7 @@
+             raise IDNAException(idna_exception=e)
+ 
+ _escaped = bytearray(b'"().;\\@$')
++_escaped_text = u'"().;\\@$'
+ 
+ IDNA_2003_Practical = IDNA2003Codec(False)
+ IDNA_2003_Strict = IDNA2003Codec(True)
+@@ -263,7 +258,9 @@
+     if isinstance(label, binary_type):
+         label = label.decode()
+     for c in label:
+-        if c > u'\x20' and c < u'\x7f':
++        if c in _escaped_text:
++            text += u'\\' + c
++        elif c > u'\x20' and c < u'\x7f':
+             text += c
+         else:
+             if c >= u'\x7f':
+@@ -827,7 +824,7 @@
+     if text == u'@':
+         text = u''
+     if text:
+-        if text == u'.':
++        if text in [u'.', u'\u3002', u'\uff0e', u'\uff61']:
+             return Name([b''])        # no Unicode "u" on this constant!
+         for c in text:
+             if escaping:
+@@ -870,6 +867,13 @@
+     return Name(labels)
+ 
+ 
++def is_all_ascii(text):
++    for c in text:
++        if ord(c) > 0x7f:
++            return False
++    return True
++
++
+ def from_text(text, origin=root, idna_codec=None):
+     """Convert text into a Name object.
+ 
+@@ -886,7 +890,18 @@
+     """
+ 
+     if isinstance(text, text_type):
+-        return from_unicode(text, origin, idna_codec)
++        if not is_all_ascii(text):
++            # Some codepoint in the input text is > 127, so IDNA applies.
++            return from_unicode(text, origin, idna_codec)
++        # The input is all ASCII, so treat this like an ordinary non-IDNA
++        # domain name.  Note that "all ASCII" is about the input text,
++        # not the codepoints in the domain name.  E.g. if text has value
++        #
++        # r'\150\151\152\153\154\155\156\157\158\159'
++        #
++        # then it's still "all ASCII" even though the domain name has
++        # codepoints > 127.
++        text = text.encode('ascii')
+     if not isinstance(text, binary_type):
+         raise ValueError("input to from_text() must be a string")
+     if not (origin is None or isinstance(origin, Name)):
+diff -ru dnspython-1.16.0-orig/tests/test_name.py dnspython-1.16.0/tests/test_name.py
+--- dnspython-1.16.0-orig/tests/test_name.py	2018-12-01 10:48:40.000000000 -0500
++++ dnspython-1.16.0/tests/test_name.py	2020-01-21 23:19:07.998492185 -0500
+@@ -255,6 +255,23 @@
+         t = dns.name.root.to_unicode()
+         self.assertEqual(t, '.')
+ 
++    def testToText12(self):
++        n = dns.name.from_text(r'a\.b.c')
++        t = n.to_unicode()
++        self.assertEqual(t, r'a\.b.c.')
++
++    def testToText13(self):
++        n = dns.name.from_text(r'\150\151\152\153\154\155\156\157\158\159.')
++        t = n.to_text()
++        self.assertEqual(t, r'\150\151\152\153\154\155\156\157\158\159.')
++
++    def testToText14(self):
++        # You can't send this to_unicode() as it wasn't unicode to begin with.
++        def bad():
++            n = dns.name.from_text(r'\150\151\152\153\154\155\156\157\158\159.')
++            t = n.to_unicode()
++        self.failUnlessRaises(UnicodeDecodeError, bad)
++
+     def testSlice1(self):
+         n = dns.name.from_text(r'a.b.c.', origin=None)
+         s = n[:]

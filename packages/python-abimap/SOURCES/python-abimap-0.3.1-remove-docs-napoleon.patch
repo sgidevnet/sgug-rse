@@ -1,0 +1,23 @@
+diff --git a/docs/conf.py b/docs/conf.py
+index c57cdeb..ad4194b 100644
+--- a/docs/conf.py
++++ b/docs/conf.py
+@@ -11,7 +11,6 @@ extensions = [
+     'sphinx.ext.doctest',
+     'sphinx.ext.extlinks',
+     'sphinx.ext.ifconfig',
+-    'sphinx.ext.napoleon',
+     'sphinx.ext.todo',
+     'sphinx.ext.viewcode',
+ ]
+@@ -50,10 +49,6 @@ html_sidebars = {
+ }
+ html_short_title = '%s-%s' % (project, version)
+ 
+-napoleon_use_ivar = True
+-napoleon_use_rtype = False
+-napoleon_use_param = False
+-
+ # Options for man pages
+ # (source start file, name, description, authors, manual section)
+ man_pages = [

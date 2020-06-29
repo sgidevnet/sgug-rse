@@ -1,0 +1,51 @@
+From 36d12b3a800fdd1fb956c423149fccd924d5bcdd Mon Sep 17 00:00:00 2001
+From: Ken Dreyer <ktdreyer@ktdreyer.com>
+Date: Thu, 6 Feb 2020 09:45:40 -0700
+Subject: [PATCH] conditional-publisher: sort publisher attributes
+ alphabetically
+
+As described in dc83d5161fd58c22018c0355282f98c9c2369035, Python 3.8's
+ElementTree now writes out attributes in insertion order. On older
+Python versions, ElementTree writes attributes in alphabetical order
+instead.
+
+The conditional_publisher() method takes an existing publisher XML
+node and alters it by changing the tag name to "publisher" and adding a
+new "class" attribute with the original tag name. ElementTree on py38
+preserves the insertion order of the "class" attribute, whereas py37 and
+earlier would have sorted "class" ahead of the other attributes.
+
+This leads to a unit test failure on Python 3.8 in
+publishers/fixtures/conditional-publisher002.yaml. The conditional
+"copy-to-master" publisher has a "plugin" attribute in the XML. On py37,
+the "class" attribute sorted before the "plugin" attribute
+alphabetically, but on py38+, "plugin" was inserted before "class", so
+the order is effectively reversed.
+
+To resolve the test failure, sort the attributes alphabetically when we
+modify edited_node. This makes py38 write the edited_node attributes in
+the same order as older Pythons. With this change, the test suite passes
+when comparing the JJB output with the static XML fixture file.
+
+Change-Id: Ib727365e101507d9ab69a426bb0bda89a402fb08
+---
+ jenkins_jobs/modules/publishers.py | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/jenkins_jobs/modules/publishers.py b/jenkins_jobs/modules/publishers.py
+index 58d5479..7d38137 100644
+--- a/jenkins_jobs/modules/publishers.py
++++ b/jenkins_jobs/modules/publishers.py
+@@ -6500,6 +6500,12 @@ def conditional_publisher(registry, xml_parent, data):
+         for edited_node in create_publishers(registry, action):
+             if not use_publisher_list:
+                 edited_node.set("class", edited_node.tag)
++                # sort attributes alphabetically
++                attrib = edited_node.attrib
++                if len(attrib) > 1:
++                    attribs = sorted(attrib.items())
++                    attrib.clear()
++                    attrib.update(attribs)
+                 edited_node.tag = "publisher"
+             parent.append(edited_node)
+ 

@@ -1,0 +1,27 @@
+From c08aa4f7470a7a5817435a8b3987e52907c51bb6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Zbigniew=20J=C4=99drzejewski-Szmek?= <zbyszek@in.waw.pl>
+Date: Sat, 5 Oct 2019 11:34:33 +0200
+Subject: [PATCH] Fix ResultsBag.__hash__() on 32 bit
+
+Fixes https://github.com/smarie/python-pytest-harvest/issues/26.
+
+On 32 bit, id() returns an unsigned 32 bit integer, but Py_hash_t is
+signed 32 bit, so the result doesn't fit in the range of [-2**32, 2**32),
+and will get processed through the hash function for Py_Long to
+coerce into the expected range.
+---
+ pytest_harvest/tests/test_results_bag_basic.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/pytest_harvest/tests/test_results_bag_basic.py b/pytest_harvest/tests/test_results_bag_basic.py
+index afb65f31a8..8a68b358c3 100644
+--- a/pytest_harvest/tests/test_results_bag_basic.py
++++ b/pytest_harvest/tests/test_results_bag_basic.py
+@@ -16,4 +16,6 @@ def test_results_bag_basic():
+     assert dict(r) == {}
+     assert str(r) == "ResultsBag:\n{}"
+ 
+-    assert hash(r) == id(r)
++    # We need to call hash(), because id() might return a result outside of the
++    # range of hash(), Py_hash_t/Py_ssize_t. hash() is idempotent.
++    assert hash(r) == hash(id(r))

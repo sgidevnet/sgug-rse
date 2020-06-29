@@ -1,0 +1,68 @@
+diff --git a/MultipartPostHandler.py b/MultipartPostHandler.py
+index a19f512..731d400 100644
+--- a/MultipartPostHandler.py
++++ b/MultipartPostHandler.py
+@@ -53,9 +53,8 @@ Example:
+ 
+ import urllib.request, urllib.parse, urllib.error
+ import urllib.request, urllib.error, urllib.parse
+-import mimetools, mimetypes
+-import os, stat
+-from io import StringIO
++import email, mimetypes
++import os, stat, io
+ 
+ class Callable:
+     def __init__(self, anycallable):
+@@ -69,13 +68,13 @@ class MultipartPostHandler(urllib.request.BaseHandler):
+     handler_order = urllib.request.HTTPHandler.handler_order - 10 # needs to run first
+ 
+     def http_request(self, request):
+-        data = request.get_data()
++        data = request.data
+         if data is not None and type(data) != str:
+             v_files = []
+             v_vars = []
+             try:
+                  for(key, value) in list(data.items()):
+-                     if type(value) == file:
++                     if type(value) == io.IOBase:
+                          v_files.append((key, value))
+                      else:
+                          v_vars.append((key, value))
+@@ -93,7 +92,7 @@ class MultipartPostHandler(urllib.request.BaseHandler):
+                     print("Replacing %s with %s" % (request.get_header('content-type'), 'multipart/form-data'))
+                 request.add_unredirected_header('Content-Type', contenttype)
+ 
+-            request.add_data(data)
++            request.data = data.encode('utf-8')
+         return request
+ 
+     def multipart_encode(vars, files, boundary = None, buffer = None):
+diff --git a/examples/MultipartPostHandler-example.py b/examples/MultipartPostHandler-example.py
+index 332371b..70905fc 100644
+--- a/examples/MultipartPostHandler-example.py
++++ b/examples/MultipartPostHandler-example.py
+@@ -13,17 +13,19 @@ def main():
+     def validateFile(url):
+         temp = tempfile.mkstemp(suffix=".html")
+         os.write(temp[0], opener.open(url).read())
++        # use the encoding of the uploaded page in open().read().decode()
+         params = { "ss" : "0",            # show source
+             "doctype" : "Inline", 
+-            "uploaded_file" : open(temp[1], "rb") }
+-        print((opener.open(validatorURL, params).read()))
++            "uploaded_file" : open(temp[1], "rb").read().decode('utf-8') }
++        # use the encoding of the validator here
++        print(opener.open(validatorURL, params).read().decode('utf-8'))
+         os.remove(temp[1])
+ 
+     if len(sys.argv[1:]) > 0:
+         for arg in sys.argv[1:]:
+             validateFile(arg)
+     else:
+-        validateFile("http://www.google.com")
++        validateFile("https://getfedora.org/")
+ 
+ if __name__=="__main__":
+     main()

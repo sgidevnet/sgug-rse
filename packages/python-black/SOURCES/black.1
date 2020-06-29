@@ -1,0 +1,27 @@
+.TH "BLACK" "1" "04-May-2018" "black Manual"
+.SH NAME
+black \- The uncompromising code formatter.
+.SH SYNOPSIS
+.B black
+[OPTIONS] [SRC]...
+.SH DESCRIPTION
+The uncompromising code formatter.
+.SH OPTIONS
+.TP
+\fB\-l,\fP \-\-line\-length INTEGER
+How many character per line to allow.  [default: 88]
+.TP
+\fB\-\-check\fP
+Don't write the files back, just return the status.  Return code 0 means nothing would change.  Return code 1 means some files would be reformatted.  Return code 123 means there was an internal error.
+.TP
+\fB\-\-diff\fP
+Don't write the files back, just output a diff for each file on stdout.
+.TP
+\fB\-\-fast\fP / \-\-safe
+If --fast given, skip temporary sanity checks. [default: --safe]
+.TP
+\fB\-q,\fP \-\-quiet
+Don't emit non-error messages to stderr. Errors are still emitted, silence those with 2>/dev/null.
+.TP
+\fB\-\-version\fP
+Show the version and exit.

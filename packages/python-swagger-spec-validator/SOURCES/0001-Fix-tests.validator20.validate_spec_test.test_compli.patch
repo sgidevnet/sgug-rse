@@ -1,0 +1,35 @@
+From 69f4e8039ec9bf42dbaea953babcb2d62d409786 Mon Sep 17 00:00:00 2001
+From: Samuele Maci <macisamuele@gmail.com>
+Date: Wed, 27 Feb 2019 11:02:40 +0100
+Subject: [PATCH] Fix
+ tests.validator20.validate_spec_test.test_complicated_refs test to only
+ verify for file:// references
+
+---
+ tests/validator20/validate_spec_test.py | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/tests/validator20/validate_spec_test.py b/tests/validator20/validate_spec_test.py
+index 219357c..a701ab9 100644
+--- a/tests/validator20/validate_spec_test.py
++++ b/tests/validator20/validate_spec_test.py
+@@ -131,14 +131,11 @@ def test_complicated_refs():
+ 
+     # Hokey verification but better than nothing:
+     #   If all the files with $refs were ingested and validated and an
+-    #   exception was not thrown, there should be 8 cached refs in the
+-    #   resolver's store:
+-    #
+-    #   6 json files from tests/data/v2.0/tests_complicated_refs/*
+-    #   1 yaml files from tests/data/v2.0/tests_complicated_refs/*
+-    #   1 draft3 spec
+-    #   1 draft4 spec
+-    assert len(resolver.store) == 9
++    #   exception was not thrown, there should be 7 cached file references
++    #   in the resolver's store:
++    #       6 json files from tests/data/v2.0/tests_complicated_refs/*
++    #       1 yaml files from tests/data/v2.0/tests_complicated_refs/*
++    assert len([uri for uri in resolver.store.keys() if uri.startswith('file://')]) == 7
+ 
+ 
+ def test_specs_with_discriminator():

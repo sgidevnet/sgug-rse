@@ -1,0 +1,129 @@
+diff --git a/ase/io/exciting.py b/ase/io/exciting.py
+index 697a65eca3ba1e7ba135908aca3184385d50a2fb..e04c1a5bcda3964195ec41e3a5666a92327208ce 100644
+--- a/ase/io/exciting.py
++++ b/ase/io/exciting.py
+@@ -13,22 +13,22 @@ from xml.dom import  minidom
+ 
+ def read_exciting(fileobj, index=-1):
+     """Reads structure from exiting xml file.
+-    
++
+     Parameters
+     ----------
+     fileobj: file object
+         File handle from which data should be read.
+-        
++
+     Other parameters
+     ----------------
+     index: integer -1
+         Not used in this implementation.
+     """
+-    
++
+     # Parse file into element tree
+     doc = ET.parse(fileobj)
+     root = doc.getroot()
+-    speciesnodes = root.find('structure').getiterator('species')
++    speciesnodes = root.find('structure').iter('species')
+     symbols = []
+     positions = []
+     basevects = []
+@@ -36,7 +36,7 @@ def read_exciting(fileobj, index=-1):
+     # Collect data from tree
+     for speciesnode in speciesnodes:
+         symbol = speciesnode.get('speciesfile').split('.')[0]
+-        natoms = speciesnode.getiterator('atom')
++        natoms = speciesnode.iter('atom')
+         for atom in natoms:
+             x, y, z = atom.get('coord').split()
+             positions.append([float(x), float(y), float(z)])
+@@ -46,7 +46,7 @@ def read_exciting(fileobj, index=-1):
+         scale = float(str(doc.find('structure/crystal').attrib['scale']))
+     else:
+         scale = 1
+-        
++
+     if 'stretch' in doc.find('structure/crystal').attrib:
+         a, b, c = doc.find('structure/crystal').attrib['stretch'].text.split()
+         stretch = np.array([float(a), float(b), float(c)])
+@@ -60,27 +60,27 @@ def read_exciting(fileobj, index=-1):
+                                    float(z) * Bohr * stretch[2]
+                                    ]) * scale)
+     atoms = Atoms(symbols=symbols, cell=basevects)
+- 
++
+     atoms.set_scaled_positions(positions)
+     if 'molecule' in root.find('structure').attrib.keys():
+         if root.find('structure').attrib['molecule']:
+             atoms.set_pbc(False)
+     else:
+         atoms.set_pbc(True)
+-        
++
+     return atoms
+ 
+ 
+ def write_exciting(filename, images):
+     """writes exciting input structure in XML
+-    
++
+     Parameters
+     ----------
+     filename : str
+         Name of file to which data should be written.
+     images : Atom Object or List of Atoms objects
+         This function will write the first Atoms object to file.
+-    
++
+     Returns
+     -------
+     """
+@@ -95,12 +95,12 @@ def write_exciting(filename, images):
+ def atoms2etree(images):
+     """This function creates the XML DOM corresponding
+      to the structure for use in write and calculator
+-    
++
+     Parameters
+     ----------
+-    
++
+     images : Atom Object or List of Atoms objects
+-    
++
+     Returns
+     -------
+     root : etree object
+@@ -113,7 +113,7 @@ def atoms2etree(images):
+     root.set(
+         '{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation',
+         'http://xml.exciting-code.org/excitinginput.xsd')
+-     
++
+     title = ET.SubElement(root, 'title')
+     title.text = ''
+     structure = ET.SubElement(root, 'structure')
+@@ -122,7 +122,7 @@ def atoms2etree(images):
+     for vec in atoms.cell:
+         basevect = ET.SubElement(crystal, 'basevect')
+         basevect.text = '%.14f %.14f %.14f' % tuple(vec / Bohr)
+-                            
++
+     oldsymbol = ''
+     oldrmt = -1
+     newrmt = -1
+@@ -139,11 +139,11 @@ def atoms2etree(images):
+                 oldrmt = atoms.get_array('rmt')[aindex] / Bohr
+                 if oldrmt > 0:
+                     speciesnode.attrib['rmt'] = '%.4f' % oldrmt
+-           
++
+         atom = ET.SubElement(speciesnode, 'atom',
+                              coord='%.14f %.14f %.14f' % tuple(scaled[aindex]))
+         if 'momenta' in atoms.arrays:
+             atom.attrib['bfcmt'] = '%.14f %.14f %.14f' % tuple(
+                 atoms.get_array('mommenta')[aindex])
+-        
++
+     return root

@@ -1,0 +1,50 @@
+From 18c9e30f925240d64b02daec31c48cfa65368f77 Mon Sep 17 00:00:00 2001
+From: "Ankur Sinha (Ankur Sinha Gmail)" <sanjay.ankur@gmail.com>
+Date: Fri, 14 Jun 2019 16:26:22 +0100
+Subject: [PATCH] Do not download fim so
+
+---
+ setup.py | 27 ---------------------------
+ 1 file changed, 27 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index e0a4b93..7b22001 100644
+--- a/setup.py
++++ b/setup.py
+@@ -17,33 +17,6 @@ for extra in ['extras', 'docs', 'tests']:
+     with open('requirements-{0}.txt'.format(extra), 'r') as fp:
+         extras_require[extra] = fp.read()
+ 
+-# spade specific
+-is_64bit = sys.maxsize > 2 ** 32
+-is_python3 = float(sys.version[0:3]) > 2.7
+-if platform.uname()[0] == "Windows":
+-    oext = ".pyd"
+-elif platform.uname()[0] == "Linux":
+-    oext = ".so"
+-else:
+-    oext = None
+-
+-if oext:
+-    if is_python3:
+-        py_ver = '3'
+-    else:
+-        py_ver = '2'
+-    if is_64bit:
+-        arch = '64'
+-    else:
+-        arch = '32'
+-
+-    try:
+-        urlretrieve('http://www.borgelt.net/bin' +
+-                    arch + '/py' + py_ver + '/fim' + oext,
+-                    'elephant/spade_src/fim' + oext)
+-    except:
+-        print("Unable to download fim" + oext + " module.")
+-
+ setup(
+     name="elephant",
+     version='0.6.2',
+-- 
+2.21.0
+

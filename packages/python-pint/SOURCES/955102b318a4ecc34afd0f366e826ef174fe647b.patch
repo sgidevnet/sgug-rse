@@ -1,0 +1,59 @@
+From 955102b318a4ecc34afd0f366e826ef174fe647b Mon Sep 17 00:00:00 2001
+From: xtreak <tir.karthi@gmail.com>
+Date: Sat, 29 Jun 2019 04:58:59 +0000
+Subject: [PATCH] Use context manager for assertWarns and fix
+ DeprecationWarning
+
+---
+ pint/testsuite/parameterized.py | 7 ++++++-
+ pint/testsuite/test_quantity.py | 5 +++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/pint/testsuite/parameterized.py b/pint/testsuite/parameterized.py
+index 9b920373..7c459157 100644
+--- a/pint/testsuite/parameterized.py
++++ b/pint/testsuite/parameterized.py
+@@ -32,6 +32,11 @@
+ import collections
+ import unittest
+ 
++try:
++    from collections.abc import Callable
++except ImportError:
++    from collections import Callable
++
+ def add_metaclass(metaclass):
+     """Class decorator for creating a class with a metaclass."""
+     def wrapper(cls):
+@@ -69,7 +74,7 @@ def __new__(meta, classname, bases, class_dict):
+         new_class_dict = {}
+ 
+         for attr_name, attr_value in list(class_dict.items()):
+-            if isinstance(attr_value, collections.Callable) and hasattr(attr_value, 'param_names'):
++            if isinstance(attr_value, Callable) and hasattr(attr_value, 'param_names'):
+                 # print("Processing attr_name = %r; attr_value = %r" % (
+                 #     attr_name, attr_value))
+ 
+diff --git a/pint/testsuite/test_quantity.py b/pint/testsuite/test_quantity.py
+index fdb24600..232eea2c 100644
+--- a/pint/testsuite/test_quantity.py
++++ b/pint/testsuite/test_quantity.py
+@@ -383,7 +383,7 @@ def test_from_sequence(self):
+         self.assertFalse(u_array_2.u == u_array_ref_reversed.u)
+ 
+         u_array_3 = self.Q_.from_sequence(u_seq_reversed, units='g')
+-        self.assertTrue(all(u_array_3 == u_array_ref_reversed))        
++        self.assertTrue(all(u_array_3 == u_array_ref_reversed))
+         self.assertTrue(u_array_3.u == u_array_ref_reversed.u)
+ 
+         with self.assertRaises(ValueError):
+@@ -454,7 +454,8 @@ def test_limits_magnitudes(self):
+     def test_nonnumeric_magnitudes(self):
+         ureg = self.ureg
+         x = "some string"*ureg.m
+-        self.assertRaises(RuntimeError, self.compareQuantity_compact(x,x))
++        with self.assertWarns(RuntimeWarning):
++            self.compareQuantity_compact(x,x)
+ 
+ class TestQuantityBasicMath(QuantityTestCase):
+ 

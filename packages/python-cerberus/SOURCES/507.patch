@@ -1,0 +1,136 @@
+From c06a1def30025b556d3d04277b2f3fac1d30800f Mon Sep 17 00:00:00 2001
+From: Frank Sachsenheim <funkyfuture@riseup.net>
+Date: Thu, 8 Aug 2019 19:59:44 +0200
+Subject: [PATCH 1/2] Adds support for Python 3.8
+
+Fixes #505
+---
+ .travis.yml        |  2 ++
+ CHANGES.rst        | 10 ++++++++++
+ cerberus/schema.py | 17 ++++++++++-------
+ setup.py           |  1 +
+ tox.ini            |  2 +-
+ 5 files changed, 24 insertions(+), 8 deletions(-)
+
+diff --git a/.travis.yml b/.travis.yml
+index e49cd97..f6ff70a 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -16,6 +16,8 @@ matrix:
+       python: "3.6"
+     - env: TOXENV=py37
+       python: "3.7"
++    - env: TOXENV=py38
++      python: "3.8-dev"
+     - env: TOXENV=pypy
+       python: "pypy2.7-6.0"
+     - env: TOXENV=pypy3
+diff --git a/CHANGES.rst b/CHANGES.rst
+index ebf310b..c88c3c2 100644
+--- a/CHANGES.rst
++++ b/CHANGES.rst
+@@ -3,6 +3,16 @@ Cerberus Changelog
+ 
+ Cerberus is a collaboratively funded project, see the `funding page`_.
+ 
++Version 1.3.2
++-------------
++
++Unreleased.
++
++New
++~~~
++
++- Support for Python 3.8
++
+ Version 1.3.1
+ -------------
+ 
+diff --git a/cerberus/schema.py b/cerberus/schema.py
+index 305e59f..3841384 100644
+--- a/cerberus/schema.py
++++ b/cerberus/schema.py
+@@ -111,7 +111,10 @@ def __setitem__(self, key, value):
+         self.schema[key] = value
+ 
+     def __str__(self):
+-        return str(self.schema)
++        if hasattr(self, "schema"):
++            return str(self.schema)
++        else:
++            return "No schema data is set yet."
+ 
+     def copy(self):
+         return self.__class__(self.validator, self.schema.copy())
+@@ -142,13 +145,13 @@ def is_of_rule(x):
+                 ('allof_', 'anyof_', 'noneof_', 'oneof_')
+             )
+ 
+-        for field in schema:
+-            for of_rule in (x for x in schema[field] if is_of_rule(x)):
++        for field, rules in schema.items():
++            for of_rule in [x for x in rules if is_of_rule(x)]:
+                 operator, rule = of_rule.split('_', 1)
+-                schema[field].update({operator: []})
+-                for value in schema[field][of_rule]:
+-                    schema[field][operator].append({rule: value})
+-                del schema[field][of_rule]
++                rules.update({operator: []})
++                for value in rules[of_rule]:
++                    rules[operator].append({rule: value})
++                del rules[of_rule]
+         return schema
+ 
+     @classmethod
+diff --git a/setup.py b/setup.py
+index 3616a9f..28a9c92 100755
+--- a/setup.py
++++ b/setup.py
+@@ -57,6 +57,7 @@
+         "Programming Language :: Python :: 3.5",
+         "Programming Language :: Python :: 3.6",
+         "Programming Language :: Python :: 3.7",
++        "Programming Language :: Python :: 3.8",
+         "Programming Language :: Python :: Implementation :: CPython",
+         "Programming Language :: Python :: Implementation :: PyPy",
+     ],
+diff --git a/tox.ini b/tox.ini
+index ffe685d..b9b678f 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -1,5 +1,5 @@
+ [tox]
+-envlist=py27,py34,py35,py36,py37,pypy,pypy3,doclinks,doctest,linting
++envlist=py27,py34,py35,py36,py37,py38,pypy,pypy3,doclinks,doctest,linting
+ 
+ [testenv]
+ deps=pytest
+
+From 8e6be0b92e25e38ea04c73b1226cae12ad270bb6 Mon Sep 17 00:00:00 2001
+From: Frank Sachsenheim <funkyfuture@riseup.net>
+Date: Thu, 8 Aug 2019 20:04:38 +0200
+Subject: [PATCH 2/2] Adds CHANGES record for #505
+
+---
+ CHANGES.rst | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/CHANGES.rst b/CHANGES.rst
+index c88c3c2..78b9ba7 100644
+--- a/CHANGES.rst
++++ b/CHANGES.rst
+@@ -13,6 +13,14 @@ New
+ 
+ - Support for Python 3.8
+ 
++Fixed
++~~~~~
++
++- Fixed the message of the ``BasicErrorHandler`` for an invalid amount of items
++  (`#505`_)
++
++.. _`#505`: https://github.com/pyeve/cerberus/issues/505
++
+ Version 1.3.1
+ -------------
+ 

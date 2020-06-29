@@ -1,0 +1,83 @@
+From 3441d6b8ca010f7153d2b13680409ab571b9d3a1 Mon Sep 17 00:00:00 2001
+From: Michal Schmidt <mschmidt@redhat.com>
+Date: Mon, 22 Jun 2020 00:49:58 +0200
+Subject: [PATCH] factory: replace ':' with '_' in profile names
+
+---
+ precis_i18n/factory.py | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/precis_i18n/factory.py b/precis_i18n/factory.py
+index 0b01568..afa1c67 100644
+--- a/precis_i18n/factory.py
++++ b/precis_i18n/factory.py
+@@ -1,5 +1,6 @@
+ """Implements the `get_profile` factory function used to create profiles."""
+ 
++import encodings
+ import precis_i18n.baseclass as _base
+ import precis_i18n.profile as _profile
+ import precis_i18n.unicode as _unicode
+@@ -21,13 +22,13 @@ _PROFILES = {
+     _factory(_profile.Username, name='UsernameCasePreserved'),
+     'usernamecasemapped':
+     _factory(_profile.Username, name='UsernameCaseMapped', casemap='lower'),
+-    'usernamecasemapped:casefold':
++    'usernamecasemapped_casefold':
+     _factory(_profile.Username,
+-             name='UsernameCaseMapped:CaseFold',
++             name='UsernameCaseMapped_CaseFold',
+              casemap='fold'),
+-    'usernamecasemapped:tolower':
++    'usernamecasemapped_tolower':
+     _factory(_profile.Username,
+-             name='UsernameCaseMapped:ToLower',
++             name='UsernameCaseMapped_ToLower',
+              casemap='lower'),
+     'opaquestring':
+     _factory(_profile.OpaqueString, name='OpaqueString'),
+@@ -35,13 +36,13 @@ _PROFILES = {
+     _factory(_profile.Nickname, name='NicknameCasePreserved'),
+     'nicknamecasemapped':
+     _factory(_profile.Nickname, name='NicknameCaseMapped', casemap='lower'),
+-    'nicknamecasemapped:casefold':
++    'nicknamecasemapped_casefold':
+     _factory(_profile.Nickname,
+-             name='NicknameCaseMapped:CaseFold',
++             name='NicknameCaseMapped_CaseFold',
+              casemap='fold'),
+-    'nicknamecasemapped:tolower':
++    'nicknamecasemapped_tolower':
+     _factory(_profile.Nickname,
+-             name='NicknameCaseMapped:ToLower',
++             name='NicknameCaseMapped_ToLower',
+              casemap='lower'),
+ 
+     # Alias for backward-compatibility with previous version of codec.
+@@ -58,13 +59,13 @@ def get_profile(name, *, unicodedata=None):
+         "FreeFormClass"
+         "UsernameCasePreserved"
+         "UsernameCaseMapped"
+-        "UsernameCaseMapped:CaseFold"
+-        "UsernameCaseMapped:ToLower"
++        "UsernameCaseMapped_CaseFold"
++        "UsernameCaseMapped_ToLower"
+         "OpaqueString"
+         "NicknameCasePreserved"
+         "NicknameCaseMapped"
+-        "NicknameCaseMapped:CaseFold"
+-        "NicknameCaseMapped:ToLower"
++        "NicknameCaseMapped_CaseFold"
++        "NicknameCaseMapped_ToLower"
+         "Nickname" (alias for "NicknameCaseMapped")
+ 
+     This function constructs a new profile each time; there is no cache.
+@@ -83,4 +84,4 @@ def get_profile(name, *, unicodedata=None):
+     Raises:
+         KeyError: Profile not found.
+     """
+-    return _PROFILES[name.lower()](_unicode.UnicodeData(unicodedata))
++    return _PROFILES[encodings.normalize_encoding(name.lower())](_unicode.UnicodeData(unicodedata))
+-- 
+2.26.2
+

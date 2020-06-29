@@ -1,0 +1,57 @@
+# HG changeset patch
+# User David Paleino <dapal@debian.org>
+# Date 1544770987 18000
+#      Fri Dec 14 02:03:07 2018 -0500
+# Node ID e02a9eb90790c57ce107633dc4a03f70a4a6b5ae
+# Parent  094324a0a9c7d0d7c2a060a1b17d4ecd8504beb3
+Use system iso-codes.
+
+diff --git a/src/pycountry/__init__.py b/src/pycountry/__init__.py
+--- a/src/pycountry/__init__.py
++++ b/src/pycountry/__init__.py
+@@ -13,8 +13,8 @@ except ImportError:
+         return os.path.join(os.path.dirname(__file__), resource_name)
+ 
+ 
+-LOCALES_DIR = resource_filename('pycountry', 'locales')
+-DATABASE_DIR = resource_filename('pycountry', 'databases')
++LOCALES_DIR = '/usr/share/locale'
++DATABASE_DIR = '/usr/share/iso-codes/json'
+ 
+ 
+ def remove_accents(input_str):
+@@ -191,15 +191,15 @@ class Subdivisions(pycountry.db.Database
+         return subdivisions
+ 
+ 
+-countries = ExistingCountries(os.path.join(DATABASE_DIR, 'iso3166-1.json'))
+-subdivisions = Subdivisions(os.path.join(DATABASE_DIR, 'iso3166-2.json'))
++countries = ExistingCountries(os.path.join(DATABASE_DIR, 'iso_3166-1.json'))
++subdivisions = Subdivisions(os.path.join(DATABASE_DIR, 'iso_3166-2.json'))
+ historic_countries = HistoricCountries(
+-    os.path.join(DATABASE_DIR, 'iso3166-3.json'))
++    os.path.join(DATABASE_DIR, 'iso_3166-3.json'))
+ 
+-currencies = Currencies(os.path.join(DATABASE_DIR, 'iso4217.json'))
++currencies = Currencies(os.path.join(DATABASE_DIR, 'iso_4217.json'))
+ 
+-languages = Languages(os.path.join(DATABASE_DIR, 'iso639-3.json'))
++languages = Languages(os.path.join(DATABASE_DIR, 'iso_639-3.json'))
+ language_families = LanguageFamilies(
+-    os.path.join(DATABASE_DIR, 'iso639-5.json'))
++    os.path.join(DATABASE_DIR, 'iso_639-5.json'))
+ 
+-scripts = Scripts(os.path.join(DATABASE_DIR, 'iso15924.json'))
++scripts = Scripts(os.path.join(DATABASE_DIR, 'iso_15924.json'))
+diff --git a/src/pycountry/tests/test_general.py b/src/pycountry/tests/test_general.py
+--- a/src/pycountry/tests/test_general.py
++++ b/src/pycountry/tests/test_general.py
+@@ -132,7 +132,7 @@ def test_language_families():
+ 
+ def test_locales():
+     german = gettext.translation(
+-        'iso3166', pycountry.LOCALES_DIR, languages=['de'])
++        'iso_3166', pycountry.LOCALES_DIR, languages=['de'])
+     german.install()
+     assert __builtins__['_']('Germany') == 'Deutschland'
+ 

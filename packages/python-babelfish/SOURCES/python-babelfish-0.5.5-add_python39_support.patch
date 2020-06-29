@@ -1,0 +1,369 @@
+From 3bcc050cd77d6439e0a9259687f320595799dd63 Mon Sep 17 00:00:00 2001
+From: Hugo <hugovk@users.noreply.github.com>
+Date: Mon, 20 Jan 2020 18:06:20 +0200
+Subject: [PATCH 1/6] Drop support for EOL Python 2.6, 3.2-3.4, the first 3 are
+ no longer available on Travis CI
+
+---
+ .travis.yml        | 11 ++----
+ babelfish/tests.py | 97 ++--------------------------------------------
+ setup.py           |  4 --
+ tox.ini            |  2 +-
+ 4 files changed, 7 insertions(+), 107 deletions(-)
+
+diff --git a/.travis.yml b/.travis.yml
+index 192f0a7..4c36bb8 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -1,23 +1,18 @@
+ language: python
+ 
+ python:
+-  - "2.6"
+   - "2.7"
+-  - "3.2"
+-  - "3.3"
+-  - "3.4"
+   - "3.5"
+   - "pypy"
+ 
+ install:
+-  - if [[ $TRAVIS_PYTHON_VERSION != '3.2' ]]; then pip install coveralls; fi
++  - pip install coveralls
+ 
+ script:
+-  # coverage fails on python 3.2
+-  - if [[ $TRAVIS_PYTHON_VERSION != '3.2' ]]; then coverage run --source=babelfish setup.py test; else python setup.py test; fi
++  - coverage run --source=babelfish setup.py test
+ 
+ after_success:
+-  - if [[ $TRAVIS_PYTHON_VERSION != '3.2' ]]; then coveralls; fi
++  - coveralls
+ 
+ notifications:
+   email: false
+diff --git a/babelfish/tests.py b/babelfish/tests.py
+index b72ec28..0e57e2d 100644
+--- a/babelfish/tests.py
++++ b/babelfish/tests.py
+@@ -15,98 +15,7 @@
+     LanguageReverseConverter, LanguageConvertError, LanguageReverseError, CountryReverseError)
+ 
+ 
+-if sys.version_info[:2] <= (2, 6):
+-    _MAX_LENGTH = 80
+-
+-    def safe_repr(obj, short=False):
+-        try:
+-            result = repr(obj)
+-        except Exception:
+-            result = object.__repr__(obj)
+-        if not short or len(result) < _MAX_LENGTH:
+-            return result
+-        return result[:_MAX_LENGTH] + ' [truncated]...'
+-
+-    class _AssertRaisesContext(object):
+-        """A context manager used to implement TestCase.assertRaises* methods."""
+-
+-        def __init__(self, expected, test_case, expected_regexp=None):
+-            self.expected = expected
+-            self.failureException = test_case.failureException
+-            self.expected_regexp = expected_regexp
+-
+-        def __enter__(self):
+-            return self
+-
+-        def __exit__(self, exc_type, exc_value, tb):
+-            if exc_type is None:
+-                try:
+-                    exc_name = self.expected.__name__
+-                except AttributeError:
+-                    exc_name = str(self.expected)
+-                raise self.failureException(
+-                    "{0} not raised".format(exc_name))
+-            if not issubclass(exc_type, self.expected):
+-                # let unexpected exceptions pass through
+-                return False
+-            self.exception = exc_value  # store for later retrieval
+-            if self.expected_regexp is None:
+-                return True
+-
+-            expected_regexp = self.expected_regexp
+-            if isinstance(expected_regexp, basestring):
+-                expected_regexp = re.compile(expected_regexp)
+-            if not expected_regexp.search(str(exc_value)):
+-                raise self.failureException('"%s" does not match "%s"' %
+-                         (expected_regexp.pattern, str(exc_value)))
+-            return True
+-
+-    class _Py26FixTestCase(object):
+-        def assertIsNone(self, obj, msg=None):
+-            """Same as self.assertTrue(obj is None), with a nicer default message."""
+-            if obj is not None:
+-                standardMsg = '%s is not None' % (safe_repr(obj),)
+-                self.fail(self._formatMessage(msg, standardMsg))
+-
+-        def assertIsNotNone(self, obj, msg=None):
+-            """Included for symmetry with assertIsNone."""
+-            if obj is None:
+-                standardMsg = 'unexpectedly None'
+-                self.fail(self._formatMessage(msg, standardMsg))
+-
+-        def assertIn(self, member, container, msg=None):
+-            """Just like self.assertTrue(a in b), but with a nicer default message."""
+-            if member not in container:
+-                standardMsg = '%s not found in %s' % (safe_repr(member),
+-                                                      safe_repr(container))
+-                self.fail(self._formatMessage(msg, standardMsg))
+-
+-        def assertNotIn(self, member, container, msg=None):
+-            """Just like self.assertTrue(a not in b), but with a nicer default message."""
+-            if member in container:
+-                standardMsg = '%s unexpectedly found in %s' % (safe_repr(member),
+-                                                            safe_repr(container))
+-                self.fail(self._formatMessage(msg, standardMsg))
+-
+-        def assertIs(self, expr1, expr2, msg=None):
+-            """Just like self.assertTrue(a is b), but with a nicer default message."""
+-            if expr1 is not expr2:
+-                standardMsg = '%s is not %s' % (safe_repr(expr1),
+-                                                 safe_repr(expr2))
+-                self.fail(self._formatMessage(msg, standardMsg))
+-
+-        def assertIsNot(self, expr1, expr2, msg=None):
+-            """Just like self.assertTrue(a is not b), but with a nicer default message."""
+-            if expr1 is expr2:
+-                standardMsg = 'unexpectedly identical: %s' % (safe_repr(expr1),)
+-                self.fail(self._formatMessage(msg, standardMsg))
+-
+-else:
+-    class _Py26FixTestCase(object):
+-        pass
+-
+-
+-class TestScript(TestCase, _Py26FixTestCase):
++class TestScript(TestCase):
+     def test_wrong_script(self):
+         self.assertRaises(ValueError, lambda: Script('Azer'))
+ 
+@@ -123,7 +32,7 @@ def test_pickle(self):
+         self.assertEqual(pickle.loads(pickle.dumps(Script('Latn'))), Script('Latn'))
+ 
+ 
+-class TestCountry(TestCase, _Py26FixTestCase):
++class TestCountry(TestCase):
+     def test_wrong_country(self):
+         self.assertRaises(ValueError, lambda: Country('ZZ'))
+ 
+@@ -149,7 +58,7 @@ def test_converter_name(self):
+         self.assertEqual(len(country_converters['name'].codes), 249)
+ 
+ 
+-class TestLanguage(TestCase, _Py26FixTestCase):
++class TestLanguage(TestCase):
+     def test_languages(self):
+         self.assertEqual(len(LANGUAGES), 7874)
+ 
+diff --git a/setup.py b/setup.py
+index b3ed52c..adde1d4 100644
+--- a/setup.py
++++ b/setup.py
+@@ -26,12 +26,8 @@
+         'Operating System :: OS Independent',
+         'Programming Language :: Python',
+         'Programming Language :: Python :: 2',
+-        'Programming Language :: Python :: 2.6',
+         'Programming Language :: Python :: 2.7',
+         'Programming Language :: Python :: 3',
+-        'Programming Language :: Python :: 3.2',
+-        'Programming Language :: Python :: 3.3',
+-        'Programming Language :: Python :: 3.4',
+         'Programming Language :: Python :: 3.5',
+         'Topic :: Multimedia :: Video',
+         'Topic :: Software Development :: Libraries :: Python Modules'],
+diff --git a/tox.ini b/tox.ini
+index b794593..6818ea6 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -1,4 +1,4 @@
+ [tox]
+-envlist = py26,py27,py32,py33,py34,py35,pypy
++envlist = py27,py35,pypy
+ [testenv]
+ commands=python setup.py test
+
+From 8867f2ac2720ffc89b2de3a8e0ccba70b3e3f454 Mon Sep 17 00:00:00 2001
+From: Hugo <hugovk@users.noreply.github.com>
+Date: Mon, 20 Jan 2020 18:08:17 +0200
+Subject: [PATCH 2/6] Add support for Python 3.6-3.8
+
+---
+ .travis.yml | 3 +++
+ setup.py    | 3 +++
+ tox.ini     | 2 +-
+ 3 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/.travis.yml b/.travis.yml
+index 4c36bb8..0cf0c68 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -3,6 +3,9 @@ language: python
+ python:
+   - "2.7"
+   - "3.5"
++  - "3.6"
++  - "3.7"
++  - "3.8"
+   - "pypy"
+ 
+ install:
+diff --git a/setup.py b/setup.py
+index adde1d4..93f7ec3 100644
+--- a/setup.py
++++ b/setup.py
+@@ -29,6 +29,9 @@
+         'Programming Language :: Python :: 2.7',
+         'Programming Language :: Python :: 3',
+         'Programming Language :: Python :: 3.5',
++        'Programming Language :: Python :: 3.6',
++        'Programming Language :: Python :: 3.7',
++        'Programming Language :: Python :: 3.8',
+         'Topic :: Multimedia :: Video',
+         'Topic :: Software Development :: Libraries :: Python Modules'],
+     test_suite='babelfish.tests.suite')
+diff --git a/tox.ini b/tox.ini
+index 6818ea6..2fe5f54 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -1,4 +1,4 @@
+ [tox]
+-envlist = py27,py35,pypy
++envlist = py27,py35,py36,py37,py38,pypy
+ [testenv]
+ commands=python setup.py test
+
+From 91dcd2ac541073c2cc97e40b15d3ca4ac4bb0ac0 Mon Sep 17 00:00:00 2001
+From: Hugo <hugovk@users.noreply.github.com>
+Date: Mon, 20 Jan 2020 18:08:30 +0200
+Subject: [PATCH 3/6] Add python_requires to help pip
+
+---
+ setup.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/setup.py b/setup.py
+index 93f7ec3..97f94d9 100644
+--- a/setup.py
++++ b/setup.py
+@@ -20,6 +20,7 @@
+     packages=find_packages(),
+     package_data={'babelfish': ['data/iso-639-3.tab', 'data/iso-3166-1.txt', 'data/iso15924-utf8-20131012.txt',
+                                 'data/opensubtitles_languages.txt']},
++    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+     classifiers=['Development Status :: 5 - Production/Stable',
+         'Intended Audience :: Developers',
+         'License :: OSI Approved :: BSD License',
+
+From 201b111e8fdb4bdd8eb18f18c117b507a9a4c24b Mon Sep 17 00:00:00 2001
+From: Hugo <hugovk@users.noreply.github.com>
+Date: Mon, 20 Jan 2020 18:09:06 +0200
+Subject: [PATCH 4/6] Test on Python 3.9-dev
+
+---
+ .travis.yml | 1 +
+ tox.ini     | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/.travis.yml b/.travis.yml
+index 0cf0c68..f37885b 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -6,6 +6,7 @@ python:
+   - "3.6"
+   - "3.7"
+   - "3.8"
++  - "3.9-dev"
+   - "pypy"
+ 
+ install:
+diff --git a/tox.ini b/tox.ini
+index 2fe5f54..e928105 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -1,4 +1,4 @@
+ [tox]
+-envlist = py27,py35,py36,py37,py38,pypy
++envlist = py27,py35,py36,py37,py38,py39,pypy
+ [testenv]
+ commands=python setup.py test
+
+From 7667fb3179e421d4af78821132db8e2557fa2dc6 Mon Sep 17 00:00:00 2001
+From: Hugo <hugovk@users.noreply.github.com>
+Date: Mon, 20 Jan 2020 18:14:46 +0200
+Subject: [PATCH 5/6] Fix imports for Python 3.9
+
+---
+ babelfish/converters/__init__.py | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/babelfish/converters/__init__.py b/babelfish/converters/__init__.py
+index feb687b..d27f849 100644
+--- a/babelfish/converters/__init__.py
++++ b/babelfish/converters/__init__.py
+@@ -2,17 +2,22 @@
+ # Use of this source code is governed by the 3-clause BSD license
+ # that can be found in the LICENSE file.
+ #
+-import collections
+ from pkg_resources import iter_entry_points, EntryPoint
+ from ..exceptions import LanguageConvertError, LanguageReverseError
+ 
++try:
++    # Python 3.3+
++    from collections.abc import Mapping, MutableMapping
++except ImportError:
++    from collections import Mapping, MutableMapping
++
+ 
+ # from https://github.com/kennethreitz/requests/blob/master/requests/structures.py
+-class CaseInsensitiveDict(collections.MutableMapping):
++class CaseInsensitiveDict(MutableMapping):
+     """A case-insensitive ``dict``-like object.
+ 
+     Implements all methods and operations of
+-    ``collections.MutableMapping`` as well as dict's ``copy``. Also
++    ``collections.abc.MutableMapping`` as well as dict's ``copy``. Also
+     provides ``lower_items``.
+ 
+     All keys are expected to be strings. The structure remembers the
+@@ -63,7 +68,7 @@ def lower_items(self):
+         )
+ 
+     def __eq__(self, other):
+-        if isinstance(other, collections.Mapping):
++        if isinstance(other, Mapping):
+             other = CaseInsensitiveDict(other)
+         else:
+             return NotImplemented
+
+From ae49478f61687b27766057364f427a5301bcea4c Mon Sep 17 00:00:00 2001
+From: Hugo <hugovk@users.noreply.github.com>
+Date: Mon, 20 Jan 2020 18:16:58 +0200
+Subject: [PATCH 6/6] Update AUTHORS
+
+---
+ AUTHORS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/AUTHORS b/AUTHORS
+index 3ea73f6..d091d68 100644
+--- a/AUTHORS
++++ b/AUTHORS
+@@ -5,6 +5,7 @@ BabelFish is written and maintained by:
+ 
+ Other contributors, listed alphabetically, are:
+ 
++ * Hugo van Kemenade -- Add support for Python 3.6-3.9, drop EOL 2.6 and 3.2-3.4
+  * Your name here! -- what you did
+ 
+ Many thanks for all contributions!

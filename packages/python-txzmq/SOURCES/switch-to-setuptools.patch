@@ -1,0 +1,29 @@
+From 3bd38e094b0a28d0b49adb83ea90dcd2f17032e0 Mon Sep 17 00:00:00 2001
+From: Carl George <carl@george.computer>
+Date: Tue, 28 Apr 2020 20:14:42 -0500
+Subject: [PATCH] Switch to setuptools
+
+distutils itself recommends using setuptools.  Also of note, making this change
+will include dependency information in the egg metadata, which is used by third
+party tooling such as Fedora's automatic dependency generator for Python RPM
+packages.
+
+
+https://docs.python.org/3/library/distutils.html
+https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/#_automatically_generated_dependencies
+---
+ setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index e73ac68..12279d4 100644
+--- a/setup.py
++++ b/setup.py
+@@ -1,6 +1,6 @@
+ import io
+ 
+-from distutils.core import setup
++from setuptools import setup
+ 
+ setup(
+     name='txZMQ',

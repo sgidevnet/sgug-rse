@@ -1,0 +1,22 @@
+diff --git a/simpleparse/stt/TextTools/mxTextTools/mxTextTools.c b/simpleparse/stt/TextTools/mxTextTools/mxTextTools.c
+index d623933..be8f6a4 100644
+--- a/simpleparse/stt/TextTools/mxTextTools/mxTextTools.c
++++ b/simpleparse/stt/TextTools/mxTextTools/mxTextTools.c
+@@ -2835,7 +2835,7 @@ PyObject *mxTextTools_UnicodeJoin(PyObject *seq,
+ 
+ 	o = PySequence_GetItem(seq, i);
+ 
+-	if PyTuple_Check(o) {
++	if (PyTuple_Check(o)) {
+ 	    /* Tuple entry: (string,l,r,[...]) */
+ 	    register Py_ssize_t l,r;
+ 
+@@ -2980,7 +2980,7 @@ PyObject *mxTextTools_Join(PyObject *seq,
+ 
+ 	o = PySequence_GetItem(seq, i);
+ 
+-	if PyTuple_Check(o) {
++	if (PyTuple_Check(o)) {
+ 	    /* Tuple entry: (string,l,r,[...]) */
+ 	    register Py_ssize_t l,r;
+ 

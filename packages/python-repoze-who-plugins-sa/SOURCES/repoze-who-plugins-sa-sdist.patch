@@ -1,0 +1,12 @@
+diff --git a/MANIFEST.in b/MANIFEST.in
+index 2fc7461..28354d5 100644
+--- a/MANIFEST.in
++++ b/MANIFEST.in
+@@ -5,6 +5,6 @@ include MANIFEST.in
+ recursive-include repoze *
+ 
+ recursive-exclude docs *
+-recursive-exclude tests *
++recursive-include tests *
+ 
+ global-exclude *~ *.pyc *.egg .directory

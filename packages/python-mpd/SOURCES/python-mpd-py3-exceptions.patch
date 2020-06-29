@@ -1,0 +1,25 @@
+From 3d02f871808d9281d6ca33e08df914d24a53c51c Mon Sep 17 00:00:00 2001
+From: Ralph Bean <rbean@redhat.com>
+Date: Sat, 14 Nov 2015 16:34:47 -0500
+Subject: [PATCH] py3 compatible exceptions
+
+---
+ mpd.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mpd.py b/mpd.py
+index 384f856..c5e3da4 100644
+--- a/mpd.py
++++ b/mpd.py
+@@ -302,7 +302,7 @@ class MPDClient(object):
+             try:
+                 self._sock = socket.socket(af, socktype, proto)
+                 self._sock.connect(sa)
+-            except socket.error, msg:
++            except socket.error as msg:
+                 if self._sock:
+                     self._sock.close()
+                 self._sock = None
+-- 
+2.5.0
+

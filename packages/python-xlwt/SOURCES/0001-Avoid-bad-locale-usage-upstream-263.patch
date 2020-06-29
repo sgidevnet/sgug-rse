@@ -1,0 +1,34 @@
+From 575ef3afa51554b0ce6abe03262a905feb4b6e7c Mon Sep 17 00:00:00 2001
+From: Alec Leamas <leamas.alec@gmail.com>
+Date: Sun, 25 Dec 2016 05:34:19 +0100
+Subject: [PATCH] Avoid bad locale usage (upstream #263).
+
+---
+ xlwt/ExcelFormulaLexer.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/xlwt/ExcelFormulaLexer.py b/xlwt/ExcelFormulaLexer.py
+index 46a2bff..8ff7386 100644
+--- a/xlwt/ExcelFormulaLexer.py
++++ b/xlwt/ExcelFormulaLexer.py
+@@ -3,7 +3,7 @@ from __future__ import print_function
+ 
+ from .antlr import EOF, CommonToken as Tok, TokenStream, TokenStreamException
+ from . import ExcelFormulaParser
+-from re import compile as recompile, LOCALE, IGNORECASE, VERBOSE
++from re import compile as recompile, IGNORECASE, VERBOSE
+ 
+ 
+ int_const_pattern = r"\d+\b"
+@@ -50,7 +50,7 @@ pattern_type_tuples = (
+ 
+ _re = recompile(
+     '(' + ')|('.join([i[0] for i in pattern_type_tuples]) + ')',
+-    VERBOSE+LOCALE+IGNORECASE)
++    VERBOSE+IGNORECASE)
+ 
+ _toktype = [None] + [i[1] for i in pattern_type_tuples]
+ # need dummy at start because re.MatchObject.lastindex counts from 1
+-- 
+2.7.4
+

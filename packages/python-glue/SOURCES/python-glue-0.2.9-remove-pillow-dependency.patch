@@ -1,0 +1,12 @@
+--- setup.py.orig	2012-12-15 18:31:51.449183913 +0100
++++ setup.py	2012-12-15 18:32:11.936937864 +0100
+@@ -23,9 +23,6 @@
+                       'sprite.'),
+     py_modules=['glue'],
+     platforms='any',
+-    install_requires=[
+-        'Pillow>=2.2.2'
+-    ],
+     classifiers=[
+         'Development Status :: 4 - Beta',
+         'Environment :: Web Environment',

@@ -1,0 +1,10 @@
+diff -up parsedatetime-2.2/tox.ini.orig parsedatetime-2.2/tox.ini
+--- parsedatetime-2.2/tox.ini.orig	2017-01-24 07:58:19.892382631 +0100
++++ parsedatetime-2.2/tox.ini	2017-01-24 07:58:53.874392582 +0100
+@@ -1,5 +1,5 @@
+ [tox]
+-envlist = py26,py27,py35,pypy,pypy3,codestyle
++envlist = py26,py27,py36,pypy,pypy3,codestyle
+ skip_missing_interpreters = True
+ 
+ [testenv]

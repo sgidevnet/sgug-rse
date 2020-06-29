@@ -1,0 +1,38 @@
+From ff055748a187c3636fb5bee656b52cdffcd58cc0 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Tue, 6 Sep 2016 12:56:31 +1000
+Subject: [PATCH 4/5] skip babel tests if babel command is not found
+
+---
+ tests/test_filters.py | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/tests/test_filters.py b/tests/test_filters.py
+index 2c917e7..a25143f 100644
+--- a/tests/test_filters.py
++++ b/tests/test_filters.py
+@@ -1540,16 +1540,13 @@ class TestBabel(TempEnvironmentHelper):
+         'test.es6': """var x = (p) => { return false; };"""
+     }
+ 
++    def setup(self):
++        if not find_executable('babel'):
++            raise SkipTest()
++
+     def test_es2015(self):
+         es2015 = get_filter('babel', presets='es2015')
+-        try:
+-            self.mkbundle('test.es6', filters=es2015, output='output.js').build()
+-        except FilterError as e:
+-            # babel is not installed, that's ok.
+-            if 'Program file not found' in e.message:
+-                raise SkipTest()
+-            else:
+-                raise
++        self.mkbundle('test.es6', filters=es2015, output='output.js').build()
+         assert "var x = function x" in self.get('output.js')
+ 
+     def test_extra_args(self):
+-- 
+2.17.1
+

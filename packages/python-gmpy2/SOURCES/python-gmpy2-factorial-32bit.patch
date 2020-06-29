@@ -1,0 +1,11 @@
+--- a/test/test_gmpy2_math.txt
++++ b/test/test_gmpy2_math.txt
+@@ -233,8 +233,6 @@ TypeError: factorial() requires non-nega
+ mpfr('1.2146304367025329e+205')
+ >>> gmpy2.factorial(123456)
+ mpfr('2.6040699049291379e+574964')
+->>> gmpy2.factorial(123456789)
+-mpfr('inf')
+ >>> gmpy2.factorial(1234567899999999999999)
+ Traceback (most recent call last):
+   File "<stdin>", line 1, in <module>

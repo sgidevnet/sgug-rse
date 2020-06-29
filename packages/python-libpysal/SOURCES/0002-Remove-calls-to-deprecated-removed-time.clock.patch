@@ -1,0 +1,56 @@
+From a2e1ccafdd9a7d0247e2be7394ddadb5e248a12d Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Sat, 8 Feb 2020 22:23:45 -0500
+Subject: [PATCH 2/5] Remove calls to deprecated/removed time.clock.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ libpysal/cg/rtree.py | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/libpysal/cg/rtree.py b/libpysal/cg/rtree.py
+index b8c92d5e..1fd0dbc5 100644
+--- a/libpysal/cg/rtree.py
++++ b/libpysal/cg/rtree.py
+@@ -448,7 +448,7 @@ class _NodeCursor(object):
+         if (self.nchildren() <= MAXCHILDREN):
+             return
+ 
+-        t = time.clock()
++        t = time.process_time()
+ 
+         cur_score = -10
+ 
+@@ -466,7 +466,8 @@ class _NodeCursor(object):
+ 
+         self._set_children(nodes)
+ 
+-        dur = (time.clock() - t)
++        dur = time.process_time() - t
++
+         c = float(self.root.stats["overflow_f"])
+         oa = self.root.stats["avg_overflow_t_f"]
+         self.root.stats["avg_overflow_t_f"] = (
+@@ -593,7 +594,7 @@ def closest(centroids, node):
+ 
+ 
+ def k_means_cluster(root, k, nodes):
+-    t = time.clock()
++    t = time.process_time()
+     if len(nodes) <= k:
+         return [[n] for n in nodes]
+ 
+@@ -632,8 +633,8 @@ def k_means_cluster(root, k, nodes):
+         new_cluster_centers = [center_of_gravity(c) for c in clusters]
+         if new_cluster_centers == cluster_centers:
+             root.stats["avg_kmeans_iter_f"] = float(root.stats["sum_kmeans_iter_f"] / root.stats["count_kmeans_iter_f"])
+-            root.stats["longest_kmeans"] = max(
+-                root.stats["longest_kmeans"], (time.clock() - t))
++            root.stats["longest_kmeans"] = max(root.stats["longest_kmeans"],
++                                               time.process_time() - t)
+             return clusters
+         else:
+             cluster_centers = new_cluster_centers
+-- 
+2.21.1
+

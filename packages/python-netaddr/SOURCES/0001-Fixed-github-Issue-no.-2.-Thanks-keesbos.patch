@@ -1,0 +1,65 @@
+From 80071f4450261b70b70f537bc2b54d2c97d9f562 Mon Sep 17 00:00:00 2001
+From: "David P. D. Moss" <drkjam@gmail.com>
+Date: Thu, 25 Nov 2010 08:53:49 +0000
+Subject: [PATCH] Fixed github Issue no. 2. Thanks keesbos.
+
+---
+ netaddr/ip/__init__.py               |    2 ++
+ netaddr/tests/2.x/ip/constructor.txt |   11 +++++++++++
+ netaddr/tests/3.x/ip/constructor.txt |   11 +++++++++++
+ 3 files changed, 24 insertions(+), 0 deletions(-)
+
+diff --git a/netaddr/ip/__init__.py b/netaddr/ip/__init__.py
+index 0179c38..e4a6b7b 100644
+--- a/netaddr/ip/__init__.py
++++ b/netaddr/ip/__init__.py
+@@ -779,6 +779,8 @@ def parse_ip_network(module, addr, implicit_prefix=False, flags=0):
+                 #   Try a partial IPv4 network address...
+                 expanded_addr = _ipv4.expand_partial_address(val1)
+                 ip = IPAddress(expanded_addr, module.version, flags=INET_PTON)
++            else:
++                raise AddrFormatError('invalid IPNetwork address %s!' % addr)
+         value = ip._value
+ 
+         try:
+diff --git a/netaddr/tests/2.x/ip/constructor.txt b/netaddr/tests/2.x/ip/constructor.txt
+index f67f5e4..5a9e978 100644
+--- a/netaddr/tests/2.x/ip/constructor.txt
++++ b/netaddr/tests/2.x/ip/constructor.txt
+@@ -209,3 +209,14 @@ IPNetwork('172.24.0.0/16')
+ 
+ 
+ }}}
++
++Negative testing
++
++{{{
++
++>>> IPNetwork('foo')
++Traceback (most recent call last):
++...
++AddrFormatError: invalid IPNetwork foo
++
++}}}
+diff --git a/netaddr/tests/3.x/ip/constructor.txt b/netaddr/tests/3.x/ip/constructor.txt
+index 2ec47c0..35a5cd6 100644
+--- a/netaddr/tests/3.x/ip/constructor.txt
++++ b/netaddr/tests/3.x/ip/constructor.txt
+@@ -209,3 +209,14 @@ IPNetwork('172.24.0.0/16')
+ 
+ 
+ }}}
++
++Negative testing
++
++{{{
++
++>>> IPNetwork('foo')
++Traceback (most recent call last):
++...
++netaddr.core.AddrFormatError: invalid IPNetwork foo
++
++}}}
+-- 
+1.7.5.2
+

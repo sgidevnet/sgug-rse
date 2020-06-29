@@ -1,0 +1,63 @@
+From 5ec12cf82b3cd0101d00dd762eb883ddc9f9c96c Mon Sep 17 00:00:00 2001
+From: Aymeric Augustin <aymeric.augustin@m4x.org>
+Date: Tue, 5 Jun 2018 22:08:55 +0200
+Subject: [PATCH 2/3] Replace conditional errors with version checks.
+
+This avoids silently ignoring tests instead of failing them in case of
+mistakes.
+
+Fix #415.
+
+(cherry picked from commit ada2987ddf2eccbb36a6ead0a5936ba0ed397032)
+---
+ websockets/protocol.py           | 6 ++----
+ websockets/test_client_server.py | 8 ++------
+ 2 files changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/websockets/protocol.py b/websockets/protocol.py
+index dbc9951..66939aa 100644
+--- a/websockets/protocol.py
++++ b/websockets/protocol.py
+@@ -15,6 +15,7 @@ import enum
+ import logging
+ import random
+ import struct
++import sys
+ import warnings
+ 
+ from .compatibility import asyncio_ensure_future
+@@ -1020,9 +1021,6 @@ class WebSocketCommonProtocol(asyncio.StreamReaderProtocol):
+         super().connection_lost(exc)
+ 
+ 
+-try:
++if sys.version_info[:2] >= (3, 6):                          # pragma: no cover
+     from .py36.protocol import __aiter__
+-except (SyntaxError, ImportError):                          # pragma: no cover
+-    pass
+-else:
+     WebSocketCommonProtocol.__aiter__ = __aiter__
+diff --git a/websockets/test_client_server.py b/websockets/test_client_server.py
+index 27a2a71..a3e1e92 100644
+--- a/websockets/test_client_server.py
++++ b/websockets/test_client_server.py
+@@ -1056,14 +1056,10 @@ class ClientServerOriginTests(unittest.TestCase):
+         self.loop.run_until_complete(server.wait_closed())
+ 
+ 
+-try:
++if sys.version_info[:2] >= (3, 5):                          # pragma: no cover
+     from .py35._test_client_server import AsyncAwaitTests               # noqa
+     from .py35._test_client_server import ContextManagerTests           # noqa
+-except (SyntaxError, ImportError):                          # pragma: no cover
+-    pass
+ 
+ 
+-try:
++if sys.version_info[:2] >= (3, 6):                          # pragma: no cover
+     from .py36._test_client_server import AsyncIteratorTests            # noqa
+-except (SyntaxError, ImportError):                          # pragma: no cover
+-    pass
+-- 
+2.18.0
+

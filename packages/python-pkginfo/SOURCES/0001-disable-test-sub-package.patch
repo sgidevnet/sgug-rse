@@ -1,0 +1,24 @@
+From 696c909e3ec857ea67b64563e88d0225d30b608b Mon Sep 17 00:00:00 2001
+From: Fabio Valentini <decathorpe@gmail.com>
+Date: Tue, 24 Sep 2019 16:50:23 +0200
+Subject: [PATCH 1/2] disable test sub-package
+
+---
+ setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index 1484186..e989e4b 100644
+--- a/setup.py
++++ b/setup.py
+@@ -48,6 +48,6 @@ setup(
+             'pkginfo = pkginfo.commandline:main',
+         ]
+     },
+-    packages=['pkginfo', 'pkginfo.tests'],
++    packages=['pkginfo'],
+     **extras
+ )
+-- 
+2.21.0
+

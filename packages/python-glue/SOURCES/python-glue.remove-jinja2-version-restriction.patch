@@ -1,0 +1,13 @@
+diff --git a/setup.py b/setup.py
+index 6d33ec9..7e29fb5 100644
+--- a/setup.py
++++ b/setup.py
+@@ -4,7 +4,7 @@
+ 
+ install_requires=[
+     'Pillow>=2.2.2',
+-    'Jinja2>=2.7,<2.10',
++    'Jinja2>=2.7',
+ ]
+ 
+ tests_require=[

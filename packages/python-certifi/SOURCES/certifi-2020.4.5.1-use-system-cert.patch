@@ -1,0 +1,23 @@
+diff --git a/certifi/core.py b/certifi/core.py
+index 56b52a3..4bd2d10 100644
+--- a/certifi/core.py
++++ b/certifi/core.py
+@@ -9,6 +9,7 @@ This module returns the installation location of cacert.pem or its contents.
+ import os
+ 
+ try:
++    raise ImportError  # force fallback
+     from importlib.resources import read_text
+ except ImportError:
+     # This fallback will work for Python versions prior to 3.7 that lack the
+@@ -21,9 +22,7 @@ except ImportError:
+ 
+ 
+ def where():
+-    f = os.path.dirname(__file__)
+-
+-    return os.path.join(f, "cacert.pem")
++    return '/etc/pki/tls/certs/ca-bundle.crt'
+ 
+ 
+ def contents():

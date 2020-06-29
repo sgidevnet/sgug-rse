@@ -1,0 +1,61 @@
+diff -up python3-python-smbpasswd-1.0.1-12.fc13/README.txt.org python3-python-smbpasswd-1.0.1-12.fc13/README.txt
+--- python3-python-smbpasswd-1.0.1-12.fc13/README.txt.org	2004-12-16 04:55:18.000000000 +0100
++++ python3-python-smbpasswd-1.0.1-12.fc13/README.txt	2010-02-02 17:35:59.398053959 +0100
+@@ -26,10 +26,10 @@ In Python:
+ 
+     passwd = 'mypassword'
+ 
+-    print 'LANMAN hash is', smbpasswd.lmhash(passwd)
+-    print 'NT hash is', smbpasswd.nthash(passwd)
++    print ('LANMAN hash is', smbpasswd.lmhash(passwd))
++    print ('NT hash is', smbpasswd.nthash(passwd))
+ 
+-    print 'both hashes at once = %s:%s' % smbpasswd.hash(passwd)
++    print ('both hashes at once = %s:%s' % smbpasswd.hash(passwd))
+ 
+ ------------------------------------------------------------
+                                             Enjoy
+diff -up python3-python-smbpasswd-1.0.1-12.fc13/setup.py.org python3-python-smbpasswd-1.0.1-12.fc13/setup.py
+--- python3-python-smbpasswd-1.0.1-12.fc13/setup.py.org	2004-12-16 04:54:08.000000000 +0100
++++ python3-python-smbpasswd-1.0.1-12.fc13/setup.py	2010-02-02 17:35:59.398053959 +0100
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/python3
+ #
+ # Python Distutils Setup file for py-smbpasswd module.  Build and
+ # install with:
+diff -up python3-python-smbpasswd-1.0.1-12.fc13/smbpasswd.c.org python3-python-smbpasswd-1.0.1-12.fc13/smbpasswd.c
+--- python3-python-smbpasswd-1.0.1-12.fc13/smbpasswd.c.org	2004-12-16 04:54:08.000000000 +0100
++++ python3-python-smbpasswd-1.0.1-12.fc13/smbpasswd.c	2010-02-02 17:40:27.153054531 +0100
+@@ -70,7 +70,7 @@ hash_to_string(char *tmp) 
+         outbuffer[(i*2)+1] = HEXCHARS[   c   & 0x0f];
+         }
+         
+-    return PyString_FromStringAndSize(outbuffer, 32);
++    return PyUnicode_FromStringAndSize(outbuffer, 32);
+     }
+ 
+ 
+@@ -158,12 +158,19 @@ static PyMethodDef smbpasswd_functions[]
+     {NULL,      NULL}   /* Sentinel */
+     };
+ 
++static struct PyModuleDef smbpasswdmodule = 
++  { PyModuleDef_HEAD_INIT,
++    "smbpasswd",
++    module_doc,
++    -1,
++    smbpasswd_functions
++  };
+ 
+ /* Initialize this module. */
+-void 
+-initsmbpasswd(void)
++PyMODINIT_FUNC 
++PyInit_smbpasswd(void)
+     {
+-    Py_InitModule3("smbpasswd", smbpasswd_functions, module_doc);
++      return PyModule_Create(&smbpasswdmodule);
+     }
+ 
+ /****** EOF *********/

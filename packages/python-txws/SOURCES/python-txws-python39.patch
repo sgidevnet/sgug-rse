@@ -1,0 +1,13 @@
+diff --git a/txws.py b/txws.py
+index 7de92a4..b81a274 100644
+--- a/txws.py
++++ b/txws.py
+@@ -214,7 +214,7 @@ def mask(buf, key):
+     buf = array.array("B", buf)
+     for i in range(len(buf)):
+         buf[i] ^= key[i % 4]
+-    return buf.tostring()
++    return buf.tobytes()
+ 
+ def make_hybi07_frame(buf, opcode=0x1):
+     """

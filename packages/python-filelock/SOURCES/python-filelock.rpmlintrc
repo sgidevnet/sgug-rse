@@ -1,0 +1,3 @@
+# KNOWN BUGS
+addFilter(r': file-not-utf8 /usr/share/doc/python-filelock-doc(-[\d\.]+)?/html/objects.inv')
+addFilter(r': wrong-file-end-of-line-encoding /usr/share/doc/python-filelock-doc/html/objects.inv')

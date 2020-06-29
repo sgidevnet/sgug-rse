@@ -1,0 +1,29 @@
+From 8b08c463a49bdcca455cdfbefa971c89bd309ddf Mon Sep 17 00:00:00 2001
+From: John Eckersberg <jeckersb@redhat.com>
+Date: Mon, 19 Feb 2018 15:20:54 -0500
+Subject: [PATCH] Do not override executable path
+
+Resolves: RHBZ#1546800
+---
+ setup.py | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index 2bd2a08..4cd2780 100644
+--- a/setup.py
++++ b/setup.py
+@@ -177,11 +177,6 @@ def main():
+         scripts=['netaddr/tools/netaddr'],
+         url='https://github.com/drkjam/netaddr/',
+         version=netaddr.__version__,
+-        options={
+-            'build_scripts': {
+-                'executable': '/usr/bin/env python',
+-            },
+-        },
+     )
+ 
+     setup(**setup_options)
+-- 
+2.14.3
+

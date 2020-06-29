@@ -1,0 +1,56 @@
+# HG changeset patch
+# User Jan Staněk <jstanek@redhat.com>
+# Date 1579263565 -3600
+#      Fri Jan 17 13:19:25 2020 +0100
+# Node ID ce83dd57a7970a020a6d727dbfd5f46723fbda44
+# Parent  090c663dc2a1b9544a837ba34358e4fde445b182
+python3: Import MutableMapping from collections.abc
+
+diff -r 090c663dc2a1 -r ce83dd57a797 Lib3/bsddb/__init__.py
+--- a/Lib3/bsddb/__init__.py	Sun Jul 01 22:17:17 2018 +0200
++++ b/Lib3/bsddb/__init__.py	Fri Jan 17 13:19:25 2020 +0100
+@@ -66,8 +66,10 @@
+ 
+ from weakref import ref
+ 
+-import collections
+-MutableMapping = collections.MutableMapping
++try:
++    from collections.abc import MutableMapping
++except ImportError:
++    from collections import MutableMapping
+ 
+ class _iter_mixin(MutableMapping):
+     def _make_iter_cursor(self):
+diff -r 090c663dc2a1 -r ce83dd57a797 Lib3/bsddb/dbobj.py
+--- a/Lib3/bsddb/dbobj.py	Sun Jul 01 22:17:17 2018 +0200
++++ b/Lib3/bsddb/dbobj.py	Fri Jan 17 13:19:25 2020 +0100
+@@ -28,8 +28,10 @@
+ else :
+     from . import db
+ 
+-import collections
+-MutableMapping = collections.MutableMapping
++try:
++    from collections.abc import MutableMapping
++except ImportError:
++    from collections import MutableMapping
+ 
+ class DBEnv:
+     def __init__(self, *args, **kwargs):
+diff -r 090c663dc2a1 -r ce83dd57a797 Lib3/bsddb/dbshelve.py
+--- a/Lib3/bsddb/dbshelve.py	Sun Jul 01 22:17:17 2018 +0200
++++ b/Lib3/bsddb/dbshelve.py	Fri Jan 17 13:19:25 2020 +0100
+@@ -48,8 +48,10 @@
+ def _dumps(object, protocol):
+     return pickle.dumps(object, protocol=protocol)
+ 
+-import collections
+-MutableMapping = collections.MutableMapping
++try:
++    from collections.abc import MutableMapping
++except ImportError:
++    from collections import MutableMapping
+ 
+ #------------------------------------------------------------------------
+ 

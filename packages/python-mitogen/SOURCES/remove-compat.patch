@@ -1,0 +1,162 @@
+diff -Nurp mitogen-0.2.8.orig/ansible_mitogen/process.py mitogen-0.2.8/ansible_mitogen/process.py
+--- mitogen-0.2.8.orig/ansible_mitogen/process.py	2019-08-18 10:46:38.000000000 -0500
++++ mitogen-0.2.8/ansible_mitogen/process.py	2019-08-25 15:02:06.618523928 -0500
+@@ -178,66 +178,6 @@ def setup_pool(pool):
+     LOG.debug('Service pool configured: size=%d', pool.size)
+ 
+ 
+-def _setup_simplejson(responder):
+-    """
+-    We support serving simplejson for Python 2.4 targets on Ansible 2.3, at
+-    least so the package's own CI Docker scripts can run without external
+-    help, however newer versions of simplejson no longer support Python
+-    2.4. Therefore override any installed/loaded version with a
+-    2.4-compatible version we ship in the compat/ directory.
+-    """
+-    responder.whitelist_prefix('simplejson')
+-
+-    # issue #536: must be at end of sys.path, in case existing newer
+-    # version is already loaded.
+-    compat_path = os.path.join(os.path.dirname(__file__), 'compat')
+-    sys.path.append(compat_path)
+-
+-    for fullname, is_pkg, suffix in (
+-        (u'simplejson', True, '__init__.py'),
+-        (u'simplejson.decoder', False, 'decoder.py'),
+-        (u'simplejson.encoder', False, 'encoder.py'),
+-        (u'simplejson.scanner', False, 'scanner.py'),
+-    ):
+-        path = os.path.join(compat_path, 'simplejson', suffix)
+-        fp = open(path, 'rb')
+-        try:
+-            source = fp.read()
+-        finally:
+-            fp.close()
+-
+-        responder.add_source_override(
+-            fullname=fullname,
+-            path=path,
+-            source=source,
+-            is_pkg=is_pkg,
+-        )
+-
+-
+-def _setup_responder(responder):
+-    """
+-    Configure :class:`mitogen.master.ModuleResponder` to only permit
+-    certain packages, and to generate custom responses for certain modules.
+-    """
+-    responder.whitelist_prefix('ansible')
+-    responder.whitelist_prefix('ansible_mitogen')
+-    _setup_simplejson(responder)
+-
+-    # Ansible 2.3 is compatible with Python 2.4 targets, however
+-    # ansible/__init__.py is not. Instead, executor/module_common.py writes
+-    # out a 2.4-compatible namespace package for unknown reasons. So we
+-    # copy it here.
+-    responder.add_source_override(
+-        fullname='ansible',
+-        path=ansible.__file__,
+-        source=(ANSIBLE_PKG_OVERRIDE % (
+-            ansible.__version__,
+-            ansible.__author__,
+-        )).encode(),
+-        is_pkg=True,
+-    )
+-
+-
+ def increase_open_file_limit():
+     """
+     #549: in order to reduce the possibility of hitting an open files limit,
+@@ -704,7 +644,6 @@ class MuxProcess(object):
+             broker=self.broker,
+             max_message_size=MAX_MESSAGE_SIZE,
+         )
+-        _setup_responder(self.router.responder)
+         mitogen.core.listen(self.broker, 'shutdown', self._on_broker_shutdown)
+         mitogen.core.listen(self.broker, 'exit', self._on_broker_exit)
+         self.listener = mitogen.unix.Listener.build_stream(
+diff -Nurp mitogen-0.2.8.orig/ansible_mitogen/runner.py mitogen-0.2.8/ansible_mitogen/runner.py
+--- mitogen-0.2.8.orig/ansible_mitogen/runner.py	2019-08-18 10:46:38.000000000 -0500
++++ mitogen-0.2.8/ansible_mitogen/runner.py	2019-08-25 15:02:29.330419327 -0500
+@@ -60,11 +60,7 @@ except ImportError:
+     # Python 2.4
+     ctypes = None
+ 
+-try:
+-    import json
+-except ImportError:
+-    # Python 2.4
+-    import simplejson as json
++import json
+ 
+ try:
+     # Cannot use cStringIO as it does not support Unicode.
+diff -Nurp mitogen-0.2.8.orig/ansible_mitogen/target.py mitogen-0.2.8/ansible_mitogen/target.py
+--- mitogen-0.2.8.orig/ansible_mitogen/target.py	2019-08-18 10:46:38.000000000 -0500
++++ mitogen-0.2.8/ansible_mitogen/target.py	2019-08-25 15:03:01.952269082 -0500
+@@ -56,10 +56,7 @@ import mitogen.parent
+ import mitogen.service
+ from mitogen.core import b
+ 
+-try:
+-    import json
+-except ImportError:
+-    import simplejson as json
++import json
+ 
+ try:
+     reduce
+@@ -369,11 +366,6 @@ def init_child(econtext, log_level, cand
+     LOG.setLevel(log_level)
+     logging.getLogger('ansible_mitogen').setLevel(log_level)
+ 
+-    # issue #536: if the json module is available, remove simplejson from the
+-    # importer whitelist to avoid confusing certain Ansible modules.
+-    if json.__name__ == 'json':
+-        econtext.importer.whitelist.remove('simplejson')
+-
+     global _fork_parent
+     if FORK_SUPPORTED:
+         mitogen.parent.upgrade_router(econtext)
+diff -Nurp mitogen-0.2.8.orig/mitogen/core.py mitogen-0.2.8/mitogen/core.py
+--- mitogen-0.2.8.orig/mitogen/core.py	2019-08-18 10:46:38.000000000 -0500
++++ mitogen-0.2.8/mitogen/core.py	2019-08-25 15:03:19.254191435 -0500
+@@ -1240,7 +1240,6 @@ class Importer(object):
+     # construct it manually during startup.
+     MITOGEN_PKG_CONTENT = [
+         'buildah',
+-        'compat',
+         'debug',
+         'doas',
+         'docker',
+diff -Nurp mitogen-0.2.8.orig/mitogen/master.py mitogen-0.2.8/mitogen/master.py
+--- mitogen-0.2.8.orig/mitogen/master.py	2019-08-18 10:46:38.000000000 -0500
++++ mitogen-0.2.8/mitogen/master.py	2019-08-25 15:03:37.003112695 -0500
+@@ -55,11 +55,6 @@ try:
+ except ImportError:
+     sysconfig = None
+ 
+-if not hasattr(pkgutil, 'find_loader'):
+-    # find_loader() was new in >=2.5, but the modern pkgutil.py syntax has
+-    # been kept intentionally 2.3 compatible so we can reuse it.
+-    from mitogen.compat import pkgutil
+-
+ import mitogen
+ import mitogen.core
+ import mitogen.minify
+diff -Nurp mitogen-0.2.8.orig/mitogen/minify.py mitogen-0.2.8/mitogen/minify.py
+--- mitogen-0.2.8.orig/mitogen/minify.py	2019-08-18 10:46:38.000000000 -0500
++++ mitogen-0.2.8/mitogen/minify.py	2019-08-25 15:03:55.050032632 -0500
+@@ -37,10 +37,7 @@ except ImportError:
+ 
+ import mitogen.core
+ 
+-if sys.version_info < (2, 7, 11):
+-    from mitogen.compat import tokenize
+-else:
+-    import tokenize
++import tokenize
+ 
+ 
+ def minimize_source(source):

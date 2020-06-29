@@ -1,0 +1,20 @@
+--- python-cpio-0.1/cpioarchive.py	2018-11-12 17:32:04.568654580 +0100
++++ cpioarchive.py	2018-11-12 17:33:03.378570874 +0100
+@@ -26,7 +26,7 @@
+     """Create a new CpioEntry instance. Internal use only."""
+     if len(hdr)<110:
+       raise CpioError('cpio header too short')
+-    if not hdr.startswith('070701'):
++    if not hdr.startswith(b'070701'):
+       raise CpioError('cpio header invalid')
+     self.inode=int(hdr[6:14], 16)
+     self.mode=int(hdr[14:22], 16)
+@@ -44,7 +44,7 @@
+     self.checksum=int(hdr[102:110], 16)
+     if len(hdr)<110+namesize:
+       raise CpioError('cpio header too short')
+-    self.name=hdr[110:110+namesize-1]
++    self.name=hdr[110:110+namesize-1].decode("utf-8")
+     """Name of the file stored in the entry."""
+     self.datastart=offset+110+namesize
+     self.datastart+=(4-(self.datastart%4))%4

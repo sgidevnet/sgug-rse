@@ -1,0 +1,12 @@
+diff -up PyMuPDF-1.14.9/setup.py.orig PyMuPDF-1.14.9/setup.py
+--- PyMuPDF-1.14.9/setup.py.orig	2019-03-06 18:27:45.000000000 -0500
++++ PyMuPDF-1.14.9/setup.py	2019-03-07 22:35:29.181201907 -0500
+@@ -15,7 +15,7 @@ if sys.platform.startswith("linux"):
+         libraries=[
+             "mupdf",
+             #'crypto', #openssl is required by mupdf on archlinux
+-            #'jbig2dec', 'openjp2', 'jpeg', 'freetype',
++            'jbig2dec', 'openjp2', 'jpeg', 'freetype', 'harfbuzz',
+             "mupdf-third",
+         ],  # the libraries to link with
+     )

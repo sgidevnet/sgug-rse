@@ -1,0 +1,92 @@
+changeset:   211:1a318162f06f
+user:        Augie Fackler <raf@durin42.com>
+date:        Wed Dec 11 10:20:58 2019 -0500
+summary:     grep: update tests to cope with behavior change in hg 5.2
+
+diff -r 513ebe91dc72 -r 1a318162f06f tests/test-grep.py
+--- a/tests/test-grep.py	Wed Dec 11 09:39:53 2019 -0500
++++ b/tests/test-grep.py	Wed Dec 11 10:20:58 2019 -0500
+@@ -10,13 +10,22 @@
+         # no match
+         self.assertEquals(list(self.client.grep(b('c'))), [])
+ 
+-        self.assertEquals(list(self.client.grep(b('a'))),
+-                          [(b('a'), b('0'), b('a')), (b('b'), b('0'), b('ab'))])
+-        self.assertEquals(list(self.client.grep(b('a'), b('a'))),
+-                          [(b('a'), b('0'), b('a'))])
++        if self.client.version >= (5, 2):
++            self.assertEquals(list(self.client.grep(b('a'))),
++                              [(b('a'), b('a'), b('b'))])
++            self.assertEquals(list(self.client.grep(b('a'), b('a'))),
++                              [(b('a'), b('a'), b(''))])
+ 
+-        self.assertEquals(list(self.client.grep(b('b'))),
+-                          [(b('b'), b('0'), b('ab'))])
++            self.assertEquals(list(self.client.grep(b('b'))),
++                              [(b('b'), b('ab'), b(''))])
++        else:
++            self.assertEquals(list(self.client.grep(b('a'))),
++                              [(b('a'), b('0'), b('a')), (b('b'), b('0'), b('ab'))])
++            self.assertEquals(list(self.client.grep(b('a'), b('a'))),
++                              [(b('a'), b('0'), b('a'))])
++
++            self.assertEquals(list(self.client.grep(b('b'))),
++                              [(b('b'), b('0'), b('ab'))])
+ 
+     def test_options(self):
+         self.append('a', 'a\n')
+@@ -27,16 +36,26 @@
+                            (b('b'), b('0'), b('+'), b('ab'))],
+                           list(self.client.grep(b('a'), all=True)))
+ 
+-        self.assertEquals([(b('a'), b('0')), (b('b'), b('0'))],
+-                          list(self.client.grep(b('a'), fileswithmatches=True)))
++        if self.client.version >= (5, 2):
++            self.assertEquals([(b('a'), b('b'))],
++                              list(self.client.grep(b('a'), fileswithmatches=True)))
++
++            self.assertEquals([(b('a'), b('1'), b('a'), b('b'))],
++                              list(self.client.grep(b('a'), line=True)))
+ 
+-        self.assertEquals([(b('a'), b('0'), b('1'), b('a')),
+-                           (b('b'), b('0'), b('1'), b('ab'))],
+-                          list(self.client.grep(b('a'), line=True)))
++            self.assertEquals([(b('a'), b('test'), b('a'), b('b'))],
++                              list(self.client.grep(b('a'), user=True)))
++        else:
++            self.assertEquals([(b('a'), b('0')), (b('b'), b('0'))],
++                              list(self.client.grep(b('a'), fileswithmatches=True)))
+ 
+-        self.assertEquals([(b('a'), b('0'), b('test'), b('a')),
+-                           (b('b'), b('0'), b('test'), b('ab'))],
+-                          list(self.client.grep(b('a'), user=True)))
++            self.assertEquals([(b('a'), b('0'), b('1'), b('a')),
++                               (b('b'), b('0'), b('1'), b('ab'))],
++                              list(self.client.grep(b('a'), line=True)))
++
++            self.assertEquals([(b('a'), b('0'), b('test'), b('a')),
++                               (b('b'), b('0'), b('test'), b('ab'))],
++                              list(self.client.grep(b('a'), user=True)))
+ 
+         self.assertEquals([(b('a'), b('0'), b('1'), b('+'), b('test')),
+                            (b('b'), b('0'), b('1'), b('+'), b('test'))],
+
+changeset:   208:12e6aaef0f6e
+user:        Matt Harbison <matt_harbison@yahoo.com>
+date:        Tue May 07 22:16:59 2019 -0400
+summary:     tests: handle the removal of `obsolete._enabled` in Mercurial
+
+diff -r 33b512aa8dba -r 12e6aaef0f6e tests/test-hidden.py
+--- a/tests/test-hidden.py	Mon Apr 30 10:38:03 2018 -0400
++++ b/tests/test-hidden.py	Tue May 07 22:16:59 2019 -0400
+@@ -22,6 +22,9 @@
+         super(test_obsolete_baselib, self).setUp()
+         self.append('.hg/obs.py',
+                     "import mercurial.obsolete\n"
++                    "# 3.2 and later\n"
++                    "mercurial.obsolete.isenabled = lambda r, opt: True\n"
++                    "# Dropped in 5.1\n"
+                     "mercurial.obsolete._enabled = True")
+         self.append('.hg/hgrc','\n[extensions]\nobs=.hg/obs.py')
+ 
+

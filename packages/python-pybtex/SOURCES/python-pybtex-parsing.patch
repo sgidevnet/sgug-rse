@@ -1,0 +1,10 @@
+--- docs/source/api/parsing.rst.orig	2019-09-05 00:39:28.000000000 -0600
++++ docs/source/api/parsing.rst	2019-09-20 10:13:46.162660791 -0600
+@@ -35,6 +35,7 @@ It reads the bibliography data from a st
+ :py:class:`.BibliographyData` object containing all the bibliography data.
+ 
+ Here is a quick example:
++
+ .. doctest::
+ 
+     >>> from pybtex.database import parse_file

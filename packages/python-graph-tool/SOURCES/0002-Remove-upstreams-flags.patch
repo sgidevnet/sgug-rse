@@ -1,0 +1,46 @@
+From 0851d7f54916d63a660aea9cce670b426b07c170 Mon Sep 17 00:00:00 2001
+From: "Ankur Sinha (Ankur Sinha Gmail)" <sanjay.ankur@gmail.com>
+Date: Sun, 13 Oct 2019 16:01:36 +0100
+Subject: [PATCH 2/3] Remove upstreams flags
+
+---
+ configure.ac | 16 ----------------
+ 1 file changed, 16 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 8766ef8d..b25a478e 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -41,9 +41,6 @@ PKG_INSTALLDIR
+ 
+ AX_CXX_COMPILE_STDCXX_17([ext],[mandatory])
+ 
+-dnl turn on warnings
+-[CXXFLAGS="-Wall -Wextra -ftemplate-backtrace-limit=0 ${CXXFLAGS}"]
+-
+ dnl Checks for options
+ 
+ dnl Turn debugging on or off
+@@ -62,19 +59,6 @@ AC_ARG_ENABLE([debug],
+               [CPPFLAGS="-DNDEBUG ${CPPFLAGS}"]
+               [AC_MSG_RESULT(no)])
+ 
+-dnl disable deprecation warning, to silence some harmless BGL-related warnings
+-[CXXFLAGS="-Wno-deprecated ${CXXFLAGS}"]
+-
+-dnl set default visibility
+-[CXXFLAGS="-fvisibility=default -fvisibility-inlines-hidden ${CXXFLAGS}"]
+-
+-dnl set default optimizations
+-[CXXFLAGS="-O3 ${CXXFLAGS}"]
+-
+-dnl Python 2 compatibility
+-[CXXFLAGS="${CXXFLAGS} -Wno-register"]
+-
+-
+ dnl OpenMP
+ AC_DEFINE([OPENMP_MIN_THRESH], 300, [default minimum number of vertices for parallel loops])
+ AC_MSG_CHECKING(whether to enable parallel algorithms with openmp)
+-- 
+2.23.0
+

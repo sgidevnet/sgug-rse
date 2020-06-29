@@ -1,0 +1,29 @@
+From fd803c137ff8705fd520319c097d3a5a214d32fe Mon Sep 17 00:00:00 2001
+From: Adam Williamson <awilliam@redhat.com>
+Date: Tue, 2 Jun 2020 15:51:29 -0700
+Subject: [PATCH] Use `Thread.is_alive()` not `Thread.isAlive()` for Python 3.9
+
+Thread.is_alive() has been available since Python 2.6, and
+Thread.isAlive() has been removed in Python 3.9.
+
+Signed-off-by: Adam Williamson <awilliam@redhat.com>
+---
+ test/test_IPy.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/test_IPy.py b/test/test_IPy.py
+index dc4b61f..60bf95c 100644
+--- a/test/test_IPy.py
++++ b/test/test_IPy.py
+@@ -788,7 +788,7 @@ def timeout(func, args=(), kwargs={}, timeout_duration=1, default=None):
+     it.setDaemon(True)
+     it.start()
+     it.join(timeout_duration)
+-    if it.isAlive():
++    if it.is_alive():
+         return default
+     else:
+         return it.result
+-- 
+2.26.2
+

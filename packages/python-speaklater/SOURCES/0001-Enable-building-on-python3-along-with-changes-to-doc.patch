@@ -1,0 +1,90 @@
+From 899d6ae8132f1e9073b65487c7b2a72e300bf061 Mon Sep 17 00:00:00 2001
+From: Toshio Kuratomi <toshio@fedoraproject.org>
+Date: Wed, 6 Jan 2016 17:08:33 -0800
+Subject: [PATCH] Enable building on python3 along with changes to doctest to
+ work under both python2 and python3
+
+---
+ setup.py      |  1 +
+ speaklater.py | 26 +++++++++++++-------------
+ 2 files changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index 65fa51a..a1ad9f3 100644
+--- a/setup.py
++++ b/setup.py
+@@ -26,6 +26,7 @@ setup(
+     author_email='armin.ronacher@active-4.com',
+     version='1.3',
+     url='http://github.com/mitsuhiko/speaklater',
++    use_2to3=True,
+     py_modules=['speaklater'],
+     description='implements a lazy string for python useful for use with gettext',
+     long_description=get_docs(),
+diff --git a/speaklater.py b/speaklater.py
+index 67a4dc5..35dc8ea 100644
+--- a/speaklater.py
++++ b/speaklater.py
+@@ -13,23 +13,23 @@ r"""
+     Example:
+ 
+     >>> from speaklater import make_lazy_string
+-    >>> sval = u'Hello World'
++    >>> sval = 'Hello World'
+     >>> string = make_lazy_string(lambda: sval)
+ 
+     This lazy string will evaluate to the value of the `sval` variable.
+ 
+     >>> string
+-    lu'Hello World'
+-    >>> unicode(string)
+-    u'Hello World'
++    l'Hello World'
++    >>> str(string)
++    'Hello World'
+     >>> string.upper()
+-    u'HELLO WORLD'
++    'HELLO WORLD'
+ 
+     If you change the value, the lazy string will change as well:
+ 
+-    >>> sval = u'Hallo Welt'
++    >>> sval = 'Hallo Welt'
+     >>> string.upper()
+-    u'HALLO WELT'
++    'HALLO WELT'
+ 
+     This is especially handy when combined with a thread local and gettext
+     translations or dicts of translatable strings:
+@@ -42,7 +42,7 @@ r"""
+     >>> yes = lazy_gettext(u'Yes')
+     >>> print yes
+     Ja
+-    >>> l.translations[u'Yes'] = u'Si'
++    >>> l.translations[u'Yes'] = 'Si'
+     >>> print yes
+     Si
+ 
+@@ -83,14 +83,14 @@ def make_lazy_gettext(lookup_func):
+ 
+     Example:
+ 
+-    >>> translations = {u'Yes': u'Ja'}
++    >>> translations = {'Yes': 'Ja'}
+     >>> lazy_gettext = make_lazy_gettext(lambda: translations.get)
+-    >>> x = lazy_gettext(u'Yes')
++    >>> x = lazy_gettext('Yes')
+     >>> x
+-    lu'Ja'
+-    >>> translations[u'Yes'] = u'Si'
++    l'Ja'
++    >>> translations['Yes'] = 'Si'
+     >>> x
+-    lu'Si'
++    l'Si'
+     """
+     def lazy_gettext(string):
+         if is_lazy_string(string):
+-- 
+2.1.0
+

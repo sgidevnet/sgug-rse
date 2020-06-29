@@ -1,0 +1,12 @@
+diff -up spur.py-0.3.15/tests/process_test_set.py.encode spur.py-0.3.15/tests/process_test_set.py
+--- spur.py-0.3.15/tests/process_test_set.py.encode	2015-12-28 04:13:53.000000000 -0700
++++ spur.py-0.3.15/tests/process_test_set.py	2016-04-06 22:24:20.920528739 -0600
+@@ -105,7 +105,7 @@ class ProcessTestSet(object):
+     @test
+     def exception_message_shows_unicode_bytes(shell):
+         try:
+-            shell.run(["sh", "-c", _u("echo ‽; exit 1")])
++            shell.run(["sh", "-c", _u("echo ‽; exit 1").encode("utf8")])
+             assert_true(False)
+         except spur.RunProcessError as error:
+             assert_equal(

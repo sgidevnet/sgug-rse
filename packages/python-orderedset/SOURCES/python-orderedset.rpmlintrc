@@ -1,0 +1,8 @@
+# THIS FILE IS FOR WHITELISTING RPMLINT ERRORS AND WARNINGS IN TASKOTRON
+# https://fedoraproject.org/wiki/Taskotron/Tasks/dist.rpmlint#Whitelisting_errors
+
+# The dictionary is missing some technical terms
+addFilter(r'W: spelling-error .* (getitem|iterables)')
+
+# We use the versions of jquery and js-underscore that sphinx gives us
+addFilter(r'W: unversioned-explicit-provides bundled\((jquery|js-underscore)\)')

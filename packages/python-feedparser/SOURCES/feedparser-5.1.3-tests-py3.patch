@@ -1,0 +1,33 @@
+diff -Nur feedparser-5.1.3-orig/feedparser/feedparsertest.py feedparser-5.1.3/feedparser/feedparsertest.py
+--- feedparser-5.1.3-orig/feedparser/feedparsertest.py	2012-12-09 17:18:06.000000000 +0100
++++ feedparser-5.1.3/feedparser/feedparsertest.py	2013-03-09 11:38:04.664372770 +0100
+@@ -163,9 +163,9 @@
+     try:
+         if not eval(evalString, globals(), env):
+             failure=(msg or 'not eval(%s) \nWITH env(%s)' % (evalString, pprint.pformat(env)))
+-            raise self.failureException, failure
++            raise self.failureException(failure)
+         if not everythingIsUnicode(env):
+-            raise self.failureException, "not everything is unicode \nWITH env(%s)" % (pprint.pformat(env), )
++            raise self.failureException("not everything is unicode \nWITH env(%s)" % (pprint.pformat(env), ))
+     except SyntaxError:
+         # Python 3 doesn't have the `u""` syntax, so evalString needs to be modified,
+         # which will require the failure message to be updated
+@@ -173,7 +173,7 @@
+         evalString = re.sub(unicode2_re, _s2bytes(' "'), evalString)
+         if not eval(evalString, globals(), env):
+             failure=(msg or 'not eval(%s) \nWITH env(%s)' % (evalString, pprint.pformat(env)))
+-            raise self.failureException, failure
++            raise self.failureException(failure)
+ 
+ class BaseTestCase(unittest.TestCase):
+     failUnlessEval = failUnlessEval
+@@ -742,7 +742,7 @@
+         skipUnless = '1'
+     search_results = desc_re.search(data)
+     if not search_results:
+-        raise RuntimeError, "can't parse %s" % xmlfile
++        raise RuntimeError("can't parse %s" % xmlfile)
+     description, evalString = map(lambda s: s.strip(), list(search_results.groups()))
+     description = xmlfile + ": " + unicode(description, 'utf8')
+     return description, evalString, skipUnless

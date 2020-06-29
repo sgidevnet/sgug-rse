@@ -1,0 +1,72 @@
+From 30a3a48653cff6dfdee56903de974a9a34507b83 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Sun, 9 Feb 2020 04:29:00 -0500
+Subject: [PATCH 5/5] Fix and simplify filter_adjlist.
+
+The docs say it should remove elements in insertion order, but it
+doesn't because `set` is unordered. It is dependent on the order Python
+decides, which does in fact change between versions, and the related
+test breaks on 3.8.
+
+The test itself is also wrong because removed elements in a 'nice'
+manner, not insertion order.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ libpysal/weights/adjtools.py           | 24 +++++++++---------------
+ libpysal/weights/tests/test_adjlist.py |  4 ++--
+ 2 files changed, 11 insertions(+), 17 deletions(-)
+
+diff --git a/libpysal/weights/adjtools.py b/libpysal/weights/adjtools.py
+index a351fb91..11b12941 100644
+--- a/libpysal/weights/adjtools.py
++++ b/libpysal/weights/adjtools.py
+@@ -180,21 +180,15 @@ def filter_adjlist(adjlist, focal_col = 'focal', neighbor_col = 'neighbor'):
+     -------
+     an adjacency table with reversible entries removed. 
+     """
+-    directed = set(map(tuple, adjlist[[focal_col, neighbor_col]].values))
++    edges = adjlist.loc[:, [focal_col, neighbor_col]]
+     undirected = set()
+-    for tupe in directed:
+-        #print(tupe)
+-        if (tupe in undirected):
+-            to_drop_mask = ((adjlist[focal_col] == tupe[0])
+-                            & (adjlist[neighbor_col] == tupe[-1]))
+-            to_drop = adjlist[to_drop_mask]
+-        elif (tuple(reversed(tupe)) in undirected):
+-            to_drop_mask = ((adjlist[focal_col] == tupe[-1])
+-                            & (adjlist[neighbor_col] == tupe[0]))
+-            to_drop = adjlist[to_drop_mask]
++    to_remove = []
++    for index, *edge in edges.itertuples(name=None):
++        edge = tuple(edge)
++        if edge in undirected or edge[::-1] in undirected:
++            to_remove.append(index)
+         else:
+-            undirected.update((tupe,))
+-            undirected.update((tuple(reversed(tupe),)))
+-            continue
+-        adjlist = adjlist.drop(to_drop.index)
++            undirected.add(edge)
++            undirected.add(edge[::-1])
++    adjlist = adjlist.drop(to_remove)
+     return adjlist
+diff --git a/libpysal/weights/tests/test_adjlist.py b/libpysal/weights/tests/test_adjlist.py
+index 06a05329..5ae9c886 100644
+--- a/libpysal/weights/tests/test_adjlist.py
++++ b/libpysal/weights/tests/test_adjlist.py
+@@ -34,8 +34,8 @@ class Test_Adjlist(ut.TestCase):
+             badgrid = weights.W.from_adjlist(alist)
+             np.testing.assert_allclose(badgrid.sparse.toarray(),
+                                        grid.sparse.toarray())
+-        assert set(alist.focal.unique().tolist()) == set(list(range(4)))
+-        assert set(alist.neighbor.unique().tolist()) == set(list(range(4)))
++        assert set(alist.focal.unique()) == {0, 1, 2}
++        assert set(alist.neighbor.unique()) == {1, 2, 3}
+         assert alist.weight.unique().item() == 1
+         grid = lat2W(2,2, id_type='string')
+         alist = grid.to_adjlist(remove_symmetric=True)
+-- 
+2.21.1
+

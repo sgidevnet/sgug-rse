@@ -1,0 +1,11 @@
+--- minidb-2.0.2/minidb.py.orig	2017-05-11 18:10:03.982578484 +0200
++++ minidb-2.0.2/minidb.py	2017-05-11 18:10:33.504677895 +0200
+@@ -67,7 +67,7 @@
+ 
+ 
+ class UnknownClass(TypeError):
+-    ...
++    pass
+ 
+ 
+ def converter_for(type_):

@@ -1,0 +1,31 @@
+From aebdf7c14a3a7df2ab45467074b4dd6dacc8d682 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Sat, 16 Mar 2019 02:59:15 -0400
+Subject: [PATCH 3/4] DOC: Don't print out conda/pip environment.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ doc/conf.py | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/doc/conf.py b/doc/conf.py
+index 578f9cf5..a23031a0 100644
+--- a/doc/conf.py
++++ b/doc/conf.py
+@@ -32,13 +32,6 @@ allowed_failures = set()
+ print("python exec:", sys.executable)
+ print("sys.path:", sys.path)
+ 
+-if "conda" in sys.executable:
+-    print("conda environment:")
+-    subprocess.run(["conda", "list"])
+-else:
+-    print("pip environment:")
+-    subprocess.run(["pip", "list"])
+-
+ print("xarray: %s, %s" % (xarray.__version__, xarray.__file__))
+ 
+ with suppress(ImportError):
+-- 
+2.21.1
+

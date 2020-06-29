@@ -1,0 +1,123 @@
+From cc474a11cda8bae8f26f651a9d11e63209427184 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <dcallagh@redhat.com>
+Date: Thu, 5 Jul 2018 15:41:51 +1000
+Subject: [PATCH 2/5] fix imports and syntax for Python 3
+
+---
+ xmltramp.py | 36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
+
+diff --git a/xmltramp.py b/xmltramp.py
+index 7819b25..a3a188f 100644
+--- a/xmltramp.py
++++ b/xmltramp.py
+@@ -5,7 +5,11 @@
+ __credits__ = "Many thanks to pjz, bitsko, and DanC."
+ __copyright__ = "(C) 2003-2006 Aaron Swartz. GNU GPL 2."
+ 
+-if not hasattr(__builtins__, 'True'): True, False = 1, 0
++try:
++	text_type = unicode
++except NameError: # PY3
++	text_type = str
++
+ def isstr(f): return isinstance(f, type('')) or isinstance(f, type(u''))
+ def islst(f): return isinstance(f, type(())) or isinstance(f, type([]))
+ 
+@@ -87,7 +91,7 @@ def arep(a, inprefixes, addns=1):
+ 				elif isinstance(x, Element):
+ 					out += x.__repr__(recursive+1, multiline, inprefixes.copy())
+ 				else:
+-					raise TypeError, "I wasn't expecting "+`x`+"."
++					raise TypeError("I wasn't expecting "+repr(x)+".")
+ 			if multiline and content: out += '\n' + ('\t' * (recursive-1))
+ 		else:
+ 			if self._dir: out += '...'
+@@ -99,25 +103,25 @@ def arep(a, inprefixes, addns=1):
+ 	def __unicode__(self):
+ 		text = ''
+ 		for x in self._dir:
+-			text += unicode(x)
++			text += text_type(x)
+ 		return ' '.join(text.split())
+ 		
+ 	def __str__(self):
+ 		return self.__unicode__().encode('utf-8')
+ 	
+ 	def __getattr__(self, n):
+-		if n[0] == '_': raise AttributeError, "Use foo['"+n+"'] to access the child element."
++		if n[0] == '_': raise AttributeError("Use foo['"+n+"'] to access the child element.")
+ 		if self._dNS: n = (self._dNS, n)
+ 		for x in self._dir:
+ 			if isinstance(x, Element) and x._name == n: return x
+-		raise AttributeError, 'No child element named %s' % repr(n)
++		raise AttributeError('No child element named %s' % repr(n))
+ 		
+ 	def __hasattr__(self, n):
+ 		for x in self._dir:
+ 			if isinstance(x, Element) and x._name == n: return True
+ 		return False
+ 		
+- 	def __setattr__(self, n, v):
++	def __setattr__(self, n, v):
+ 		if n[0] == '_': self.__dict__[n] = v
+ 		else: self[n] = v
+  
+@@ -140,7 +144,7 @@ def __getitem__(self, n):
+ 			if self._dNS and not islst(n): n = (self._dNS, n)
+ 			for x in self._dir:
+ 				if isinstance(x, Element) and x._name == n: return x
+-			raise KeyError, n
++			raise KeyError(n)
+ 	
+ 	def __setitem__(self, n, v):
+ 		if isinstance(n, type(0)): # d[1]
+@@ -213,7 +217,7 @@ def __init__(self):
+ 		ContentHandler.__init__(self)
+ 		
+ 	def startPrefixMapping(self, prefix, uri):
+-		if not self.prefixes.has_key(prefix): self.prefixes[prefix] = []
++		if prefix not in self.prefixes: self.prefixes[prefix] = []
+ 		self.prefixes[prefix].append(uri)
+ 	def endPrefixMapping(self, prefix):
+ 		self.prefixes[prefix].pop()
+@@ -255,12 +259,18 @@ def seed(fileobj):
+ 	return seeder.result
+ 
+ def parse(text):
+-	from StringIO import StringIO
++	try:
++		from StringIO import StringIO
++	except ImportError: # PY3
++		from io import StringIO
+ 	return seed(StringIO(text))
+ 
+ def load(url): 
+-	import urllib
+-	return seed(urllib.urlopen(url))
++	try:
++		from urllib.request import urlopen
++	except ImportError: # PY2
++		from urllib import urlopen
++	return seed(urlopen(url))
+ 
+ def unittest():
+ 	parse('<doc>a<baz>f<b>o</b>ob<b>a</b>r</baz>a</doc>').__repr__(1,1) == \
+@@ -276,12 +286,12 @@ def unittest():
+ 	
+ 	try: 
+ 		d._doesnotexist
+-		raise "ExpectedError", "but found success. Damn."
++		raise AssertionError("Expected error, but found success. Damn.")
+ 	except AttributeError: pass
+ 	assert d.bar._name == 'bar'
+ 	try:
+ 		d.doesnotexist
+-		raise "ExpectedError", "but found success. Damn."
++		raise AssertionError("Expected error, but found success. Damn.")
+ 	except AttributeError: pass
+ 	
+ 	assert hasattr(d, 'bar') == True
+-- 
+2.14.4
+

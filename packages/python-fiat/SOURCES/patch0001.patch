@@ -1,0 +1,91 @@
+From 852a15f1a21e360cde3bc8b53693dc933712806e Mon Sep 17 00:00:00 2001
+From: David Ham <david.ham@imperial.ac.uk>
+Date: Fri, 9 Aug 2019 11:21:59 +0100
+Subject: [PATCH] fix parametrisations of quadrature tests
+
+---
+ .circleci/config.yml         |  2 +-
+ .travis.yml                  |  2 +-
+ test/unit/test_quadrature.py | 27 ++++++++++++++-------------
+ 3 files changed, 16 insertions(+), 15 deletions(-)
+
+diff --git a/.circleci/config.yml b/.circleci/config.yml
+index ae3e18f..d156645 100644
+--- a/.circleci/config.yml
++++ b/.circleci/config.yml
+@@ -8,7 +8,7 @@ jobs:
+       - checkout
+       - run:
+           name: Install dependencies  # Install with sudo as tests not run as superuser in circleci/python
+-          command: sudo pip install flake8 pytest numpy sympy --upgrade
++          command: sudo pip install flake8 pytest pytest-cases numpy sympy --upgrade
+       - run:
+           name: Install FIAT
+           command: pip install . --user
+diff --git a/test/unit/test_quadrature.py b/test/unit/test_quadrature.py
+index 68c5c7e..e800bed 100644
+--- a/test/unit/test_quadrature.py
++++ b/test/unit/test_quadrature.py
+@@ -19,6 +19,7 @@
+ 
+ import numpy
+ import pytest
++from pytest_cases import pytest_parametrize_plus, fixture_ref
+ import FIAT
+ from FIAT.reference_element import UFCInterval, UFCTriangle, UFCTetrahedron
+ from FIAT.reference_element import UFCQuadrilateral, UFCHexahedron, TensorProductCell
+@@ -134,18 +135,18 @@ def test_create_quadrature_extr_quadrilateral(extr_quadrilateral, basedeg, extrd
+                           (2**(basedeg + 2) - 2) / ((basedeg + 1)*(basedeg + 2)) * 1/(extrdeg + 1))
+ 
+ 
+-@pytest.mark.parametrize("cell", [interval(),
+-                                  triangle(),
+-                                  tetrahedron(),
+-                                  quadrilateral()])
++@pytest_parametrize_plus("cell", [fixture_ref(interval),
++                                  fixture_ref(triangle),
++                                  fixture_ref(tetrahedron),
++                                  fixture_ref(quadrilateral)])
+ def test_invalid_quadrature_degree(cell, scheme):
+     with pytest.raises(ValueError):
+         FIAT.create_quadrature(cell, -1, scheme)
+ 
+ 
+-@pytest.mark.parametrize("cell", [extr_interval(),
+-                                  extr_triangle(),
+-                                  extr_quadrilateral()])
++@pytest_parametrize_plus("cell", [fixture_ref(extr_interval),
++                                  fixture_ref(extr_triangle),
++                                  fixture_ref(extr_quadrilateral)])
+ def test_invalid_quadrature_degree_tensor_prod(cell):
+     with pytest.raises(ValueError):
+         FIAT.create_quadrature(cell, (-1, -1))
+@@ -159,9 +160,9 @@ def test_tensor_product_composition(interval, triangle, extr_triangle, scheme):
+     assert len(q.get_points()) == len(qa.get_points())*len(qb.get_points())
+ 
+ 
+-@pytest.mark.parametrize(("points, degree"), ((p, d)
+-                                              for p in range(2, 10)
+-                                              for d in range(2*p - 2)))
++@pytest.mark.parametrize(("points, degree"), tuple((p, d)
++                                                   for p in range(2, 10)
++                                                   for d in range(2*p - 2)))
+ def test_gauss_lobatto_legendre_quadrature(interval, points, degree):
+     """Check that the quadrature rules correctly integrate all the right
+     polynomial degrees."""
+@@ -171,9 +172,9 @@ def test_gauss_lobatto_legendre_quadrature(interval, points, degree):
+     assert numpy.round(q.integrate(lambda x: x[0]**degree) - 1./(degree+1), 14) == 0.
+ 
+ 
+-@pytest.mark.parametrize(("points, degree"), ((p, d)
+-                                              for p in range(2, 10)
+-                                              for d in range(2*p)))
++@pytest.mark.parametrize(("points, degree"), tuple((p, d)
++                                                   for p in range(2, 10)
++                                                   for d in range(2*p)))
+ def test_gauss_legendre_quadrature(interval, points, degree):
+     """Check that the quadrature rules correctly integrate all the right
+     polynomial degrees."""
+-- 
+2.10.5
+

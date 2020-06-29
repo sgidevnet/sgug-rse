@@ -1,0 +1,23 @@
+diff -up Django-2.0/tests/mail/tests.py.bak Django-2.0/tests/mail/tests.py
+--- Django-2.0/tests/mail/tests.py.bak	2018-01-02 14:06:41.967371750 +0100
++++ Django-2.0/tests/mail/tests.py	2018-01-02 14:08:14.489024581 +0100
+@@ -1400,19 +1400,6 @@ class SMTPBackendTests(BaseEmailBackendT
+         connection = mail.get_connection('django.core.mail.backends.smtp.EmailBackend')
+         self.assertIsNone(connection.timeout)
+ 
+-    def test_connection_timeout_custom(self):
+-        """The timeout parameter can be customized."""
+-        class MyEmailBackend(smtp.EmailBackend):
+-            def __init__(self, *args, **kwargs):
+-                kwargs.setdefault('timeout', 42)
+-                super().__init__(*args, **kwargs)
+-
+-        myemailbackend = MyEmailBackend()
+-        myemailbackend.open()
+-        self.assertEqual(myemailbackend.timeout, 42)
+-        self.assertEqual(myemailbackend.connection.timeout, 42)
+-        myemailbackend.close()
+-
+     @override_settings(EMAIL_TIMEOUT=10)
+     def test_email_timeout_override_settings(self):
+         backend = smtp.EmailBackend()

@@ -1,0 +1,73 @@
+From 757d9457038c9482c26f12db5898935d6c1cf07a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miro=20Hron=C4=8Dok?= <miro@hroncok.cz>
+Date: Wed, 24 Apr 2019 18:12:47 +0200
+Subject: [PATCH] Support pytest 4
+
+See https://docs.pytest.org/en/latest/deprecations.html#marks-in-pytest-mark-parametrize
+---
+ setup.py               |  2 +-
+ tests/test_expected.py | 12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index 6f2c224..77039af 100755
+--- a/setup.py
++++ b/setup.py
+@@ -61,5 +61,5 @@ def pkgconfig(package, min_version=None, **kw):
+     download_url="https://github.com/ignatenkobrain/python-smartcols/archive/v{}.tar.gz".format(VERSION),
+     ext_modules=cythonize(extensions, gdb_debug=DEBUG),
+     setup_requires=["Cython>=0.24.0", "pytest-runner"],
+-    tests_require=["pytest>=2.8"],
++    tests_require=["pytest>=3.6"],
+ )
+diff --git a/tests/test_expected.py b/tests/test_expected.py
+index 94aadd6..eab4ea1 100644
+--- a/tests/test_expected.py
++++ b/tests/test_expected.py
+@@ -16,7 +16,7 @@
+               data("data-id"),
+               data("data-parent"),
+               data("data-string-long")]),
+-    pytest.mark.xfail(("tree-json", [
++    pytest.param("tree-json", [
+         "--nlines", "10",
+         "--json",
+         "--tree-id-column", "1",
+@@ -28,7 +28,7 @@
+         data("data-string"),
+         data("data-id"),
+         data("data-parent"),
+-        data("data-string-long")])),
++        data("data-string-long")], marks=pytest.mark.xfail),
+     ("tree-middle", [
+         "--nlines", "10",
+         "--tree-id-column", "0",
+@@ -149,7 +149,7 @@
+         data("data-id"),
+         data("data-parent"),
+         data("data-string-nl")]),
+-    pytest.mark.xfail(("raw", [
++    pytest.param("raw", [
+         "--nlines", "10",
+         "--raw",
+         "--column", data("col-name"),
+@@ -157,8 +157,8 @@
+         "--column", data("col-trunc"),
+         data("data-string"),
+         data("data-number"),
+-        data("data-string-long")])),
+-    pytest.mark.xfail(("export", [
++        data("data-string-long")], marks=pytest.mark.xfail),
++    pytest.param("export", [
+         "--nlines", "10",
+         "--export",
+         "--column", data("col-name"),
+@@ -166,7 +166,7 @@
+         "--column", data("col-trunc"),
+         data("data-string"),
+         data("data-number"),
+-        data("data-string-long")])),
++        data("data-string-long")], marks=pytest.mark.xfail),
+     ("column-separator", [
+         "--nlines", "10",
+         "--colsep", "|",

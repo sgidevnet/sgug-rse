@@ -1,0 +1,40 @@
+From 3f603b9000f437292d8e286627c71f9c7329251e Mon Sep 17 00:00:00 2001
+From: Lumir Balhar <lbalhar@redhat.com>
+Date: Tue, 28 Nov 2017 14:27:09 +0100
+Subject: [PATCH] Allow errors and add a note in one doc notebook
+
+---
+ doc/code-cells.ipynb | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/doc/code-cells.ipynb b/doc/code-cells.ipynb
+index 545ffbe..3cfcdf3 100644
+--- a/doc/code-cells.ipynb
++++ b/doc/code-cells.ipynb
+@@ -213,6 +213,13 @@
+     "### Image URLs"
+    ]
+   },
++  {
++   "cell_type": "markdown",
++   "metadata": {},
++   "source": [
++    "There may be errors in this part because images' URLs are not accessible during a build of RPM. See [online documentation](http://nbsphinx.readthedocs.io/en/latest/code-cells.html#Image-URLs)."
++   ]
++  },
+   {
+    "cell_type": "code",
+    "execution_count": null,
+@@ -728,6 +735,9 @@
+    "nbconvert_exporter": "python",
+    "pygments_lexer": "ipython3",
+    "version": "3.7.5"
++  },
++  "nbsphinx": {
++   "allow_errors": true
+   }
+  },
+  "nbformat": 4,
+-- 
+2.20.1
+

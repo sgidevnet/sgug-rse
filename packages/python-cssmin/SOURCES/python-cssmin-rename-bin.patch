@@ -1,0 +1,22 @@
+diff --git a/setup.py b/setup.py
+--- a/setup.py
++++ b/setup.py
+@@ -13,5 +13,5 @@ setup(
+     description      = "A Python port of the YUI CSS compression algorithm.",
+     py_modules       = ['cssmin'],
+     package_dir      = {'': 'src'},
+-    entry_points     = {'console_scripts': ['cssmin = cssmin:main']},
++    entry_points     = {'console_scripts': ['python-cssmin = cssmin:main']},
+ )
+diff --git a/src/cssmin.py b/src/cssmin.py
+--- a/src/cssmin.py
++++ b/src/cssmin.py
+@@ -209,7 +209,7 @@ def main():
+     import sys
+ 
+     p = optparse.OptionParser(
+-        prog="cssmin", version=__version__,
++        prog="python-cssmin", version=__version__,
+         usage="%prog [--wrap N]",
+         description="""Reads raw CSS from stdin, and writes compressed CSS to stdout.""")
+ 

@@ -1,0 +1,5 @@
+# KNOWN BUGS
+addFilter(r'(file-not-utf8|wrong-file-end-of-line-encoding) /usr/share/doc/python-fields-doc/html/objects.inv( |$)')
+
+# SPELLING ERRORS
+addFilter(r'spelling-error .* en_US (eg|hynek|init|repr)( |$)')

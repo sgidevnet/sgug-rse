@@ -1,0 +1,277 @@
+From fa1d856cad369d0ac64323ddec14b02281491706 Mon Sep 17 00:00:00 2001
+From: Stefan Behnel <stefan_ml@behnel.de>
+Date: Sat, 23 May 2020 09:34:22 +0200
+Subject: [PATCH] Avoid globally overriding the libxml2 external entity
+ resolver and instead set it for each parser run. This improves the
+ interoperability with other users of libxml2 in the system, such as
+ libxmlsec.
+
+---
+ CHANGES.txt             | 11 +++++++++++
+ src/lxml/dtd.pxi        |  6 ++++++
+ src/lxml/parser.pxi     | 42 ++++++++++++++++++++++++++++++-----------
+ src/lxml/relaxng.pxi    |  2 ++
+ src/lxml/schematron.pxi |  4 ++++
+ src/lxml/xinclude.pxi   |  2 ++
+ src/lxml/xmlschema.pxi  |  2 ++
+ src/lxml/xslt.pxi       |  4 ++++
+ 8 files changed, 62 insertions(+), 11 deletions(-)
+
+diff --git a/CHANGES.txt b/CHANGES.txt
+index 30e805997..07afb641b 100644
+--- a/CHANGES.txt
++++ b/CHANGES.txt
+@@ -2,6 +2,17 @@
+ lxml changelog
+ ==============
+ 
++4.5.2 (2020-0?-??)
++==================
++
++Bugs fixed
++----------
++
++* LP#1880251: Instead of globally overwriting the document loader in libxml2, lxml now
++  sets it per parser run, which improves the interoperability with other users of libxml2
++  such as libxmlsec.
++
++
+ 4.5.1 (2020-05-19)
+ ==================
+ 
+diff --git a/src/lxml/dtd.pxi b/src/lxml/dtd.pxi
+index 595296546..5dcb80c46 100644
+--- a/src/lxml/dtd.pxi
++++ b/src/lxml/dtd.pxi
+@@ -277,14 +277,20 @@ cdef class DTD(_Validator):
+             if _isString(file):
+                 file = _encodeFilename(file)
+                 with self._error_log:
++                    orig_loader = _register_document_loader()
+                     self._c_dtd = xmlparser.xmlParseDTD(NULL, _xcstr(file))
++                    _reset_document_loader(orig_loader)
+             elif hasattr(file, 'read'):
++                orig_loader = _register_document_loader()
+                 self._c_dtd = _parseDtdFromFilelike(file)
++                _reset_document_loader(orig_loader)
+             else:
+                 raise DTDParseError, u"file must be a filename or file-like object"
+         elif external_id is not None:
+             with self._error_log:
++                orig_loader = _register_document_loader()
+                 self._c_dtd = xmlparser.xmlParseDTD(<const_xmlChar*>external_id, NULL)
++                _reset_document_loader(orig_loader)
+         else:
+             raise DTDParseError, u"either filename or external ID required"
+ 
+diff --git a/src/lxml/parser.pxi b/src/lxml/parser.pxi
+index 22620373c..3ed223bd5 100644
+--- a/src/lxml/parser.pxi
++++ b/src/lxml/parser.pxi
+@@ -502,7 +502,15 @@ cdef xmlparser.xmlParserInput* _local_resolver(const_char* c_url, const_char* c_
+ cdef xmlparser.xmlExternalEntityLoader __DEFAULT_ENTITY_LOADER
+ __DEFAULT_ENTITY_LOADER = xmlparser.xmlGetExternalEntityLoader()
+ 
+-xmlparser.xmlSetExternalEntityLoader(<xmlparser.xmlExternalEntityLoader>_local_resolver)
++
++cdef xmlparser.xmlExternalEntityLoader _register_document_loader() nogil:
++    cdef xmlparser.xmlExternalEntityLoader old = xmlparser.xmlGetExternalEntityLoader()
++    xmlparser.xmlSetExternalEntityLoader(<xmlparser.xmlExternalEntityLoader>_local_resolver)
++    return old
++
++cdef void _reset_document_loader(xmlparser.xmlExternalEntityLoader old) nogil:
++    xmlparser.xmlSetExternalEntityLoader(old)
++
+ 
+ ############################################################
+ ## Parsers
+@@ -514,6 +522,7 @@ cdef class _ParserContext(_ResolverContext):
+     cdef _ErrorLog _error_log
+     cdef _ParserSchemaValidationContext _validator
+     cdef xmlparser.xmlParserCtxt* _c_ctxt
++    cdef xmlparser.xmlExternalEntityLoader _orig_loader
+     cdef python.PyThread_type_lock _lock
+     cdef _Document _doc
+     cdef bint _collect_ids
+@@ -561,7 +570,7 @@ cdef class _ParserContext(_ResolverContext):
+             else:
+                 xmlparser.xmlClearParserCtxt(self._c_ctxt)
+ 
+-    cdef int prepare(self) except -1:
++    cdef int prepare(self, bint set_document_loader=True) except -1:
+         cdef int result
+         if config.ENABLE_THREADING and self._lock is not NULL:
+             with nogil:
+@@ -572,19 +581,24 @@ cdef class _ParserContext(_ResolverContext):
+         self._error_log.clear()
+         self._doc = None
+         self._c_ctxt.sax.serror = _receiveParserError
++        self._orig_loader = _register_document_loader() if set_document_loader else NULL
+         if self._validator is not None:
+             self._validator.connect(self._c_ctxt, self._error_log)
+         return 0
+ 
+     cdef int cleanup(self) except -1:
+-        if self._validator is not None:
+-            self._validator.disconnect()
+-        self._resetParserContext()
+-        self.clear()
+-        self._doc = None
+-        self._c_ctxt.sax.serror = NULL
+-        if config.ENABLE_THREADING and self._lock is not NULL:
+-            python.PyThread_release_lock(self._lock)
++        if self._orig_loader is not NULL:
++            _reset_document_loader(self._orig_loader)
++        try:
++            if self._validator is not None:
++                self._validator.disconnect()
++            self._resetParserContext()
++            self.clear()
++            self._doc = None
++            self._c_ctxt.sax.serror = NULL
++        finally:
++            if config.ENABLE_THREADING and self._lock is not NULL:
++                python.PyThread_release_lock(self._lock)
+         return 0
+ 
+     cdef object _handleParseResult(self, _BaseParser parser,
+@@ -1286,7 +1300,7 @@ cdef class _FeedParser(_BaseParser):
+         pctxt = context._c_ctxt
+         error = 0
+         if not self._feed_parser_running:
+-            context.prepare()
++            context.prepare(set_document_loader=False)
+             self._feed_parser_running = 1
+             c_filename = (_cstr(self._filename)
+                           if self._filename is not None else NULL)
+@@ -1296,6 +1310,7 @@ cdef class _FeedParser(_BaseParser):
+             # however if we give it all we got, we'll have nothing for
+             # *mlParseChunk() and things go wrong.
+             buffer_len = 4 if py_buffer_len > 4 else <int>py_buffer_len
++            orig_loader = _register_document_loader()
+             if self._for_html:
+                 error = _htmlCtxtResetPush(
+                     pctxt, c_data, buffer_len, c_filename, c_encoding,
+@@ -1304,6 +1319,7 @@ cdef class _FeedParser(_BaseParser):
+                 xmlparser.xmlCtxtUseOptions(pctxt, self._parse_options)
+                 error = xmlparser.xmlCtxtResetPush(
+                     pctxt, c_data, buffer_len, c_filename, c_encoding)
++            _reset_document_loader(orig_loader)
+             py_buffer_len -= buffer_len
+             c_data += buffer_len
+             if error:
+@@ -1321,7 +1337,9 @@ cdef class _FeedParser(_BaseParser):
+                     buffer_len = <int>py_buffer_len
+                 if self._for_html:
+                     c_node = pctxt.node  # last node where the parser stopped
++                    orig_loader = _register_document_loader()
+                     error = htmlparser.htmlParseChunk(pctxt, c_data, buffer_len, 0)
++                    _reset_document_loader(orig_loader)
+                     # and now for the fun part: move node names to the dict
+                     if pctxt.myDoc:
+                         fixup_error = _fixHtmlDictSubtreeNames(
+@@ -1331,7 +1349,9 @@ cdef class _FeedParser(_BaseParser):
+                             pctxt.myDoc.dict = pctxt.dict
+                             xmlparser.xmlDictReference(pctxt.dict)
+                 else:
++                    orig_loader = _register_document_loader()
+                     error = xmlparser.xmlParseChunk(pctxt, c_data, buffer_len, 0)
++                    _reset_document_loader(orig_loader)
+                 py_buffer_len -= buffer_len
+                 c_data += buffer_len
+ 
+diff --git a/src/lxml/relaxng.pxi b/src/lxml/relaxng.pxi
+index d161ce46e..6a82a295f 100644
+--- a/src/lxml/relaxng.pxi
++++ b/src/lxml/relaxng.pxi
+@@ -64,7 +64,9 @@ cdef class RelaxNG(_Validator):
+                     doc = None
+                     filename = _encodeFilename(file)
+                     with self._error_log:
++                        orig_loader = _register_document_loader()
+                         parser_ctxt = relaxng.xmlRelaxNGNewParserCtxt(_cstr(filename))
++                        _reset_document_loader(orig_loader)
+             elif (_getFilenameForFile(file) or '')[-4:].lower() == '.rnc':
+                 _require_rnc2rng()
+                 rng_data_utf8 = _utf8(_rnc2rng.dumps(_rnc2rng.load(file)))
+diff --git a/src/lxml/schematron.pxi b/src/lxml/schematron.pxi
+index af4ba7f01..dfd2cc05f 100644
+--- a/src/lxml/schematron.pxi
++++ b/src/lxml/schematron.pxi
+@@ -95,7 +95,9 @@ cdef class Schematron(_Validator):
+                 filename = file
+             filename = _encodeFilename(filename)
+             with self._error_log:
++                orig_loader = _register_document_loader()
+                 parser_ctxt = schematron.xmlSchematronNewParserCtxt(_cstr(filename))
++                _reset_document_loader(orig_loader)
+         else:
+             raise SchematronParseError, u"No tree or file given"
+ 
+@@ -107,7 +109,9 @@ cdef class Schematron(_Validator):
+ 
+         try:
+             with self._error_log:
++                orig_loader = _register_document_loader()
+                 self._c_schema = schematron.xmlSchematronParse(parser_ctxt)
++                _reset_document_loader(orig_loader)
+         finally:
+             schematron.xmlSchematronFreeParserCtxt(parser_ctxt)
+ 
+diff --git a/src/lxml/xinclude.pxi b/src/lxml/xinclude.pxi
+index f73afee61..6bac82923 100644
+--- a/src/lxml/xinclude.pxi
++++ b/src/lxml/xinclude.pxi
+@@ -49,11 +49,13 @@ cdef class XInclude:
+         if tree.LIBXML_VERSION < 20704 or not c_context:
+             __GLOBAL_PARSER_CONTEXT.pushImpliedContext(context)
+         with nogil:
++            orig_loader = _register_document_loader()
+             if c_context:
+                 result = xinclude.xmlXIncludeProcessTreeFlagsData(
+                     node._c_node, parse_options, c_context)
+             else:
+                 result = xinclude.xmlXIncludeProcessTree(node._c_node)
++            _reset_document_loader(orig_loader)
+         if tree.LIBXML_VERSION < 20704 or not c_context:
+             __GLOBAL_PARSER_CONTEXT.popImpliedContext()
+         self._error_log.disconnect()
+diff --git a/src/lxml/xmlschema.pxi b/src/lxml/xmlschema.pxi
+index cc2c1928d..ab26d935e 100644
+--- a/src/lxml/xmlschema.pxi
++++ b/src/lxml/xmlschema.pxi
+@@ -77,7 +77,9 @@ cdef class XMLSchema(_Validator):
+             # resolve requests to the document's parser
+             __GLOBAL_PARSER_CONTEXT.pushImpliedContextFromParser(self._doc._parser)
+         with nogil:
++            orig_loader = _register_document_loader()
+             self._c_schema = xmlschema.xmlSchemaParse(parser_ctxt)
++            _reset_document_loader(orig_loader)
+         if self._doc is not None:
+             __GLOBAL_PARSER_CONTEXT.popImpliedContext()
+         xmlschema.xmlSchemaFreeParserCtxt(parser_ctxt)
+diff --git a/src/lxml/xslt.pxi b/src/lxml/xslt.pxi
+index e7b49600c..d483cfa30 100644
+--- a/src/lxml/xslt.pxi
++++ b/src/lxml/xslt.pxi
+@@ -397,7 +397,9 @@ cdef class XSLT:
+         c_doc._private = <python.PyObject*>self._xslt_resolver_context
+ 
+         with self._error_log:
++            orig_loader = _register_document_loader()
+             c_style = xslt.xsltParseStylesheetDoc(c_doc)
++            _reset_document_loader(orig_loader)
+ 
+         if c_style is NULL or c_style.errors:
+             tree.xmlFreeDoc(c_doc)
+@@ -633,8 +635,10 @@ cdef class XSLT:
+         if self._access_control is not None:
+             self._access_control._register_in_context(transform_ctxt)
+         with self._error_log, nogil:
++            orig_loader = _register_document_loader()
+             c_result = xslt.xsltApplyStylesheetUser(
+                 self._c_style, c_input_doc, params, NULL, NULL, transform_ctxt)
++            _reset_document_loader(orig_loader)
+         return c_result
+ 
+ 

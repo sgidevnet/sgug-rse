@@ -1,0 +1,13 @@
+diff --git a/src/sphinx_testing/path.py b/src/sphinx_testing/path.py
+index 60caf35..9e16a09 100644
+--- a/src/sphinx_testing/path.py
++++ b/src/sphinx_testing/path.py
+@@ -156,7 +156,7 @@ class path(text_type):
+         """
+         Returns the text in the file.
+         """
+-        f = open(self, mode='U', **kwargs)
++        f = open(self, **kwargs)
+         try:
+             return f.read()
+         finally:

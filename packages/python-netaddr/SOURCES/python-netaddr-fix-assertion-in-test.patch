@@ -1,0 +1,35 @@
+From 4b1f09a7e122f6b7af699242b58b5284c5eeab00 Mon Sep 17 00:00:00 2001
+From: John Eckersberg <jeckersb@redhat.com>
+Date: Tue, 30 Jun 2015 11:03:57 -0400
+Subject: [PATCH] Fix bad pop() assumption in test
+
+Do not assume that IPSet.pop will always return the same item.  The
+pop method is implemented via the popitem method on the underlying
+_cidrs object, which is a dict.
+
+dict.popitem is documented as:
+
+Remove and return an arbitrary (key, value) pair from the dictionary.
+
+So one cannot assert that the value popped from an IPSet will be a
+specific item in the set.
+
+Instead, assert that the item popped out of the set is present in the
+other set.
+---
+ test/ip/test_ip_sets.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/ip/test_ip_sets.py b/test/ip/test_ip_sets.py
+index 3732a11..32589e1 100644
+--- a/test/ip/test_ip_sets.py
++++ b/test/ip/test_ip_sets.py
+@@ -34,7 +34,7 @@ def test_ipset_basic_api():
+     ])
+ 
+     assert set1 == set2
+-    assert set2.pop() == IPNetwork('192.0.2.4/30')
++    assert set2.pop() in set1
+     assert set1 != set2
+ 
+ 

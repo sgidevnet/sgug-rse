@@ -1,0 +1,237 @@
+From 03db06860010ceba5f0113bfb67d6721c4c4caa0 Mon Sep 17 00:00:00 2001
+From: "Matthias C. M. Troffaes" <matthias.troffaes@gmail.com>
+Date: Wed, 15 Jan 2020 16:13:50 +0000
+Subject: [PATCH 2/3] Use pytest fixture instead of TestCase.
+
+---
+ test/test_backend.py         | 180 ++++++++++++++++++-----------------
+ test/test_install_example.py |   5 +-
+ 2 files changed, 94 insertions(+), 91 deletions(-)
+
+diff --git a/test/test_backend.py b/test/test_backend.py
+index 503cdc1..b134fb4 100644
+--- a/test/test_backend.py
++++ b/test/test_backend.py
+@@ -6,7 +6,6 @@ import pytest
+ import pybtex.plugin
+ import pybtex.database
+ from pybtex.richtext import HRef, Tag, Text
+-from unittest import TestCase
+ 
+ from pybtex_docutils import Backend
+ import six
+@@ -77,94 +76,97 @@ def test_render_sequence():
+     assert render_str(text) == 'hello <emphasis>world</emphasis>'
+ 
+ 
+-class TestCitation(TestCase):
+-
+-    def setUp(self):
+-        data = pybtex.database.BibliographyData({
+-            'hongquin1997': pybtex.database.Entry(
+-                'article',
+-                fields={
+-                    'language': u'english',
+-                    'title': u'Predicting the Diffusion Coefficient in Supercritical Fluids',
+-                    'journal': u'Ind. Eng. Chem. Res.',
+-                    'volume': u'36',
+-                    'year': u'1997',
+-                    'pages': u'888-895',
+-                },
+-                persons={'author': [
+-                    pybtex.database.Person(u'Liu, Hongquin'),
+-                    pybtex.database.Person(u'Ruckenstein, Eli')]},
+-                )})
+-        style = pybtex.plugin.find_plugin('pybtex.style.formatting', 'plain')()
+-        self.backend = Backend()
+-        entries = list(style.format_entries(six.itervalues(data.entries)))
+-        self.entry = entries[0]
+-        self.document = docutils.utils.new_document('test.rst')
+-
+-    def test_citation(self):
+-        node = self.backend.citation(self.entry, self.document)
+-        assert six.text_type(node) == (
+-            u'<citation ids="hongquin1997" names="hongquin1997">'
+-            u'<label>hongquin1997</label>'
+-            u'<paragraph>'
+-            u'Hongquin Liu and Eli Ruckenstein. '
+-            u'Predicting the diffusion coefficient in supercritical fluids. '
+-            u'<emphasis>Ind. Eng. Chem. Res.</emphasis>, '
+-            u'36:888–895, 1997.'
+-            u'</paragraph>'
+-            u'</citation>')
+-
+-    def test_citation_reference(self):
+-        node = self.backend.citation_reference(self.entry, self.document)
+-        assert str(node) == (
+-            '<citation_reference ids="id1" refname="hongquin1997">'
+-            'hongquin1997'
+-            '</citation_reference>')
+-
+-    def test_citation_use_label(self):
+-        node = self.backend.citation(
+-            self.entry, self.document, use_key_as_label=False)
+-        assert six.text_type(node) == (
+-            u'<citation ids="hongquin1997" names="hongquin1997">'
+-            u'<label>1</label>'
+-            u'<paragraph>'
+-            u'Hongquin Liu and Eli Ruckenstein. '
+-            u'Predicting the diffusion coefficient in supercritical fluids. '
+-            u'<emphasis>Ind. Eng. Chem. Res.</emphasis>, '
+-            u'36:888–895, 1997.'
+-            u'</paragraph>'
+-            u'</citation>')
+-
+-    def test_citation_reference_use_label(self):
+-        node = self.backend.citation_reference(
+-            self.entry, self.document, use_key_as_label=False)
+-        assert str(node) == (
+-            '<citation_reference ids="id1" refname="hongquin1997">'
+-            '1'
+-            '</citation_reference>')
+-
+-    def test_footnote(self):
+-        node = self.backend.footnote(self.entry, self.document)
+-        assert six.text_type(node) == (
+-            u'<footnote auto="1" ids="hongquin1997" names="hongquin1997">'
+-            u'<paragraph>'
+-            u'Hongquin Liu and Eli Ruckenstein. '
+-            u'Predicting the diffusion coefficient in supercritical fluids. '
+-            u'<emphasis>Ind. Eng. Chem. Res.</emphasis>, '
+-            u'36:888–895, 1997.'
+-            u'</paragraph>'
+-            u'</footnote>')
+-
+-    def test_footnote_reference(self):
+-        node = self.backend.footnote_reference(self.entry, self.document)
+-        assert str(node) == (
+-            '<footnote_reference auto="1" ids="[\'id1\']" '
+-            'refname="hongquin1997"/>')
+-
+-    def tearDown(self):
+-        del self.backend
+-        del self.entry
+-        del self.document
++@pytest.fixture
++def entry():
++    data = pybtex.database.BibliographyData({
++        'hongquin1997': pybtex.database.Entry(
++            'article',
++            fields={
++                'language': u'english',
++                'title': u'Predicting the Diffusion Coefficient in Supercritical Fluids',
++                'journal': u'Ind. Eng. Chem. Res.',
++                'volume': u'36',
++                'year': u'1997',
++                'pages': u'888-895',
++            },
++            persons={'author': [
++                pybtex.database.Person(u'Liu, Hongquin'),
++                pybtex.database.Person(u'Ruckenstein, Eli')]},
++            )})
++    style = pybtex.plugin.find_plugin('pybtex.style.formatting', 'plain')()
++    entries = list(style.format_entries(six.itervalues(data.entries)))
++    return entries[0]
++
++
++@pytest.fixture
++def document():
++    return docutils.utils.new_document('test.rst')
++
++
++def test_citation(entry, document):
++    node = Backend().citation(entry, document)
++    assert six.text_type(node) == (
++        u'<citation ids="hongquin1997" names="hongquin1997">'
++        u'<label>hongquin1997</label>'
++        u'<paragraph>'
++        u'Hongquin Liu and Eli Ruckenstein. '
++        u'Predicting the diffusion coefficient in supercritical fluids. '
++        u'<emphasis>Ind. Eng. Chem. Res.</emphasis>, '
++        u'36:888–895, 1997.'
++        u'</paragraph>'
++        u'</citation>')
++
++
++def test_citation_reference(entry, document):
++    node = Backend().citation_reference(entry, document)
++    assert str(node) == (
++        '<citation_reference ids="id1" refname="hongquin1997">'
++        'hongquin1997'
++        '</citation_reference>')
++
++
++def test_citation_use_label(entry, document):
++    node = Backend().citation(
++        entry, document, use_key_as_label=False)
++    assert six.text_type(node) == (
++        u'<citation ids="hongquin1997" names="hongquin1997">'
++        u'<label>1</label>'
++        u'<paragraph>'
++        u'Hongquin Liu and Eli Ruckenstein. '
++        u'Predicting the diffusion coefficient in supercritical fluids. '
++        u'<emphasis>Ind. Eng. Chem. Res.</emphasis>, '
++        u'36:888–895, 1997.'
++        u'</paragraph>'
++        u'</citation>')
++
++
++def test_citation_reference_use_label(entry, document):
++    node = Backend().citation_reference(
++        entry, document, use_key_as_label=False)
++    assert str(node) == (
++        '<citation_reference ids="id1" refname="hongquin1997">'
++        '1'
++        '</citation_reference>')
++
++
++def test_footnote(entry, document):
++    node = Backend().footnote(entry, document)
++    assert six.text_type(node) == (
++        u'<footnote auto="1" ids="hongquin1997" names="hongquin1997">'
++        u'<paragraph>'
++        u'Hongquin Liu and Eli Ruckenstein. '
++        u'Predicting the diffusion coefficient in supercritical fluids. '
++        u'<emphasis>Ind. Eng. Chem. Res.</emphasis>, '
++        u'36:888–895, 1997.'
++        u'</paragraph>'
++        u'</footnote>')
++
++
++def test_footnote_reference(entry, document):
++    node = Backend().footnote_reference(entry, document)
++    assert str(node) == (
++        '<footnote_reference auto="1" ids="[\'id1\']" '
++        'refname="hongquin1997"/>')
+ 
+ 
+ def test_write_entry():
+diff --git a/test/test_install_example.py b/test/test_install_example.py
+index e4e3a3f..257a35c 100644
+--- a/test/test_install_example.py
++++ b/test/test_install_example.py
+@@ -5,10 +5,11 @@ expected_result = (
+     u'Wiley, 2nd edition, 1985.</paragraph>'
+     )
+ 
++
+ def test_install_example():
+     result = []
+ 
+-    ### example begin ###
++    # example begin
+     import six
+     import pybtex.database.input.bibtex
+     import pybtex.plugin
+@@ -27,7 +28,7 @@ def test_install_example():
+     """))
+     for entry in style.format_entries(six.itervalues(data.entries)):
+         print(backend.paragraph(entry))
+-    ### example end ###
++    # example end
+         result.append(backend.paragraph(entry))
+ 
+     assert len(result) == 1
+-- 
+2.25.3
+

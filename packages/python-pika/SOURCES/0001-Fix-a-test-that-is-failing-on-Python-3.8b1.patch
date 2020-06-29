@@ -1,0 +1,41 @@
+From 3a5dda557cdd8de29a834663f37fd4294f15bc5d Mon Sep 17 00:00:00 2001
+From: Jeremy Cline <jcline@redhat.com>
+Date: Tue, 11 Jun 2019 14:55:38 -0400
+Subject: [PATCH] Fix a test that is failing on Python 3.8b1
+
+Fedora is doing a mass rebuild of all Python packages in Fedora with
+Python 3.8 beta 1 and discovered the Pika tests are failing. The reason
+they're failing[0] appears to be a bug in Python 3.8, but this
+particular issue makes sense to fix in Pika as well.
+
+The problem is that self.obj.connection is already a MagicMock object,
+so a further patch is pointless (and is what is triggering this bug).
+The fix is to just not mock the mock object.
+
+[0] https://bugzilla.redhat.com/show_bug.cgi?id=1717665#c5
+
+Signed-off-by: Jeremy Cline <jcline@redhat.com>
+---
+ tests/unit/channel_tests.py | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/tests/unit/channel_tests.py b/tests/unit/channel_tests.py
+index 53cc5da..31bb9ed 100644
+--- a/tests/unit/channel_tests.py
++++ b/tests/unit/channel_tests.py
+@@ -1656,10 +1656,8 @@ class ChannelTests(unittest.TestCase):
+ 
+     def test_send_method(self):
+         expectation = [2, 3]
+-        with mock.patch.object(self.obj.connection,
+-                               '_send_method') as send_method:
+-            self.obj._send_method(*expectation)
+-            send_method.assert_called_once_with(
++        self.obj._send_method(*expectation)
++        self.obj.connection._send_method.assert_called_once_with(
+                 *[self.obj.channel_number] + expectation)
+ 
+     def test_set_state(self):
+-- 
+2.21.0
+

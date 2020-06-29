@@ -1,0 +1,58 @@
+From d5dbbda46a3bc1c3f0e00e29e96d1fb74cdee346 Mon Sep 17 00:00:00 2001
+From: Carl George <carl@george.computer>
+Date: Wed, 13 Feb 2019 14:10:49 -0600
+Subject: [PATCH] Add skipif for tests that fail without a tty
+
+---
+ tests/test_core.py     | 3 +++
+ tests/test_terminal.py | 2 ++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/tests/test_core.py b/tests/test_core.py
+index 7a65d2f..b33b05b 100644
+--- a/tests/test_core.py
++++ b/tests/test_core.py
+@@ -14,6 +14,7 @@
+ from __future__ import print_function
+ 
+ import os
++import sys
+ 
+ import pytest
+ 
+@@ -430,6 +431,7 @@ def test_invalid_color_name():
+     assert str(exc.value) == expected
+ 
+ 
++@pytest.mark.skipif(not sys.stdout.isatty(), reason='fails without a tty')
+ @pytest.mark.parametrize('env,expected', [
+     ({'COLORFUL_DISABLE': '1'}, terminal.NO_COLORS),
+     ({'COLORTERM': 'truecolor'}, terminal.TRUE_COLORS),
+@@ -451,6 +453,7 @@ def test_colorful_obj_color_auto_detection(env, expected):
+     os.environ = os_env_backup
+ 
+ 
++@pytest.mark.skipif(not sys.stdout.isatty(), reason='fails without a tty')
+ def test_reading_color_palette(tmpdir):
+     """
+     Test reading color palette from file
+diff --git a/tests/test_terminal.py b/tests/test_terminal.py
+index 08b3057..0547ee2 100644
+--- a/tests/test_terminal.py
++++ b/tests/test_terminal.py
+@@ -11,6 +11,7 @@
+ """
+ 
+ import os
++import sys
+ 
+ import pytest
+ 
+@@ -20,6 +21,7 @@
+ import colorful.terminal as terminal  # noqa
+ 
+ 
++@pytest.mark.skipif(not sys.stdout.isatty(), reason='fails without a tty')
+ @pytest.mark.parametrize('env,expected', [
+     # test force color settings
+     ({'COLORFUL_DISABLE': '1'}, terminal.NO_COLORS),

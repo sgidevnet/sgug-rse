@@ -1,0 +1,997 @@
+From 4cef7ef32f3f761fd32e31a96be8a2d30c3787ca Mon Sep 17 00:00:00 2001
+From: Andrew Bauer <zonexpertconsulting@outlook.com>
+Date: Thu, 18 Jun 2020 09:07:25 -0500
+Subject: [PATCH] update pysignals to latest django dispatch 1.9.x
+
+---
+ pysignals/__init__.py          |   9 +-
+ pysignals/dispatcher.py        | 289 ++++++++++++++++++---------------
+ pysignals/inspect.py           | 131 +++++++++++++++
+ pysignals/license.python.txt   | 254 +++++++++++++++++++++++++++++
+ pysignals/license.txt          |  36 ++++
+ pysignals/weakref_backports.py |  68 ++++++++
+ 6 files changed, 652 insertions(+), 135 deletions(-)
+ create mode 100644 pysignals/inspect.py
+ create mode 100644 pysignals/license.python.txt
+ create mode 100644 pysignals/license.txt
+ create mode 100644 pysignals/weakref_backports.py
+
+diff --git a/pysignals/__init__.py b/pysignals/__init__.py
+index d664044..3b3a434 100644
+--- a/pysignals/__init__.py
++++ b/pysignals/__init__.py
+@@ -1,8 +1,9 @@
+ """Multi-consumer multi-producer dispatching mechanism
+ 
+-Originally based on "django.dispatch" from the Django project, which was
+-originally based on pydispatch (BSD) http://pypi.python.org/pypi/PyDispatcher/2.0.1
+-See license.txt for original licenses.
++Originally based on pydispatch (BSD) http://pypi.python.org/pypi/PyDispatcher/2.0.1
++See license.txt for original license.
++
++Heavily modified for Django's purposes.
+ """
+ 
+-from pysignals.dispatcher import Signal, receiver
+\ No newline at end of file
++from pysignals.dispatcher import Signal, receiver  # NOQA
+diff --git a/pysignals/dispatcher.py b/pysignals/dispatcher.py
+index 07171f7..cbacbf9 100644
+--- a/pysignals/dispatcher.py
++++ b/pysignals/dispatcher.py
+@@ -1,37 +1,48 @@
+-import weakref
++import sys
+ import threading
+-import sys, os.path
+-
+-from pysignals import saferef
++import weakref
++import logging
++import six
++from future.builtins import range
+ 
+-__all__ = [ 'set_debug', 'Signal', 'receiver' ]
++from .inspect import func_accepts_kwargs
+ 
+-WEAKREF_TYPES = (weakref.ReferenceType, saferef.BoundMethodWeakref)
++if six.PY2:
++    from .weakref_backports import WeakMethod
++else:
++    from weakref import WeakMethod
+ 
+-def _make_id(target):
+-    if hasattr(target, 'im_func'):
+-        return (id(target.im_self), id(target.im_func))
+-    return id(target)
+ 
+ pysignals_debug = False
+ 
++
+ def set_debug( val ):
+     pysignals_debug = val
+ 
++
++def _make_id(target):
++    if hasattr(target, '__func__'):
++        return (id(target.__self__), id(target.__func__))
++    return id(target)
++NONE_ID = _make_id(None)
++
++# A marker for caching
++NO_RECEIVERS = object()
++
++
+ class Signal(object):
+     """
+     Base class for all signals
+-    
++
+     Internal attributes:
+-    
++
+         receivers
+-            { receriverkey (id) : weakref(receiver) }
++            { receiverkey (id) : weakref(receiver) }
+     """
+-    
+-    def __init__(self, providing_args=None):
++    def __init__(self, providing_args=None, use_caching=False):
+         """
+         Create a new signal.
+-        
++
+         providing_args
+             A list of the arguments this signal can pass along in a send() call.
+         """
+@@ -40,27 +51,32 @@ def __init__(self, providing_args=None):
+             providing_args = []
+         self.providing_args = set(providing_args)
+         self.lock = threading.Lock()
+-        self.receiver_paths = []
+-
+-    def connect(self, receiver, sender=None, weak=True, dispatch_uid=None, unique=True):
++        self.use_caching = use_caching
++        # For convenience we create empty caches even if they are not used.
++        # A note about caching: if use_caching is defined, then for each
++        # distinct sender we cache the receivers that sender has in
++        # 'sender_receivers_cache'. The cache is cleaned when .connect() or
++        # .disconnect() is called and populated on send().
++        self.sender_receivers_cache = weakref.WeakKeyDictionary() if use_caching else {}
++        self._dead_receivers = False
++
++    def connect(self, receiver, sender=None, weak=True, dispatch_uid=None):
+         """
+         Connect receiver to sender for signal.
+-    
++
+         Arguments:
+-        
++
+             receiver
+                 A function or an instance method which is to receive signals.
+                 Receivers must be hashable objects.
+ 
+-                If weak is True, then receiver must be weak-referencable (more
+-                precisely saferef.safeRef() must be able to create a reference
+-                to the receiver).
+-        
++                If weak is True, then receiver must be weak referenceable.
++
+                 Receivers must be able to accept keyword arguments.
+ 
+-                If receivers have a dispatch_uid attribute, the receiver will
+-                not be added if another receiver already exists with that
+-                dispatch_uid.
++                If a receiver is connected with a dispatch_uid argument, it
++                will not be added if another receiver was already connected
++                with that dispatch_uid.
+ 
+             sender
+                 The sender to which the receiver should respond. Must either be
+@@ -71,129 +87,113 @@ def connect(self, receiver, sender=None, weak=True, dispatch_uid=None, unique=Tr
+                 module will attempt to use weak references to the receiver
+                 objects. If this parameter is false, then strong references will
+                 be used.
+-        
++
+             dispatch_uid
+                 An identifier used to uniquely identify a particular instance of
+                 a receiver. This will usually be a string, though it may be
+                 anything hashable.
+-            
+-            unique
+-                If True, connect() will ignore duplicate connections for the same
+-                receiver (based on an intelligent guess at module uniqueness).
+         """
+-        # If debug is on, check that we got a good receiver
++
++        # If DEBUG is on, check that we got a good receiver
+         if pysignals_debug:
+             import inspect
+             assert callable(receiver), "Signal receivers must be callable."
+-            
++
+             # Check for **kwargs
+-            # Not all callables are inspectable with getargspec, so we'll
+-            # try a couple different ways but in the end fall back on assuming
+-            # it is -- we don't want to prevent registration of valid but weird
+-            # callables.
+-            try:
+-                argspec = inspect.getargspec(receiver)
+-            except TypeError:
+-                try:
+-                    argspec = inspect.getargspec(receiver.__call__)
+-                except (TypeError, AttributeError):
+-                    argspec = None
+-            if argspec:
+-                assert argspec[2] is not None, \
+-                    "Signal receivers must accept keyword arguments (**kwargs)."
+-        
+-        # make sure this signal is only registered once by the same delegate
+-        # the delegate's module is matched with an extension-insensitive
+-        # search of the module.
+-        receiver_module_file = os.path.abspath( sys.modules[receiver.__module__].__file__ )
+-        if receiver_module_file.endswith( '.pyc' ):
+-            receiver_module_file = receiver_module_file[:-1] # .pyc -> .py
+-        
+-        receiver_path = receiver_module_file + ':' + receiver.__name__
+-        
+-        if unique and receiver_path in self.receiver_paths:
+-            return None
+-        
+-        self.receiver_paths.append( receiver_path )
+-        
++            if not func_accepts_kwargs(receiver):
++                raise ValueError("Signal receivers must accept keyword arguments (**kwargs).")
++
+         if dispatch_uid:
+             lookup_key = (dispatch_uid, _make_id(sender))
+         else:
+             lookup_key = (_make_id(receiver), _make_id(sender))
+ 
+         if weak:
+-            receiver = saferef.safeRef(receiver, onDelete=self._remove_receiver)
++            ref = weakref.ref
++            receiver_object = receiver
++            # Check for bound methods
++            if hasattr(receiver, '__self__') and hasattr(receiver, '__func__'):
++                ref = WeakMethod
++                receiver_object = receiver.__self__
++            if six.PY3:
++                receiver = ref(receiver)
++                weakref.finalize(receiver_object, self._remove_receiver)
++            else:
++                receiver = ref(receiver, self._remove_receiver)
+ 
+-        self.lock.acquire()
+-        try:
++        with self.lock:
++            self._clear_dead_receivers()
+             for r_key, _ in self.receivers:
+                 if r_key == lookup_key:
+                     break
+             else:
+                 self.receivers.append((lookup_key, receiver))
+-        finally:
+-            self.lock.release()
++            self.sender_receivers_cache.clear()
+ 
+-    def disconnect(self, receiver=None, sender=None, weak=True, dispatch_uid=None):
++    def disconnect(self, receiver=None, sender=None, weak=None, dispatch_uid=None):
+         """
+         Disconnect receiver from sender for signal.
+ 
+         If weak references are used, disconnect need not be called. The receiver
+         will be remove from dispatch automatically.
+-    
++
+         Arguments:
+-        
++
+             receiver
+                 The registered receiver to disconnect. May be none if
+                 dispatch_uid is specified.
+-            
++
+             sender
+                 The registered sender to disconnect
+-            
+-            weak
+-                The weakref state to disconnect
+-            
++
+             dispatch_uid
+                 the unique identifier of the receiver to disconnect
+         """
++        if weak is not None:
++            logging.WARNING("Passing `weak` to disconnect has no effect.")
+         if dispatch_uid:
+             lookup_key = (dispatch_uid, _make_id(sender))
+         else:
+             lookup_key = (_make_id(receiver), _make_id(sender))
+-        
+-        self.lock.acquire()
+-        try:
+-            for index in xrange(len(self.receivers)):
++
++        disconnected = False
++        with self.lock:
++            self._clear_dead_receivers()
++            for index in range(len(self.receivers)):
+                 (r_key, _) = self.receivers[index]
+                 if r_key == lookup_key:
++                    disconnected = True
+                     del self.receivers[index]
+                     break
+-        finally:
+-            self.lock.release()
++            self.sender_receivers_cache.clear()
++        return disconnected
++
++    def has_listeners(self, sender=None):
++        return bool(self._live_receivers(sender))
+ 
+     def send(self, sender, **named):
+         """
+         Send signal from sender to all connected receivers.
+ 
+         If any receiver raises an error, the error propagates back through send,
+-        terminating the dispatch loop, so it is quite possible to not have all
+-        receivers called if a raises an error.
++        terminating the dispatch loop. So it's possible that all receivers
++        won't be called if an error is raised.
+ 
+         Arguments:
+-        
++
+             sender
+-                The sender of the signal Either a specific object or None.
+-    
++                The sender of the signal. Either a specific object or None.
++
+             named
+                 Named arguments which will be passed to receivers.
+ 
+         Returns a list of tuple pairs [(receiver, response), ... ].
+         """
+         responses = []
+-        if not self.receivers:
++        if not self.receivers or self.sender_receivers_cache.get(sender) is NO_RECEIVERS:
+             return responses
+ 
+-        for receiver in self._live_receivers(_make_id(sender)):
++        for receiver in self._live_receivers(sender):
+             response = receiver(signal=self, sender=sender, **named)
+             responses.append((receiver, response))
+         return responses
+@@ -203,7 +203,7 @@ def send_robust(self, sender, **named):
+         Send signal from sender to all connected receivers catching errors.
+ 
+         Arguments:
+-        
++
+             sender
+                 The sender of the signal. Can be any python object (normally one
+                 registered with a connect if you actually want something to
+@@ -219,65 +219,85 @@ def send_robust(self, sender, **named):
+ 
+         If any receiver raises an error (specifically any subclass of
+         Exception), the error instance is returned as the result for that
+-        receiver.
++        receiver. The traceback is always attached to the error at
++        ``__traceback__``.
+         """
+         responses = []
+-        if not self.receivers:
++        if not self.receivers or self.sender_receivers_cache.get(sender) is NO_RECEIVERS:
+             return responses
+ 
+         # Call each receiver with whatever arguments it can accept.
+         # Return a list of tuple pairs [(receiver, response), ... ].
+-        for receiver in self._live_receivers(_make_id(sender)):
++        for receiver in self._live_receivers(sender):
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+-            except Exception, err:
++            except Exception as err:
++                if not hasattr(err, '__traceback__'):
++                    err.__traceback__ = sys.exc_info()[2]
+                 responses.append((receiver, err))
+             else:
+                 responses.append((receiver, response))
+         return responses
+ 
+-    def _live_receivers(self, senderkey):
++    def _clear_dead_receivers(self):
++        # Note: caller is assumed to hold self.lock.
++        if self._dead_receivers:
++            self._dead_receivers = False
++            new_receivers = []
++            for r in self.receivers:
++                if isinstance(r[1], weakref.ReferenceType) and r[1]() is None:
++                    continue
++                new_receivers.append(r)
++            self.receivers = new_receivers
++
++    def _live_receivers(self, sender):
+         """
+         Filter sequence of receivers to get resolved, live receivers.
+ 
+         This checks for weak references and resolves them, then returning only
+         live receivers.
+         """
+-        none_senderkey = _make_id(None)
+-        receivers = []
+-
+-        for (receiverkey, r_senderkey), receiver in self.receivers:
+-            if r_senderkey == none_senderkey or r_senderkey == senderkey:
+-                if isinstance(receiver, WEAKREF_TYPES):
+-                    # Dereference the weak reference.
+-                    receiver = receiver()
+-                    if receiver is not None:
++        receivers = None
++        if self.use_caching and not self._dead_receivers:
++            receivers = self.sender_receivers_cache.get(sender)
++            # We could end up here with NO_RECEIVERS even if we do check this case in
++            # .send() prior to calling _live_receivers() due to concurrent .send() call.
++            if receivers is NO_RECEIVERS:
++                return []
++        if receivers is None:
++            with self.lock:
++                self._clear_dead_receivers()
++                senderkey = _make_id(sender)
++                receivers = []
++                for (receiverkey, r_senderkey), receiver in self.receivers:
++                    if r_senderkey == NONE_ID or r_senderkey == senderkey:
+                         receivers.append(receiver)
+-                else:
+-                    receivers.append(receiver)
+-        return receivers
+-
+-    def _remove_receiver(self, receiver):
+-        """
+-        Remove dead receivers from connections.
+-        """
++                if self.use_caching:
++                    if not receivers:
++                        self.sender_receivers_cache[sender] = NO_RECEIVERS
++                    else:
++                        # Note, we must cache the weakref versions.
++                        self.sender_receivers_cache[sender] = receivers
++        non_weak_receivers = []
++        for receiver in receivers:
++            if isinstance(receiver, weakref.ReferenceType):
++                # Dereference the weak reference.
++                receiver = receiver()
++                if receiver is not None:
++                    non_weak_receivers.append(receiver)
++            else:
++                non_weak_receivers.append(receiver)
++        return non_weak_receivers
++
++    def _remove_receiver(self, receiver=None):
++        # Mark that the self.receivers list has dead weakrefs. If so, we will
++        # clean those up in connect, disconnect and _live_receivers while
++        # holding self.lock. Note that doing the cleanup here isn't a good
++        # idea, _remove_receiver() will be called as side effect of garbage
++        # collection, and so the call can happen while we are already holding
++        # self.lock.
++        self._dead_receivers = True
+ 
+-        self.lock.acquire()
+-        try:
+-            to_remove = []
+-            for key, connected_receiver in self.receivers:
+-                if connected_receiver == receiver:
+-                    to_remove.append(key)
+-            for key in to_remove:
+-                last_idx = len(self.receivers) - 1
+-                # enumerate in reverse order so that indexes are valid even
+-                # after we delete some items
+-                for idx, (r_key, _) in enumerate(reversed(self.receivers)):
+-                    if r_key == key:
+-                        del self.receivers[last_idx-idx]
+-        finally:
+-            self.lock.release()
+-    
+     def receive(self, **kwargs):
+         """
+         A decorator for connecting receivers to this signal. Used by passing in the
+@@ -296,14 +316,21 @@ def _decorator(func):
+ def receiver(signal, **kwargs):
+     """
+     A decorator for connecting receivers to signals. Used by passing in the
+-    signal and keyword arguments to connect::
++    signal (or list of signals) and keyword arguments to connect::
+ 
+         @receiver(post_save, sender=MyModel)
+         def signal_receiver(sender, **kwargs):
+             ...
+ 
++        @receiver([post_save, post_delete], sender=MyModel)
++        def signals_receiver(sender, **kwargs):
++            ...
+     """
+     def _decorator(func):
+-        signal.connect(func, **kwargs)
++        if isinstance(signal, (list, tuple)):
++            for s in signal:
++                s.connect(func, **kwargs)
++        else:
++            signal.connect(func, **kwargs)
+         return func
+     return _decorator
+diff --git a/pysignals/inspect.py b/pysignals/inspect.py
+new file mode 100644
+index 0000000..0171931
+--- /dev/null
++++ b/pysignals/inspect.py
+@@ -0,0 +1,131 @@
++from __future__ import absolute_import
++
++import inspect
++
++import six
++
++
++def getargspec(func):
++    if six.PY2:
++        return inspect.getargspec(func)
++
++    sig = inspect.signature(func)
++    args = [
++        p.name for p in sig.parameters.values()
++        if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
++    ]
++    varargs = [
++        p.name for p in sig.parameters.values()
++        if p.kind == inspect.Parameter.VAR_POSITIONAL
++    ]
++    varargs = varargs[0] if varargs else None
++    varkw = [
++        p.name for p in sig.parameters.values()
++        if p.kind == inspect.Parameter.VAR_KEYWORD
++    ]
++    varkw = varkw[0] if varkw else None
++    defaults = [
++        p.default for p in sig.parameters.values()
++        if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD and p.default is not p.empty
++    ] or None
++    return args, varargs, varkw, defaults
++
++
++def get_func_args(func):
++    if six.PY2:
++        argspec = inspect.getargspec(func)
++        return argspec.args[1:]  # ignore 'self'
++
++    sig = inspect.signature(func)
++    return [
++        arg_name for arg_name, param in sig.parameters.items()
++        if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
++    ]
++
++
++def get_func_full_args(func):
++    """
++    Return a list of (argument name, default value) tuples. If the argument
++    does not have a default value, omit it in the tuple. Arguments such as
++    *args and **kwargs are also included.
++    """
++    if six.PY2:
++        argspec = inspect.getargspec(func)
++        args = argspec.args[1:]  # ignore 'self'
++        defaults = argspec.defaults or []
++        # Split args into two lists depending on whether they have default value
++        no_default = args[:len(args) - len(defaults)]
++        with_default = args[len(args) - len(defaults):]
++        # Join the two lists and combine it with default values
++        args = [(arg,) for arg in no_default] + zip(with_default, defaults)
++        # Add possible *args and **kwargs and prepend them with '*' or '**'
++        varargs = [('*' + argspec.varargs,)] if argspec.varargs else []
++        kwargs = [('**' + argspec.keywords,)] if argspec.keywords else []
++        return args + varargs + kwargs
++
++    sig = inspect.signature(func)
++    args = []
++    for arg_name, param in sig.parameters.items():
++        name = arg_name
++        # Ignore 'self'
++        if name == 'self':
++            continue
++        if param.kind == inspect.Parameter.VAR_POSITIONAL:
++            name = '*' + name
++        elif param.kind == inspect.Parameter.VAR_KEYWORD:
++            name = '**' + name
++        if param.default != inspect.Parameter.empty:
++            args.append((name, param.default))
++        else:
++            args.append((name,))
++    return args
++
++
++def func_accepts_kwargs(func):
++    if six.PY2:
++        # Not all callables are inspectable with getargspec, so we'll
++        # try a couple different ways but in the end fall back on assuming
++        # it is -- we don't want to prevent registration of valid but weird
++        # callables.
++        try:
++            argspec = inspect.getargspec(func)
++        except TypeError:
++            try:
++                argspec = inspect.getargspec(func.__call__)
++            except (TypeError, AttributeError):
++                argspec = None
++        return not argspec or argspec[2] is not None
++
++    return any(
++        p for p in inspect.signature(func).parameters.values()
++        if p.kind == p.VAR_KEYWORD
++    )
++
++
++def func_accepts_var_args(func):
++    """
++    Return True if function 'func' accepts positional arguments *args.
++    """
++    if six.PY2:
++        return inspect.getargspec(func)[1] is not None
++
++    return any(
++        p for p in inspect.signature(func).parameters.values()
++        if p.kind == p.VAR_POSITIONAL
++    )
++
++
++def func_has_no_args(func):
++    args = inspect.getargspec(func)[0] if six.PY2 else [
++        p for p in inspect.signature(func).parameters.values()
++        if p.kind == p.POSITIONAL_OR_KEYWORD
++    ]
++    return len(args) == 1
++
++
++def func_supports_parameter(func, parameter):
++    if six.PY3:
++        return parameter in inspect.signature(func).parameters
++    else:
++        args, varargs, varkw, defaults = inspect.getargspec(func)
++        return parameter in args
+diff --git a/pysignals/license.python.txt b/pysignals/license.python.txt
+new file mode 100644
+index 0000000..f9ca2c9
+--- /dev/null
++++ b/pysignals/license.python.txt
+@@ -0,0 +1,254 @@
++A. HISTORY OF THE SOFTWARE
++==========================
++
++Python was created in the early 1990s by Guido van Rossum at Stichting
++Mathematisch Centrum (CWI, see http://www.cwi.nl) in the Netherlands
++as a successor of a language called ABC.  Guido remains Python's
++principal author, although it includes many contributions from others.
++
++In 1995, Guido continued his work on Python at the Corporation for
++National Research Initiatives (CNRI, see http://www.cnri.reston.va.us)
++in Reston, Virginia where he released several versions of the
++software.
++
++In May 2000, Guido and the Python core development team moved to
++BeOpen.com to form the BeOpen PythonLabs team.  In October of the same
++year, the PythonLabs team moved to Digital Creations (now Zope
++Corporation, see http://www.zope.com).  In 2001, the Python Software
++Foundation (PSF, see http://www.python.org/psf/) was formed, a
++non-profit organization created specifically to own Python-related
++Intellectual Property.  Zope Corporation is a sponsoring member of
++the PSF.
++
++All Python releases are Open Source (see http://www.opensource.org for
++the Open Source Definition).  Historically, most, but not all, Python
++releases have also been GPL-compatible; the table below summarizes
++the various releases.
++
++    Release         Derived     Year        Owner       GPL-
++                    from                                compatible? (1)
++
++    0.9.0 thru 1.2              1991-1995   CWI         yes
++    1.3 thru 1.5.2  1.2         1995-1999   CNRI        yes
++    1.6             1.5.2       2000        CNRI        no
++    2.0             1.6         2000        BeOpen.com  no
++    1.6.1           1.6         2001        CNRI        yes (2)
++    2.1             2.0+1.6.1   2001        PSF         no
++    2.0.1           2.0+1.6.1   2001        PSF         yes
++    2.1.1           2.1+2.0.1   2001        PSF         yes
++    2.1.2           2.1.1       2002        PSF         yes
++    2.1.3           2.1.2       2002        PSF         yes
++    2.2 and above   2.1.1       2001-now    PSF         yes
++
++Footnotes:
++
++(1) GPL-compatible doesn't mean that we're distributing Python under
++    the GPL.  All Python licenses, unlike the GPL, let you distribute
++    a modified version without making your changes open source.  The
++    GPL-compatible licenses make it possible to combine Python with
++    other software that is released under the GPL; the others don't.
++
++(2) According to Richard Stallman, 1.6.1 is not GPL-compatible,
++    because its license has a choice of law clause.  According to
++    CNRI, however, Stallman's lawyer has told CNRI's lawyer that 1.6.1
++    is "not incompatible" with the GPL.
++
++Thanks to the many outside volunteers who have worked under Guido's
++direction to make these releases possible.
++
++
++B. TERMS AND CONDITIONS FOR ACCESSING OR OTHERWISE USING PYTHON
++===============================================================
++
++PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2
++--------------------------------------------
++
++1. This LICENSE AGREEMENT is between the Python Software Foundation
++("PSF"), and the Individual or Organization ("Licensee") accessing and
++otherwise using this software ("Python") in source or binary form and
++its associated documentation.
++
++2. Subject to the terms and conditions of this License Agreement, PSF hereby
++grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,
++analyze, test, perform and/or display publicly, prepare derivative works,
++distribute, and otherwise use Python alone or in any derivative version,
++provided, however, that PSF's License Agreement and PSF's notice of copyright,
++i.e., "Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
++2011, 2012, 2013, 2014 Python Software Foundation; All Rights Reserved" are retained
++in Python alone or in any derivative version prepared by Licensee.
++
++3. In the event Licensee prepares a derivative work that is based on
++or incorporates Python or any part thereof, and wants to make
++the derivative work available to others as provided herein, then
++Licensee hereby agrees to include in any such work a brief summary of
++the changes made to Python.
++
++4. PSF is making Python available to Licensee on an "AS IS"
++basis.  PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
++IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND
++DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
++FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF PYTHON WILL NOT
++INFRINGE ANY THIRD PARTY RIGHTS.
++
++5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON
++FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS
++A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON,
++OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
++
++6. This License Agreement will automatically terminate upon a material
++breach of its terms and conditions.
++
++7. Nothing in this License Agreement shall be deemed to create any
++relationship of agency, partnership, or joint venture between PSF and
++Licensee.  This License Agreement does not grant permission to use PSF
++trademarks or trade name in a trademark sense to endorse or promote
++products or services of Licensee, or any third party.
++
++8. By copying, installing or otherwise using Python, Licensee
++agrees to be bound by the terms and conditions of this License
++Agreement.
++
++
++BEOPEN.COM LICENSE AGREEMENT FOR PYTHON 2.0
++-------------------------------------------
++
++BEOPEN PYTHON OPEN SOURCE LICENSE AGREEMENT VERSION 1
++
++1. This LICENSE AGREEMENT is between BeOpen.com ("BeOpen"), having an
++office at 160 Saratoga Avenue, Santa Clara, CA 95051, and the
++Individual or Organization ("Licensee") accessing and otherwise using
++this software in source or binary form and its associated
++documentation ("the Software").
++
++2. Subject to the terms and conditions of this BeOpen Python License
++Agreement, BeOpen hereby grants Licensee a non-exclusive,
++royalty-free, world-wide license to reproduce, analyze, test, perform
++and/or display publicly, prepare derivative works, distribute, and
++otherwise use the Software alone or in any derivative version,
++provided, however, that the BeOpen Python License is retained in the
++Software, alone or in any derivative version prepared by Licensee.
++
++3. BeOpen is making the Software available to Licensee on an "AS IS"
++basis.  BEOPEN MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
++IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, BEOPEN MAKES NO AND
++DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
++FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE SOFTWARE WILL NOT
++INFRINGE ANY THIRD PARTY RIGHTS.
++
++4. BEOPEN SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF THE
++SOFTWARE FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS
++AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THE SOFTWARE, OR ANY
++DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
++
++5. This License Agreement will automatically terminate upon a material
++breach of its terms and conditions.
++
++6. This License Agreement shall be governed by and interpreted in all
++respects by the law of the State of California, excluding conflict of
++law provisions.  Nothing in this License Agreement shall be deemed to
++create any relationship of agency, partnership, or joint venture
++between BeOpen and Licensee.  This License Agreement does not grant
++permission to use BeOpen trademarks or trade names in a trademark
++sense to endorse or promote products or services of Licensee, or any
++third party.  As an exception, the "BeOpen Python" logos available at
++http://www.pythonlabs.com/logos.html may be used according to the
++permissions granted on that web page.
++
++7. By copying, installing or otherwise using the software, Licensee
++agrees to be bound by the terms and conditions of this License
++Agreement.
++
++
++CNRI LICENSE AGREEMENT FOR PYTHON 1.6.1
++---------------------------------------
++
++1. This LICENSE AGREEMENT is between the Corporation for National
++Research Initiatives, having an office at 1895 Preston White Drive,
++Reston, VA 20191 ("CNRI"), and the Individual or Organization
++("Licensee") accessing and otherwise using Python 1.6.1 software in
++source or binary form and its associated documentation.
++
++2. Subject to the terms and conditions of this License Agreement, CNRI
++hereby grants Licensee a nonexclusive, royalty-free, world-wide
++license to reproduce, analyze, test, perform and/or display publicly,
++prepare derivative works, distribute, and otherwise use Python 1.6.1
++alone or in any derivative version, provided, however, that CNRI's
++License Agreement and CNRI's notice of copyright, i.e., "Copyright (c)
++1995-2001 Corporation for National Research Initiatives; All Rights
++Reserved" are retained in Python 1.6.1 alone or in any derivative
++version prepared by Licensee.  Alternately, in lieu of CNRI's License
++Agreement, Licensee may substitute the following text (omitting the
++quotes): "Python 1.6.1 is made available subject to the terms and
++conditions in CNRI's License Agreement.  This Agreement together with
++Python 1.6.1 may be located on the Internet using the following
++unique, persistent identifier (known as a handle): 1895.22/1013.  This
++Agreement may also be obtained from a proxy server on the Internet
++using the following URL: http://hdl.handle.net/1895.22/1013".
++
++3. In the event Licensee prepares a derivative work that is based on
++or incorporates Python 1.6.1 or any part thereof, and wants to make
++the derivative work available to others as provided herein, then
++Licensee hereby agrees to include in any such work a brief summary of
++the changes made to Python 1.6.1.
++
++4. CNRI is making Python 1.6.1 available to Licensee on an "AS IS"
++basis.  CNRI MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
++IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, CNRI MAKES NO AND
++DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
++FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF PYTHON 1.6.1 WILL NOT
++INFRINGE ANY THIRD PARTY RIGHTS.
++
++5. CNRI SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON
++1.6.1 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS
++A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 1.6.1,
++OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
++
++6. This License Agreement will automatically terminate upon a material
++breach of its terms and conditions.
++
++7. This License Agreement shall be governed by the federal
++intellectual property law of the United States, including without
++limitation the federal copyright law, and, to the extent such
++U.S. federal law does not apply, by the law of the Commonwealth of
++Virginia, excluding Virginia's conflict of law provisions.
++Notwithstanding the foregoing, with regard to derivative works based
++on Python 1.6.1 that incorporate non-separable material that was
++previously distributed under the GNU General Public License (GPL), the
++law of the Commonwealth of Virginia shall govern this License
++Agreement only as to issues arising under or with respect to
++Paragraphs 4, 5, and 7 of this License Agreement.  Nothing in this
++License Agreement shall be deemed to create any relationship of
++agency, partnership, or joint venture between CNRI and Licensee.  This
++License Agreement does not grant permission to use CNRI trademarks or
++trade name in a trademark sense to endorse or promote products or
++services of Licensee, or any third party.
++
++8. By clicking on the "ACCEPT" button where indicated, or by copying,
++installing or otherwise using Python 1.6.1, Licensee agrees to be
++bound by the terms and conditions of this License Agreement.
++
++        ACCEPT
++
++
++CWI LICENSE AGREEMENT FOR PYTHON 0.9.0 THROUGH 1.2
++--------------------------------------------------
++
++Copyright (c) 1991 - 1995, Stichting Mathematisch Centrum Amsterdam,
++The Netherlands.  All rights reserved.
++
++Permission to use, copy, modify, and distribute this software and its
++documentation for any purpose and without fee is hereby granted,
++provided that the above copyright notice appear in all copies and that
++both that copyright notice and this permission notice appear in
++supporting documentation, and that the name of Stichting Mathematisch
++Centrum or CWI not be used in advertising or publicity pertaining to
++distribution of the software without specific, written prior
++permission.
++
++STICHTING MATHEMATISCH CENTRUM DISCLAIMS ALL WARRANTIES WITH REGARD TO
++THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
++FITNESS, IN NO EVENT SHALL STICHTING MATHEMATISCH CENTRUM BE LIABLE
++FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
++OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+diff --git a/pysignals/license.txt b/pysignals/license.txt
+new file mode 100644
+index 0000000..505090d
+--- /dev/null
++++ b/pysignals/license.txt
+@@ -0,0 +1,36 @@
++django.dispatch was originally forked from PyDispatcher.
++
++PyDispatcher License:
++
++    Copyright (c) 2001-2003, Patrick K. O'Brien and Contributors
++    All rights reserved.
++    
++    Redistribution and use in source and binary forms, with or without
++    modification, are permitted provided that the following conditions
++    are met:
++    
++        Redistributions of source code must retain the above copyright
++        notice, this list of conditions and the following disclaimer.
++    
++        Redistributions in binary form must reproduce the above
++        copyright notice, this list of conditions and the following
++        disclaimer in the documentation and/or other materials
++        provided with the distribution.
++    
++        The name of Patrick K. O'Brien, or the name of any Contributor,
++        may not be used to endorse or promote products derived from this 
++        software without specific prior written permission.
++    
++    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
++    FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
++    COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
++    INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
++    OF THE POSSIBILITY OF SUCH DAMAGE. 
++
+diff --git a/pysignals/weakref_backports.py b/pysignals/weakref_backports.py
+new file mode 100644
+index 0000000..edc8693
+--- /dev/null
++++ b/pysignals/weakref_backports.py
+@@ -0,0 +1,68 @@
++"""
++weakref_backports is a partial backport of the weakref module for python
++versions below 3.4.
++
++Copyright (C) 2013 Python Software Foundation, see license.python.txt for
++details.
++
++The following changes were made to the original sources during backporting:
++
++ * Added `self` to `super` calls.
++ * Removed `from None` when raising exceptions.
++
++"""
++from weakref import ref
++
++
++class WeakMethod(ref):
++    """
++    A custom `weakref.ref` subclass which simulates a weak reference to
++    a bound method, working around the lifetime problem of bound methods.
++    """
++
++    __slots__ = "_func_ref", "_meth_type", "_alive", "__weakref__"
++
++    def __new__(cls, meth, callback=None):
++        try:
++            obj = meth.__self__
++            func = meth.__func__
++        except AttributeError:
++            raise TypeError("argument should be a bound method, not {}"
++                            .format(type(meth)))
++        def _cb(arg):
++            # The self-weakref trick is needed to avoid creating a reference
++            # cycle.
++            self = self_wr()
++            if self._alive:
++                self._alive = False
++                if callback is not None:
++                    callback(self)
++        self = ref.__new__(cls, obj, _cb)
++        self._func_ref = ref(func, _cb)
++        self._meth_type = type(meth)
++        self._alive = True
++        self_wr = ref(self)
++        return self
++
++    def __call__(self):
++        obj = super(WeakMethod, self).__call__()
++        func = self._func_ref()
++        if obj is None or func is None:
++            return None
++        return self._meth_type(func, obj)
++
++    def __eq__(self, other):
++        if isinstance(other, WeakMethod):
++            if not self._alive or not other._alive:
++                return self is other
++            return ref.__eq__(self, other) and self._func_ref == other._func_ref
++        return False
++
++    def __ne__(self, other):
++        if isinstance(other, WeakMethod):
++            if not self._alive or not other._alive:
++                return self is not other
++            return ref.__ne__(self, other) or self._func_ref != other._func_ref
++        return True
++
++    __hash__ = ref.__hash__

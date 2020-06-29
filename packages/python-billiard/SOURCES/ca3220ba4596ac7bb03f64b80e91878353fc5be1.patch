@@ -1,0 +1,33 @@
+From ca3220ba4596ac7bb03f64b80e91878353fc5be1 Mon Sep 17 00:00:00 2001
+From: Victor Stinner <vstinner@python.org>
+Date: Mon, 16 Mar 2020 21:50:36 +0100
+Subject: [PATCH] Issue #309: Add Python 3.9 support to spawnv_passfds()
+
+Python 3.9 added (umask, user, group, extra_groups) parameters to
+_posixsubprocess.fork_exec().
+---
+ billiard/compat.py | 8 ++++++--
+ tox.ini            | 2 +-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/billiard/compat.py b/billiard/compat.py
+index b172d9a..b5ce7c7 100644
+--- a/billiard/compat.py
++++ b/billiard/compat.py
+@@ -220,10 +220,14 @@ def spawnv_passfds(path, args, passfds):
+         passfds = sorted(passfds)
+         errpipe_read, errpipe_write = os.pipe()
+         try:
+-            return _posixsubprocess.fork_exec(
++            args = [
+                 args, [fsencode(path)], True, tuple(passfds), None, None,
+                 -1, -1, -1, -1, -1, -1, errpipe_read, errpipe_write,
+-                False, False, None)
++                False, False]
++            if sys.version_info >= (3, 9):
++                args.extend((None, None, None, -1))  # group, extra_groups, user, umask
++            args.append(None)  # preexec_fn
++            return _posixsubprocess.fork_exec(*args)
+         finally:
+             os.close(errpipe_read)
+             os.close(errpipe_write)

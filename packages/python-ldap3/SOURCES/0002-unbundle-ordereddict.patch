@@ -1,0 +1,39 @@
+diff -ru ldap3-2.6.1-orig/ldap3/abstract/entry.py ldap3-2.6.1/ldap3/abstract/entry.py
+--- ldap3-2.6.1-orig/ldap3/abstract/entry.py	2019-07-27 10:54:51.000000000 -0400
++++ ldap3-2.6.1/ldap3/abstract/entry.py	2019-10-08 09:41:42.368765763 -0400
+@@ -28,7 +28,7 @@
+ try:
+     from collections import OrderedDict
+ except ImportError:
+-    from ..utils.ordDict import OrderedDict  # for Python 2.6
++    from ordereddict import OrderedDict  # for Python 2.6
+ 
+ from os import linesep
+ 
+diff -ru ldap3-2.6.1-orig/setup.py ldap3-2.6.1/setup.py
+--- ldap3-2.6.1-orig/setup.py	2018-07-21 00:32:31.000000000 -0400
++++ ldap3-2.6.1/setup.py	2019-10-08 09:43:19.775209988 -0400
+@@ -23,6 +23,7 @@
+ # If not, see <http://www.gnu.org/licenses/>.
+ 
+ import os
++import sys
+ import glob
+ import shutil
+ from json import load
+@@ -80,11 +81,13 @@
+ 
+ 
+ setup_kwargs['cmdclass'] = {'clean': Clean}
+-
++install_requires = [i.strip() for i in open('requirements.txt').readlines()]
++if sys.version_info < (2, 7):
++    install_requires.append('ordereddict')
+ 
+ setup(name=package_name,
+       version=version,
+-      install_requires=[i.strip() for i in open('requirements.txt').readlines()],
++      install_requires=install_requires,
+       license=license,
+       author=author,
+       author_email=email,

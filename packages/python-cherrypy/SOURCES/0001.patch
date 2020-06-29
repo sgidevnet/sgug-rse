@@ -1,0 +1,42 @@
+From e2cc6f4ab6baf45d3ca19295759f01af98dd2ab2 Mon Sep 17 00:00:00 2001
+From: Alfredo Deza <adeza@redhat.com>
+Date: Wed, 20 Nov 2019 18:01:36 -0500
+Subject: [PATCH] use pytest 3.4 compatible fixtures for tmp paths
+
+The latest version of pytest in EPEL8 is 3.4.2 which is missing the
+fixtures used by CherryPy.
+
+Upstream issue: https://github.com/cherrypy/cherrypy/issues/1824
+---
+ cherrypy/test/test_logging.py | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/cherrypy/test/test_logging.py b/cherrypy/test/test_logging.py
+index 5308fb72..87f48d13 100644
+--- a/cherrypy/test/test_logging.py
++++ b/cherrypy/test/test_logging.py
+@@ -16,13 +16,17 @@ erebos = u'\u0388\u03c1\u03b5\u03b2\u03bf\u03c2.com'
+ 
+ 
+ @pytest.fixture
+-def access_log_file(tmp_path_factory):
+-    return tmp_path_factory.mktemp('logs') / 'access.log'
++def access_log_file(tmpdir):
++    p = tmpdir.mkdir("access_logs").join("access.log")
++    p.write("")
++    return p
+ 
+ 
+ @pytest.fixture
+-def error_log_file(tmp_path_factory):
+-    return tmp_path_factory.mktemp('logs') / 'access.log'
++def error_log_file(tmpdir):
++    p = tmpdir.mkdir("error_logs").join("error.log")
++    p.write("")
++    return p
+ 
+ 
+ @pytest.fixture
+-- 
+2.20.1
+

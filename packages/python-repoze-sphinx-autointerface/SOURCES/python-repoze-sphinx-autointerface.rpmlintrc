@@ -1,0 +1,5 @@
+# THIS FILE IS FOR WHITELISTING RPMLINT ERRORS AND WARNINGS IN TASKOTRON
+# https://fedoraproject.org/wiki/Taskotron/Tasks/dist.rpmlint#Whitelisting_errors
+
+# The dictionary lacks some technical words
+addFilter(r'spelling-error .* zope')

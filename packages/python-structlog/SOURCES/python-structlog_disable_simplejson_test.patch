@@ -1,0 +1,26 @@
+--- a/tests/test_processors.py	2017-10-17 12:36:21.564981770 +0200
++++ b/tests/test_processors.py	2017-10-17 12:36:59.875199655 +0200
+@@ -11,10 +11,14 @@
+ import sys
+ 
+ import pytest
+-import simplejson
+ import six
+ 
+ try:
++    import simplejson
++except ImportError:
++    simplejson = None
++
++try:
+     import rapidjson
+ except ImportError:
+     rapidjson = None
+@@ -167,6 +171,7 @@
+ 
+         assert {"a": 42} == jr(None, None, obj)
+ 
++    @pytest.mark.skipif(simplejson is None, reason="simplejson is missing.")
+     def test_simplejson(self, event_dict):
+         """
+         Integration test with simplejson.

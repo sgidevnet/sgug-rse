@@ -1,0 +1,47 @@
+From 65ab6c510563a490f22b7307b7370457cd839afe Mon Sep 17 00:00:00 2001
+From: Andrew Zhu <me@andrew-zhu.com>
+Date: Mon, 28 Oct 2019 12:51:19 -0700
+Subject: [PATCH] add python3.8 support
+
+Fixes #61
+---
+ .gitignore    |  1 +
+ .travis.yml   |  1 +
+ simpleeval.py | 11 +++++++++--
+ 3 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/simpleeval.py b/simpleeval.py
+index e489835..44bdeca 100644
+--- a/simpleeval.py
++++ b/simpleeval.py
+@@ -298,13 +298,17 @@ def __init__(self, operators=None, functions=None, names=None):
+ 
+         # py3k stuff:
+         if hasattr(ast, 'NameConstant'):
+-            self.nodes[ast.NameConstant] = self._eval_nameconstant
++            self.nodes[ast.NameConstant] = self._eval_constant
+ 
+         # py3.6, f-strings
+         if hasattr(ast, 'JoinedStr'):
+             self.nodes[ast.JoinedStr] = self._eval_joinedstr  # f-string
+             self.nodes[ast.FormattedValue] = self._eval_formattedvalue  # formatted value in f-string
+ 
++        # py3.8 uses ast.Constant instead of ast.Num, ast.Str, ast.NameConstant
++        if hasattr(ast, 'Constant'):
++            self.nodes[ast.Constant] = self._eval_constant
++
+         # Defaults:
+ 
+         self.ATTR_INDEX_FALLBACK = ATTR_INDEX_FALLBACK
+@@ -351,7 +355,10 @@ def _eval_str(node):
+         return node.s
+ 
+     @staticmethod
+-    def _eval_nameconstant(node):
++    def _eval_constant(node):
++        if hasattr(node.value, '__len__') and len(node.value) > MAX_STRING_LENGTH:
++            raise IterableTooLong("Literal in statement is too long!"
++                                  " ({0}, when {1} is max)".format(len(node.value), MAX_STRING_LENGTH))
+         return node.value
+ 
+     def _eval_unaryop(self, node):

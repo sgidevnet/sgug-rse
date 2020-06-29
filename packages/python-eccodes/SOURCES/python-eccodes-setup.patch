@@ -1,0 +1,11 @@
+--- eccodes-python-0.9.7.unchanged/setup.py	2020-03-09 17:26:06.000000000 +0100
++++ eccodes-python-0.9.7/setup.py	2020-03-19 10:38:32.426277832 +0100
+@@ -45,6 +45,8 @@ setuptools.setup(
+     license="Apache License Version 2.0",
+     url="https://github.com/ecmwf/eccodes-python",
+     packages=setuptools.find_packages(),
++    setup_requires=["cffi"],
++    cffi_modules=["builder.py:ffibuilder"],
+     include_package_data=True,
+     install_requires=["attrs", "cffi", "numpy",],
+     tests_require=["pytest", "pytest-cov", "pytest-flakes",],

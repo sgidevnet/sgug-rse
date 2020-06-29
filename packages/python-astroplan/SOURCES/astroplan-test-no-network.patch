@@ -1,0 +1,12 @@
+diff -ur astroplan-0.5/astroplan/tests/test_scheduling.py astroplan-0.5.nonet/astroplan/tests/test_scheduling.py
+--- astroplan-0.5/astroplan/tests/test_scheduling.py	2018-07-14 00:04:52.000000000 +0200
++++ astroplan-0.5.nonet/astroplan/tests/test_scheduling.py	2019-11-27 20:12:58.335448640 +0100
+@@ -23,7 +23,7 @@
+ polaris = FixedTarget(coord=SkyCoord(ra=37.95456067 * u.deg,
+                                      dec=89.26410897 * u.deg), name="Polaris")
+ 
+-apo = Observer.at_site('apo')
++apo = Observer(location=EarthLocation(-1463969.30185172, -5166673.34223433, 3434985.71204565, unit='m'), name='apo')
+ targets = [vega, polaris, rigel]
+ default_time = Time('2016-02-06 03:00:00')
+ only_at_night = [AtNightConstraint()]

@@ -1,0 +1,133 @@
+From 5976fb7e3cc57c2d91473bbc35b8fe7b9399f8f7 Mon Sep 17 00:00:00 2001
+From: Tom Hughes <tom@compton.nu>
+Date: Mon, 23 Nov 2015 12:27:01 +0000
+Subject: [PATCH 3/5] Remove test that relies on WKT data missing from Fedora's
+ gdal
+
+---
+ test/python_tests/pgraster_test.py | 109 -----------------------------
+ 1 file changed, 109 deletions(-)
+
+diff --git a/test/python_tests/pgraster_test.py b/test/python_tests/pgraster_test.py
+index 2bcc8b8b2..2cce26d2a 100644
+--- a/test/python_tests/pgraster_test.py
++++ b/test/python_tests/pgraster_test.py
+@@ -384,115 +384,6 @@ if 'pgraster' in mapnik.DatasourceCache.plugin_names() \
+                     _test_rgba_8bui(
+                         'rgba_8bui', tilesize, constraint, overview)
+ 
+-    # nodata-edge.tif, RGB 8BUI
+-    def _test_rgb_8bui_rendering(lbl, tnam, overview, rescale, clip):
+-        if rescale:
+-            lbl += ' Sc'
+-        if clip:
+-            lbl += ' Cl'
+-        ds = mapnik.PgRaster(dbname=MAPNIK_TEST_DBNAME, table=tnam,
+-                             use_overviews=1 if overview else 0,
+-                             prescale_rasters=rescale, clip_rasters=clip)
+-        fs = ds.featureset()
+-        feature = fs.next()
+-        eq_(feature['rid'], 1)
+-        lyr = mapnik.Layer('rgba_8bui')
+-        lyr.datasource = ds
+-        expenv = mapnik.Box2d(-12329035.7652168, 4508650.39854396,
+-                              -12328653.0279471, 4508957.34625536)
+-        env = lyr.envelope()
+-        # As the input size is a prime number both horizontally
+-        # and vertically, we expect the extent of the overview
+-        # tables to be a pixel wider than the original, whereas
+-        # the pixel size in geographical units depends on the
+-        # overview factor. So we start with the original pixel size
+-        # as base scale and multiply by the overview factor.
+-        # NOTE: the overview table extent only grows north and east
+-        pixsize = 2  # see gdalinfo nodata-edge.tif
+-        tol = pixsize * max(overview.split(',')) if overview else 0
+-        assert_almost_equal(env.minx, expenv.minx, places=0)
+-        assert_almost_equal(env.miny, expenv.miny, delta=tol)
+-        assert_almost_equal(env.maxx, expenv.maxx, delta=tol)
+-        assert_almost_equal(env.maxy, expenv.maxy, places=0)
+-        mm = mapnik.Map(256, 256)
+-        style = mapnik.Style()
+-        sym = mapnik.RasterSymbolizer()
+-        rule = mapnik.Rule()
+-        rule.symbols.append(sym)
+-        style.rules.append(rule)
+-        mm.append_style('foo', style)
+-        lyr.styles.append('foo')
+-        mm.layers.append(lyr)
+-        mm.zoom_to_box(expenv)
+-        im = mapnik.Image(mm.width, mm.height)
+-        t0 = time.time()  # we want wall time to include IO waits
+-        mapnik.render(mm, im)
+-        lap = time.time() - t0
+-        log('T ' + str(lap) + ' -- ' + lbl + ' E:full')
+-        expected = 'images/support/pgraster/%s-%s-%s-%s-%s-box1.png' % (
+-            lyr.name, tnam, lbl, overview, clip)
+-        compare_images(expected, im)
+-        # no data
+-        eq_(hexlify(im.view(3, 16, 1, 1).tostring()), '00000000')
+-        eq_(hexlify(im.view(128, 16, 1, 1).tostring()), '00000000')
+-        eq_(hexlify(im.view(250, 16, 1, 1).tostring()), '00000000')
+-        eq_(hexlify(im.view(3, 240, 1, 1).tostring()), '00000000')
+-        eq_(hexlify(im.view(128, 240, 1, 1).tostring()), '00000000')
+-        eq_(hexlify(im.view(250, 240, 1, 1).tostring()), '00000000')
+-        # dark brown
+-        eq_(hexlify(im.view(174, 39, 1, 1).tostring()), 'c3a698ff')
+-        # dark gray
+-        eq_(hexlify(im.view(195, 132, 1, 1).tostring()), '575f62ff')
+-        # Now zoom over a portion of the env (1/10)
+-        newenv = mapnik.Box2d(-12329035.7652168, 4508926.651484220,
+-                              -12328997.49148983, 4508957.34625536)
+-        mm.zoom_to_box(newenv)
+-        t0 = time.time()  # we want wall time to include IO waits
+-        im = mapnik.Image(mm.width, mm.height)
+-        mapnik.render(mm, im)
+-        lap = time.time() - t0
+-        log('T ' + str(lap) + ' -- ' + lbl + ' E:1/10')
+-        expected = 'images/support/pgraster/%s-%s-%s-%s-%s-box2.png' % (
+-            lyr.name, tnam, lbl, overview, clip)
+-        compare_images(expected, im)
+-        # no data
+-        eq_(hexlify(im.view(3, 16, 1, 1).tostring()), '00000000')
+-        eq_(hexlify(im.view(128, 16, 1, 1).tostring()), '00000000')
+-        eq_(hexlify(im.view(250, 16, 1, 1).tostring()), '00000000')
+-        # black
+-        eq_(hexlify(im.view(3, 42, 1, 1).tostring()), '000000ff')
+-        eq_(hexlify(im.view(3, 134, 1, 1).tostring()), '000000ff')
+-        eq_(hexlify(im.view(3, 244, 1, 1).tostring()), '000000ff')
+-        # gray
+-        eq_(hexlify(im.view(135, 157, 1, 1).tostring()), '4e555bff')
+-        # brown
+-        eq_(hexlify(im.view(195, 223, 1, 1).tostring()), 'f2cdbaff')
+-
+-    def _test_rgb_8bui(lbl, tilesize, constraint, overview):
+-        tnam = 'nodataedge'
+-        import_raster(
+-            '../data/raster/nodata-edge.tif',
+-            tnam,
+-            tilesize,
+-            constraint,
+-            overview)
+-        if constraint:
+-            lbl += ' C'
+-        if tilesize:
+-            lbl += ' T:' + tilesize
+-        if overview:
+-            lbl += ' O:' + overview
+-        for prescale in [0, 1]:
+-            for clip in [0, 1]:
+-                _test_rgb_8bui_rendering(lbl, tnam, overview, prescale, clip)
+-        #drop_imported(tnam, overview)
+-
+-    def test_rgb_8bui():
+-        for tilesize in ['64x64']:
+-            for constraint in [1]:
+-                for overview in ['']:
+-                    _test_rgb_8bui('rgb_8bui', tilesize, constraint, overview)
+-
+     def _test_grayscale_subquery(lbl, pixtype, value):
+         #
+         #      3   8   13
+-- 
+2.21.0
+

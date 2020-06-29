@@ -1,0 +1,18 @@
+diff -up jellyfish-0.4.0/setup.py.orig jellyfish-0.4.0/setup.py
+--- jellyfish-0.4.0/setup.py.orig	2015-04-28 20:02:29.208480820 +0200
++++ jellyfish-0.4.0/setup.py	2015-04-28 20:02:49.775623121 +0200
+@@ -112,13 +112,4 @@ def run_setup(build_c):
+                        "Topic :: Text Processing :: Linguistic"],
+           **kw)
+ 
+-try:
+-    run_setup(not IS_PYPY)
+-except BuildFailed:
+-    print('*'*75)
+-    print('WARNING: C extension could not be compiled, falling back to pure Python.')
+-    print('*'*75)
+-    run_setup(False)
+-    print('*'*75)
+-    print('WARNING: C extension could not be compiled, falling back to pure Python.')
+-    print('*'*75)
++run_setup(False)

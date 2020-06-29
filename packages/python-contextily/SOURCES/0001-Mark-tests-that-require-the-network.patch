@@ -1,0 +1,161 @@
+From f23df735d90cb3593447711a61940a5cb8e781a8 Mon Sep 17 00:00:00 2001
+From: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+Date: Thu, 5 Mar 2020 03:25:23 -0500
+Subject: [PATCH] Mark tests that require the network.
+
+Signed-off-by: Elliott Sales de Andrade <quantum.analyst@gmail.com>
+---
+ tests/conftest.py       |  3 +++
+ tests/test_ctx.py       | 12 ++++++++++++
+ tests/test_providers.py |  4 ++++
+ 3 files changed, 19 insertions(+)
+ create mode 100644 tests/conftest.py
+
+diff --git a/tests/conftest.py b/tests/conftest.py
+new file mode 100644
+index 0000000..f7dcea5
+--- /dev/null
++++ b/tests/conftest.py
+@@ -0,0 +1,3 @@
++def pytest_configure(config):
++    config.addinivalue_line("markers",
++                            "network: mark tests that use the network.")
+diff --git a/tests/test_ctx.py b/tests/test_ctx.py
+index 26107d4..f1a7eb9 100644
+--- a/tests/test_ctx.py
++++ b/tests/test_ctx.py
+@@ -5,6 +5,7 @@ import contextily as ctx
+ import os
+ import numpy as np
+ import mercantile as mt
++import pytest
+ import rasterio as rio
+ from contextily.tile import _calculate_zoom
+ from numpy.testing import assert_array_almost_equal
+@@ -17,6 +18,7 @@ ADJUST = -3  # To save download size / time
+ # Tile
+ 
+ 
++@pytest.mark.network
+ def test_bounds2raster():
+     w, s, e, n = (
+         -106.6495132446289,
+@@ -66,6 +68,7 @@ def test_bounds2raster():
+     assert_array_almost_equal(list(rtr.bounds), rtr_bounds)
+ 
+ 
++@pytest.mark.network
+ def test_bounds2img():
+     w, s, e, n = (
+         -106.6495132446289,
+@@ -87,6 +90,7 @@ def test_bounds2img():
+     assert img[200, 100, :].tolist() == [230, 225, 189]
+ 
+ 
++@pytest.mark.network
+ def test_warp_tiles():
+     w, s, e, n = (
+         -106.6495132446289,
+@@ -112,6 +116,7 @@ def test_warp_tiles():
+     assert wimg[200, 100, :].tolist() == [133, 130, 109]
+ 
+ 
++@pytest.mark.network
+ def test_warp_img_transform():
+     w, s, e, n = ext = (
+         -106.6495132446289,
+@@ -143,6 +148,7 @@ def test_howmany():
+     assert got == expected
+ 
+ 
++@pytest.mark.network
+ def test_ll2wdw():
+     w, s, e, n = (
+         -106.6495132446289,
+@@ -181,6 +187,7 @@ def test_autozoom():
+     assert zoom == expected_zoom
+ 
+ 
++@pytest.mark.network
+ def test_validate_zoom():
+     # tiny extent to trigger large calculated zoom
+     w, s, e, n = (0, 0, 0.001, 0.001)
+@@ -206,6 +213,7 @@ def test_validate_zoom():
+ # Place
+ 
+ 
++@pytest.mark.network
+ def test_place():
+     expected_bbox = [-105.3014509, 39.9643513, -105.1780988, 40.094409]
+     expected_bbox_map = [
+@@ -237,6 +245,7 @@ def test_place():
+     assert_array_almost_equal(loc.bbox_map, ax.images[0].get_extent())
+ 
+ 
++@pytest.mark.network
+ def test_plot_map():
+     # Place as a search
+     loc = ctx.Place(SEARCH, zoom_adjust=ADJUST)
+@@ -256,6 +265,7 @@ def test_plot_map():
+ # Plotting
+ 
+ 
++@pytest.mark.network
+ def test_add_basemap():
+     # Plot boulder bbox as in test_place
+     x1, x2, y1, y2 = [
+@@ -366,6 +376,7 @@ def test_add_basemap():
+     assert_array_almost_equal(ax.images[0].get_array().mean(), 183.38608756727749)
+ 
+ 
++@pytest.mark.network
+ def test_basemap_attribution():
+     extent = (-11945319, -10336026, 2910477, 4438236)
+ 
+@@ -417,6 +428,7 @@ def test_attribution():
+     assert txt.get_fontfamily() == ["monospace"]
+ 
+ 
++@pytest.mark.network
+ def test_set_cache_dir(tmpdir):
+     # set cache directory manually
+     path = str(tmpdir.mkdir("cache"))
+diff --git a/tests/test_providers.py b/tests/test_providers.py
+index 1389bea..e91ae61 100644
+--- a/tests/test_providers.py
++++ b/tests/test_providers.py
+@@ -5,6 +5,7 @@ import pytest
+ from numpy.testing import assert_allclose
+ 
+ 
++@pytest.mark.network
+ def test_sources():
+     # NOTE: only tests they download, does not check pixel values
+     w, s, e, n = (
+@@ -18,6 +19,7 @@ def test_sources():
+         img, ext = ctx.bounds2img(w, s, e, n, 4, source=getattr(tilers, src), ll=True)
+ 
+ 
++@pytest.mark.network
+ def test_deprecated_url_format():
+     old_url = "http://a.tile.openstreetmap.org/tileZ/tileX/tileY.png"
+     new_url = "http://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+@@ -37,6 +39,7 @@ def test_deprecated_url_format():
+     assert_allclose(ext1, ext2)
+ 
+ 
++@pytest.mark.network
+ def test_providers():
+     # NOTE: only tests they download, does not check pixel values
+     w, s, e, n = (
+@@ -77,6 +80,7 @@ def test_provider_attribute_access():
+         provider.non_existing_key
+ 
+ 
++@pytest.mark.network
+ def test_url():
+     # NOTE: only tests they download, does not check pixel values
+     w, s, e, n = (
+-- 
+2.21.1
+

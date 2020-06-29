@@ -1,0 +1,25 @@
+From 2fd782911a42a07f8ba5499f8cdbee2ed8cd9d5d Mon Sep 17 00:00:00 2001
+From: Ralph Bean <rbean@redhat.com>
+Date: Mon, 4 Mar 2013 09:47:20 -0500
+Subject: [PATCH] Remove setuptools requirement.
+
+---
+ setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index b51fd20..19c7592 100644
+--- a/setup.py
++++ b/setup.py
+@@ -15,7 +15,7 @@ setup(name          = "geojson",
+       url           = "http://trac.gispython.org/lab/wiki/GeoJSON",
+       long_description = readme_text,
+       packages          = ["geojson"],
+-      install_requires  = ["simplejson", "setuptools"],
++      install_requires  = ["simplejson"],
+       test_suite    = "tests.test_suite",
+       classifiers   = [
+         "Development Status :: 5 - Production/Stable",
+-- 
+1.8.1.2
+
