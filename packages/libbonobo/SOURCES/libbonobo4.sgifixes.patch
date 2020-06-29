@@ -1,0 +1,74 @@
+diff -Naur libbonobo-2.32.1.orig/Makefile.am libbonobo-2.32.1/Makefile.am
+--- libbonobo-2.32.1.orig/Makefile.am	2009-04-20 06:16:57.000000000 +0000
++++ libbonobo-2.32.1/Makefile.am	2020-06-28 20:25:50.921411181 +0000
+@@ -1,7 +1,7 @@
+ SUBDIRS = \
+ 	idl bonobo-activation bonobo \
+ 	activation-server monikers \
+-	utils samples tests doc po
++	utils samples tests po
+ 
+ libincludedir = $(includedir)/libbonobo-2.0
+ libinclude_HEADERS = \
+@@ -14,10 +14,9 @@
+ 	intltool-extract.in  \
+ 	intltool-merge.in    \
+ 	intltool-update.in   \
+-	changes.txt          \
+-	gtk-doc.make
++	changes.txt          
+ 
+-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
++DISTCHECK_CONFIGURE_FLAGS = --disable-gtk-doc
+ 
+ install-data-local:
+ 	-mkdir -p $(DESTDIR)$(sysconfdir)/bonobo-activation
+diff -Naur libbonobo-2.32.1.orig/Makefile.in libbonobo-2.32.1/Makefile.in
+--- libbonobo-2.32.1.orig/Makefile.in	2011-04-04 05:14:16.000000000 +0000
++++ libbonobo-2.32.1/Makefile.in	2020-06-28 20:24:19.333081008 +0000
+@@ -309,7 +309,7 @@
+ SUBDIRS = \
+ 	idl bonobo-activation bonobo \
+ 	activation-server monikers \
+-	utils samples tests doc po
++	utils samples tests po
+ 
+ libincludedir = $(includedir)/libbonobo-2.0
+ libinclude_HEADERS = \
+@@ -322,10 +322,9 @@
+ 	intltool-extract.in  \
+ 	intltool-merge.in    \
+ 	intltool-update.in   \
+-	changes.txt          \
+-	gtk-doc.make
++	changes.txt          
+ 
+-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
++DISTCHECK_CONFIGURE_FLAGS = --disable-gtk-doc
+ DISTCLEANFILES = intltool-extract intltool-merge intltool-update
+ all: config.h
+ 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+diff -Naur libbonobo-2.32.1.orig/configure.in libbonobo-2.32.1/configure.in
+--- libbonobo-2.32.1.orig/configure.in	2020-06-28 20:14:33.724183000 +0000
++++ libbonobo-2.32.1/configure.in	2020-06-28 20:27:57.963260175 +0000
+@@ -188,7 +188,7 @@
+ # glib-genmarshal
+ AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
+ 
+-GTK_DOC_CHECK([1.0])
++# GTK_DOC_CHECK([1.0])
+ 
+ AC_ARG_ENABLE(debug,
+ 	      AS_HELP_STRING([--enable-debug],
+@@ -269,11 +269,6 @@
+ tests/Makefile
+ tests/test-activation/Makefile
+ tests/models/Makefile
+-doc/Makefile
+-doc/api/Makefile
+-doc/api/figures/Makefile
+-doc/activation/Makefile
+-doc/activation-api/Makefile
+ ])
+ 
+ AC_OUTPUT
