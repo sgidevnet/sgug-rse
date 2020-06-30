@@ -1,6 +1,6 @@
 Name:           autoconf-archive
 Version:        2019.01.06
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        The Autoconf Macro Archive
 License:        GPLv3+ with exceptions
 URL:            http://www.gnu.org/software/autoconf-archive/
@@ -34,8 +34,8 @@ rm -frv %{buildroot}%{_datadir}/doc/%{name}
 %{_infodir}/autoconf-archive.info*
 
 %changelog
-* Sat Jun 20 2020  HAL <notes2@gmx.de> - 2019.01.06-4
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+* Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 2019.01.06-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2019.01.06-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
