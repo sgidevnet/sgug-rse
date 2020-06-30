@@ -16,15 +16,15 @@ BuildRequires: libxml2-devel >= %{libxml2_version}
 BuildRequires: ORBit2-devel >= %{orbit2_version}
 BuildRequires: intltool >= 0.14-1
 BuildRequires: automake autoconf libtool
-#BuildRequires: gtk-doc
+BuildRequires: gtk-doc
 BuildRequires: flex, bison, zlib-devel, popt-devel
-#BuildRequires: dbus-glib-devel
+BuildRequires: dbus-glib-devel
 BuildRequires: gettext
 
 Patch0: libbonobo-multishlib.patch
 Patch1: libbonobo-2.32.1-srcdir-macro.patch
 Patch2: 0001-Remove-use-of-G_DISABLE_DEPRECATED.patch
-Patch100: libbonobo4.sgifixes.patch
+
 %description
 Bonobo is a component system based on CORBA, used by the GNOME desktop.
 
@@ -45,13 +45,12 @@ use Bonobo.
 %prep
 %setup -q -n %{name}-%{version}
 
-#%%ifarch ppc64 s390x x86_64
+%ifarch ppc64 s390x x86_64
 %patch0 -p1 -b .multishlib
-#%%endif
+%endif
 
 %patch1 -p0 -b .srcmacro
 %patch2 -p1
-%patch100 -p1 -b sgifixes.
 
 autoreconf -i -f
 
@@ -75,16 +74,16 @@ rm $RPM_BUILD_ROOT%{_libdir}/bonobo/monikers/*.*a
 rm $RPM_BUILD_ROOT%{_libdir}/orbit-2.0/*.*a
 rm $RPM_BUILD_ROOT%{_bindir}/bonobo-slay
 
-#for serverfile in $RPM_BUILD_ROOT%{_libdir}/bonobo/servers/*.server; do
-#    sed -i -e 's|location *= *"/usr/lib\(64\)*/|location="/usr/$LIB/|' $serverfile
-#done
+for serverfile in $RPM_BUILD_ROOT%{_libdir}/bonobo/servers/*.server; do
+    sed -i -e 's|location *= *"/usr/lib\(64\)*/|location="/usr/$LIB/|' $serverfile
+done
 
 # noarch packages install to /usr/lib/bonobo/servers
-mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib32/bonobo/servers
+mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib/bonobo/servers
 
 %find_lang %{po_package}
 
-#%%ldconfig_scriptlets
+%ldconfig_scriptlets
 
 %files -f %{po_package}.lang
 
@@ -96,8 +95,8 @@ mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib32/bonobo/servers
 %{_bindir}/*
 %{_libexecdir}/*
 %{_sbindir}/*
-%dir %{_prefix}/lib32/bonobo/servers
-%dir %{_prefix}/lib32/bonobo
+%dir %{_prefix}/lib/bonobo/servers
+%dir %{_prefix}/lib/bonobo
 %dir %{_sysconfdir}/bonobo-activation
 %config %{_sysconfdir}/bonobo-activation/*
 %{_datadir}/man/man*/*
@@ -108,13 +107,10 @@ mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib32/bonobo/servers
 %{_libdir}/pkgconfig/*
 %{_includedir}/*
 %{_datadir}/idl/*
-#%%{_datadir}/gtk-doc/html/libbonobo
-#%%{_datadir}/gtk-doc/html/bonobo-activation
+%{_datadir}/gtk-doc/html/libbonobo
+%{_datadir}/gtk-doc/html/bonobo-activation
 
 %changelog
-* Sun Jun 28 2020  HAL <notes2@gmx.de> - 2.32.1-17
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
-
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.32.1-17
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
