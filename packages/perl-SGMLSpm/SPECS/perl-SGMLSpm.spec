@@ -1,17 +1,16 @@
 Name:           perl-SGMLSpm
 Version:        1.03ii
-Release:        47%{?dist}
+Release:        50%{?dist}
 Summary:        Perl library for parsing the output of nsgmls
 
 License:        GPLv2+
 URL:            https://metacpan.org/release/SGMLSpm
 Source0:        https://cpan.metacpan.org/authors/id/D/DM/DMEGG/SGMLSpm-%{version}.tar.gz
-Patch100:       perl-SGMLSpm.sgifixes.patch
 
 BuildArch:      noarch
 BuildRequires:  perl-interpreter
 BuildRequires:  perl-generators
-#Requires:  perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires:  perl(:MODULE_COMPAT_%(perl -V:version | sed 's,[^0-9^.]*,,g'))
 Requires:       openjade
 
 %description
@@ -21,7 +20,6 @@ documents into new formats.
 
 %prep
 %setup -q -n SGMLSpm
-%patch100 -p1 -b perl-SGMLSpm.
 
 %build
 
@@ -41,8 +39,14 @@ make install_system \
 
 
 %changelog
-* Sat Jun 20 2020  HAL <notes2@gmx.de> - 1.03ii-47
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+* Fri Jun 26 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1.03ii-50
+- Perl 5.32 re-rebuild of bootstrapped packages
+
+* Mon Jun 22 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1.03ii-49
+- Perl 5.32 rebuild
+
+* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.03ii-48
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.03ii-47
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
