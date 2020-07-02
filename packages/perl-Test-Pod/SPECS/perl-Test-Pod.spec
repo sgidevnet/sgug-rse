@@ -1,6 +1,6 @@
 Name:           perl-Test-Pod
 Version:        1.52
-Release:        6%{?dist}
+Release:        8%{?dist}
 Summary:        Test POD files for correctness
 License:        GPL+ or Artistic
 URL:            https://metacpan.org/release/Test-Pod
@@ -21,8 +21,7 @@ BuildRequires:  perl(Test::Builder)
 BuildRequires:  perl(File::Spec)
 BuildRequires:  perl(Test::Builder::Tester) >= 1.02
 BuildRequires:  perl(Test::More) >= 0.62
-#Requires:       perl(:MODULE_COMPAT_%%(eval "$(perl -V:version)"; echo $version))
-Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
+Requires:       perl(:MODULE_COMPAT_%(perl -V:version | sed 's,[^0-9^.]*,,g'))
 Requires:       perl(File::Find)
 Requires:       perl(Pod::Simple) >= 3.05
 Requires:       perl(Test::More) >= 0.62
@@ -55,8 +54,11 @@ LC_ALL=C make test
 %{_mandir}/man3/Test::Pod.3pm*
 
 %changelog
-* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.52-6
-- Import into sgug-rse
+* Mon Jun 22 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1.52-8
+- Perl 5.32 rebuild
+
+* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.52-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.52-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
@@ -240,7 +242,7 @@ LC_ALL=C make test
 
 * Fri Apr 30 2004 Ville Skyttä <ville.skytta at iki.fi> - 0:1.14-0.fdr.1
 - Update to 1.14.
-- Require perl(:MODULE_COMPAT_*).
+- Require perl(:MODULE_COMPAT_%(perl -V:version | sed 's,[^0-9^.]*,,g'))
 - Add patch to avoid warnings from all_pod_files().
 
 * Sun Mar 14 2004 Ville Skyttä <ville.skytta at iki.fi> - 0:1.12-0.fdr.1
