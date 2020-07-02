@@ -4,7 +4,7 @@
 Summary: A high-performance CORBA Object Request Broker
 Name: ORBit2
 Version: 2.14.19
-Release: 22%{?dist}
+Release: 23%{?dist}
 #VCS: git:git://git.gnome.org/ORBit2
 Source: http://download.gnome.org/sources/ORBit2/2.14/%{name}-%{version}.tar.bz2
 License: LGPLv2+ and GPLv2+
@@ -81,12 +81,12 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/ORBit-2.0/*.*a
 rm -f $RPM_BUILD_ROOT%{_libdir}/orbit-2.0/*.*a
 
 # fix multilib conflict caused by orbit-config.h
-%define wordsize %{__isa_bits}
+#%%define wordsize %{__isa_bits}
 
-mv $RPM_BUILD_ROOT%{_includedir}/orbit-2.0/orbit/orbit-config.h \
-   $RPM_BUILD_ROOT%{_includedir}/orbit-2.0/orbit/orbit-config-%{wordsize}.h
+#mv $RPM_BUILD_ROOT%{_includedir}/orbit-2.0/orbit/orbit-config.h \
+#   $RPM_BUILD_ROOT%{_includedir}/orbit-2.0/orbit/orbit-config-%{wordsize}.h
 
-cat >$RPM_BUILD_ROOT%{_includedir}/orbit-2.0/orbit/orbit-config.h <<EOF
+#cat >$RPM_BUILD_ROOT%{_includedir}/orbit-2.0/orbit/orbit-config.h <<EOF
 #ifndef ORBIT_MULTILIB
 #define ORBIT_MULTILIB
 
@@ -101,7 +101,7 @@ cat >$RPM_BUILD_ROOT%{_includedir}/orbit-2.0/orbit/orbit-config.h <<EOF
 #endif
 
 #endif
-EOF
+#EOF
 
 #%%ldconfig_scriptlets
 

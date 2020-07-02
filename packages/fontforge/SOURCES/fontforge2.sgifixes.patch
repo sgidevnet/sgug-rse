@@ -1,0 +1,26 @@
+diff -Naur fontforge-20190801.orig/fontforge/splinefont.h fontforge-20190801/fontforge/splinefont.h
+--- fontforge-20190801.orig/fontforge/splinefont.h	2019-08-01 01:28:36.000000000 +0000
++++ fontforge-20190801/fontforge/splinefont.h	2020-06-28 15:26:27.850004075 +0000
+@@ -2625,7 +2625,7 @@
+ 
+ extern void debug_printHint( StemInfo *h, char* msg );
+ 
+-#if defined(_WIN32) || defined(__HAIKU__)
++#if 1
+ #define BAD_LOCALE_HACK
+ typedef char* locale_t;
+ #define LC_GLOBAL_LOCALE ((locale_t)-1)
+diff -Naur fontforge-20190801.orig/gdraw/gdraw.c fontforge-20190801/gdraw/gdraw.c
+--- fontforge-20190801.orig/gdraw/gdraw.c	2019-08-01 01:28:36.000000000 +0000
++++ fontforge-20190801/gdraw/gdraw.c	2020-06-28 15:27:11.815237407 +0000
+@@ -32,6 +32,10 @@
+ #include "gkeysym.h"
+ #include "ustring.h"
+ 
++#if defined(__sgi)
++#include <sys/time.h>
++#endif
++
+ #if __Mac || __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __DragonFly__
+ #  include <sys/select.h>
+ #endif
