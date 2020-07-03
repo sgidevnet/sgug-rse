@@ -1,18 +1,28 @@
 %global pypi_name decorator
 
+%if 0%{?rhel} && 0%{?rhel} <= 7
+%bcond_with python3
+%else
+%bcond_without python3
+%endif
+
 Name:           python-%{pypi_name}
-Version:        4.4.2
+Version:        4.4.0
 Release:        2%{?dist}
 Summary:        Module to simplify usage of decorators
 
 License:        BSD
 URL:            https://github.com/micheles/decorator
 Source0:        %pypi_source decorator
-
 BuildArch:      noarch
 
+BuildRequires:  python2-setuptools
+BuildRequires:  python2-devel
+%if %{with python3}
 BuildRequires:  python3-setuptools
 BuildRequires:  python3-devel
+%endif 
+# with python3
 
 %description
 The aim of the decorator module is to simplify the usage of decorators for
@@ -20,6 +30,17 @@ the average programmer, and to popularize decorators usage giving examples
 of useful decorators, such as memoize, tracing, redirecting_stdout, locked,
 etc.  The core of this module is a decorator factory called decorator.
 
+%package -n python2-decorator
+Summary:        Module to simplify usage of decorators in python2
+%{?python_provide:%python_provide python2-decorator}
+
+%description -n python2-decorator
+The aim of the decorator module is to simplify the usage of decorators for
+the average programmer, and to popularize decorators usage giving examples
+of useful decorators, such as memoize, tracing, redirecting_stdout, locked,
+etc.  The core of this module is a decorator factory called decorator.
+
+%if %{with python3}
 %package -n python3-decorator
 Summary:        Module to simplify usage of decorators in python3
 %{?python_provide:%python_provide python3-decorator}
@@ -29,50 +50,51 @@ The aim of the decorator module is to simplify the usage of decorators for
 the average programmer, and to popularize decorators usage giving examples
 of useful decorators, such as memoize, tracing, redirecting_stdout, locked,
 etc.  The core of this module is a decorator factory called decorator.
+%endif
+# with python3
 
 %prep
-%autosetup -p1 -n %{pypi_name}-%{version}
+%autosetup -n %{pypi_name}-%{version}
 
 %build
+%py2_build
+%if %{with python3}
 %py3_build
+%endif
+# with python3
 
 %install
+%py2_install
+%if %{with python3}
 %py3_install
-
+%endif
+# with python3
 # Remove this when https://github.com/micheles/decorator/issues/32 is fixed.
 find %{buildroot} -name SOURCES.txt~ -exec rm -f {} \;
 
 %check
+%{__python2} setup.py test
+%if %{with python3}
 %{__python3} setup.py test
+%endif
+# with python3
 
+%files -n python2-%{pypi_name}
+%doc README.md CHANGES.md
+%license LICENSE.txt
+%{python2_sitelib}/*
+
+%if %{with python3}
 %files -n python3-%{pypi_name}
-%doc README.rst CHANGES.md
+%doc README.md CHANGES.md
 %license LICENSE.txt
 %{python3_sitelib}/decorator.py
 %{python3_sitelib}/decorator-*.egg-info/
 %{python3_sitelib}/__pycache__/*
+%endif
+# with python3
 
 %changelog
-* Fri May 22 2020 Miro Hrončok <mhroncok@redhat.com> - 4.4.2-2
-- Rebuilt for Python 3.9
-
-* Fri Apr 03 2020 Michal Konečný <mkonecny@redhat.com> - 4.4.2-1
-- new version
-  Remove python39.patch no longer needed
-
-* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 4.4.0-6
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
-
-* Thu Jan 16 2020 Miro Hrončok <mhroncok@redhat.com> - 4.4.0-5
-- Subpackage python2-decorator has been removed
-  See https://fedoraproject.org/wiki/Changes/RetirePython2
-
-* Thu Oct 03 2019 Miro Hrončok <mhroncok@redhat.com> - 4.4.0-4
-- Rebuilt for Python 3.8.0rc1 (#1748018)
-
-* Thu Aug 15 2019 Miro Hrončok <mhroncok@redhat.com> - 4.4.0-3
-- Rebuilt for Python 3.8
-
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.4.0-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
