@@ -1,9 +1,6 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
-
 Name:           perl-File-HomeDir
 Version:        1.004
-Release:        6%{?dist}
+Release:        8%{?dist}
 Summary:        Find your home and other directories on any platform
 License:        GPL+ or Artistic
 URL:            https://metacpan.org/release/File-HomeDir
@@ -36,7 +33,7 @@ BuildRequires:  perl(vars)
 BuildRequires:  perl(File::Spec::Functions)
 BuildRequires:  perl(Test::More) >= 0.90
 # Dependencies:
-Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
+Requires:       perl(:MODULE_COMPAT_%(perl -V:version | sed 's,[^0-9^.]*,,g'))
 Requires:       perl(Cwd) >= 3.12
 Requires:       perl(File::Path) >= 2.01
 Requires:       perl(File::Spec) >= 3.12
@@ -82,6 +79,12 @@ make test
 %{_mandir}/man3/File::HomeDir::Windows.3*
 
 %changelog
+* Tue Jun 23 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1.004-8
+- Perl 5.32 rebuild
+
+* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.004-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.004-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
