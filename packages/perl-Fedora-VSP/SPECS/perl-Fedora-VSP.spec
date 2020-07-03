@@ -1,6 +1,9 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           perl-Fedora-VSP
 Version:        0.001
-Release:        19%{?dist}
+Release:        17%{?dist}
 Summary:        Perl version normalization for RPM
 License:        GPLv3+
 URL:            https://ppisar.fedorapeople.org/Fedora-VSP/
@@ -20,7 +23,7 @@ BuildRequires:  perl(warnings)
 # Tests:
 BuildRequires:  perl(Test::More)
 BuildRequires:  perl(version)
-Requires:       perl(:MODULE_COMPAT_%(perl -V:version | sed 's,[^0-9^.]*,,g'))
+Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
 %if %{defined perl_bootstrap}
 # Break build cycle: perl-Fedora-VSP → perl-generators → perl-Fedora-VSP
 Requires:       perl(strict)
@@ -53,14 +56,8 @@ make test
 %{_mandir}/man3/*
 
 %changelog
-* Fri Jun 26 2020 Jitka Plesnikova <jplesnik@redhat.com> - 0.001-19
-- Perl 5.32 re-rebuild of bootstrapped packages
-
-* Mon Jun 22 2020 Jitka Plesnikova <jplesnik@redhat.com> - 0.001-18
-- Perl 5.32 rebuild
-
-* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 0.001-17
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.001-17
+- Remove hard coded shell paths
 
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.001-16
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

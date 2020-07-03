@@ -1,6 +1,9 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:           perl-File-Which
 Version:        1.23
-Release:        6%{?dist}
+Release:        4%{?dist}
 Summary:        Portable implementation of the 'which' utility
 License:        GPL+ or Artistic
 URL:            https://metacpan.org/release/File-Which
@@ -19,7 +22,7 @@ BuildRequires:  perl(warnings)
 BuildRequires:  perl(Env)
 BuildRequires:  perl(Config)
 BuildRequires:  perl(Test::More) >= 0.80
-Requires:       perl(:MODULE_COMPAT_%(perl -V:version | sed 's,[^0-9^.]*,,g'))
+Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
 Requires:       perl(File::Spec) >= 0.60
 
 # Remove under-specified dependencies
@@ -51,12 +54,6 @@ make test
 %{_mandir}/man3/File::Which.3*
 
 %changelog
-* Mon Jun 22 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1.23-6
-- Perl 5.32 rebuild
-
-* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.23-5
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
-
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.23-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

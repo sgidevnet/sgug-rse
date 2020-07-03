@@ -1,3 +1,6 @@
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+
 Name:		perl-Expect
 Version:	1.35
 Release:	12%{?dist}
@@ -32,7 +35,7 @@ BuildRequires:	perl(File::Temp)
 BuildRequires:	perl(Test::Builder)
 BuildRequires:	perl(Test::More) >= 0.98
 # Runtime
-Requires:	perl(:MODULE_COMPAT_%(perl -V:version | sed 's,[^0-9^.]*,,g'))
+Requires:	perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
 
 %description
 This module provides Expect-like functionality to Perl. Expect is
@@ -41,7 +44,7 @@ passwd, fsck, rlogin, tip, etc.
 
 %prep
 %setup -q -n Expect-%{version}
-sed -i 's|^#!/usr/local/bin/perl|#!/usr/bin/perl|' examples/kibitz/kibitz tutorial/[2-6].*
+sed -i 's|^#!/usr/local/bin/perl|#!/usr/sgug/bin/perl|' examples/kibitz/kibitz tutorial/[2-6].*
 chmod -c a-x examples/ssh.pl examples/kibitz/kibitz tutorial/[2-6].*
 
 %build
@@ -67,11 +70,11 @@ make test
 %{_mandir}/man3/Expect.3*
 
 %changelog
-* Tue Jun 23 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1.35-12
-- Perl 5.32 rebuild
+* Sun Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.35-12
+- Correct manpath
 
-* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.35-11
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.35-11
+- Correct hardocded perl path
 
 * Fri Aug 23 2019 Paul Howarth <paul@city-fan.org> - 1.35-10
 - Use author-independent source URL
