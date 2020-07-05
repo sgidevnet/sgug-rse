@@ -2,7 +2,7 @@
 
 Name:		json-glib
 Version:	1.4.4
-Release:	3%{?dist}
+Release:	5%{?dist}
 Summary:	Library for JavaScript Object Notation format
 
 License:	LGPLv2+
@@ -11,13 +11,13 @@ Source0:	http://download.gnome.org/sources/%{name}/1.4/%{name}-%{version}.tar.xz
 
 BuildRequires:	docbook-style-xsl
 BuildRequires:	gettext
-#BuildRequires:	glib2-devel >= %{glib2_version}
+BuildRequires:	glib2-devel >= %{glib2_version}
 BuildRequires:	gobject-introspection-devel
 #BuildRequires:	gtk-doc
 BuildRequires:	meson
-#BuildRequires:	/usr/bin/xsltproc
+BuildRequires:	%{_bindir}/xsltproc
 
-#Requires:	glib2%{?_isa} >= %{glib2_version}
+Requires:	glib2%{?_isa} >= %{glib2_version}
 
 %description
 %{name} is a library providing serialization and deserialization support
@@ -47,6 +47,9 @@ the functionality of the installed json-glib package.
 
 
 %build
+export CC=mips-sgi-irix6.5-gcc
+export CXX=mips-sgi-irix6.5-gcc
+#%%meson -Ddocs=true -Dman=true
 %meson -Ddocs=false -Dman=true
 %meson_build
 
@@ -83,6 +86,9 @@ the functionality of the installed json-glib package.
 
 
 %changelog
+* Sun Jul 05 2020 Daniel Hams <daniel.hams@gmail.com> - 1.4.4-5
+- Put back correct deps from original spec
+
 * Fri May 15 2020  Alexander Tafarte <notes2@gmx.de> - 1.4.4-4
 - compiles on Irix 6.5 with sgug-rse gcc 9.2 .
 
