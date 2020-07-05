@@ -1,0 +1,21 @@
+diff -Naur graphviz-stable_release_2.40.1.orig/configure.ac graphviz-stable_release_2.40.1/configure.ac
+--- graphviz-stable_release_2.40.1.orig/configure.ac	2020-07-04 16:46:19.743377000 +0000
++++ graphviz-stable_release_2.40.1/configure.ac	2020-07-04 16:48:51.325465075 +0000
+@@ -878,7 +878,7 @@
+ 		        LUA_VERSION=`$PKGCONFIG --modversion lua$l`
+                         LUA_INCLUDES="$LUA_CFLAGS "`$PKGCONFIG --cflags lua$l`
+                         LUA_LIBS="$LUA_LFLAGS "`$PKGCONFIG --libs lua$l`
+-		        LUA_INSTALL_DIR="/usr/lib$LIBPOSTFIX/lua/`$PKGCONFIG --variable=V lua`"
++		        LUA_INSTALL_DIR="/usr/sgug/lib32$LIBPOSTFIX/lua/`$PKGCONFIG --variable=V lua`"
+     
+ 		        pkgconfig_lualib_found=`$PKGCONFIG --exists lualib$l 2>/dev/null`
+ 		        if test  "x$?" = "x0"; then
+@@ -900,7 +900,7 @@
+                 LUA_INCLUDES=`$LUACONFIG --include`
+                 LUA_LIBS=`$LUACONFIG --libs`
+ 	        LUA_VERSION="5.0.x"
+-	        LUA_INSTALL_DIR="/usr/lib$LIBPOSTFIX/lua/5.0"
++	        LUA_INSTALL_DIR="/usr/sgug/lib32$LIBPOSTFIX/lua/5.0"
+             fi
+         fi
+     
