@@ -11,7 +11,7 @@
 
 Name:		cairo
 Version:	1.16.0
-Release:	9%{?dist}
+Release:	10%{?dist}
 Summary:	A 2D graphics library
 
 License:	LGPLv2 or MPLv1.1
@@ -105,6 +105,9 @@ needed for developing software which uses the cairo Gobject library.
 %build
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS -lgen"
+# Cairo has a broken libtool that installs cairo-sphinx as the libtool script
+# autoreconf is used to replace that libtool version
+autoreconf -fi
 %configure --disable-static	\
 	--enable-xlib		\
 	--enable-ft		\
@@ -185,6 +188,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/cairo/cairo-sphinx.so
 #%%{_libdir}/cairo/
 
 %changelog
+* Sun Jun 28 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16.0-10
+- Force an autoreconf to avoid using the broken libtool in the project
+
 * Mon Jun 22 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16.0-9
 - Correct missing RPATH, clean up build flags.
 
