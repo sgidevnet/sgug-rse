@@ -73,6 +73,7 @@ perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" config.sub
 export SHELL=%{_bindir}/bash
 export SHELL_PATH="$SHELL"
 export CONFIG_SHELL="$SHELL"
+export CPPFLAGS="-DLYNX_STANDALONE_CONFIG_CACHE"
 %configure --libdir=%{_sysconfdir}            \
     --disable-font-switch           \
     --disable-rpath-hack            \
