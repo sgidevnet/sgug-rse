@@ -82,8 +82,9 @@ install -p -m0755 pbmtools/???to???85 $RPM_BUILD_ROOT%{_bindir}
 install -p -m0644 pbmtools/*.1 $RPM_BUILD_ROOT%{_mandir}/man1
 
 %check
-export LD_LIBRARYN32_PATH=%{buildroot}%{_libdir}
 make test
+
+%ldconfig_scriptlets libs
 
 %files
 %{_bindir}/???to*
@@ -100,9 +101,6 @@ make test
 %{_includedir}/jbig*.h
 
 %changelog
-* Sat Jul 04 2020  HAL <notes2@gmx.de> - 2.1-17
-- compiles on Irix 6.5 with sgug-rse gcc 9.2, passes all tests now.
-
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.1-17
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
