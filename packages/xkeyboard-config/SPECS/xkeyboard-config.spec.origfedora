@@ -70,13 +70,10 @@ rm -f $RPM_BUILD_ROOT%{_datadir}/X11/xkb/compiled
 # Create filelist
 {
    FILESLIST=${PWD}/files.list
-#   pushd 
-   PREVWD=`pwd`
-   cd $RPM_BUILD_ROOT
+   pushd $RPM_BUILD_ROOT
    find .%{_datadir}/X11/xkb -type d | sed -e "s/^\./%dir /g" > $FILESLIST
    find .%{_datadir}/X11/xkb -type f | sed -e "s/^\.//g" >> $FILESLIST
-   cd $PREVWD
-#   popd
+   popd
 }
 
 %files -f files.list -f %{name}.lang
@@ -90,9 +87,6 @@ rm -f $RPM_BUILD_ROOT%{_datadir}/X11/xkb/compiled
 %{_datadir}/pkgconfig/xkeyboard-config.pc
 
 %changelog
-* Sun Jul 05 2020  HAL <notes2@gmx.de> - 2.28-1
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
-
 * Fri Oct 25 2019 Peter Hutterer <peter.hutterer@redhat.com> 2.28-1
 - xkeyboard-config 2.28
 
