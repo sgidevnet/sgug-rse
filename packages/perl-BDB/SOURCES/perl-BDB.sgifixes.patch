@@ -1,0 +1,46 @@
+diff -u -r BDB-1.92-orig/BDB.xs BDB-1.92/BDB.xs
+--- BDB-1.92-orig/BDB.xs	2016-02-02 04:27:15.000000000 +0000
++++ BDB-1.92/BDB.xs	2020-05-22 12:59:41.643544400 +0000
+@@ -972,21 +972,21 @@
+ 
+ /*****************************************************************************/
+ 
+-static void atfork_prepare (void)
++static void bdb_atfork_prepare (void)
+ {
+   X_LOCK (wrklock);
+   X_LOCK (reqlock);
+   X_LOCK (reslock);
+ }
+ 
+-static void atfork_parent (void)
++static void bdb_atfork_parent (void)
+ {
+   X_UNLOCK (reslock);
+   X_UNLOCK (reqlock);
+   X_UNLOCK (wrklock);
+ }
+ 
+-static void atfork_child (void)
++static void bdb_atfork_child (void)
+ {
+   bdb_req prv;
+ 
+@@ -1015,7 +1015,7 @@
+ 
+   create_respipe ();
+ 
+-  atfork_parent ();
++  bdb_atfork_parent ();
+ }
+ 
+ #define dREQ(reqtype,rsvcnt)					\
+@@ -1441,7 +1441,7 @@
+ 
+         create_respipe ();
+ 
+-        X_THREAD_ATFORK (atfork_prepare, atfork_parent, atfork_child);
++        X_THREAD_ATFORK (bdb_atfork_prepare, bdb_atfork_parent, bdb_atfork_child);
+         patch_errno ();
+ }
+ 
