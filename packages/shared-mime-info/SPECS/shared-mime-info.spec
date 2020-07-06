@@ -1,7 +1,7 @@
 Summary: Shared MIME information database
 Name: shared-mime-info
 Version: 1.15
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv2+
 URL: http://freedesktop.org/Software/shared-mime-info
 Source0: https://gitlab.freedesktop.org/xdg/shared-mime-info/uploads/b27eb88e4155d8fccb8bb3cd12025d5b/shared-mime-info-1.15.tar.xz
@@ -81,8 +81,11 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/locale/*
 %post
 %{_bindir}/touch --no-create %{_datadir}/mime/packages &>/dev/null ||:
 
-%transfiletriggerin -- %{_datadir}/mime
-update-mime-database -n %{_datadir}/mime &> /dev/null ||:
+# DH 06/06/2020
+# Bug in RPM means we can't currently use this
+# (core dumps after execution, not clear yet what is actually _causing_ it)
+#%%transfiletriggerin -- %{_datadir}/mime
+#update-mime-database -n %{_datadir}/mime &> /dev/null ||:
 
 %transfiletriggerpostun -- %{_datadir}/mime
 update-mime-database -n %{_datadir}/mime &> /dev/null ||:
@@ -100,6 +103,9 @@ update-mime-database -n %{_datadir}/mime &> /dev/null ||:
 %{_mandir}/man*/*
 
 %changelog
+* Sun Jul 05 2020 Daniel Hams <daniel.hams@gmail.com> - 1.15-2
+- Disable the transfiletriggerin section, currently causes rpm coredump
+
 * Sun May 31 2020 Daniel Hams <daniel.hams@gmail.com> - 1.15-1
 - (And originally HAL too) - pull into wip
 

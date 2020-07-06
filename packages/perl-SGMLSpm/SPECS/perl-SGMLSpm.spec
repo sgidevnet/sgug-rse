@@ -1,17 +1,16 @@
 Name:           perl-SGMLSpm
 Version:        1.03ii
-Release:        47%{?dist}
+Release:        48%{?dist}
 Summary:        Perl library for parsing the output of nsgmls
 
 License:        GPLv2+
 URL:            https://metacpan.org/release/SGMLSpm
 Source0:        https://cpan.metacpan.org/authors/id/D/DM/DMEGG/SGMLSpm-%{version}.tar.gz
-Patch100:       perl-SGMLSpm.sgifixes.patch
 
 BuildArch:      noarch
 BuildRequires:  perl-interpreter
 BuildRequires:  perl-generators
-#Requires:  perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires:  perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 Requires:       openjade
 
 %description
@@ -21,7 +20,6 @@ documents into new formats.
 
 %prep
 %setup -q -n SGMLSpm
-%patch100 -p1 -b perl-SGMLSpm.
 
 %build
 
@@ -32,6 +30,8 @@ make install_system \
     BINDIR=$RPM_BUILD_ROOT%{_bindir} \
     PERL5DIR=$RPM_BUILD_ROOT%{perl_vendorlib}
 
+# Rewrite hardcoded path
+perl -pi -e "s|/usr/bin/perl|%{_bindir}/perl|g" $RPM_BUILD_ROOT%{_bindir}/sgmlspl
 
 %files
 %doc README COPYING
@@ -41,6 +41,9 @@ make install_system \
 
 
 %changelog
+* Sun Jul 05 2020 Daniel Hams <daniel.hams@gmail.com> - 1.03ii-48
+- Reeanble perl version dep + switch patch to inline perl rewrite.
+
 * Sat Jun 20 2020  HAL <notes2@gmx.de> - 1.03ii-47
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 

@@ -1,7 +1,7 @@
 Summary: Run-time libraries and programs
 Name: motif
 Version: 2.3.4
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: LGPLv2+
 Source: http://downloads.sf.net/motif/motif-%{version}-src.tgz
 Source1: xmbind
@@ -78,6 +78,7 @@ This package contains the static Motif libraries.
 %build
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 export CFLAGS="$RPM_OPT_FLAGS -D_FILE_OFFSET_BITS=64"
+export LDFLAGS="$RPM_LD_FLAGS"
 ./autogen.sh --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --enable-xft --enable-jpeg \
    --enable-png
 
@@ -130,6 +131,9 @@ rm -rf $RPM_BUILD_ROOT/etc
 %{_libdir}/lib*.a
 
 %changelog
+* Sun Jul 05 2020 Daniel Hams <daniel.hams@gmail.com> - 2.3.4-20
+- Ensure motif libraries have correct RPATH
+
 * Sun Apr 19 2020 Daniel Hams <daniel.hams@gmail.com> - 2.3.4-19
 - Import into wip
 

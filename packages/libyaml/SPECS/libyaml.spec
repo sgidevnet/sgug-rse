@@ -1,6 +1,6 @@
 Name:       libyaml
 Version:    0.2.2
-Release:    2%{?dist}
+Release:    4%{?dist}
 Summary:    YAML 1.1 parser and emitter written in C
 
 License:    MIT
@@ -36,7 +36,7 @@ developing applications that use LibYAML.
 %build
 ./bootstrap
 %configure
-make all %{?_smp_mflags}
+make all html %{?_smp_mflags}
 
 
 %install
@@ -70,6 +70,9 @@ make check
 
 
 %changelog
+* Sun Jul 05 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.2-4
+- renable the html doc building
+
 * Fri May 15 2020  Alexander Tafarte <notes2@gmx.de> - 0.2.2-3
 - compiles on Irix 6.5 with sgug-rse gcc 9.2 , passes both tests.
 
