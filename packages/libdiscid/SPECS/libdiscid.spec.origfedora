@@ -7,7 +7,7 @@ URL:            https://musicbrainz.org/doc/libdiscid
 Source0:        http://ftp.musicbrainz.org/pub/musicbrainz/%{name}/%{name}-%{version}.tar.gz
 
 BuildRequires:  gcc
-# BuildRequires:  doxygen
+BuildRequires:  doxygen
 
 %description
 This C library %{name} creates MusicBrainz DiscIDs from audio CDs. It
@@ -31,7 +31,7 @@ developing applications that use %{name}.
 %build
 %configure --disable-static
 make %{?_smp_mflags}
-# make docs
+make docs
 
 
 %check
@@ -43,7 +43,7 @@ make check
 find %{buildroot} -name '*.la' -delete -print
 
 
-#%%ldconfig_scriptlets
+%ldconfig_scriptlets
 
 
 %files
@@ -52,16 +52,13 @@ find %{buildroot} -name '*.la' -delete -print
 %{_libdir}/%{name}.so.0*
 
 %files devel
-#%%doc docs/*
+%doc docs/*
 %{_includedir}/discid/
 %{_libdir}/%{name}.so
 %{_libdir}/pkgconfig/%{name}.pc
 
 
 %changelog
-* Thu Jul 09 2020  HAL <notes2@gmx.de> - 0.6.2-8
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.Two tests passed, two tests were skipped.
-
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.6.2-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
