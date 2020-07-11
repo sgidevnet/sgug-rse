@@ -45,8 +45,8 @@ make DESTDIR=%{buildroot} INSTALL="install -p" install
 rm -f %{buildroot}%{_libdir}/*.{la,a}
 
 soname=$(readelf -d %{buildroot}%{_libdir}/libyaml.so | awk '$2 == "(SONAME)" {print $NF}' | tr -d '[]')
-rm -f %{buildroot}%{_libdir}/libyaml.so
-echo "INPUT($soname)" > %{buildroot}%{_libdir}/libyaml.so
+#rm -f %{buildroot}%{_libdir}/libyaml.so
+#echo "INPUT($soname)" > %{buildroot}%{_libdir}/libyaml.so
 
 
 %check
