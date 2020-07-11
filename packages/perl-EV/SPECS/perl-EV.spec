@@ -55,6 +55,7 @@ cp -r %{_prefix}/share/libev-source/* ./libev/
 
 %build
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+export PERL_CANARY_STABILITY_NOPROMPT=1
 %{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="$RPM_OPT_FLAGS"
 make %{?_smp_mflags}
 

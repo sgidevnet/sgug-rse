@@ -1,3 +1,5 @@
+%global perl_bootstrap 1
+
 # Run extra test
 %bcond_without perl_Test_Requires_enables_extra_test
 

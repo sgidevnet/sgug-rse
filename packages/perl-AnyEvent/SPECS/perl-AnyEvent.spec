@@ -1,5 +1,8 @@
 #global subver 1
 
+# This stops a bunch of extra deps getting pulled in.
+%global perl_bootstrap 1
+
 # A noarch-turned-arch package should not have debuginfo
 %global debug_package %{nil}
 

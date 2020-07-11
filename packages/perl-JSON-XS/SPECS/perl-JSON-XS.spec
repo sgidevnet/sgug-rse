@@ -54,6 +54,7 @@ perl -pi -e 's|^#!/opt/bin/perl|#!%{__perl}|' bin/*
 chmod -c -x eg/*
 
 %build
+export PERL_CANARY_STABILITY_NOPROMPT=1
 %{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}" NO_PACKLIST=1
 make %{?_smp_mflags}
 

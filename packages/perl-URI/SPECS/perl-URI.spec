@@ -1,3 +1,5 @@
+%global perl_bootstrap 1
+
 # Utilize Business::ISBN that needs gd library
 %bcond_without perl_URI_enables_Business_ISBN
 

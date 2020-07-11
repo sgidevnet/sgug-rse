@@ -1,3 +1,5 @@
+%global perl_bootstrap 1
+
 Name:		perl-Path-Class
 Version:	0.37
 Release:	13%{?dist}
