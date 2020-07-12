@@ -25,8 +25,8 @@ NOTE: While we are not yet out of beta, it is recommended to remove any previous
 su -
 # Show existing value
 systune ncargs
-# Tweak if < 131072
-systune ncargs 131072
+# Tweak if < 262144
+systune ncargs 262144
 ```
 
 (3) Optional - remove any previous sgug-rse installation:
