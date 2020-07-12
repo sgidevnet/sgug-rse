@@ -1,0 +1,12 @@
+diff -u -r libjpeg-turbo-2.0.2-orig/cmakescripts/GNUInstallDirs.cmake libjpeg-turbo-2.0.2/cmakescripts/GNUInstallDirs.cmake
+--- libjpeg-turbo-2.0.2-orig/cmakescripts/GNUInstallDirs.cmake	2019-02-14 04:03:31.000000000 +0000
++++ libjpeg-turbo-2.0.2/cmakescripts/GNUInstallDirs.cmake	2020-05-29 03:37:17.493301600 +0000
+@@ -233,7 +233,7 @@
+   "Directory into which machine-specific run-time-modifiable data files should be installed")
+ 
+ if(NOT DEFINED CMAKE_INSTALL_DEFAULT_LIBDIR)
+-  set(CMAKE_INSTALL_DEFAULT_LIBDIR "lib")
++  set(CMAKE_INSTALL_DEFAULT_LIBDIR "lib32")
+   # Override this default 'lib' with 'lib64' iff:
+   #  - we are on Linux system but NOT cross-compiling
+   #  - we are NOT on debian

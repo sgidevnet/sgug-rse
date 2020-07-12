@@ -1,3 +1,5 @@
+%global perl_bootstrap 1
+
 # Run test
 %if ! (0%{?rhel})
 %bcond_without perl_YAML_enables_test

@@ -1,3 +1,5 @@
+%global perl_bootstrap 1
+
 %global cpan_version_major 0.42
 %global cpan_version_minor 29
 %global cpan_version %{cpan_version_major}%{?cpan_version_minor}

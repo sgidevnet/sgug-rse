@@ -1,0 +1,141 @@
+diff -u -r -w frotz-2.44/Makefile frotz-2.44-patched/Makefile
+--- frotz-2.44/Makefile	2015-05-20 10:29:14.000000000 +0000
++++ frotz-2.44-patched/Makefile	2019-04-20 17:43:39.798126320 +0000
+@@ -1,20 +1,22 @@
+ # Define your C compiler.  I recommend gcc if you have it.
+ # MacOS users should use "cc" even though it's really "gcc".
+ #
+-CC = gcc
++#CC = gcc
+ #CC = cc
+ 
+ # Define your optimization flags.  Most compilers understand -O and -O2,
+ # Standard (note: Solaris on UltraSparc using gcc 2.8.x might not like this.)
+ #
+-OPTS = -O2
++#OPTS = -O2
++OPTS = $(CFLAGS)
+ 
+ # Pentium with gcc 2.7.0 or better
+ #OPTS = -O2 -fomit-frame-pointer -malign-functions=2 -malign-loops=2 \
+ #-malign-jumps=2
+ 
+ # Define where you want Frotz installed.  Usually this is /usr/local
+-PREFIX = /usr/local
++#PREFIX = /usr/local
++PREFIX = $(INSTALL_DIR)
+ 
+ MAN_PREFIX = $(PREFIX)
+ #MAN_PREFIX = /usr/local/share
+@@ -24,7 +26,7 @@
+ 
+ # Define where you want Frotz to look for frotz.conf.
+ #
+-CONFIG_DIR = /usr/local/etc
++#CONFIG_DIR = /usr/local/etc
+ #CONFIG_DIR = /etc
+ #CONFIG_DIR = /usr/pkg/etc
+ #CONFIG_DIR =
+@@ -59,6 +61,7 @@
+ #INCL = -I/usr/freeware/include
+ #INCL = -I/5usr/include
+ #INCL = -I/path/to/ncurses.h
++INCL = -I$(INSTALLDIR)/include -I$(INSTALLDIR)/include/ncurses
+ 
+ # If your vendor-supplied curses library won't work, uncomment the
+ # location where the ncurses library is.
+@@ -68,13 +71,14 @@
+ #LIB = -L/usr/freeware/lib
+ #LIB = -L/5usr/lib
+ #LIB = -L/path/to/libncurses.so
++LIB = $(LDFLAGS)
+ 
+ # One of these must always be uncommented.  If your vendor-supplied
+ # curses library won't work, comment out the first option and uncomment
+ # the second.
+ #
+-CURSES = -lcurses
+-#CURSES = -lncurses
++#CURSES = -lcurses
++CURSES = -lncurses -ltinfo -lgen
+ 
+ # Uncomment this if your need to use ncurses instead of the
+ # vendor-supplied curses library.  This just tells the compile process
+@@ -82,6 +86,7 @@
+ # (like on Linux).  You'll be fine.
+ #
+ #CURSES_DEF = -DUSE_NCURSES_H
++CURSES_DEF = -DUSE_NCURSES_H
+ 
+ # Uncomment this if you're compiling Unix Frotz on a machine that lacks
+ # the memmove(3) system call.  If you don't know what this means, leave it
+@@ -223,7 +228,7 @@
+ 	$(CC) $(OPTS) -o $@ -c $<
+ 
+ $(CURSES_OBJECT): %.o: %.c
+-	$(CC) $(OPTS) $(CURSES_DEFS) -o $@ -c $<
++	$(CC) $(OPTS) $(FLAGS) $(CURSES_DEFS) -o $@ -c $<
+ 
+ $(SDL_OBJECT): %.o: %.c
+ 	$(CC) $(OPTS) $(SDL_DEFS) -o $@ -c $<
+@@ -237,7 +242,7 @@
+ 	@echo
+ 	@echo "Archiving common code..."
+ 	ar rc $(COMMON_TARGET) $(COMMON_OBJECT)
+-	ranlib $(COMMON_TARGET)
++	$(RANLIB) $(COMMON_TARGET)
+ 	@echo
+ 
+ curses_lib:	config_curses $(CURSES_TARGET)
+@@ -245,7 +250,7 @@
+ 	@echo
+ 	@echo "Archiving curses interface code..."
+ 	ar rc $(CURSES_TARGET) $(CURSES_OBJECT)
+-	ranlib $(CURSES_TARGET)
++	$(RANLIB) $(CURSES_TARGET)
+ 	@echo
+ 
+ dumb_lib:	$(DUMB_TARGET)
+@@ -253,7 +258,7 @@
+ 	@echo
+ 	@echo "Archiving dumb interface code..."
+ 	ar rc $(DUMB_TARGET) $(DUMB_OBJECT)
+-	ranlib $(DUMB_TARGET)
++	$(RANLIB) $(DUMB_TARGET)
+ 	@echo
+ 
+ sdl_lib:	$(SDL_TARGET)
+@@ -261,7 +266,7 @@
+ 	@echo
+ 	@echo "Archiving SDL interface code..."
+ 	ar rc $(SDL_TARGET) $(SDL_OBJECT)
+-	ranlib $(SDL_TARGET)
++	$(RANLIB) $(SDL_TARGET)
+ 	@echo
+ 
+ blorb_lib:	$(BLORB_TARGET)
+@@ -269,7 +274,7 @@
+ 	@echo
+ 	@echo "Archiving Blorb file handling code..."
+ 	ar rc $(BLORB_TARGET) $(BLORB_OBJECT)
+-	ranlib $(BLORB_TARGET)
++	$(RANLIB) $(BLORB_TARGET)
+ 	@echo
+ 
+ 
+Only in frotz-2.44-patched: Makefile.orig
+Only in frotz-2.44-patched: Makefile~
+diff -u -r -w frotz-2.44/src/curses/ux_init.c frotz-2.44-patched/src/curses/ux_init.c
+--- frotz-2.44/src/curses/ux_init.c	2015-05-20 10:29:14.000000000 +0000
++++ frotz-2.44-patched/src/curses/ux_init.c	2019-04-20 17:42:49.604326960 +0000
+@@ -20,6 +20,9 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++#include <strings.h>
++#include <libgen.h>
++
+ #define __UNIX_PORT_FILE
+ 
+ #include <stdio.h>
+Only in frotz-2.44-patched/src/curses: ux_init.c.orig

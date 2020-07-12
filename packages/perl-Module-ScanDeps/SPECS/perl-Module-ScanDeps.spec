@@ -1,5 +1,5 @@
 # Run prefork optional test
-%{bcond_without perl_Module_ScanDeps_enables_prefork}
+%{bcond_with perl_Module_ScanDeps_enables_prefork}
 
 Name:           perl-Module-ScanDeps
 Summary:        Recursively scan Perl code for dependencies

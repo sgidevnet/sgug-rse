@@ -1,14 +1,13 @@
 Summary: Terminal emulator for the X Window System
 Name: xterm
-Version: 346
+Version: 351
 Release: 2%{?dist}
 URL: https://invisible-island.net/xterm
 License: MIT
 #BuildRequires: gcc pkgconfig ncurses-devel libutempter-devel
-BuildRequires: gcc pkgconfig ncurses-devel 
-#BuildRequires: libXft-devel libXaw-devel libXext-devel desktop-file-utils
-BuildRequires: libXft-devel libXaw-devel libXext-devel 
-#BuildRequires: libxkbfile-devel xorg-x11-apps
+BuildRequires: gcc pkgconfig ncurses-devel
+BuildRequires: libXft-devel libXaw-devel libXext-devel desktop-file-utils
+BuildRequires: libxkbfile-devel xorg-x11-apps
 Requires: xterm-resize = %{version}-%{release}
 Recommends: xorg-x11-fonts-misc
 
@@ -19,14 +18,16 @@ Patch1: xterm-defaults.patch
 Patch2: xterm-desktop.patch
 Patch3: xterm-man-paths.patch
 
-%bcond_with trace
+Patch100: xterm.sgifixes.patch
+
+%bcond_without trace
 
 %global x11_app_defaults_dir %(pkg-config --variable appdefaultdir xt)
 
 %description
 The xterm program is a terminal emulator for the X Window System. It
 provides DEC VT102 and Tektronix 4014 compatible terminals for
-programs that can't use the window system directly.
+programs that can''t use the window system directly.
 
 %package resize
 Summary: Set environment and terminal settings to current window size
@@ -42,8 +43,34 @@ indicate the current size of the window from which the command is run.
 %patch2 -p1 -b .desk
 %patch3 -p1 -b .man-paths
 
+%patch100 -p1
+
+# A place to build sgug patches
+#exit 1
+
+for f in THANKS; do
+	iconv -f iso8859-1 -t utf-8 ${f} >${f}{_,} &&
+		touch -r ${f}{,_} && mv -f ${f}{_,}
+done
+
+# Rewrite the default shell it's looking for to bash to better reflect
+# /bin/sh being bash on fedora
+# This isn't perfect, since it takes the default user shell env, which
+# might not include sgug, but the sgug bash is at least RPATHed correctly
+# and will do the right thing as a default
+perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" main.c
+perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" misc.c
+perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" resize.c
+
+# Rewrite the termlibs that we look for so that it doesn't pick up the
+# IRIX termlib, but only looks for ncurses
+perl -pi -e "s|otermcap termcap termlib ncurses curses|ncurses curses|g" configure
+perl -pi -e "s|termlib ncurses curses|ncurses curses|g" configure
 
 %build
+# For debug build
+#export CFLAGS="-g -O0"
+export LIBS="-lncurses -ltinfo"
 %configure \
 	--enable-meta-sends-esc \
 	--disable-backarrow-key \
@@ -56,10 +83,15 @@ indicate the current size of the window from which the command is run.
 	--with-app-defaults=%{x11_app_defaults_dir} \
 	--with-icon-theme=hicolor \
 	--with-icondir=%{_datadir}/icons \
-	--with-utempter \
-	--with-tty-group=tty \
-	--disable-full-tgetent
+	--without-utempter \
+	--enable-full-tgetent \
+	--enable-sixel-graphics
 
+# Disable for sgug
+#	--with-tty-group=sys \
+#	--with-utempter \
+#	--disable-full-tgetent \
+#
 make %{?_smp_mflags}
 
 %install
@@ -67,6 +99,12 @@ make DESTDIR=$RPM_BUILD_ROOT install
 
 cp -fp %{SOURCE1} 16colors.txt
 
+desktop-file-install \
+%if 0%{?fedora} && 0%{?fedora} < 19
+	--vendor=fedora \
+%endif
+	--dir=$RPM_BUILD_ROOT%{_datadir}/applications \
+	xterm.desktop
 
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/appdata
 install -m644 -p xterm.appdata.xml $RPM_BUILD_ROOT%{_datadir}/appdata
@@ -80,6 +118,7 @@ install -m644 -p xterm.appdata.xml $RPM_BUILD_ROOT%{_datadir}/appdata
 %{_mandir}/man1/uxterm.1*
 %{_mandir}/man1/xterm.1*
 %{_datadir}/appdata/xterm.appdata.xml
+%{_datadir}/applications/*xterm.desktop
 %{_datadir}/icons/hicolor/*/apps/*xterm*
 %{_datadir}/pixmaps/*xterm*.xpm
 %{x11_app_defaults_dir}/KOI8RXTerm*
@@ -91,6 +130,24 @@ install -m644 -p xterm.appdata.xml $RPM_BUILD_ROOT%{_datadir}/appdata
 %{_mandir}/man1/resize.1*
 
 %changelog
+* Sat Jul 11 2020 Daniel Hams <daniel.hams@gmail.com> - 351-2
+- Tweaks to stop chmod on exit, fix paths, use sgug termlib
+
+* Mon Nov 25 2019 Tomas Korbar <tkorbar@redhat.com> - 351-1
+- update to 351
+
+* Tue Nov 12 2019 Tomas Korbar <tkorbar@redhat.com> - 350-1
+- update to 350
+
+* Tue Oct 29 2019 Tomas Korbar <tkorbar@redhat.com> - 349-2
+- enable sixel graphics (#1763712)
+
+* Tue Sep 24 2019 Tomas Korbar <tkorbar@redhat.com> - 349-1
+- update to 349
+
+* Mon Aug 26 2019 Tomas Korbar <tkorbar@redhat.com> - 348-1
+- update to 348
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 346-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
