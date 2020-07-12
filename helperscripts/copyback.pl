@@ -58,6 +58,18 @@ for $packagedir (@packagedirs) {
 	    print "Command is '$cmd'\n";
 
 	    copy($rpmbuildFile, $targetFile) or die "Copy failed: $!";
+
+	    $_ = $rpmbuildFile;
+	    # Copy over any .spec.orig file too if we have one
+	    if( m|.*\.spec^| )
+	    {
+		$rpmbuildFile = File::HomeDir->my_home."/rpmbuild/$sourceFile.origfedora";
+		$targetFile = "./packages/$packageName/$sourceFile.orig";
+		if( -e $rpmbuildFile ) {
+#		    copy($rpmbuildFile, $targetFile) or die "Copy failed: $!";
+		    print "NEW would also do $rpmbuildFile to $targetFile\n";
+		}
+	    }
 	}
     }
 }
