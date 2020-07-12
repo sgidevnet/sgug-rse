@@ -17,7 +17,7 @@ Patch1000:      meson.sgifixes.patch
 
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
-Requires:       python3-setuptools
+Requires:       python%{python3_version}dist(setuptools)
 Requires:       ninja-build
 
 %description
