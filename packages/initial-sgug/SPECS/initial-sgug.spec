@@ -2,7 +2,7 @@ Summary: Bootstrap vpkg for sgug
 Name: initial-sgug
 Epoch: 1
 Version: 0.2.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 
 Provides: /bin/sh
@@ -50,7 +50,10 @@ This is a virtual RPM package.  It contains no actual files.
 %prep
 # nothing to do
 %build
-# nothing to do
+# we need to touch the output directory otherwise some of the macros
+# that check repository root etc will fail
+mkdir -p $RPM_BUILD_ROOT
+
 %install
 # nothing to do
 %clean
@@ -59,5 +62,8 @@ This is a virtual RPM package.  It contains no actual files.
 # no files in a virtual package
 
 %changelog
+* Mon Jul 13 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.0-3
+- Make sure we touch the output directory so that rpm macros don''t fail.
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.0-2
 - Include gssapi_krb5, socket and rt system libs
