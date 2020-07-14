@@ -19,7 +19,7 @@ Summary: The VIM editor
 URL:     http://www.vim.org/
 Name: vim
 Version: %{baseversion}.%{patchlevel}
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Vim and MIT
 Source0: ftp://ftp.vim.org/pub/vim/unix/vim-%{baseversion}-%{patchlevel}.tar.bz2
 Source1: vim.sh
@@ -269,11 +269,11 @@ mv -f Makefile.tmp Makefile
 export CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_FORTIFY_SOURCE=2"
 export CXXFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_FORTIFY_SOURCE=2"
 
-%if 0%{?fedora} > 31
-export LDFLAGS="%{build_ldflags} $(python3-config --libs --embed)"
-%else
-export LDFLAGS="%{build_ldflags} $(python3-config --libs)"
-%endif
+#%%if 0%%{?fedora} > 31
+#export LDFLAGS="%%{build_ldflags} $(python3-config --libs --embed)"
+#%%else
+export LDFLAGS="%{build_ldflags}"
+#%%endif
 
 cp -f os_unix.h os_unix.h.save
 cp -f ex_cmds.c ex_cmds.c.save
@@ -308,6 +308,7 @@ perl -pi -e "s/vimrc/virc/"  os_unix.h
   --disable-selinux \
 %endif
   --disable-pythoninterp --disable-perlinterp --disable-tclinterp \
+  --disable-python3interp \
   --with-tlib=ncurses --enable-gui=no --disable-gpm --exec-prefix=/ \
   --with-compiledby="<bugzilla@redhat.com>" \
   --with-modified-by="<bugzilla@redhat.com>" \
@@ -320,6 +321,8 @@ make clean
 
 mv -f os_unix.h.save os_unix.h
 mv -f ex_cmds.c.save ex_cmds.c
+
+export LDFLAGS="%{build_ldflags} $(python3-config --libs)"
 
 # More configure options:
 # --enable-xim - enabling X Input Method - international input module for X,
@@ -822,6 +825,9 @@ touch %{buildroot}/%{_datadir}/%{name}/vimfiles/doc/tags
 %{_datadir}/icons/locolor/*/apps/*
 
 %changelog
+* Tue Jul 14 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-5
+- Ensure separate config cache for minimal-vi so python isn''t linked it
+
 * Mon Jun 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-4
 - Enable our python3
 
