@@ -20,7 +20,7 @@ Patch3: xterm-man-paths.patch
 
 Patch100: xterm.sgifixes.patch
 
-%bcond_without trace
+%bcond_with trace
 
 %global x11_app_defaults_dir %(pkg-config --variable appdefaultdir xt)
 
