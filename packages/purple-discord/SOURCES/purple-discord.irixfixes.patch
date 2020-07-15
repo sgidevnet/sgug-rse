@@ -1,0 +1,31 @@
+diff -Naur purple-discord-11744587f65fc7afb679cc7c0c06b116a40fca5c.orig/Makefile purple-discord-11744587f65fc7afb679cc7c0c06b116a40fca5c/Makefile
+--- purple-discord-11744587f65fc7afb679cc7c0c06b116a40fca5c.orig/Makefile	2020-05-12 06:50:47.000000000 +0000
++++ purple-discord-11744587f65fc7afb679cc7c0c06b116a40fca5c/Makefile	2020-06-20 15:04:04.324304000 +0000
+@@ -130,26 +130,11 @@
+ 	mkdir -m $(DIR_PERM) -p $(LOCALE_DEST)/$(*F)/LC_MESSAGES
+ 	install -m $(FILE_PERM) -p po/$(*F).mo $(LOCALE_DEST)/$(*F)/LC_MESSAGES/purple-discord.mo
+ 
+-install: $(DISCORD_TARGET) install-icons install-locales
++install: $(DISCORD_TARGET) install-locales
+ 	mkdir -m $(DIR_PERM) -p $(DISCORD_DEST)
+ 	install -m $(LIB_PERM) -p $(DISCORD_TARGET) $(DISCORD_DEST)
+ 
+-discord16.png: discord-alt-logo.svg
+-	convert -strip -background none discord-alt-logo.svg -resize 16x16 discord16.png
+ 
+-discord22.png: discord-alt-logo.svg
+-	convert -strip -background none discord-alt-logo.svg -resize 22x22 discord22.png
+-
+-discord48.png: discord-alt-logo.svg
+-	convert -strip -background none discord-alt-logo.svg -resize 48x48 discord48.png
+-
+-install-icons: discord16.png discord22.png discord48.png
+-	mkdir -m $(DIR_PERM) -p $(DISCORD_ICONS_DEST)/16
+-	mkdir -m $(DIR_PERM) -p $(DISCORD_ICONS_DEST)/22
+-	mkdir -m $(DIR_PERM) -p $(DISCORD_ICONS_DEST)/48
+-	install -m $(FILE_PERM) -p discord16.png $(DISCORD_ICONS_DEST)/16/discord.png
+-	install -m $(FILE_PERM) -p discord22.png $(DISCORD_ICONS_DEST)/22/discord.png
+-	install -m $(FILE_PERM) -p discord48.png $(DISCORD_ICONS_DEST)/48/discord.png
+ 
+ install-locales: $(patsubst po/%.po, %-locale-install, $(wildcard po/*.po))
+ 

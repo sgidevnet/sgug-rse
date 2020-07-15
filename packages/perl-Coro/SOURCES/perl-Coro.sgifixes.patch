@@ -1,0 +1,36 @@
+diff -u -r Coro-6.55-orig/Coro/libcoro/coro.c Coro-6.55/Coro/libcoro/coro.c
+--- Coro-6.55-orig/Coro/libcoro/coro.c	2018-08-14 16:37:40.000000000 +0000
++++ Coro-6.55/Coro/libcoro/coro.c	2020-05-22 12:51:21.217259440 +0000
+@@ -442,7 +442,7 @@
+ 
+ # elif CORO_IRIX
+ 
+-  coro_setjmp (ctx->env, 0);
++  setjmp (ctx->env);
+   ctx->env[JB_PC]                      = (__uint64_t)coro_init;
+   ctx->env[JB_SP]                      = (__uint64_t)STACK_ADJUST_PTR (sptr, ssize) - sizeof (long);
+ 
+@@ -577,6 +577,8 @@
+ #elif __CYGWIN__
+       /* POSIX, not here */
+       pthread_attr_setstacksize (&attr, (size_t)ssize);
++#elif __sgi
++      /* Do nothing, we don't have it */
+ #else
+       pthread_attr_setstack (&attr, sptr, (size_t)ssize);
+ #endif
+diff -u -r Coro-6.55-orig/Coro/schmorp.h Coro-6.55/Coro/schmorp.h
+--- Coro-6.55-orig/Coro/schmorp.h	2011-03-04 16:41:21.000000000 +0000
++++ Coro-6.55/Coro/schmorp.h	2020-05-22 12:51:15.176471920 +0000
+@@ -8,6 +8,11 @@
+ #include <signal.h>
+ #include <errno.h>
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <fcntl.h>
++#endif
++
+ #if defined(_WIN32) || defined(_MINIX)
+ # define SCHMORP_H_PREFER_SELECT 1
+ #endif

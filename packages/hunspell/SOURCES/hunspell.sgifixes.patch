@@ -1,0 +1,9 @@
+diff -Naur hunspell-1.7.0.orig/src/tools/ispellaff2myspell hunspell-1.7.0/src/tools/ispellaff2myspell
+--- hunspell-1.7.0.orig/src/tools/ispellaff2myspell	2018-11-12 12:38:56.000000000 +0000
++++ hunspell-1.7.0/src/tools/ispellaff2myspell	2020-06-18 05:56:09.368907373 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/usr/sgug/bin/perl -w
+ # -*- coding: iso-8859-1 -*-
+ # 	$Id$
+ # 

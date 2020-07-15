@@ -1,6 +1,6 @@
 Summary: SGUG RPM Tools
 Name: sgug-rpm-tools
-Version: 0.1.2
+Version: 0.1.4
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/sgidevnet/sgug-rpm-tools
@@ -31,6 +31,9 @@ make install DESTDIR=$RPM_BUILD_ROOT prefix=%{_prefix} INSTALL='install -p'
 %{_bindir}/sgug_world_builder
 
 %changelog
+* Tue Jul 14 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.4
+- Tools upgrade that includes parsing specs from the sgug git repo
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.2
 - Upgrade to include tar,bzip2,gzip,xz,unzip in the minimum ball
 

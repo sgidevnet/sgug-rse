@@ -1,0 +1,14 @@
+--- jack-audio-connection-kit-0.125.0/libjack/unlock.c~	2020-02-25 04:24:35.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/unlock.c	2020-02-25 05:06:01.627894000 +0000
+@@ -63,7 +63,11 @@
+ 	int whoknows;
+ 	int looks_like_library;
+ 
++#if defined(__sgi)
++	snprintf (path, sizeof(path), "/proc/%ld/maps", getpid ());
++#else
+ 	snprintf (path, sizeof(path), "/proc/%d/maps", getpid ());
++#endif
+ 
+ 	if ((map = fopen (path, "r")) == NULL) {
+ 		jack_error ("can't open map file");

@@ -1,0 +1,63 @@
+diff -Naur worker-4.4.0.orig/scripts/aa.pattern_rename.sh worker-4.4.0/scripts/aa.pattern_rename.sh
+--- worker-4.4.0.orig/scripts/aa.pattern_rename.sh	2020-04-12 11:13:19.000000000 +0000
++++ worker-4.4.0/scripts/aa.pattern_rename.sh	2020-07-07 01:02:55.001310327 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ # PATTERN_RENAME : Worker Utility by AArexx AAron
+ # /usr/local/share/worker/scripts/aa.pattern_rename.sh
+ #
+diff -Naur worker-4.4.0.orig/scripts/cd2flac.sh worker-4.4.0/scripts/cd2flac.sh
+--- worker-4.4.0.orig/scripts/cd2flac.sh	2020-04-12 11:13:19.000000000 +0000
++++ worker-4.4.0/scripts/cd2flac.sh	2020-07-07 01:03:42.474564910 +0000
+@@ -1,4 +1,4 @@
+-#! /bin/bash
++#! /usr/sgug/bin/bash
+ # Example script for use with worker
+ # converts CD tracks to other formats
+ # based on scripts by Giulio Canevari <giuliogiuseppecarlo@interfree.it>
+diff -Naur worker-4.4.0.orig/scripts/cd2mp3.sh worker-4.4.0/scripts/cd2mp3.sh
+--- worker-4.4.0.orig/scripts/cd2mp3.sh	2020-04-12 11:13:19.000000000 +0000
++++ worker-4.4.0/scripts/cd2mp3.sh	2020-07-07 01:03:27.471200639 +0000
+@@ -1,4 +1,4 @@
+-#! /bin/bash
++#! /usr/sgug/bin/bash
+ # Example script for use with worker
+ # converts CD tracks to other formats
+ # based on scripts by Giulio Canevari <giuliogiuseppecarlo@interfree.it>
+diff -Naur worker-4.4.0.orig/scripts/cd2ogg.sh worker-4.4.0/scripts/cd2ogg.sh
+--- worker-4.4.0.orig/scripts/cd2ogg.sh	2020-04-12 11:13:19.000000000 +0000
++++ worker-4.4.0/scripts/cd2ogg.sh	2020-07-07 01:03:13.331078473 +0000
+@@ -1,4 +1,4 @@
+-#! /bin/bash
++#! /usr/sgug/bin/bash
+ # Example script for use with worker
+ # converts CD tracks to other formats
+ # based on scripts by Giulio Canevari <giuliogiuseppecarlo@interfree.it>
+diff -Naur worker-4.4.0.orig/scripts/cd2wav.sh worker-4.4.0/scripts/cd2wav.sh
+--- worker-4.4.0.orig/scripts/cd2wav.sh	2020-04-12 11:13:19.000000000 +0000
++++ worker-4.4.0/scripts/cd2wav.sh	2020-07-07 01:03:59.015811073 +0000
+@@ -1,4 +1,4 @@
+-#! /bin/bash
++#! /usr/sgug/bin/bash
+ # Example script for use with worker
+ # converts CD tracks to other formats
+ # based on scripts by Giulio Canevari <giuliogiuseppecarlo@interfree.it>
+diff -Naur worker-4.4.0.orig/scripts/find_file_by_chksum.py worker-4.4.0/scripts/find_file_by_chksum.py
+--- worker-4.4.0.orig/scripts/find_file_by_chksum.py	2020-04-12 11:13:19.000000000 +0000
++++ worker-4.4.0/scripts/find_file_by_chksum.py	2020-07-07 01:02:37.181554646 +0000
+@@ -1,4 +1,4 @@
+-#! /usr/bin/env python
++#! /usr/sgug/bin/python3
+ #
+ # This script outputs all files matching a given checksum
+ 
+diff -Naur worker-4.4.0.orig/scripts/xeditor worker-4.4.0/scripts/xeditor
+--- worker-4.4.0.orig/scripts/xeditor	2020-04-12 11:13:19.000000000 +0000
++++ worker-4.4.0/scripts/xeditor	2020-07-07 01:04:15.284121746 +0000
+@@ -1,4 +1,4 @@
+-#! /bin/bash
++#! /usr/sgug/bin/bash
+ #######################################################################
+ # xeditor
+ # Version: 1.2

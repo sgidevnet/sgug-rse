@@ -7,7 +7,7 @@
 Summary: SGUG specific rpm configuration files
 Name: sgug-rpm-config
 Version: 1
-Release: 3%{?dist}
+Release: 5%{?dist}
 # No version specified.
 License: GPL+
 URL: https://github.com/sgidevnet/sgug-rse/
@@ -40,6 +40,12 @@ install -p -m 644 -t %{buildroot}%{rpmetcdir} macros
 %{rpmetcdir}/macros
 
 %changelog
+* Tue Jul 14 2020 Daniel Hams <daniel.hams@gmail.com> - 1-5
+- Version bump for prerelease temporary dist
+
+* Fri May 22 2020 Daniel Hams <daniel.hams@gmail.com> - 1-4
+- Disable the hardcoded "bootstrap" of perl in the macros
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1-3
 - Switch over to zstd compression
 

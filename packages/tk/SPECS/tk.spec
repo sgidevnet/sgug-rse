@@ -8,7 +8,7 @@
 Summary: The graphical toolkit for the Tcl scripting language
 Name: tk
 Version: %{vers}
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch:   1
 License: TCL
 URL: http://tcl.sourceforge.net
@@ -16,8 +16,8 @@ Source0: http://download.sourceforge.net/sourceforge/tcl/%{name}%{version}-src.t
 Requires: tcl >= %{epoch}:%{tclvers}
 BuildRequires:  gcc
 BuildRequires: tcl-devel >= %{epoch}:%{tclvers}, autoconf
-#BuildRequires: libX11-devel
-#BuildRequires: libXft-devel
+BuildRequires: libX11-devel
+BuildRequires: libXft-devel
 # panedwindow.n from itcl conflicts
 Conflicts: itcl <= 3.2
 Obsoletes: tile <= 0.8.2
@@ -37,7 +37,7 @@ way to create cross-platform GUI applications.
 Summary: Tk graphical toolkit development files
 Requires: %{name} = %{epoch}:%{version}-%{release}
 Requires: tcl-devel = %{epoch}:%{tclvers}
-#Requires: libX11-devel libXft-devel
+Requires: libX11-devel libXft-devel
 
 %description devel
 When paired with the Tcl scripting language, Tk provides a fast and powerful
@@ -113,6 +113,9 @@ sed -i -e "s|$PWD/unix|%{_libdir}|; s|$PWD|%{_includedir}/%{name}-private|" %{bu
 %{_datadir}/%{name}%{majorver}/tkAppInit.c
 
 %changelog
+* Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1:8.6.8-2
+- Switch over to sgug libX11
+
 * Mon Mar 19 2018 Jaroslav Škarvada <jskarvad@redhat.com> - 1:8.6.8-1
 - New version
 

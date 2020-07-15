@@ -2,7 +2,7 @@
 
 Name:       distcc
 Version:    3.3.3
-Release:    2%{?dist}
+Release:    3%{?dist}
 Summary:    Distributed C/C++ compilation
 License:    GPLv2+
 URL:        https://github.com/distcc/distcc
@@ -11,13 +11,15 @@ Source1:    hosts.sample
 #Source2:    distccd.service
 Patch0:     distcc-localhost.patch
 
+Patch100:   distcc.sgifixes.patch
+
 BuildRequires: automake
 BuildRequires: autoconf
 BuildRequires: libtool
 BuildRequires: popt-devel
 #BuildRequires: libgnomeui-devel
 #BuildRequires: pango-devel
-#BuildRequires: python3-devel
+BuildRequires: python3-devel
 #BuildRequires: desktop-file-utils
 #BuildRequires: avahi-devel
 #BuildRequires: krb5-devel
@@ -55,12 +57,18 @@ two or more times faster than a local compile.
 %prep
 %setup -q
 %patch0 -p0
+%patch100 -p1
+
+# For patch generation
+#exit 1
 
 %build
-#export PYTHON='/usr/bin/python3'
+#export PYTHON='%{_bindir}/python3'
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_GETOPT=1 -I%{_includedir}/libdicl-0.1"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 ./autogen.sh
 #configure --with-gnome --disable-Werror --with-auth
-%configure --without-gnome --disable-Werror --with-auth --disable-pump-mode
+%configure --without-gnome --disable-Werror --with-auth
 make %{?_smp_mflags}
 
 
@@ -146,7 +154,7 @@ rm $RPM_BUILD_ROOT%{_sbindir}/update-distcc-symlinks
 %{_bindir}/distcc
 %{_bindir}/distccmon-text
 %{_bindir}/lsdistcc
-#%{_bindir}/pump
+%{_bindir}/pump
 %{_prefix}/distccmasqbin/*
 %{_mandir}/man1/distcc.*
 %{_mandir}/man1/distccmon*
@@ -155,7 +163,7 @@ rm $RPM_BUILD_ROOT%{_sbindir}/update-distcc-symlinks
 %{_mandir}/man1/lsdistcc*
 %dir %{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/%{name}/hosts
-#%{python3_sitearch}/include_server*
+%{python3_sitearch}/include_server*
 
 
 #%files gnome
@@ -178,6 +186,9 @@ rm $RPM_BUILD_ROOT%{_sbindir}/update-distcc-symlinks
 #%dir %{_libdir}/gcc-cross
 
 %changelog
+* Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.3-3
+- Get header pump working. Needs distccd X compiler with libstdc++ support to properly work.
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.3-2
 - Provide masquerade links avoiding need for python + dont produce server since its not validated.
 

@@ -1,0 +1,26 @@
+diff -u -r exiv2-0.27.2-Source-orig/samples/geotag.cpp exiv2-0.27.2-Source/samples/geotag.cpp
+--- exiv2-0.27.2-Source-orig/samples/geotag.cpp	2019-07-29 07:33:07.000000000 +0000
++++ exiv2-0.27.2-Source/samples/geotag.cpp	2020-05-30 05:53:39.088672120 +0000
+@@ -441,7 +441,7 @@
+     struct tm lcopy = *localtime(&now);
+     time_t    gmt   =  timegm(&lcopy) ; // timegm modifies lcopy
+     offset          = (int) ( ((long signed int) gmt) - ((long signed int) now) ) ;
+-#elif defined(OS_SOLARIS)
++#elif defined(OS_SOLARIS) || defined(__sgi)
+     struct tm local = *localtime(&now) ;
+     time_t local_tt = (int) mktime(&local);
+     time_t time_gmt = (int) mktime(gmtime(&now));
+diff -u -r exiv2-0.27.2-Source-orig/src/exiv2.cpp exiv2-0.27.2-Source/src/exiv2.cpp
+--- exiv2-0.27.2-Source-orig/src/exiv2.cpp	2019-07-29 07:33:07.000000000 +0000
++++ exiv2-0.27.2-Source/src/exiv2.cpp	2020-05-30 05:53:34.536652760 +0000
+@@ -26,6 +26,10 @@
+  */
+ // *****************************************************************************
+ // included header files
++#if defined(__sgi)
++#include <time.h>
++#include <sys/time.h>
++#endif
+ #include <exiv2/exiv2.hpp>
+ 
+ // include local header files which are not part of libexiv2

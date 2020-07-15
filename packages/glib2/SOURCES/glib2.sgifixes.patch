@@ -1,0 +1,341 @@
+diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
+--- glib-2.62.6-orig/gio/glocalfile.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gio/glocalfile.c	2020-06-21 16:19:35.749543920 +0000
+@@ -2734,7 +2734,7 @@
+   if (g_cancellable_set_error_if_cancelled (state->cancellable, error))
+     return FALSE;
+ 
+-#if defined (AT_FDCWD)
++#if defined (AT_FDCWD) && !defined(__sgi)
+   if (fstatat (parent_fd, name->data, &buf, AT_SYMLINK_NOFOLLOW) != 0)
+     {
+       int errsv = errno;
+@@ -2826,7 +2826,7 @@
+       if (g_cancellable_set_error_if_cancelled (state->cancellable, error))
+         return FALSE;
+ 
+-#ifdef AT_FDCWD
++#if defined(AT_FDCWD) && !defined(__sgi)
+ #ifdef HAVE_OPEN_O_DIRECTORY
+       dir_fd = openat (parent_fd, name->data, O_RDONLY|O_DIRECTORY);
+ #else
+@@ -2854,7 +2854,7 @@
+   const gchar *name;
+   GDir *dir;
+ 
+-#ifdef AT_FDCWD
++#if defined(AT_FDCWD) && !defined(__sgi)
+   {
+     /* If this fails, we want to preserve the errno from fopendir() */
+     DIR *dirp;
+diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
+--- glib-2.62.6-orig/gio/gsocket.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gio/gsocket.c	2020-06-21 16:19:35.758346720 +0000
+@@ -4427,7 +4427,7 @@
+   const struct msghdr *_prev_msg = (prev_msg); \
+   GError **_error = (error); \
+  \
+-  _msg->msg_flags = 0; \
++  /*_msg->msg_flags = 0;*/                      \
+  \
+   /* name */ \
+   if (_prev_message != NULL && _prev_message->address == _message->address) \
+@@ -4568,7 +4568,7 @@
+     } \
+  \
+   /* flags */ \
+-  _msg->msg_flags = _message->flags; \
++  /*_msg->msg_flags = _message->flags;*/        \
+ } G_STMT_END
+ 
+ static void
+@@ -4634,7 +4634,7 @@
+   }
+ 
+   /* capture the flags */
+-  message->flags = msg->msg_flags;
++  /*message->flags = msg->msg_flags;*/
+ }
+ #endif
+ 
+@@ -5336,7 +5336,11 @@
+     /* do it */
+     while (1)
+       {
++#if defined(__sgi)
++	result = recvmsg (socket->priv->fd, &msg, 0);
++#else
+ 	result = recvmsg (socket->priv->fd, &msg, msg.msg_flags);
++#endif
+ #ifdef MSG_CMSG_CLOEXEC	
+ 	if (result < 0 && get_socket_errno () == EINVAL)
+ 	  {
+diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
+--- glib-2.62.6-orig/gio/gtrashportal.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gio/gtrashportal.c	2020-06-21 16:19:35.760129680 +0000
+@@ -86,10 +86,17 @@
+ 
+   path = g_file_get_path (file);
+ 
++#if defined(__sgi)
++  fd = g_open (path, O_RDWR | O_CLOEXEC);
++  if (fd == -1 && errno == EISDIR)
++    /* If it is a directory, fall back to O_PATH */
++    fd = g_open (path, O_PATH | O_CLOEXEC | O_RDONLY);
++#else
+   fd = g_open (path, O_RDWR | O_CLOEXEC | O_NOFOLLOW);
+   if (fd == -1 && errno == EISDIR)
+     /* If it is a directory, fall back to O_PATH */
+     fd = g_open (path, O_PATH | O_CLOEXEC | O_RDONLY | O_NOFOLLOW);
++#endif
+ 
+   errsv = errno;
+ 
+diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.c
+--- glib-2.62.6-orig/gio/gunixfdmessage.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gio/gunixfdmessage.c	2020-06-21 16:19:35.761917360 +0000
+@@ -48,6 +48,10 @@
+ #include <fcntl.h>
+ #include <errno.h>
+ 
++#if defined(__sgi)
++# define SCM_RIGHTS 0x01
++#endif
++
+ #include "gunixfdmessage.h"
+ #include "gunixfdlist.h"
+ #include "gnetworking.h"
+diff -u -r glib-2.62.6-orig/gio/tests/desktop-app-info.c glib-2.62.6/gio/tests/desktop-app-info.c
+--- glib-2.62.6-orig/gio/tests/desktop-app-info.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gio/tests/desktop-app-info.c	2020-06-21 16:19:53.455452960 +0000
+@@ -80,9 +80,9 @@
+ 
+   g_object_unref (info);
+ 
+-  if (g_file_test ("/usr/share/applications/gedit.desktop", G_FILE_TEST_EXISTS))
++  if (g_file_test ("/usr/sgug/share/applications/gedit.desktop", G_FILE_TEST_EXISTS))
+     {
+-      info = (GAppInfo*)g_desktop_app_info_new_from_filename ("/usr/share/applications/gedit.desktop");
++      info = (GAppInfo*)g_desktop_app_info_new_from_filename ("/usr/sgug/share/applications/gedit.desktop");
+       g_assert_nonnull (info);
+      
+       res = g_app_info_can_delete (info);
+diff -u -r glib-2.62.6-orig/gio/xdgmime/xdgmime.c glib-2.62.6/gio/xdgmime/xdgmime.c
+--- glib-2.62.6-orig/gio/xdgmime/xdgmime.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gio/xdgmime/xdgmime.c	2020-06-21 16:20:02.287929120 +0000
+@@ -235,7 +235,7 @@
+   xdg_data_dirs = getenv ("XDG_DATA_DIRS");
+ 
+   if (xdg_data_dirs == NULL)
+-    xdg_data_dirs = "/usr/local/share/:/usr/share/";
++    xdg_data_dirs = "/usr/sgug/share/:/usr/share/";
+ 
+   /* Work out how many dirs we’re dealing with. */
+   if (xdg_data_home != NULL || home != NULL)
+diff -u -r glib-2.62.6-orig/glib/gcharset.c glib-2.62.6/glib/gcharset.c
+--- glib-2.62.6-orig/glib/gcharset.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/gcharset.c	2020-06-21 16:20:41.603434800 +0000
+@@ -407,7 +407,7 @@
+   if (g_once_init_enter (&alias_table))
+     {
+       GHashTable *table = g_hash_table_new (g_str_hash, g_str_equal);
+-      read_aliases ("/usr/share/locale/locale.alias", table);
++      read_aliases ("/usr/sgug/share/locale/locale.alias", table);
+       g_once_init_leave (&alias_table, table);
+     }
+ 
+diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
+--- glib-2.62.6-orig/glib/giounix.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/giounix.c	2020-06-21 16:19:35.764079920 +0000
+@@ -31,7 +31,17 @@
+ 
+ #include "config.h"
+ 
++#if defined(__sgi)
++/* Needed to get the right declarations for select() before POSIX_SOURCE
++ * define
++ */
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#else
+ #define _POSIX_SOURCE		/* for SSIZE_MAX */
++#endif
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
+diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.in
+--- glib-2.62.6-orig/glib/glibconfig.h.in	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/glibconfig.h.in	2020-06-21 16:19:35.765665600 +0000
+@@ -16,7 +16,7 @@
+  * system printf functions.  This is useful to know, for example,
+  * when using glibc's register_printf_function().
+  */
+-#mesondefine GLIB_USING_SYSTEM_PRINTF
++/*#mesondefine GLIB_USING_SYSTEM_PRINTF*/
+ 
+ #mesondefine GLIB_STATIC_COMPILATION
+ #mesondefine GOBJECT_STATIC_COMPILATION
+diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
+--- glib-2.62.6-orig/glib/gmain.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/gmain.c	2020-06-21 16:19:35.772909920 +0000
+@@ -2844,7 +2844,11 @@
+   struct timespec ts;
+   gint result;
+ 
++#if defined(__sgi)
++  result = clock_gettime (CLOCK_SGI_CYCLE, &ts);
++#else
+   result = clock_gettime (CLOCK_MONOTONIC, &ts);
++#endif
+ 
+   if G_UNLIKELY (result != 0)
+     g_error ("GLib requires working CLOCK_MONOTONIC");
+diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meson.build
+--- glib-2.62.6-orig/glib/gnulib/meson.build	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/gnulib/meson.build	2020-06-21 16:19:35.774898080 +0000
+@@ -323,14 +323,16 @@
+                          output: 'gnulib_math.h',
+                          configuration: math_h_config)
+ 
+-gnulib_sources = ['asnprintf.c', 'printf.c', 'printf-args.c', 'printf-parse.c', 'printf-frexp.c', 'printf-frexpl.c', 'isnand.c', 'isnanl.c', 'vasnprintf.c']
++# We already have all these in libdicl
++gnulib_sources = ['asnprintf.c', 'printf.c', 'printf-args.c', 'printf-parse.c', 'printf-frexp.c', 'printf-frexpl.c', 'isnand.c', 'isnanf.c', 'isnanl.c', 'vasnprintf.c']
++#gnulib_sources = ['printf.c','vasnprintf.c']
+ 
+-if not gl_cv_func_frexp_works
+-  gnulib_sources += ['frexp.c']
+-endif
+-if not gl_cv_func_frexpl_works
+-  gnulib_sources += ['frexpl.c']
+-endif
++#if not gl_cv_func_frexp_works
++#  gnulib_sources += ['frexp.c']
++#endif
++#if not gl_cv_func_frexpl_works
++#  gnulib_sources += ['frexpl.c']
++#endif
+ 
+ gnulib_sources += other_needed_math_sources
+ 
+diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.c
+--- glib-2.62.6-orig/glib/gthread-posix.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/gthread-posix.c	2020-06-21 16:19:35.777685440 +0000
+@@ -661,7 +661,7 @@
+ 
+   pthread_condattr_init (&attr);
+ 
+-#ifdef HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP
++#if defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP) || defined(__sgi)
+ #elif defined (HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined (CLOCK_MONOTONIC)
+   if G_UNLIKELY ((status = pthread_condattr_setclock (&attr, CLOCK_MONOTONIC)) != 0)
+     g_thread_abort (status, "pthread_condattr_setclock");
+@@ -901,6 +901,22 @@
+     if ((status = pthread_cond_timedwait_relative_np (g_cond_get_impl (cond), g_mutex_get_impl (mutex), &ts)) == 0)
+       return TRUE;
+   }
++#elif defined(__sgi)
++  {
++    gint64 now = g_get_monotonic_time();
++    gint64 absendtime;
++
++    if (end_time <= now)
++      return FALSE;
++
++    absendtime = g_get_real_time () + (end_time - now);
++
++    ts.tv_sec = absendtime / 1000000;
++    ts.tv_nsec = (absendtime % 1000000) * 1000;
++
++    if ((status = pthread_cond_timedwait (g_cond_get_impl (cond), g_mutex_get_impl (mutex), &ts)) == 0)
++      return TRUE;
++  }
+ #elif defined (HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined (CLOCK_MONOTONIC)
+   /* This is the exact check we used during init to set the clock to
+    * monotonic, so if we're in this branch, timedwait() will already be
+diff -u -r glib-2.62.6-orig/glib/gtimezone.c glib-2.62.6/glib/gtimezone.c
+--- glib-2.62.6-orig/glib/gtimezone.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/gtimezone.c	2020-06-21 16:20:47.531480160 +0000
+@@ -416,7 +416,8 @@
+ 
+   tzdir = getenv ("TZDIR");
+   if (tzdir == NULL)
+-    tzdir = "/usr/share/zoneinfo";
++    /* Yes, this doesn't exist on IRIX */
++    tzdir = "/usr/sgug/share/zoneinfo";
+ 
+   /* identifier can be a relative or absolute path name;
+      if relative, it is interpreted starting from /usr/share/zoneinfo
+diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
+--- glib-2.62.6-orig/glib/gutils.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/gutils.c	2020-06-21 16:20:55.338136000 +0000
+@@ -992,11 +992,17 @@
+       const gsize size_large = (gsize) 256 * 256;
+       gchar *tmp;
+ 
++#if defined(__sgi)
++      max = 0;
++#else
+       max = sysconf (_SC_HOST_NAME_MAX);
++#endif
+       if (max > 0 && max <= G_MAXSIZE - 1)
+         size = (gsize) max + 1;
+       else
+-#ifdef HOST_NAME_MAX
++#if defined(__sgi)
++        size = MAXHOSTNAMELEN + 1;
++#elif defined(HOST_NAME_MAX)
+         size = HOST_NAME_MAX + 1;
+ #else
+         size = _POSIX_HOST_NAME_MAX + 1;
+@@ -2067,7 +2073,7 @@
+    */
+ #ifndef G_OS_WIN32
+   if (!data_dirs || !data_dirs[0])
+-    data_dirs = "/usr/local/share/:/usr/share/";
++    data_dirs = "/usr/sgug/share/:/usr/share/";
+ 
+   data_dir_vector = g_strsplit (data_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
+ #else
+diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
+--- glib-2.62.6-orig/meson.build	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/meson.build	2020-06-21 16:19:35.785481600 +0000
+@@ -449,7 +449,6 @@
+   'link',
+   'localtime_r',
+   'lstat',
+-  'mbrtowc',
+   'memalign',
+   'mmap',
+   'newlocale',
+@@ -475,12 +474,13 @@
+   'valloc',
+   'vasprintf',
+   'vsnprintf',
+-  'wcrtomb',
+   'wcslen',
+   'wcsnlen',
+   'sysctlbyname',
+   '_NSGetEnviron',
+ ]
++# Not for IRIX  'mbrtowc',
++# Not for IRIX  'wcrtomb',
+ 
+ if glib_conf.has('HAVE_SYS_STATVFS_H')
+   functions += ['statvfs']
+diff -u -r glib-2.62.6-orig/tests/mapping-test.c glib-2.62.6/tests/mapping-test.c
+--- glib-2.62.6-orig/tests/mapping-test.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/tests/mapping-test.c	2020-06-21 16:19:35.786817040 +0000
+@@ -208,7 +208,11 @@
+   signal (SIGUSR1, handle_usr1);
+ #endif
+ 
++#if defined(__sgi)
++  g_snprintf (pid, sizeof(pid), "%ld", getpid ());
++#else
+   g_snprintf (pid, sizeof(pid), "%d", getpid ());
++#endif
+   child_argv[0] = argv0;
+   child_argv[1] = "mapchild";
+   child_argv[2] = pid;

@@ -1,0 +1,89 @@
+Only in ttmkfdir-3.0.9: .libs
+diff -u -r ttmkfdir-3.0.9-orig/Makefile ttmkfdir-3.0.9/Makefile
+--- ttmkfdir-3.0.9-orig/Makefile	2020-04-23 16:05:25.763694880 +0000
++++ ttmkfdir-3.0.9/Makefile	2020-04-23 16:38:18.073716280 +0000
+@@ -40,10 +40,10 @@
+ all: ttmkfdir
+ 
+ .cpp.o:
+-	libtool --mode=compile $(CXX) $(CXXFLAGS) -o $@ -c $^
++	libtool --tag=CXX --mode=compile $(CXX) $(CXXFLAGS) -o $@ -c $^
+ 
+ ttmkfdir: ttmkfdir.o directory.o commandline.o ttf.o encoding.o parser.o builtin.o
+-	libtool --mode=link $(CXX) -o $@ $^ $(LDFLAGS)
++	libtool --tag=CXX --mode=link $(CXX) -o $@ $^ $(LDFLAGS)
+ 
+ parser.cpp: encoding.l
+ 	    flex -i -8 -o$@ $<
+Only in ttmkfdir-3.0.9: builtin.lo
+Only in ttmkfdir-3.0.9: builtin.o
+Only in ttmkfdir-3.0.9: commandline.lo
+Only in ttmkfdir-3.0.9: commandline.o
+Only in ttmkfdir-3.0.9: directory.lo
+Only in ttmkfdir-3.0.9: directory.o
+diff -u -r ttmkfdir-3.0.9-orig/encoding.cpp ttmkfdir-3.0.9/encoding.cpp
+--- ttmkfdir-3.0.9-orig/encoding.cpp	2020-04-23 16:05:25.645239760 +0000
++++ ttmkfdir-3.0.9/encoding.cpp	2020-04-23 16:39:53.073214160 +0000
+@@ -2,6 +2,13 @@
+ #include <cstdio>
+ #include <cstdlib>
+ #include <cstring>
++
++#if defined(__sgi)
++extern "C" {
++void bzero(void *, size_t);
++}
++#endif
++
+ #include <unistd.h>
+ #include <zlib.h>
+ 
+Only in ttmkfdir-3.0.9: encoding.cpp~
+diff -u -r ttmkfdir-3.0.9-orig/encoding.l ttmkfdir-3.0.9/encoding.l
+--- ttmkfdir-3.0.9-orig/encoding.l	2020-04-23 16:05:25.640216960 +0000
++++ ttmkfdir-3.0.9/encoding.l	2020-04-23 16:41:45.398157360 +0000
+@@ -68,10 +68,10 @@
+     char *startptr = strip_first (yytext);
+     char *endptr;
+ 
+-    i1 = std::strtol (startptr, &endptr, 0);
++    i1 = ::strtol (startptr, &endptr, 0);
+     startptr = endptr;
+     
+-    i2 = std::strtol (startptr, &endptr, 0);
++    i2 = ::strtol (startptr, &endptr, 0);
+ 
+     cur_enc->size = (startptr == endptr) ? i1: (i1  << 8) + i2;
+ }
+@@ -105,10 +105,10 @@
+     char *startptr = strip_first (yytext);
+     char *endptr;
+ 
+-    int i1 = std::strtol (startptr, &endptr, 0);
++    int i1 = ::strtol (startptr, &endptr, 0);
+     startptr = endptr;
+     
+-    int i2 = std::strtol (startptr, &endptr, 0);
++    int i2 = ::strtol (startptr, &endptr, 0);
+ 
+     if (startptr == endptr) {
+ 	i2 = i1;
+@@ -137,7 +137,7 @@
+ 
+     for (i = 0;;i++) {
+ 	startptr = endptr;
+-	res = std::strtol (startptr, &endptr, 0);
++	res = ::strtol (startptr, &endptr, 0);
+ 	if (startptr != endptr) numbers[i] = res; else break;
+     }
+ 
+Only in ttmkfdir-3.0.9: encoding.lo
+Only in ttmkfdir-3.0.9: encoding.l~
+Only in ttmkfdir-3.0.9: encoding.o
+Only in ttmkfdir-3.0.9: parser.cpp
+Only in ttmkfdir-3.0.9: parser.lo
+Only in ttmkfdir-3.0.9: parser.o
+Only in ttmkfdir-3.0.9: ttf.lo
+Only in ttmkfdir-3.0.9: ttf.o
+Only in ttmkfdir-3.0.9: ttmkfdir.lo
+Only in ttmkfdir-3.0.9: ttmkfdir.o

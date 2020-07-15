@@ -1,0 +1,9 @@
+diff -Naur fontpackages-1.44.orig/bin/ttfcoverage fontpackages-1.44/bin/ttfcoverage
+--- fontpackages-1.44.orig/bin/ttfcoverage	2010-06-13 07:43:19.000000000 +0000
++++ fontpackages-1.44/bin/ttfcoverage	2020-04-12 12:40:01.460146567 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ # a coverage script
+ # depends on Unicode::UCD and Font::TTF
+ # by Martin Hosken

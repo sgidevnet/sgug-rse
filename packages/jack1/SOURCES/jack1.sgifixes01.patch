@@ -1,0 +1,14 @@
+--- jack-audio-connection-kit-0.125.0/libjack/client.c~	2020-02-25 04:24:34.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/client.c	2020-02-25 05:04:09.593567600 +0000
+@@ -1496,7 +1496,11 @@
+ 			snprintf (user_dir, sizeof(user_dir), "%s/jack",
+ 				  tmpdir);
+ 		} else {
++#if defined(__sgi)
++			snprintf (user_dir, sizeof(user_dir), "%s/jack-%ld",
++#else
+ 			snprintf (user_dir, sizeof(user_dir), "%s/jack-%d",
++#endif
+ 				  tmpdir, getuid ());
+ 		}
+ 	}

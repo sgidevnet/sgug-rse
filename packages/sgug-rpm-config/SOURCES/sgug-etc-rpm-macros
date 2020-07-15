@@ -63,13 +63,14 @@
 
 %_hardened_ldflags %{nil}
 
-%dist .sgugbeta
+%dist .sgugprerelease0.0.6
 
 %_pkgdocdir %{_docdir}/%{name}
 %_docdir_fmt %%{NAME}
 
 # For initial perl build...
-%perl_bootstrap 1
+# Now we don't need this.
+#%%perl_bootstrap 0
 
 %__perl %{_bindir}/perl
 %perl_vendorlib	%{_prefix}/share/perl5/vendor_perl

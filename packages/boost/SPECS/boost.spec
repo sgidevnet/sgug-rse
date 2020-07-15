@@ -34,7 +34,7 @@ Summary: The free peer-reviewed portable C++ source libraries
 Version: 1.69.0
 %global version_enc 1_69_0
 %global version_suffix 169
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: Boost and MIT and Python
 
 %global toplev_dirname %{real_name}_%{version_enc}
@@ -758,13 +758,17 @@ find ./boost -name '*.hpp' -perm /111 | xargs chmod a-x
 
 %patch100 -p1
 
+# Rewrite some hardcoded paths
+perl -pi -e "s|/usr/bin/python|%{_bindir}/python|g" tools/build/src/tools/doxproc.py
+perl -pi -e "s|/usr/bin/python|%{_bindir}/python|g" tools/build/example/customization/inline_file.py
+
 %build
 # Dump the versions being used into the build logs.
 %if %{with python2}
 : PYTHON2_VERSION=%{python2_version}
 %endif
 %if %{with python3}
-PYTHON3_ABIFLAGS=$(/usr/bin/python3-config --abiflags)
+PYTHON3_ABIFLAGS=$(/usr/sgug/bin/python3-config --abiflags)
 : PYTHON3_VERSION=%{python3_version}
 : PYTHON3_ABIFLAGS=${PYTHON3_ABIFLAGS}
 %endif
@@ -785,7 +789,7 @@ using gcc : : : <compileflags>$(RPM_OPT_FLAGS) <linkflags>$(RPM_LD_FLAGS) ;
 using mpi ;
 %endif
 %if %{with python2}
-using python : %{python2_version} : /usr/bin/python2 : /usr/include/python%{python2_version} : : : : ;
+using python : %{python2_version} : /usr/sgug/bin/python2 : /usr/sgug/include/python%{python2_version} : : : : ;
 %endif
 EOF
 
@@ -847,7 +851,7 @@ using mpi ;
 EOF
 
 cat >> python3-config.jam << EOF
-using python : %{python3_version} : /usr/bin/python3 : /usr/include/python%{python3_version}${PYTHON3_ABIFLAGS} : : : : ${PYTHON3_ABIFLAGS} ;
+using python : %{python3_version} : /usr/sgug/bin/python3 : /usr/sgug/include/python%{python3_version}${PYTHON3_ABIFLAGS} : : : : ${PYTHON3_ABIFLAGS} ;
 EOF
 
 echo ============================= build serial-py3 ==================
@@ -1062,7 +1066,7 @@ echo ============================= install Boost.Build ==================
  chmod -x $RPM_BUILD_ROOT%{_datadir}/boost-build/src/options/help.jam
  chmod +x $RPM_BUILD_ROOT%{_datadir}/boost-build/src/tools/doxproc.py
  # Fix shebang using unversioned python
- sed -i '1s@^#!/usr/bin.python$@&3@' $RPM_BUILD_ROOT%{_datadir}/boost-build/src/tools/doxproc.py
+ sed -i '1s@^#!/usr/sgug/bin.python$@&3@' $RPM_BUILD_ROOT%{_datadir}/boost-build/src/tools/doxproc.py
  # We don't want to distribute this
  rm -f $RPM_BUILD_ROOT%{_bindir}/b2
  # Not a real file
@@ -1488,6 +1492,9 @@ fi
 %{_mandir}/man1/bjam.1*
 
 %changelog
+* Sun Jul 05 2020 Daniel Hams <daniel.hams@gmail.com> - 1.69.0-11
+- Activate python3 bits (but not installed yet)
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.69.0-10
 - Build + install boost iostreams library
 

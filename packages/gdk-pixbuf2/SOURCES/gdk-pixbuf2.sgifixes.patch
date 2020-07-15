@@ -1,0 +1,64 @@
+diff -u -r gdk-pixbuf-2.40.0-orig/gdk-pixbuf/gdk-pixbuf-core.h gdk-pixbuf-2.40.0/gdk-pixbuf/gdk-pixbuf-core.h
+--- gdk-pixbuf-2.40.0-orig/gdk-pixbuf/gdk-pixbuf-core.h	2019-10-08 11:44:10.000000000 +0000
++++ gdk-pixbuf-2.40.0/gdk-pixbuf/gdk-pixbuf-core.h	2020-06-21 14:15:05.081410320 +0000
+@@ -24,6 +24,18 @@
+ #ifndef GDK_PIXBUF_CORE_H
+ #define GDK_PIXBUF_CORE_H
+ 
++#if defined(__sgi)
++
++#undef _POSIX_C_SOURCE
++#include <time.h>
++#include <sys/time.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#define _POSIX_C_SOURCE 200809L
++
++#endif
++
+ #if defined(GDK_PIXBUF_DISABLE_SINGLE_INCLUDES) && !defined (GDK_PIXBUF_H_INSIDE) && !defined (GDK_PIXBUF_COMPILATION)
+ #error "Only <gdk-pixbuf/gdk-pixbuf.h> can be included directly."
+ #endif
+diff -u -r gdk-pixbuf-2.40.0-orig/gdk-pixbuf/gdk-pixbuf-io.c gdk-pixbuf-2.40.0/gdk-pixbuf/gdk-pixbuf-io.c
+--- gdk-pixbuf-2.40.0-orig/gdk-pixbuf/gdk-pixbuf-io.c	2019-10-08 11:44:10.000000000 +0000
++++ gdk-pixbuf-2.40.0/gdk-pixbuf/gdk-pixbuf-io.c	2020-06-21 14:15:05.087138480 +0000
+@@ -21,6 +21,8 @@
+ 
+ #include "config.h"
+ 
++#include "gdk-pixbuf-core.h"
++
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <string.h>
+diff -u -r gdk-pixbuf-2.40.0-orig/gdk-pixbuf/io-jasper.c gdk-pixbuf-2.40.0/gdk-pixbuf/io-jasper.c
+--- gdk-pixbuf-2.40.0-orig/gdk-pixbuf/io-jasper.c	2019-10-08 11:44:10.000000000 +0000
++++ gdk-pixbuf-2.40.0/gdk-pixbuf/io-jasper.c	2020-06-21 14:15:05.088871520 +0000
+@@ -17,6 +17,13 @@
+  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#if defined(__sgi)
++#undef _POSIX_C_SOURCE
++#include <time.h>
++#include <sys/time.h>
++#define _POSIX_C_SOURCE 200809L
++#endif
++
+ #include "config.h"
+ #include <stdlib.h>
+ #include <string.h>
+diff -u -r gdk-pixbuf-2.40.0-orig/meson.build gdk-pixbuf-2.40.0/meson.build
+--- gdk-pixbuf-2.40.0-orig/meson.build	2019-10-08 11:44:10.000000000 +0000
++++ gdk-pixbuf-2.40.0/meson.build	2020-06-21 14:15:41.076136320 +0000
+@@ -8,7 +8,8 @@
+         ],
+         meson_version: '>= 0.46.0')
+ 
+-add_project_arguments([ '-D_POSIX_C_SOURCE=200809L', '-D_DEFAULT_SOURCE', '-D_XOPEN_SOURCE' ], language: 'c')
++#add_project_arguments([ '-D_POSIX_C_SOURCE=200809L', '-D_DEFAULT_SOURCE', '-D_XOPEN_SOURCE' ], language: 'c')
++add_project_arguments([ '-D_DEFAULT_SOURCE' ], language: 'c')
+ 
+ cc = meson.get_compiler('c')
+ host_system = host_machine.system()
