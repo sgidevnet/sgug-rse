@@ -1,7 +1,7 @@
 Name:           perl-JSON
 Summary:        Parse and convert to JSON (JavaScript Object Notation)
 Version:        4.02
-Release:        3%{?dist}
+Release:        4%{?dist}
 License:        GPL+ or Artistic
 
 URL:            https://metacpan.org/release/JSON
@@ -35,7 +35,9 @@ BuildRequires:  perl(Tie::IxHash)
 %global __provides_exclude %{?__provides_exclude:%__provides_exclude|}perl\\(JSON::(Backend::PP|backportPP::Boolean|Boolean|PP|PP::IncrParser)\\)
 %global __requires_exclude %{?__requires_exclude:%__requires_exclude|}perl\\(JSON::(backportPP|backportPP::Boolean)\\)
 
-%{?perl_default_subpackage_tests}
+# These are no longer built by default, not entirely certain why.
+# That's for another time.
+#%%{?perl_default_subpackage_tests}
 
 %description
 This module converts between JSON (JavaScript Object Notation) and Perl
@@ -71,6 +73,9 @@ make test
 %{_mandir}/man3/*
 
 %changelog
+* Mon Jul 13 2020 Daniel Hams <daniel.hams@gmail.com> - 4.02-4
+- Disable auto-built tests sub-package which doesn''t seem to be a thing for us now.
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.02-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
