@@ -136,3 +136,4 @@ sudo rpm -ivh ~/rpmbuild/RPMS/mips/m4*.rpm
 There will be bugs, I'm afraid. This platform is relatively new, much as the GCC underpinning it is. Please do file an issue for things you find - it helps a lot to double check there isn't already one for the problem you have.
 
 Feel free to contact us on the forums or in discord and we may be able to help.
+.
