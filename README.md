@@ -102,7 +102,7 @@ sudo rpm --reinstall -ivh noarch/*.rpm mips/*.rpm
 
 and for any upgrades/updates:
 
-* CARE: You must use the "upgrade" flag for any upgraded packages to void double-installs
+* CARE: You must use the "upgrade" flag for any upgraded packages to avoid double-installs
 
 ```
 cd ~/sgug-rse.git

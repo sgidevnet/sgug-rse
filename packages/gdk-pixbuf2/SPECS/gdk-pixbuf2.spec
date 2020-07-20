@@ -2,7 +2,7 @@
 
 Name:           gdk-pixbuf2
 Version:        2.40.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        An image loading library
 
 License:        LGPLv2+
@@ -87,7 +87,7 @@ export LD_LIBRARYN32_PATH=$CUR_WD/mips-sgug-irix/gdk-pixbuf/:$LD_LIBRARYN32_PATH
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-gcc
 
-export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
+export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 $RPM_OPT_FLAGS"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 
 export LD_LIBRARYN32_PATH=`pwd`/mips-sgug-irix/gdk-pixbuf:$LD_LIBRARYN32_PATH
@@ -164,6 +164,9 @@ gdk-pixbuf-query-loaders --update-cache
 %{_datadir}/installed-tests
 
 %changelog
+* Mon Jul 20 2020 Daniel Hams <daniel.hams@gmail.com> - 2.40.0-4
+- Fix missing RPM_OPT_FLAGS needed in the CFLAGS
+
 * Sun Jun 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.40.0-3
 - Now we have mime lookups working in glib2, switch back to the internal png loader, remove workarounds, remove fedora multi-lib-isms
 
