@@ -87,7 +87,7 @@ License:        GPL+ or Artistic
 Epoch:          %{perl_epoch}
 Version:        %{perl_version}
 # release number must be even higher, because dual-lived modules will be broken otherwise
-Release:        452%{?dist}
+Release:        453%{?dist}
 Summary:        Practical Extraction and Report Language
 Url:            https://www.perl.org/
 Source0:        https://www.cpan.org/src/5.0/perl-%{perl_version}.tar.gz
@@ -5149,7 +5149,7 @@ perl -pi -e "s|/usr/bin/ln|%{_bindir}/ln|g" config.sh
 %{_bindir}/bash ./Configure -S
 
 # Rewrite installation lib directory
-LIBDIR_REGEXP="s|%{_prefix}/lib|%{_libdir}/|g"
+LIBDIR_REGEXP="s|%{_prefix}/lib|%{_libdir}|g"
 perl -pi -e "$LIBDIR_REGEXP" config.sh || exit -1
 
 touch config.sh
@@ -7263,6 +7263,9 @@ cd ..
 
 # Old changelog entries are preserved in CVS.
 %changelog
+* Fri Jul 17 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-453
+- Fix unnecessary double slash in cddlflags
+
 * Tue Jul 14 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-452
 - Stop use of include which breaks being able to parse the spec from tooling
 
