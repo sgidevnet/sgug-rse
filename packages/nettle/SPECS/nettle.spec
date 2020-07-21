@@ -6,7 +6,7 @@
 %global hogweed_so_ver 5
 
 # Set to 1 when building a bootstrap for a bumped so-name.
-%global bootstrap 1
+%global bootstrap 0
 
 %if 0%{?bootstrap}
 %global version_old 3.4.1rc1
@@ -18,7 +18,7 @@
 
 Name:           nettle
 Version:        3.5.1
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        A low-level cryptographic library
 
 License:        LGPLv3+ or GPLv2+
@@ -180,6 +180,9 @@ make check
 
 
 %changelog
+* Tue Jul 21 2020 Daniel Hams <daniel.hams@gmail.com> - 3.5.1-4
+- Disable build/use of the backwards compatibility versions of libs
+
 * Sun May 31 2020 Daniel Hams <daniel.hams@gmail.com> - 3.5.1-3
 - Upgrade to fc31 version in wip (needed for new gnutls)
 
