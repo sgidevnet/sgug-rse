@@ -16,12 +16,12 @@ Source0: %{url}/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
 Patch100: purple-discord.irixfixes.patch
 
 BuildRequires: pkgconfig(json-glib-1.0)
-#BuildRequires: pkgconfig(glib-2.0)
-#BuildRequires: pkgconfig(purple)
-#BuildRequires: gettext-devel
+BuildRequires: pkgconfig(glib-2.0)
+BuildRequires: pkgconfig(purple)
+BuildRequires: gettext-devel
 #BuildRequires: ImageMagick
-#BuildRequires: zlib-devel
-#BuildRequires: gcc
+BuildRequires: zlib-devel
+BuildRequires: gcc
 
 %package -n pidgin-%{plugin_name}
 Summary: Adds pixmaps, icons and smileys for Discord protocol
@@ -60,6 +60,9 @@ sed -i -e "s,\r,," README.md
 #%{_datadir}/pixmaps/pidgin/protocols/*/%{plugin_name}.png
 
 %changelog
+* Tue Jul 21 2020 Eric Dodd <eric.e.dodd@gmail.com> - 0-28.20200512git1174458
+- sgug 0.0.6 prerelease.
+
 * Wed May 20 2020 Vitaly Zaitsev <vitaly@easycoding.org> - 0-28.20200512git1174458
 - Updated to latest snapshot.
 

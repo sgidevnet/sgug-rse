@@ -244,6 +244,7 @@ pidgin
 pixman
 pkgconfig
 popt
+purple-discord
 pyparsing
 pytest
 python-argcomplete
