@@ -6,12 +6,14 @@
 
 Name: purple-%{plugin_name}
 Version: 0
-Release: 28.%{date}git%{shortcommit0}%{?dist}
+Release: 28.%{date}git%{shortcommit0}.1%{?dist}
 Summary: Discord plugin for libpurple
 
 License: GPLv3+
 URL: https://github.com/EionRobb/%{name}
 Source0: %{url}/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
+# For now can be found in the 0.0.6prerelease area
+Source1: %{name}-images.tar.gz
 
 Patch100: purple-discord.irixfixes.patch
 
@@ -19,23 +21,24 @@ BuildRequires: pkgconfig(json-glib-1.0)
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(purple)
 BuildRequires: gettext-devel
+# We don't use imagemagick to generate the pngs, they are in a tarball.
 #BuildRequires: ImageMagick
 BuildRequires: zlib-devel
 BuildRequires: gcc
 
-#%%package -n pidgin-%%{plugin_name}
-#Summary: Adds pixmaps, icons and smileys for Discord protocol
-#BuildArch: noarch
-#Requires: %%{name} = %%{?epoch:%%{epoch}:}%%{version}-%%{release}
-#Requires: pidgin
+%package -n pidgin-%{plugin_name}
+Summary: Adds pixmaps, icons and smileys for Discord protocol
+BuildArch: noarch
+Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: pidgin
 
 %description
 Adds support for Discord to Pidgin, Adium, Finch and other libpurple
 based messengers.
 
-#%%description -n pidgin-%%{plugin_name}
-#Adds pixmaps, icons and smileys for Discord protocol implemented by
-#purple-discord.
+%description -n pidgin-%{plugin_name}
+Adds pixmaps, icons and smileys for Discord protocol implemented by
+purple-discord.
 
 %prep
 %autosetup -n %{name}-%{commit0}
@@ -46,20 +49,32 @@ sed -i -e "s,\r,," README.md
 %build
 %set_build_flags
 %make_build
+tar xf %{SOURCE1}
 
 %install
 %make_install
 %find_lang %{name}
+
+# Push in the PNG files
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/pixmaps/pidgin/protocols/16
+cp discord16.png $RPM_BUILD_ROOT%{_datadir}/pixmaps/pidgin/protocols/16/discord.png
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/pixmaps/pidgin/protocols/22
+cp discord22.png $RPM_BUILD_ROOT%{_datadir}/pixmaps/pidgin/protocols/22/discord.png
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/pixmaps/pidgin/protocols/48
+cp discord48.png $RPM_BUILD_ROOT%{_datadir}/pixmaps/pidgin/protocols/48/discord.png
 
 %files -f %{name}.lang
 %license LICENSE
 %doc README.md
 %{_libdir}/purple-2/lib%{plugin_name}.so
 
-#%%files -n pidgin-%%{plugin_name}
-#%%{_datadir}/pixmaps/pidgin/protocols/*/%%{plugin_name}.png
+%files -n pidgin-%{plugin_name}
+%{_datadir}/pixmaps/pidgin/protocols/*/%{plugin_name}.png
 
 %changelog
+* Wed Jul 22 2020 Daniel Hams <daniel.hams@gmail.com> - 0-28.20200512git1174458.1
+- Include images by tarball
+
 * Tue Jul 21 2020 Eric Dodd <eric.e.dodd@gmail.com> - 0-28.20200512git1174458
 - sgug 0.0.6 prerelease.
 
@@ -143,4 +158,3 @@ sed -i -e "s,\r,," README.md
 
 * Thu Apr 20 2017 Vitaly Zaitsev <vitaly@easycoding.org> - 0-1.20170420git5c2b3ee
 - First SPEC release.
-
