@@ -1,7 +1,7 @@
 %global plugin_name discord
 
 %global commit0 11744587f65fc7afb679cc7c0c06b116a40fca5c
-%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+%global shortcommit0 %(c=%{commit0}; echo $c |cut -c 1-7)
 %global date 20200512
 
 Name: purple-%{plugin_name}
@@ -16,26 +16,26 @@ Source0: %{url}/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
 Patch100: purple-discord.irixfixes.patch
 
 BuildRequires: pkgconfig(json-glib-1.0)
-#BuildRequires: pkgconfig(glib-2.0)
-#BuildRequires: pkgconfig(purple)
-#BuildRequires: gettext-devel
+BuildRequires: pkgconfig(glib-2.0)
+BuildRequires: pkgconfig(purple)
+BuildRequires: gettext-devel
 #BuildRequires: ImageMagick
-#BuildRequires: zlib-devel
-#BuildRequires: gcc
+BuildRequires: zlib-devel
+BuildRequires: gcc
 
-%package -n pidgin-%{plugin_name}
-Summary: Adds pixmaps, icons and smileys for Discord protocol
-BuildArch: noarch
-Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: pidgin
+#%%package -n pidgin-%%{plugin_name}
+#Summary: Adds pixmaps, icons and smileys for Discord protocol
+#BuildArch: noarch
+#Requires: %%{name} = %%{?epoch:%%{epoch}:}%%{version}-%%{release}
+#Requires: pidgin
 
 %description
 Adds support for Discord to Pidgin, Adium, Finch and other libpurple
 based messengers.
 
-%description -n pidgin-%{plugin_name}
-Adds pixmaps, icons and smileys for Discord protocol implemented by
-purple-discord.
+#%%description -n pidgin-%%{plugin_name}
+#Adds pixmaps, icons and smileys for Discord protocol implemented by
+#purple-discord.
 
 %prep
 %autosetup -n %{name}-%{commit0}
@@ -56,10 +56,13 @@ sed -i -e "s,\r,," README.md
 %doc README.md
 %{_libdir}/purple-2/lib%{plugin_name}.so
 
-%files -n pidgin-%{plugin_name}
-#%{_datadir}/pixmaps/pidgin/protocols/*/%{plugin_name}.png
+#%%files -n pidgin-%%{plugin_name}
+#%%{_datadir}/pixmaps/pidgin/protocols/*/%%{plugin_name}.png
 
 %changelog
+* Tue Jul 21 2020 Eric Dodd <eric.e.dodd@gmail.com> - 0-28.20200512git1174458
+- sgug 0.0.6 prerelease.
+
 * Wed May 20 2020 Vitaly Zaitsev <vitaly@easycoding.org> - 0-28.20200512git1174458
 - Updated to latest snapshot.
 
@@ -140,3 +143,4 @@ sed -i -e "s,\r,," README.md
 
 * Thu Apr 20 2017 Vitaly Zaitsev <vitaly@easycoding.org> - 0-1.20170420git5c2b3ee
 - First SPEC release.
+

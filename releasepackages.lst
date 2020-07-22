@@ -243,6 +243,7 @@ perl-srpm-macros
 pidgin
 pixman
 pkgconfig
+purple-discord
 popt
 pyparsing
 pytest
