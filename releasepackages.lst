@@ -15,6 +15,7 @@
 #
 # This file is intended to be processed by some world builder automation.
 #
+abattis-cantarell-fonts
 alternatives
 asciidoc
 aterm
@@ -60,6 +61,7 @@ flac
 flex
 fltk
 fontconfig
+fontpackages
 fonts-rpm-macros
 freetype
 fribidi
