@@ -7,7 +7,7 @@
 
 Name:    fontpackages
 Version: 1.44
-Release: 26%{?dist}
+Release: 25%{?dist}
 Summary: Common directory and macro definitions used by font packages
 
 # Mostly means the scriptlets inserted via this package do not change the
@@ -28,20 +28,19 @@ This package contains the basic directory layout, spec templates, rpm macros
 and other materials used to create font packages.
 
 
-# Obsoleted, comes from fonts-rpm-macros now
-#%%package filesystem
-#Summary: Directories used by font packages
-#License: Public Domain
-#
-#%description filesystem
-#This package contains the basic directory layout used by font packages,
-#including the correct permissions for the directories.
+%package filesystem
+Summary: Directories used by font packages
+License: Public Domain
+
+%description filesystem
+This package contains the basic directory layout used by font packages,
+including the correct permissions for the directories.
 
 
 %package devel
 Summary: Templates and macros used to create font packages
 
-#Requires: rpmdevtools, %%{name}-filesystem = %%{version}-%%{release}
+Requires: rpmdevtools, %{name}-filesystem = %{version}-%{release}
 Requires: fontconfig
 
 %description devel
@@ -49,24 +48,23 @@ This package contains spec templates, rpm macros and other materials used to
 create font packages.
 
 
-#%%package tools
-#Summary: Tools used to check fonts and font packages
-#
-#Requires: fontconfig, fontforge
-##Requires: curl, make, mutt
-#Requires: curl, make
-##Requires: rpmlint
-##Requires: dnf-command(repoquery)
-##Requires: createrepo_c
-#
-## repo-font-audit script need to run fedoradev-pkgowners command
-## which is available on Fedora only and not on RHEL.
-#%%if 0%%{?fedora}
-#Requires: fedora-packager
-#%%endif
-#
-#%%description tools
-#This package contains tools used to check fonts and font packages.
+%package tools
+Summary: Tools used to check fonts and font packages
+
+Requires: fontconfig, fontforge
+Requires: curl, make, mutt
+Requires: rpmlint
+Requires: dnf-command(repoquery)
+Requires: createrepo_c
+
+# repo-font-audit script need to run fedoradev-pkgowners command
+# which is available on Fedora only and not on RHEL.
+%if 0%{?fedora}
+Requires: fedora-packager
+%endif
+
+%description tools
+This package contains tools used to check fonts and font packages.
 
 
 %prep
@@ -103,13 +101,13 @@ install -m 0755 -d %{buildroot}${_fontbasedir} \
 install -m 0644 -p spec-templates/*.spec       %{buildroot}%{spectemplatedir}
 install -m 0644 -p fontconfig-templates/*      %{buildroot}%{ftcgtemplatedir}
 install -m 0644 -p rpm/macros*                 %{buildroot}%{rpmmacrodir}
-#install -m 0644 -p private/repo-font-audit.mk  %{buildroot}/%{_datadir}/%{name}
-#install -m 0755 -p private/core-fonts-report \
-#                   private/font-links-report \
-#                   private/fonts-report \
-#                   private/process-fc-query \
-#                   private/test-info           %{buildroot}/%{_datadir}/%{name}
-#install -m 0755 -p bin/*                       %{buildroot}%{_bindir}
+install -m 0644 -p private/repo-font-audit.mk  %{buildroot}/%{_datadir}/%{name}
+install -m 0755 -p private/core-fonts-report \
+                   private/font-links-report \
+                   private/fonts-report \
+                   private/process-fc-query \
+                   private/test-info           %{buildroot}/%{_datadir}/%{name}
+install -m 0755 -p bin/*                       %{buildroot}%{_bindir}
 
 cat <<EOF > %{name}-%{version}.files
 %dir ${_fontbasedir}
@@ -119,8 +117,8 @@ cat <<EOF > %{name}-%{version}.files
 %ghost ${_fontbasedir}/.uuid
 EOF
 
-#%%files filesystem -f %%{name}-%%{version}.files
-#%%dir %%{_datadir}/fontconfig
+%files filesystem -f %{name}-%{version}.files
+%dir %{_datadir}/fontconfig
 
 %files devel
 %license license.txt
@@ -131,24 +129,19 @@ EOF
 %{ftcgtemplatedir}/*conf
 %{ftcgtemplatedir}/*txt
 
-#%%files tools
-#%%license license.txt
-#%%doc readme.txt
-#%%dir %%{_datadir}/%%{name}
-#%%{_datadir}/%%{name}/repo-font-audit.mk
-#%%{_datadir}/%%{name}/core-fonts-report
-#%%{_datadir}/%%{name}/font-links-report
-#%%{_datadir}/%%{name}/fonts-report
-#%%{_datadir}/%%{name}/process-fc-query
-#%%{_datadir}/%%{name}/test-info
-#%%{_bindir}/*
+%files tools
+%license license.txt
+%doc readme.txt
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/repo-font-audit.mk
+%{_datadir}/%{name}/core-fonts-report
+%{_datadir}/%{name}/font-links-report
+%{_datadir}/%{name}/fonts-report
+%{_datadir}/%{name}/process-fc-query
+%{_datadir}/%{name}/test-info
+%{_bindir}/*
 
 %changelog
-* Thu Jul 23 2020 Fedora Release Engineering <daniel.hams@gmail.com> - 1.44-26
-- Fix up, remove patch, only output RPMs we can install
-
-* created a patch to resolve the problem with the hardcoded perl-path
-
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.44-25
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
