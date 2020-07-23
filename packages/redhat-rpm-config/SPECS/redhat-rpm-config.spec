@@ -7,7 +7,7 @@
 Summary: Red Hat specific rpm configuration files
 Name: redhat-rpm-config
 Version: 143
-Release: 4%{?dist}
+Release: 5%{?dist}
 # No version specified.
 License: GPL+
 URL: https://src.fedoraproject.org/rpms/redhat-rpm-config
@@ -211,7 +211,10 @@ install -p -m 644 -t %{buildroot}%{_rpmluadir}/fedora/srpm forge.lua
 #%%{_rpmconfigdir}/macros.d/macros.kmp
 
 %changelog
-* Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 143-3
+* Thu Jul 23 2020 Daniel Hams <daniel.hams@gmail.com> - 143-5
+- Fix the broken shebang mangling so that /usr/bin/perl is rewritten too
+
+* Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 143-4
 - Activate and customise some more macros (python compile, shebang mangle)
 
 * Mon May 25 2020 Daniel Hams <daniel.hams@gmail.com> - 143-3
