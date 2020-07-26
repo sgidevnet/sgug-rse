@@ -5,7 +5,7 @@ Release: 4%{?dist}
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
-Source: http://www.68k.org/~michael/audiofile/audiofile-%{version}.tar.gz
+Source: https://ftp.gnome.org/pub/gnome/sources/audiofile/0.2/audiofile-%{version}.tar.gz
 URL: http://www.68k.org/~michael/audiofile/
 #Patch2: audiofile-multilib.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n) 
@@ -127,7 +127,7 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Mar 17 2005 John (J5) Palmieri <johnp@redhat.com> - 0.2.6-2
 - rebuild for gcc 4.0
 
-* Thu Jul 30 2004 Colin Walters  <walters@redhat.com>
+* Fri Jul 30 2004 Colin Walters  <walters@redhat.com>
 - Update to 0.2.6
 - Rework description to not contain apostrophe that
   makes emacs unhappy
