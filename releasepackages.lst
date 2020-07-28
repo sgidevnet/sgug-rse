@@ -52,7 +52,6 @@ dos2unix
 ed
 elfutils
 emacs
-esound
 exiv2
 expat
 expect
@@ -95,7 +94,6 @@ initial-sgug
 isl
 itstool
 jasper
-jbigkit
 joe
 json-glib
 jsoncpp
@@ -297,7 +295,6 @@ rhash
 rpm
 rsync
 screen
-SDL
 sed
 sgml-common
 sgug-getopt
