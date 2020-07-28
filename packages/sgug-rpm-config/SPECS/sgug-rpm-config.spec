@@ -6,8 +6,8 @@
 
 Summary: SGUG specific rpm configuration files
 Name: sgug-rpm-config
-Version: 1
-Release: 5%{?dist}
+Version: 2
+Release: 1%{?dist}
 # No version specified.
 License: GPL+
 URL: https://github.com/sgidevnet/sgug-rse/
@@ -40,6 +40,9 @@ install -p -m 644 -t %{buildroot}%{rpmetcdir} macros
 %{rpmetcdir}/macros
 
 %changelog
+* Tue Jul 28 2020 Daniel Hams <daniel.hams@gmail.com> - 2-1
+- Ready for 0.0.6
+
 * Tue Jul 14 2020 Daniel Hams <daniel.hams@gmail.com> - 1-5
 - Version bump for prerelease temporary dist
 

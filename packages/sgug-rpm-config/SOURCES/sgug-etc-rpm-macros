@@ -63,7 +63,7 @@
 
 %_hardened_ldflags %{nil}
 
-%dist .sgugprerelease0.0.6
+%dist .sgug
 
 %_pkgdocdir %{_docdir}/%{name}
 %_docdir_fmt %%{NAME}

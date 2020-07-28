@@ -133,7 +133,7 @@ rm -rf $RPM_BUILD_ROOT/info
 rm -rf $RPM_BUILD_ROOT/man
 
 # Leave the libiberty.a from binutils
-rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
+rm -f $RPM_BUILD_ROOT%{gcc4libdir}/libiberty.a
 
 %files
 %{gcc4prefix}/*

@@ -20,6 +20,7 @@ alternatives
 asciidoc
 aterm
 atk
+audiofile
 autoconf
 automake
 bacula-client
