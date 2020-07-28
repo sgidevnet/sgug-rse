@@ -52,7 +52,6 @@ dos2unix
 ed
 elfutils
 emacs
-esound
 exiv2
 expat
 expect
@@ -296,7 +295,6 @@ rhash
 rpm
 rsync
 screen
-SDL
 sed
 sgml-common
 sgug-getopt
