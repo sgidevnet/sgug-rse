@@ -1,0 +1,51 @@
+diff -u -r zchunk-1.1.5-orig/src/unzck.c zchunk-1.1.5/src/unzck.c
+--- zchunk-1.1.5-orig/src/unzck.c	2020-01-18 21:32:09.000000000 +0000
++++ zchunk-1.1.5/src/unzck.c	2020-07-27 17:23:10.089317000 +0000
+@@ -58,7 +58,7 @@
+   char *args[1];
+   zck_log_type log_level;
+   bool dict;
+-  bool stdout;
++  bool zcstdout;
+   bool exit;
+ };
+ 
+@@ -75,7 +75,7 @@
+                 arguments->log_level = ZCK_LOG_DDEBUG;
+             break;
+         case 'c':
+-            arguments->stdout = true;
++            arguments->zcstdout = true;
+             break;
+         case 'V':
+             version();
+@@ -138,7 +138,7 @@
+         snprintf(out_name + strlen(base_name) - 4, 7, ".zdict");
+ 
+     int dst_fd = STDOUT_FILENO;
+-    if(!arguments.stdout) {
++    if(!arguments.zcstdout) {
+         dst_fd = open(out_name, O_TRUNC | O_WRONLY | O_CREAT, 0666);
+         if(dst_fd < 0) {
+             dprintf(STDERR_FILENO, "Unable to open %s", out_name);
+diff -u -r zchunk-1.1.5-orig/src/zck_gen_zdict.c zchunk-1.1.5/src/zck_gen_zdict.c
+--- zchunk-1.1.5-orig/src/zck_gen_zdict.c	2020-01-18 21:32:09.000000000 +0000
++++ zchunk-1.1.5/src/zck_gen_zdict.c	2020-07-27 17:22:59.660975000 +0000
+@@ -61,7 +61,7 @@
+   char *args[1];
+   char *dir;
+   zck_log_type log_level;
+-  bool stdout;
++  bool zcstdout;
+   bool exit;
+ };
+ 
+@@ -78,7 +78,7 @@
+                 arguments->log_level = ZCK_LOG_DDEBUG;
+             break;
+         /*case 'c':
+-            arguments->stdout = true;
++            arguments->zcstdout = true;
+             break;*/
+         case 'd':
+             arguments->dir = arg;

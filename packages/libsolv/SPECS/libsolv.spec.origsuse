@@ -1,0 +1,1340 @@
+#
+# spec file for package libsolv
+#
+# Copyright (c) 2020 SUSE LLC
+#
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
+#
+
+
+%define libname libsolv1
+
+%if 0%{?sle_version} >= 120300 || 0%{?suse_version} >= 1330 || !0%{?suse_version}
+%bcond_without bz2
+%bcond_without xz
+%else
+%bcond_with bz2
+%bcond_with xz
+%endif
+%if 0%{?is_opensuse} && (0%{?sle_version} >= 150000 || 0%{?suse_version} >= 1500)
+%bcond_without zstd
+%else
+%bcond_with zstd
+%endif
+%if 0%{?fedora} || 0%{?rhel} >= 7 || 0%{?mageia} >= 6 || 0%{?suse_version} >= 1330
+%bcond_without richdeps
+%else
+%bcond_with richdeps
+%endif
+# we need at least swig 1.3.40 for the bindings ($typemap support)
+%if 0%{?suse_version} != 1110
+%bcond_without python3
+%bcond_without python
+%bcond_without ruby
+%bcond_without perl
+%else
+%bcond_with python3
+%bcond_with python
+%bcond_with ruby
+%bcond_with perl
+%endif
+%bcond_without static
+%bcond_with shared
+%bcond_with zypp
+
+Name:           libsolv
+Version:        0.7.13
+Release:        1.1
+Summary:        Package dependency solver using a satisfiability algorithm
+License:        BSD-3-Clause
+Group:          Development/Libraries/C and C++
+URL:            https://github.com/openSUSE/libsolv
+Source:         libsolv-%{version}.tar.bz2
+BuildRequires:  cmake
+BuildRequires:  gcc-c++
+BuildRequires:  libxml2-devel
+BuildRequires:  rpm-devel
+BuildRequires:  zlib-devel
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+
+%if 0%{?fedora} || 0%{?rhel} >= 6 || 0%{?mageia}
+BuildRequires:  db-devel
+%endif
+
+%if %{with perl}
+BuildRequires:  perl
+%if 0%{?fedora} || 0%{?rhel} >= 6 || 0%{?mageia}
+BuildRequires:  perl-devel
+%endif
+BuildRequires:  swig
+%endif
+
+%if %{with ruby}
+%global ruby_vendorarch %(ruby  -r rbconfig -e "puts RbConfig::CONFIG['vendorarchdir'].nil? ? RbConfig::CONFIG['sitearchdir'] : RbConfig::CONFIG['vendorarchdir']")
+BuildRequires:  ruby
+BuildRequires:  ruby-devel
+BuildRequires:  swig
+%endif
+
+%if %{with python}
+%global python_sitearch %(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(True))")
+BuildRequires:  python-devel
+BuildRequires:  swig
+%endif
+
+%if %{with python3}
+%global python3_sitearch %(python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(True))")
+BuildRequires:  python3-devel
+BuildRequires:  swig
+%endif
+
+%if %{with bz2}
+%if 0%{?suse_version}
+BuildRequires:  libbz2-devel
+%else
+BuildRequires:  bzip2-devel
+%endif
+%endif
+
+%if %{with xz}
+BuildRequires:  xz-devel
+%endif
+
+%if %{with zstd}
+BuildRequires:  libzstd-devel
+%endif
+
+%description
+libsolv is a library for solving packages and reading repositories.
+The solver uses a satisfiability algorithm.
+
+%if %{with shared}
+%package -n %{libname}
+Summary:        Package dependency solver using a satisfiability algorithm
+Group:          System/Libraries
+
+%description -n %{libname}
+libsolv is a library for solving packages and reading repositories.
+It consists of two central blocks: Using a dictionary approach to
+store and retrieve package and dependency information, and, using a
+so-called satisfiability algorithm for resolving package
+dependencies.
+
+%endif
+%package devel
+Summary:        Development files for libsolv, a package solver
+Group:          Development/Libraries/C and C++
+%if %{with shared}
+Requires:       %{libname} = %version
+%endif
+Requires:       rpm-devel
+Conflicts:      libsatsolver-devel
+
+%description devel
+Development files for libsolv, a library for solving packages and
+reading repositories.
+
+%package tools
+Summary:        Utilities to work with .solv files
+Group:          System/Management
+Conflicts:      satsolver-tools-obsolete
+Obsoletes:      satsolver-tools < 0.18
+Provides:       satsolver-tools = 0.18
+
+%description tools
+libsolv is a library for solving packages and reading repositories.
+
+This subpackage contains utilities to create and work with the .solv
+files used by libsolv.
+
+%package demo
+Summary:        Applications demoing the libsolv library
+Group:          System/Management
+Requires:       curl
+Conflicts:      libsatsolver-demo
+%if 0%{?fedora} || 0%{?rhel} >= 6 || 0%{?mageia}
+Requires:       gnupg2
+%endif
+%if 0%{?suse_version}
+Requires:       gpg2
+%endif
+
+%description demo
+Applications demoing the libsolv library.
+
+%package -n ruby-solv
+Summary:        Ruby bindings for the libsolv library
+Group:          Development/Languages/Ruby
+
+%description -n ruby-solv
+Ruby bindings for libsolv.
+
+%package -n python-solv
+%if 0%{?py_requires:1} && %{with python}
+%py_requires
+%endif
+Summary:        Python bindings for the libsolv library
+Group:          Development/Languages/Python
+
+%description -n python-solv
+Python bindings for libsolv.
+
+%package -n python3-solv
+Summary:        Python3 bindings for the libsolv library
+Group:          Development/Languages/Python
+
+%description -n python3-solv
+Python3 bindings for libsolv.
+
+%package -n perl-solv
+Summary:        Perl bindings for the libsolv library
+Group:          Development/Languages/Perl
+Requires:       perl = %{perl_version}
+
+%description -n perl-solv
+Perl bindings for libsolv.
+
+%prep
+%setup -q
+
+%build
+%global _lto_cflags %{?_lto_cflags} -ffat-lto-objects
+export CFLAGS="%{optflags}"
+export CXXFLAGS="$CFLAGS"
+
+CMAKE_FLAGS=
+%if 0%{?fedora} || 0%{?rhel} >= 6
+CMAKE_FLAGS="-DFEDORA=1"
+%endif
+%if 0%{?mageia}
+CMAKE_FLAGS="-DMAGEIA=1"
+%endif
+%if 0%{?suse_version}
+CMAKE_FLAGS="-DSUSE=1"
+%endif
+
+cmake . $CMAKE_FLAGS \
+	-DCMAKE_INSTALL_PREFIX=%{_prefix} \
+	-DLIB=%{_lib} \
+	-DCMAKE_VERBOSE_MAKEFILE=TRUE \
+	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	-DWITH_LIBXML2=1 \
+	-DENABLE_APPDATA=1 \
+	-DENABLE_COMPS=1 \
+	%{?with_static:-DENABLE_STATIC=1} \
+	%{!?with_shared:-DDISABLE_SHARED=1} \
+	%{?with_perl:-DENABLE_PERL=1} \
+	%{?with_python:-DENABLE_PYTHON=1} \
+	%{?with_python3:-DENABLE_PYTHON3=1} \
+	%{?with_ruby:-DENABLE_RUBY=1} \
+	%{?with_bz2:-DENABLE_BZIP2_COMPRESSION=1} \
+	%{?with_xz:-DENABLE_LZMA_COMPRESSION=1} \
+	%{?with_zstd:-DENABLE_ZSTD_COMPRESSION=1} \
+	%{?with_zstd:-DENABLE_ZCHUNK_COMPRESSION=1} \
+	%{?with_richdeps:-DENABLE_COMPLEX_DEPS=1} \
+	%{?with_zypp:-DENABLE_SUSEREPO=1 -DENABLE_HELIXREPO=1} \
+	-DUSE_VENDORDIRS=1 \
+	-DCMAKE_SKIP_RPATH=1
+make %{?_smp_mflags}
+
+%install
+make DESTDIR=%{buildroot} install
+ln -s repo2solv %{buildroot}/%{_bindir}/repo2solv.sh
+
+%if 0%{?suse_version}
+%if %{with python}
+%py_compile -O %{buildroot}/%{python_sitearch}
+%endif
+%if %{with python3}
+%py3_compile %{buildroot}/%{python3_sitearch}
+%endif
+%endif
+
+%check
+make ARGS=--output-on-failure test
+
+%if %{with shared}
+%post -n %{libname} -p /sbin/ldconfig
+
+%postun -n %{libname} -p /sbin/ldconfig
+
+%files -n %{libname}
+%defattr(-,root,root)
+%license LICENSE*
+%{_libdir}/libsolv.so.*
+%{_libdir}/libsolvext.so.*
+%endif
+
+%files tools
+%defattr(-,root,root)
+%if 0%{?suse_version}
+%exclude %{_bindir}/helix2solv
+%exclude %{_mandir}/man1/helix2solv*
+%endif
+%exclude %{_mandir}/man1/solv.1*
+%exclude %{_bindir}/solv
+%{_bindir}/*
+%{_mandir}/man1/*
+
+%files devel
+%defattr(-,root,root)
+%if %{with static}
+%{_libdir}/libsolv.a
+%{_libdir}/libsolvext.a
+%endif
+%if %{with shared}
+%{_libdir}/libsolv.so
+%{_libdir}/libsolvext.so
+%endif
+%{_includedir}/solv
+%if 0%{?suse_version}
+%{_bindir}/helix2solv
+%{_mandir}/man1/helix2solv*
+%endif
+%{_datadir}/cmake/Modules/*
+%{_libdir}/pkgconfig/libsolv*.pc
+%{_mandir}/man3/*
+
+%files demo
+%defattr(-,root,root)
+%{_bindir}/solv
+%{_mandir}/man1/solv.1*
+
+%if %{with perl}
+%files -n perl-solv
+%defattr(-,root,root)
+%{perl_vendorarch}/*
+%endif
+
+%if %{with ruby}
+%files -n ruby-solv
+%defattr(-,root,root)
+%{ruby_vendorarch}/*
+%endif
+
+%if %{with python}
+%files -n python-solv
+%defattr(-,root,root)
+%{python_sitearch}/*
+%endif
+
+%if %{with python3}
+%files -n python3-solv
+%defattr(-,root,root)
+%{python3_sitearch}/*solv*
+%if 0%{?suse_version}
+%{python3_sitearch}/*/*solv*
+%endif
+%endif
+
+%changelog
+* Fri Apr 24 2020 mls@suse.de
+- Fix solvable swapping messing up idarrays
+- bump version to 0.7.13
+* Mon Apr 20 2020 mls@suse.de
+- fix ruleinfo of complex dependencies returning the wrong origin
+- bump version to 0.7.12
+* Wed Jan 22 2020 mls@suse.de
+- fixed solv_zchunk decoding error if large chunks are used
+- treat retracted pathes as irrelevant
+- made add_update_target work with multiversion installs
+- bump version to 0.7.11
+* Thu Dec 19 2019 mls@suse.de
+- fix solv_zchunk decoding error if large chunks are used
+  [bnc#1159314]
+* Tue Dec 10 2019 mls@suse.de
+- build with -DENABLE_RPMDB_LIBRPM=1 on SUSE to support
+  multiple rpm database backends
+* Tue Dec 10 2019 mls@suse.de
+- added two new function to make libzypp independent of the rpm
+  database format
+- bump version to 0.7.10
+* Thu Nov 21 2019 mls@suse.de
+- support conda constrains dependencies
+- bump version to 0.7.9
+* Tue Nov 12 2019 mls@suse.de
+- support arch<->noarch package changes when creating patch
+  conflicts from the updateinfo data
+- support for SOLVER_BLACKLIST jobs that block the installation
+  of matched packages unless they are directly selected by an
+  SOLVER_INSTALL job
+- libsolv now also parses the patch status in the updateinfo
+  parser
+- new solvable_matchessolvable() function
+- bump version to 0.7.8
+* Fri Oct 18 2019 mls@suse.de
+- fix updating of too many packages in focusbest mode
+- fix handling of disabled installed packages in distupgrade
+- new POOL_FLAG_WHATPROVIDESWITHDISABLED pool flag
+- bump version to 0.7.7
+* Wed Aug 28 2019 mls@suse.de
+- Fix repository priority handling for multiversion packages
+- Make code compatible with swig 4.0, remove obj0 instances
+- repo2solv: support zchunk compressed data
+- bump version to 0.7.6
+* Wed Jul 10 2019 Martin Liška <mliska@suse.cz>
+- Add -ffat-lto-objects to $optflags as the package provides
+  static libraries
+- Remove NO_BRP_STRIP_DEBUG=true as brp-15-strip-debug will
+  not strip debug info for archives
+* Thu Jun 13 2019 mls@suse.de
+- make cleandeps jobs on patterns work [bnc#1137977]
+* Wed Jun 12 2019 mls@suse.de
+- fix favorq leaking between solver runs if the solver is reused
+- fix SOLVER_FLAG_FOCUS_BEST updateing packages without reason
+- be more correct with multiversion packages that obsolete their
+  own name [bnc#1127155]
+- allow building with swig-4.0.0 [bnc#1135749]
+- bump version to 0.7.5
+* Wed Apr 24 2019 mls@suse.de
+- always prefer to stay with the same package name if there are
+  multiple alternatives [bnc#1131823]
+* Fri Mar 29 2019 mls@suse.de
+- repo_add_rpmdb: do not copy bad solvables from the old solv file
+- fix cleandeps updates not updating all packages
+- experimental DISTTYPE_CONDA and REL_CONDA support
+- bump version to 0.7.4
+* Wed Jan 30 2019 mls@suse.de
+- fixed a couple of null pointer derefs
+  [bnc#1120629] [bnc#1120630] [bnc#1120631]
+  [CVE-2018-20532] [CVE-2018-20533] [CVE-2018-20534]
+- do favor evaluation before pruning allowing to (dis)favor
+  specific package versions
+- no longer disable infarch rules when they don't conflict with
+  the job
+- bump version to 0.7.3
+* Fri Dec  7 2018 mls@suse.de
+- do not autouninstall packages because of forcebest updates
+- support rpm's new '^' version separator
+- support set/get_considered_list in bindings
+- new experimental SOLVER_FLAG_ONLY_NAMESPACE_RECOMMENDED flag
+  [fate#325513]
+- bump version to 0.7.2
+* Wed Oct 31 2018 mls@suse.de
+- fix nasty off-by-one error in repo_write
+- also copy pattern categories from the rpm that defines the
+  pattern [fate#323785]
+- bump version to 0.7.1
+* Wed Oct 24 2018 mls@suse.de
+- new repowriter interface
+- new selection_make_matchsolvable function
+- dropped support of REPOKEY_TYPE_U32
+- bindings: Selection.flags is now an attribute
+- bump version to 0.7.0
+* Thu Aug  9 2018 mls@suse.de
+- refactor arch handling
+- add support for zstd and zchunk compression
+- convert repo2solv.sh script into a binary tool
+- bump version to 0.6.35
+* Wed Jul 18 2018 ngompa13@gmail.com
+- Fix compatibility with Mageia and RH/Fedora
+* Wed Jul 18 2018 tchvatal@suse.com
+- Sort a bit with spec-cleaner
+- Use python/ruby/etc condition names to match what other packages
+  do in order to make sure we are enabling/disabling stuff within
+  prjcfg
+- Silence the source unpacking
+- Make sure to execute tests
+* Fri Mar 23 2018 mls@suse.de
+- make sure product files come from /etc/products.d in fallback
+  search [bnc#1086602]
+- bump version to 0.6.34
+* Thu Mar  1 2018 mls@suse.de
+- also use suggests for ordering packages [bnc#1077635]
+* Wed Feb 28 2018 mls@suse.de
+- fix bad assignment in solution refinement that led
+  to a memory leak [bnc#1075978]
+- use license tag instead of doc in the spec file [bnc#1082318]
+- bump version to 0.6.33
+* Tue Feb 13 2018 mls@suse.de
+- fixed bug that could make fileconflict detection very slow
+  in some cases [bnc#953130]
+- bump version to 0.6.32
+* Wed Jan 31 2018 mls@suse.de
+- new ENABLE_RPMDB_LIBRPM/ENABLE_RPMPKG_LIBRPM config options
+- new pool_set_whatprovides function to change the whatprovides
+  data
+- much improved selection code
+- bump version to 0.6.31
+* Tue Oct 24 2017 jengelh@inai.de
+- Update package descriptions and groups.
+  Replace old $RPM_* variables by macros.
+* Mon Oct 23 2017 mls@suse.de
+- many fixes and improvements for cleandeps
+- support debian packages with xz compressed control.tar
+- always create dup rules for "distupgrade" jobs
+- use recommends also for ordering packages
+- Fix splitprovides handling with addalreadyrecommended turned off
+  [bnc#1059065]
+- bump version to 0.6.30
+* Thu Sep  7 2017 mls@suse.de
+- expose solver_get_recommendations in bindings
+- fix bug in solver_prune_to_highest_prio_per_name resulting in
+  bad solver_get_recommendations output
+- support 'without' and 'unless' dependencies
+- fix yumobs rule generation bug
+- Use same heuristic as upstream to determine src rpms
+- bump version to 0.6.29
+* Fri Jun 30 2017 mls@suse.de
+- make peace with newer perl versions
+- fix memory leak in bindings
+- add pool_best_solvables() function
+- fix 64bit integer parsing from RPM headers
+- bump version to 0.6.28
+* Sun May 28 2017 ngompa13@gmail.com
+- Enable complex/rich dependencies for CentOS/RHEL 7, matching how
+  libsolv is configured there.
+* Thu May 11 2017 ngompa13@gmail.com
+- Disable bzip2 and xz/lzma compression support for SLE <= 12
+* Mon May  8 2017 ngompa13@gmail.com
+- Enable bzip2 and xz/lzma compression support
+- Enable complex/rich dependencies on distributions with RPM 4.13+
+- Simplified CentOS/RHEL conditionals
+- Added Mageia conditionals
+- Fixed a few spec portability issues
+* Tue Apr 25 2017 mls@suse.de
+- change queue resize code to use adaptive chunk sizes
+- fix potential segfault in testcase_depstr [bnc#1036002]
+- fix performance issues with name = md5sum dependencies
+  [bnc#1035946]
+- improve "forcebest with uninstall" handling
+- make dirid handling more robust
+- build with libxml2 instead of libexpat
+- bump version to 0.6.27
+* Wed Feb 15 2017 mls@suse.de
+- export solvable_matchesdep function, as we now use it in
+  the bindings [bnc#1025440]
+- bump version to 0.6.26
+* Tue Feb  7 2017 mls@suse.de
+- add SOLVABLE_NAME hack for pool_whatmatchesdep and
+  solvable_matchesdep
+- add SOLVER_FLAG_STRONG_RECOMMENDS option
+- add SOLVER_FLAG_INSTALL_ALSO_UPDATES option
+- do not special case release-less provides in sort_by_common_dep
+- solver_problemruleinfo2str: return reason why a package is not
+  installable
+- guard against dirpool_add_dir being called with an illegal
+  component id
+- reject solv files with bad directories
+- bump version to 0.6.25
+* Thu Nov 10 2016 mls@suse.de
+- make testcase_str2solvid work with ignored packages
+- improve checks against corrupt rpm
+- add SOLVER_FLAG_FOCUS_BEST solver flag
+- rework susetags multi-line handling [bnc#1007273]
+- build both for python2 and python3
+- bump version to 0.6.24
+* Fri Jul 22 2016 mls@suse.de
+- also scan /usr/share/metainfo for appdata files [bnc#989830]
+- support tri-state product-endoflife [fate#320699]
+- take lockstep into account when calculating unneeded packages
+- ignore appplication extensions for now in appdata parser
+  [bnc#984332]
+- add enabled features to solvversion.h
+- take disfavors into account when auto-minimizing for recommended
+  packages
+- change cleandeps code so that it keeps all providers
+- make sure that all repos have different names in a testcase
+- bump version to 0.6.23
+* Tue Jun  7 2016 mls@suse.de
+- fix bug in ignoreinst logic [bnc#983141]
+* Wed May 18 2016 mls@suse.de
+- add pool->setdisttype to the bindings
+- fix error in repo_deb that could lead to missing packages
+- add reason testing to testcase code
+- add pool_whatcontainsdep, selection_make_matchdepid, and
+  SELECTION_MATCH_DEPSTR
+- add SOLVER_FAVOR and SOLVER_DISFAVOR job types
+- allow unknown archs in pool_setarch
+- add the SOLVER_FLAG_URPM_REORDER solver flag
+- fix segfault in cshash dedup code [bnc#980901]
+- fix supplements handling when implicitobsoleteusescolors is set
+- bump version to 0.6.21
+* Fri Apr  8 2016 mls@suse.de
+- Better support of complex deps in pool_match_dep and
+  selection_make_matchdeps
+- make SOLVER_REASON_CLEANDEPS_ERASE introspection reason work again
+- make dep2str use rpm-like output if disttype is rpm
+- implement filtering of Requires(pre,post) for installed packages
+- simplify handling of pseudo package updates [bnc#967006]
+- improve speed of rpmmd metadata parsing
+- bump version to 0.6.20
+* Mon Feb 15 2016 mls@suse.de
+- parse media number from baseurl
+- support susedata.<lang>.xml language files
+- bump version to 0.6.19
+* Fri Jan 29 2016 mls@suse.de
+- fix rule generation for linked packages [bnc#961738]
+- add hash method in bindings for some classes
+- bump version to 0.6.18
+* Tue Dec 22 2015 mls@suse.de
+- fix update handling of multiversion packages [bnc#957606]
+- bump version to 0.6.17
+* Mon Dec 21 2015 mls@suse.de
+- fix orphan handling for dup with keeporphans set [bnc#957606]
+- bump version to 0.6.16
+* Mon Dec 14 2015 mls@suse.de
+- change product links to also look at timestamps [bnc#956443]
+- rework multiversion orphaned handling [bnc#957606]
+- support key type changes in repodata_internalize()
+- allow serialization of REPOKEY_TYPE_DELETED
+- improve appdata handling of installed packages
+- improve performance when run under xen
+- bump version to 0.6.15
+* Mon Oct  5 2015 mls@suse.de
+- fix bug in recommends handling [bnc#948482]
+- also check installed packages in multiversion handling
+- fix build on Mageia
+- bump version to 0.6.14
+* Fri Sep 25 2015 mls@suse.de
+- support a generic string for pattern-visible() [bnc#900769]
+- add a SOLVER_ALLOWUNINSTALL job type
+- add ordercycle introspection
+- fix mkmask handling of a zero size
+- support 'recommends' in repo_mdk.c
+- support filelist parsing in installcheck
+- bump version to 0.6.13
+* Tue Sep  1 2015 mls@suse.de
+- added tcl bindings
+- improve debian ar archive handling
+- bindings: set the CLOEXEC flags in xfopen
+- bindings: support testcase writing [bnc#946752]
+- support REL_ELSE as evr of REL_COND
+- bump version to 0.6.12
+* Tue Jun  2 2015 mls@suse.de
+- add forgotten sha-512 support to data_skip
+- speed up whatprovides lookup with a new helper array
+- fix dup with allowuninstall
+- improve alreadyinstalled handling of supplements
+- some code cleanup
+- bump version to 0.6.11
+* Sat May  2 2015 mrueckert@suse.de
+- you really want to use rbconfig there
+* Wed Mar 18 2015 mls@suse.de
+- fix bug in dislike_old_versions that could lead to a segfault
+  [bnc#922352]
+- bump version to 0.6.10
+* Mon Mar  9 2015 mls@suse.de
+- rework splitprovides handling [bnc#921332]
+- improve package choosing code
+- new testcase dependency format
+- add alternatives introspection
+- make reorder_dq_for_jobrules also look at recommends/suggests
+- rework branch handling
+- add parser for rpm rich deps
+- bump version to 0.6.9
+* Wed Jan 14 2015 ma@suse.de
+- fixes to build with swig 3.0.3
+- bump version to 0.6.8
+* Fri Dec 19 2014 ma@suse.de
+- add product:regflavor attribute [bnc#896224]
+- bump version to 0.6.7
+* Tue Oct  7 2014 mls@suse.de
+- fix bug in reorder_dq_for_jobrules leading to crashes
+  [bnc#899907]
+- rename rpm rules to pkg rules
+- add manpages for the tools
+- bump version to 0.6.6
+* Thu Sep 11 2014 mls@suse.de
+- support DUCHANGES_ONLYADD flag in diskusage calculation
+  [bnc#783100]
+- add whatmatchesdep to bindings
+- support pool->considered in testcases
+- always call selection_filelist if SELECTION_FILELIST is set
+- support yum style obsolete handling for package splits
+- bump version to 0.6.5
+* Tue Jul  8 2014 mls@suse.de
+- expand solver_identical fix to applications [bnc#885830]
+- fix instbuddy generation code
+- improve autominimizing implementation to also look at
+  supplements
+- bump version to 0.6.4
+* Fri Jun 13 2014 ma@suse.de
+- quick fix for [bnc#881320]
+- bump version to 0.6.3
+* Fri Jun  6 2014 ma@suse.de
+- Provide PRODUCT_REGISTER_TARGET for available products [bnc#881320]
+- bump version to 0.6.2
+* Thu Apr 17 2014 mls@suse.de
+- support BREAK_ORPHANS and KEEP_ORPHANS solver flags
+- adapt to AppStream 0.6
+- reduce memory usage in repo_write and repodata_internalize
+- make repodata_stringify return the result string
+- bump version to 0.6.1
+* Mon Apr  7 2014 mls@suse.de
+- add support for sha224/sha384/sha512
+- add userinstalled helper functions
+- improve dataiterator bindings (in an incompatible way)
+- automatically free pool in bindings
+- bump version to 0.6.0 (ABI + bindings API breakage)
+* Wed Mar 26 2014 mls@suse.de
+- fix handling of packages with no update/feature rule [bnc#870195]
+- fix crash when in internalize() when the schemadata gets
+  reallocated
+- fix access to uninitialized memory in repo_empty()
+- a couple of optimizations
+- support REPOKEYWORDS in content parser
+- bindings: don't let str(Datamatch) change the strings
+- fix basename optimization for STRINGEND
+- bump version to 0.5.1
+* Wed Feb 26 2014 mls@suse.de
+- improve appdata.xml parsing [bnc#865293]
+- repo_helix: parse application elements
+- bump version to 0.5.0
+* Fri Feb 21 2014 mls@suse.de
+- fix bug in solver_get_unneeded that could lead to an
+  endless loop [bnc#828764]
+- adapt to new rpm tags for weak dependencies
+- fix pseudo packages obsoleting other pseudo packages
+- optimize unfulfilled rule handling a bit
+- bump version to 0.4.5
+* Fri Feb 14 2014 mls@suse.de
+- always keep job/jobflags in selection_filter()
+- implement COND handling in supplements/enhances
+- improve OR handling in supplements/enhances
+- fix typo in application backlink creation
+- support PRODUCT_ENDOFLIFE
+- store repoid as flexarray
+- also translate autoproduct strings
+- bump version to 0.4.4
+* Mon Jan 27 2014 mls@suse.de
+- add support for autogenerated products
+- support repoid array in product definition
+- bump version to 0.4.3
+* Fri Jan 24 2014 mls@suse.de
+- add -X option to susetags2solv [bnc#860271]
+- fix typos in pool_job2str
+- support DISTRO in content parser
+- make addfilelist more resistant against corrupt rpms
+- encode flags into rpmdb cookie
+- add identical and evrcmp methods in bindings
+- copy checksums in repo_add_rpmdb_reffp
+- repo_autopattern: make sure that the category is valid utf8
+- fix double-free if the number of languages is reduced to zero
+- bump version to 0.4.2
+* Mon Dec  9 2013 mls@suse.de
+- make repo2solv.sh work when appdata support is off
+- enable appdata support for SUSE
+* Tue Dec  3 2013 mls@suse.de
+- support appdata parsing and auto-pattern generation in tools
+- adapt to python3
+- tweak findproblemrule heuristic for conflicts
+- add m68k/ppc64le architectures
+- plug weakrulemap memory hole
+- support debian multiarch annotation
+- support product/pattern/application links
+- bump version to 0.4.1
+* Tue Sep 24 2013 mls@suse.de
+- do not add back cleandeps_updatepkgs packages [bnc#841781]
+* Mon Sep 23 2013 mls@suse.de
+- added repodata_lookup_binary
+- fix pattern obsoleting real packages [bnc#834376]
+- add selection_make_matchdeps function to query dependencies
+  other than provides
+- bump version to 0.4.0
+* Wed Aug 21 2013 mls@suse.de
+- add describe_decision() and unset() methods to bindings
+- do recommends pruning after selecting the highest versions
+- improve filelist handling
+- be more tolerant about bad xml: an empty epoch attribute means no epoch
+- fix another edge case will dup mode and multiversion packages [bnc#828389]
+- bring installcheck up to speed
+* Mon Jun 17 2013 mls@suse.de
+- add SOLVER_RULE_JOB_UNSUPPORTED and SOLVER_RULE_JOB_UNKNOWN_PACKAGE
+  for better problem reporting
+- start with library documentation
+- adapt to obsoletes handling of new rpm versions
+* Wed Mar  6 2013 mls@suse.de
+- fix dataiterator returning random data in some cases
+- add changelog parser
+- fix nasty bug in selection_filter_rel
+- allow re-run of an existing solver
+- bump version to 0.3.0
+* Mon Jan 14 2013 mls@suse.de
+- trivial_installable: check vendor of affected package to see if
+  a patch should be ignored [bnc#736100]
+- fix trivial installable requires handling
+- bump version to 0.2.4
+* Tue Dec 18 2012 mls@suse.de
+- fix potential access to freed memory
+- improve find_problemrule speed
+- add support for special namespaceprovides jobs
+- bump version to 0.2.3
+* Wed Dec  5 2012 mls@suse.de
+- many Selection improvements
+- fix perl binding memory issue
+- improve file list matching
+- support targeted up/dup with cleandeps
+- bump version to 0.2.2
+* Fri Nov 23 2012 mls@suse.de
+- support targeted up/dup
+- support best rules to enforce the installation of the best package
+- implement selection class to ease package selection
+- fix obsolete handling for debian packages
+- add pool_lookup_deltalocation helper
+- bump version to 0.2.1
+* Thu Oct 18 2012 mls@suse.de
+- fix susetags parser, it ignored the filelist of the last
+  solvable
+- fix encoding of large values
+- bump version to 0.2.0
+* Mon Jun 25 2012 mls@suse.de
+- fix typo in repodata_merge_attrs [bnc#767510]
+* Wed May 30 2012 mls@suse.de
+- fix build for older suse versions
+- fix memory corruption in unneeded calculation when there are
+  product buddies
+* Tue May  8 2012 ma@suse.de
+- build with swig-2.0.6
+* Mon Apr 23 2012 mls@suse.de
+- added testcase framework
+- add solver_get_unneeded() to get a list of no longer needed
+  installed packages
+- changed duprule generation to ignore uninstallable packages [bnc#750485]
+- fix memory leaks
+- speed up whatprovides generation
+- support 64bit nums, return files sizes in bytes
+- return errors instead of calling exit()
+- support tilde in rpm version comparison [bnc#466994]
+- 0.1.0
+* Tue Feb  7 2012 mls@suse.de
+- add findutils to the requires of libsolv-tools [bnc#743634]
+* Wed Feb  1 2012 mls@suse.de
+- add cleandeps support for install/update
+- check for cleandeps mistakes (untested)
+* Fri Jan 27 2012 mls@suse.de
+- make repo type code selection modular
+- add more solvable_ functions
+- add dependency getter/setter code to bindings
+- cleanup dup handling
+- hide more internals
+* Mon Oct 24 2011 ma@suse.de
+- mls fixed package provides/obsoletes, but forgot to write
+  a changes entry.
+* Tue Oct 18 2011 ma@suse.de
+- Add arch arvm7tnhl and  armv7thl
+* Fri Apr 29 2011 mls@suse.de
+- bup version to 0.17.0 to make it different from 11.4
+- 0.17.0
+* Thu Mar 24 2011 mls@suse.de
+- add missing else part in rpmdbid2db()
+* Thu Feb 24 2011 mls@suse.de
+- ignore to be dropped orhaned packages when calculating
+  candidates for recommends/supplements installation
+* Wed Feb  2 2011 kkaempf@novell.com
+- Split off 'applayer' and 'bindings' as a separate package
+  to make the bindings more independant of libsatsolver
+- 0.16.4
+* Tue Jan 25 2011 ma@suse.de
+- Apply patch introducing armv7nhl:armv7h
+* Fri Oct 22 2010 ma@suse.de
+- updateinfoxml: Correctly parse 'issued date' field.
+- 0.16.1
+* Thu Sep  9 2010 mls@suse.de
+- bump version to 0.16 to make it different from code11_3 branch
+- 0.16.0
+* Mon Sep  6 2010 dmacvicar@novell.com
+- ruby bindings: fix bugs regarding include path loading
+  (was hardcoded) and refactor the way the library path is defined
+  (only once in a helper)
+* Mon Sep  6 2010 dmacvicar@novell.com
+- SLE10SP3 also has vendor_ruby
+* Wed Aug 18 2010 kkaempf@novell.com
+- refactor ruby-satsolver, pure-Ruby extensions added
+- 0.15.1
+* Thu May  6 2010 mls@suse.de
+- fix bug in cleandeps code
+- bump version to 0.15 to make it different from code11_2 branch
+- 0.15.0
+* Tue Mar 23 2010 ma@suse.de
+- Parse an installed products <shortsummary> tag [bnc#586303]
+* Mon Mar 22 2010 mls@suse.de
+- dataiterator: reset parent when jumping to a solvid [bnc#589640]
+- 0.14.17
+* Thu Mar 11 2010 ma@suse.de
+- parse global repository ids. [bnc#377568]
+- fix pattern parsing in repomd format. [bnc#585000]
+- 0.14.16
+* Thu Mar 11 2010 mls@suse.de
+- fix language code lookup for fallback languages [bnc#584644]
+- change solvable_lookup_str_lang interface a bit for libzypp
+* Fri Feb 19 2010 mls@suse.de
+- make dup rules work when system repo is not first [bnc#581276]
+- parse pattern visibility flag in repomd format
+- 0.14.15
+* Fri Jan 29 2010 mls@suse.de
+- speed up createwhatprovides when many solvables provide the same dep
+- fix choice rule creation for real (bnc#551637)
+- 0.14.14
+* Mon Jan 18 2010 mls@suse.de
+- set repository:toolversion to 1.0 in common_write
+- 0.14.13
+* Mon Dec 21 2009 mls@suse.de
+- disable update rule in noobsoletes case if installed package is to
+  be kept [bnc#564239]
+- work around rpm bug when --prefix is used [bnc#565525]
+- add support for sparc architecture [bnc#566291]
+- 0.14.12
+* Mon Dec  7 2009 ma@suse.de
+- Support optionally compressed product(s).xml in rpmmd metadata.
+- 0.14.11
+* Mon Nov  2 2009 mls@suse.de
+- look at infarch/dup rules when creating choice rules, makes dup
+  also install 32bit packages [bnc#551637]
+- 0.14.10
+* Wed Oct 14 2009 mls@suse.de
+- ignore products element so that repo2solv works
+- support MULTI_SEMANTICS
+- add --withsrc option for installcheck
+- add SOLVER_DROP_ORPHANED job type
+- fix dropped package handling in removedisabledconflicts
+- 0.14.9
+* Thu Sep 24 2009 mls@suse.de
+- fix bug in solvable_lookup_str_base
+* Wed Sep 23 2009 mls@suse.de
+- get missing translations from other solvables [bnc#386449]
+- also look at triggers when ordering packages
+- add support for REPOKEY_TYPE_BINARY
+- 0.14.8
+* Wed Sep 16 2009 mls@suse.de
+- use repomdxml to query for the location [bnc#501425]
+- fix assertion failue... again
+- fix fp leak [bnc#535468]
+- 0.14.7
+* Fri Sep  4 2009 mls@suse.de
+- fix multiversion handling for real
+- fix speed regression in repo_susetags
+- close fd leak [bnc#527506]
+- remove db.h workaround
+- 0.14.6
+* Mon Aug 31 2009 mls@suse.de
+- fix to build with rpm-4.7
+* Fri Aug 28 2009 ma@suse.de
+- add support for SOLVER_SOLVABLE_REPO
+- 0.14.5
+* Thu Jul 30 2009 mls@suse.de
+- speed up file list parsing
+- speed up addfileprovides
+- fix bugs in pubkey handling
+- fix bug in filelist handling when there are no abs paths
+- 0.14.4
+* Fri Jul 17 2009 mls@suse.de
+- add satversion.h header file
+- many changes regarding the load callback
+- more dataiterator control functions
+- add transaction ordering code
+- add support for file conflict checking
+- 0.14.3
+* Mon Jun 22 2009 mls@suse.de
+- create libsatsolverext.a
+- 0.14.2
+* Wed May  6 2009 ma@suse.de
+- Fix to support sha256 hashes (bnc#501425)
+* Wed Apr  1 2009 kkaempf@suse.de
+- 0.14.1
+  Core changes
+  - fix potential NULL deref in srcrpm handling (mls)
+  - clean up and fix suggested/recommended list creation code (mls)
+  - kill obsolete and broken patchxml support (mls)
+  - replace old solver_problemruleinfo with new solver_ruleinfo
+    function (mls)
+  - add solvable_selfprovidedep() function (mls)
+  - add noinfarchcheck solver option (mls)
+  - clone job queue to make the code more flexible (mls)
+  - rewrite policy rule disabling/re-enabling (bnc#481836) (mls)
+  - fix out-of-bounds in solver_printproblem() (mls)
+  Bindings changes
+  - provide 'Repo.attr(String)' accessor function (kkaempf)
+  - provide 'Solver.sizechange' to compute the changes of the
+    installed size after a transaction is applied (kkaempf)
+  - solver result iterators for Python (jblunck)
+  - add %%newobject to track newly created objects better (kkaempf)
+  - generate rdoc documentation from swig input files (kkaempf)
+  - add a no-op Pool destructor (bnc#483252) (kkaempf)
+  - provide access to all flags and settings (kkaempf)
+* Wed Mar  4 2009 mls@suse.de
+- fix problem_to_solutions segfault
+- bump version to 0.14 to make it different from code11 branch
+- 0.14.0
+* Mon Mar  2 2009 mls@suse.de
+- add solver_trivial_installable() to fix multiversion patches [bnc#480303]
+- 0.13.5
+* Wed Feb 18 2009 ma@suse.de
+- Use correct namespace (e.g. pattern:) even if solvable has no name [bnc#470011]
+* Fri Jan 30 2009 mls@suse.de
+- fix weakmap boundary check
+- 0.13.3
+* Tue Jan 27 2009 ma@suse.de
+- Ignore trailing whitespace in content file parser.
+* Mon Jan 26 2009 mls@suse.de
+- fix segfault caused by whatprovides reallocation [bnc#468313]
+- 0.13.1
+* Tue Jan 20 2009 ma@suse.de
+- repo_rpmdb: Fix conversion to UTF8
+* Fri Dec  5 2008 kkaempf@suse.de
+- enhance bindings to provide reasons for solver decisions
+* Mon Dec  1 2008 mls@suse.de
+- prefer patterns again until there's a real fix [bnc#450226]
+* Mon Dec  1 2008 mls@suse.de
+- susetags: fix file dependency parsing [bnc#450286]
+* Fri Nov 28 2008 mls@suse.de
+- correct problem solving algorithm
+- 0.13.0
+* Fri Nov 21 2008 dmacvicar@suse.de
+- remove unused updaterepokey, replaced by repo
+  product information
+* Thu Nov 20 2008 dmacvicar@suse.de
+- support content, distro and updates tag properly
+- remove the unused products tag
+* Mon Nov 17 2008 ma@suse.de
+- Parse RELEASE tag from contentfile (bnc #444978)
+- 0.12.3
+* Fri Nov 14 2008 mls@suse.de
+- fix bugs in multiversion handling
+- bring perl bindings up to speed
+- 0.12.2
+* Fri Nov  7 2008 ma@suse.de
+- fix SOLVID_POS dataiterator handling
+* Fri Nov  7 2008 kkaempf@suse.de
+- make repo_zyppdb more robust (bnc#441043)
+* Thu Nov  6 2008 kkaempf@suse.de
+- Add 'user_data' argument to all applayer iterator callbacks
+  (bnc#418491)
+* Wed Oct 29 2008 ma@suse.de
+- Add 'sh4' architectures.
+* Tue Oct 28 2008 ma@suse.de
+- Add 'arm' architectures.
+* Mon Oct 27 2008 kkaempf@suse.de
+- Improve error detection and reporting when parsing 'content' file
+* Fri Oct 24 2008 ma@suse.de
+- Remember the /etc/products.d enties filename in .solv
+  (bnc #432932)
+- 0.12.1
+* Thu Oct 23 2008 mrueckert@suse.de
+- add zlib-devel as buildrequires, cmake is looking for it
+  explicitely. rpm-devel used to require it but you dont really
+  need it to link against librpm*
+- requires rpm-devel in the devel package, it is required to link
+  against libsatsolver.
+* Wed Oct 22 2008 mls@suse.de
+- add pool_set_installed()
+- drop "installed" arguments from some functions
+- 0.12.0
+* Wed Oct 22 2008 dmacvicar@suse.de
+- support the new standarized tags available in
+  createrepo > 0.9.6
+  saving of the distro tag still missing.
+* Thu Oct 16 2008 mls@suse.de
+- make iterator work with completely empty repos [bnc#435838]
+* Tue Oct 14 2008 mls@suse.de
+- the big solv data change
+  * incompatible new file format
+  * repodata handles are solvable ids
+  * no more extra handles
+  * no need to call repodata_extend anymore
+- work around solver dup repo priority bug, real fix follows soon
+- implement releasever
+- repo_products.c is now more robust
+* Mon Oct 13 2008 kkaempf@suse.de
+- make product parsing more robust (bnc#433362)
+* Thu Oct  2 2008 ma@suse.de
+- Product arttributes: removed FLAVOR and REFERENCES, added PRODUCTLINE.
+- revision 11233
+- 0.11.0
+* Tue Sep 30 2008 ma@suse.de
+- repo_content.c: fix broken dependency parsing.
+- revision 11214
+* Mon Sep 29 2008 ma@suse.de
+- rpms2solv failed to write out most solvable data (bnc #422338).
+- revision 11201
+* Fri Sep 26 2008 kkaempf@suse.de
+- new fallback strategy for installed products in rpmdb2solv
+  try /etc/products.d (code11 style) first
+  if this fails, try /var/lib/zypp/db/products/*
+  if this fails, fallback to /etc/*-release
+  (bnc#429177)
+- 0.10.16
+* Thu Sep 25 2008 kkaempf@suse.de
+- fully support Dataiterator in Python and Ruby bindings.
+- 0.10.15
+* Thu Sep 25 2008 dmacvicar@suse.de
+- add support for keywords in susedata
+* Wed Sep 24 2008 kkaempf@suse.de
+- parse /etc/<xyz>-release if no /etc/products.d present
+  (bnc#429177)
+- 0.10.14
+* Mon Sep 22 2008 dmacvicar@suse.de
+- ability to parse suseinfo.xml for extended repomd.xml attributes
+- fix susedata.xml parsing
+- add CPE attribute to installed product
+- real fix for segfault in multiarch parsing (bnc#427271)
+- 0.10.13
+* Thu Sep 18 2008 dmacvicar@suse.de
+- fix segfault in multiarch parsing (bnc#427271)
+* Wed Sep 17 2008 mls@suse.de
+- fix segfault in provides iterator
+- 0.10.12
+* Fri Sep 12 2008 dmacvicar@suse.de
+- support for susedata.xml
+* Fri Sep 12 2008 dmacvicar@suse.de
+- add repo_add_poolstr_array
+- move updates="key,key.." to repomd.xml
+- make product url ids more extensible
+- 0.10.11
+* Thu Sep 11 2008 dmacvicar@suse.de
+- add REPOSITORY_UPDATES to match product -> repos
+- make updateinfo.xml support id attribute in collection that
+  leads to insert that the repository updates that id.
+* Wed Sep 10 2008 dmacvicar@suse.de
+- create one product per BASEARCHS
+* Wed Sep 10 2008 ma@suse.de
+- repo_products: Parse schemeversion, propagate product
+  updaterepokey and flavor. Fix segfault on malformed
+  xml.
+- 0.10.10
+* Wed Sep 10 2008 dmacvicar@suse.de
+- accept the PATTERNS tag in content file
+* Tue Sep  9 2008 kkaempf@suse.de
+- rpmdb2solv changes:
+  - fix bug when parsing multiple products
+  - adapt to .prod file as of 9/9/08 7:20pm
+- 0.10.9
+* Tue Sep  9 2008 ma@suse.de
+- Reenable -Werror and fix bindings.
+- 0.10.8
+* Tue Sep  9 2008 dmacvicar@suse.de
+- disable -Werror for swig generated stuff
+* Fri Sep  5 2008 kkaempf@suse.de
+- adapt /etc/product.d parser to generated .prod files.
+* Fri Sep  5 2008 ma@suse.de
+- tools/repo_susetags.c: Parse packages vendor (bnc #422493).
+- 0.10.7
+* Thu Sep  4 2008 kkaempf@suse.de
+- tools/rpmdb2solv: Adapt to xml-based /etc/products.d
+- tools/rpmdb2solv: Add '-a <attribute>' to print
+  distribution.target attribute of baseproduct.
+* Tue Sep  2 2008 mls@suse.de
+- make solver includes use "" instead of <>, fixes bnc#415920
+- implement otherproviders()
+- make patches do nevr matching
+- make patch conflicts work with multiversion
+- new job commands, now combinded from job type and select type
+- support for distupgrade mode
+- make SOLVER_ERASE_SOLVABLE work
+- also check obsoletes when disabling update rules
+- 0.10.6
+* Fri Aug 22 2008 dmacvicar@suse.de
+- add support for extensible metadata over primary +
+  diskusage
+- 0.10.5
+* Fri Aug 15 2008 kkaempf@suse.de
+- ensure existance of product solvable in repo_content(bnc#417594)
+* Fri Aug 15 2008 kkaempf@suse.de
+- follow /etc/products.d/baseproduct and mark product as 'base'
+* Fri Aug 15 2008 kkaempf@suse.de
+- Implement pre-code11 fallback for products, parse /etc/*-release
+  if /etc/products.d is not available.
+* Wed Aug 13 2008 kkaempf@suse.de
+- provide installtime for installed products.
+* Wed Aug 13 2008 dmacvicar@suse.de
+- include new file search capability commited by matz
+  (SEARCH_FILES)
+- 0.10.4
+* Wed Aug 13 2008 kkaempf@suse.de
+- Honor rpmdb2solv's '-r <root>' also for the products.d path.
+* Tue Aug 12 2008 kkaempf@suse.de
+- Add .prod parsing for 'installed' products to rpmdb2solv.
+- Improve python-bindings, add iterators.
+* Thu Aug  7 2008 dmacvicar@suse.de
+- implement relogin suggested support (fate#304889)
+* Thu Aug  7 2008 ma@suse.de
+- Susetags: Allow whitespace in file provides generated by
+  autobuild (bnc#415115)
+* Fri Aug  1 2008 dmacvicar@suse.de
+- insert the checksum in rpmmd generated solv files
+  (bnc#414002)
+- 0.10.3
+* Tue Jul 29 2008 mls@suse.de
+- resolve job rules before installing system packages [bnc#411086]
+- no more freshens. R.I.P.
+- make repo2solv.sh also take repomd.xml in count
+- install repomdxml2solv
+- add Packager, Build Host, Distribution
+- disallow arch/vendor changes even if the package name changes
+* Sat Jul 12 2008 dmacvicar@suse.de
+- infrastructure to save generated and expiration time
+  stamp in rpm-md repositories (fate #301904)
+- 0.10.1
+* Wed Jul  9 2008 ma@suse.de
+- Fix repo_content dependency parsing. Parser may lose up to
+  two trailing dependencies.
+* Tue Jul  1 2008 kkaempf@suse.de
+- rename language bindings to {perl,python,ruby}-satsolver
+  to follow naming conventions.
+* Mon Jun 30 2008 dmacvicar@suse.de
+- forward port
+- add message tag to updateinfo.xml for displaying
+  messages in the user interface
+- Fix missing self provides for patches (bnc #397132).
+- do not reorder binary rules if they are not rpm rules [bnc#397456]
+- 0.10.0
+* Mon Jun  2 2008 coolo@suse.de
+- calculate recommendation list also if ignorealreadyrecommended is set,
+  as some recommendations would be missing otherwise
+- make dependency output less confusing (bnc#396309)
+- 0.9.0
+* Tue May 27 2008 coolo@suse.de
+- compile with RPM_OPT_FLAGS
+* Fri May 23 2008 mls@suse.de
+- add "zypper" flag
+- add "ignorealreadyrecommended" aka "zypper" solver option
+* Thu May 22 2008 coolo@suse.de
+- fixed language support in patterns (bnc#386524)
+* Mon May 19 2008 dmacvicar@suse.de
+- make solvable_look_bool more robust by allowing both
+  the void or the num == 1 strategy.
+* Thu May 15 2008 coolo@suse.de
+- fix susetags parser
+* Wed May 14 2008 dmacvicar@suse.de
+- mls fix of satisfied patterns
+- 0.0.33
+* Tue May 13 2008 dmacvicar@suse.de
+- use repodata_set_void for pattern visible attr
+* Tue May 13 2008 jreidinger@suse.cz
+- read description dir path from content file (bnc #389414)
+* Tue May 13 2008 dmacvicar@suse.de
+- a boolean is not a num attribute set to 1, but just a existing void
+  attribute. (bnc#388818)
+* Mon May 12 2008 coolo@suse.de
+- provide libsatsolver to fix requires of debuginfo
+* Sat May 10 2008 coolo@suse.de
+- resubmit clean tar
+* Fri May  9 2008 ma@suse.de
+- Parse the products LABEL in content file to SUMMARY.
+* Fri May  9 2008 dmacvicar@suse.de
+- recognize 1 as true for reboot suggested and
+  restart suggested (bnc#388818)
+* Fri May  9 2008 kkaempf@suse.de
+- move 'helix2solv' from satsolver-tools to satsolver-devel package
+  (bnc#388595)
+* Mon May  5 2008 coolo@suse.de
+- add obsoleteusesprovides and implicitobsoleteusesprovides solver
+  flags
+- speed up solving by not recreating the watch chains every time
+  some rule is enabled/disabled. To do this, the "disabled" flag
+  had to be moved from w1 to d.
+- fix bug that broke rule disabling when "forceResolve" was true
+- fix bug in update rule calculation
+- speed up solver a bit by creating a queue holding all assertion
+  rules, so we do not have to scan all rules for assertions
+- parse also DISTPRODUCT and DISTVERSION (for registration), and the other
+  (often unused) attributes of products.
+* Mon Apr 28 2008 coolo@suse.de
+- (De-)Serialize structured types.  Dataiterator and repo_search support
+  them too, but not yet nested, so that is unsupported for now.
+- skipping kinds in matcher when a flag is specified.
+- make --force behave a bit more like --noforce
+* Fri Apr 25 2008 coolo@suse.de
+- detect and skip empty lines (bnc#381828)
+- fix endless loop
+- move debug functions to solverdebug.c
+- do not delete negative bitfield entries [bnc#381908]
+- add "showinstalledrecommended" option to make the solver
+  put installed packages on the suggestions/recommendations
+  queues
+- Fix content parsing if PRODUCT isn't the first entry.
+- add more statistics
+- add two assertions
+- add support for susetags filelist
+- plug mem join2 leak
+- fix anchoring of filelist data
+- susetags move files added to provides back into filelist
+- ignore packages.FL for now
+* Sun Apr 20 2008 coolo@suse.de
+- fix build
+* Sat Apr 19 2008 coolo@suse.de
+- fix probleminfo if solvable conflicts with itself and has no requires
+- Fix parsing dep lines of content files (bnc #380396).
+- C++-guard also solver.h
+- add support for feature rules
+- fix a couple of small bugs
+- use new interface
+* Wed Apr 16 2008 coolo@suse.de
+- fix (rare) case of crashing solver
+* Tue Apr 15 2008 coolo@suse.de
+- some fixes around updateinfo parsing
+* Wed Apr  9 2008 jkupec@suse.cz
+- enable regex matching in Dataiterator
+* Fri Apr  4 2008 coolo@suse.de
+- package deptestomatic in -devel
+* Mon Mar 31 2008 coolo@suse.de
+- truly restart when analyze_unsolvable is hit (fixes bnc#368209)
+- make it work with really large directories
+* Mon Mar 24 2008 coolo@suse.de
+- install rpms2solv
+* Mon Mar 17 2008 matz@suse.de
+- Initialize all allocated array members for blocky arrays (when it
+  matters, e.g. when extending also in blocks - bnc#371137)
+* Fri Mar 14 2008 coolo@suse.de
+- fix build on other distris
+- fix requires of tools
+* Wed Mar 12 2008 coolo@suse.de
+- store datadir for susetags
+- fixing assertion in rules learning
+* Fri Mar  7 2008 coolo@suse.de
+- several fixes in whatprovides (possibly root cause of bnc#367210)
+* Mon Feb 25 2008 coolo@suse.de
+- fixing rpmdb2solv argument handling
+* Fri Feb 22 2008 coolo@suse.de
+- support rpmdb2solv -r for chroots
+* Thu Feb 21 2008 coolo@suse.de
+- fix susetags parser for so called full trees
+* Wed Feb 20 2008 coolo@suse.de
+- no longer link against db43 but against rpmlib
+* Tue Feb 19 2008 coolo@suse.de
+- fix requires/obsoletes
+* Tue Feb 19 2008 coolo@suse.de
+- mls is back from vacation - several fixes and enhancements
+* Fri Feb 15 2008 coolo@suse.de
+- several fixes for the solv files
+* Tue Feb 12 2008 kkaempf@suse.de
+- add libappsatsolver, an application layer to ease coding
+  against sat-solver.
+* Tue Feb 12 2008 coolo@suse.de
+- let susetags parse vendors
+* Thu Feb  7 2008 coolo@suse.de
+- rename libsatsolver in satsolver-tools
+- several updates and fixes
+* Fri Feb  1 2008 coolo@suse.de
+- really don't strip
+* Mon Jan 14 2008 coolo@suse.de
+- update from SVN:
+  - various fixes
+  - less logging
+* Tue Jan  8 2008 coolo@suse.de
+- update to SVN again and don't strip
+* Sat Dec 22 2007 coolo@suse.de
+- update to SVN so libzypp compiles again
+* Fri Nov 30 2007 schubi@suse.de
+- update for libzypp integration
+* Fri Nov 16 2007 coolo@suse.de
+- update to SVN again to make libzypp compilable again
+* Wed Nov 14 2007 schubi@suse.de
+- further develpment. bugfix, logging, docu,...
+* Mon Nov 12 2007 coolo@suse.de
+- update to the latest version from SVN
+  - compilation fixes
+  - policy engine
+* Thu Nov  8 2007 coolo@suse.de
+- update to the latest version from SVN
+* Tue Oct  2 2007 kkaempf@suse.de
+- Initial release

@@ -1,0 +1,219 @@
+diff -u -r -N libsolv-0.7.14-orig/ext/CMakeLists.txt libsolv-0.7.14/ext/CMakeLists.txt
+--- libsolv-0.7.14-orig/ext/CMakeLists.txt	2020-05-27 10:55:11.000000000 +0000
++++ libsolv-0.7.14/ext/CMakeLists.txt	2020-07-27 21:29:29.810125600 +0000
+@@ -4,6 +4,14 @@
+ SET (libsolvext_HEADERS
+     tools_util.h solv_xfopen.h testcase.h)
+ 
++IF (NOT HAVE_FOPENCOOKIE AND NOT HAVE_FUNOPEN)
++    SET (libsolvext_SRCS ${libsolvext_SRCS}
++        solv_xfopen_fallback_fopencookie.c)
++    SET (libsolvext_HEADERS ${libsolvext_HEADERS}
++        solv_xfopen_fallback_fopencookie.h)
++ENDIF (NOT HAVE_FOPENCOOKIE AND NOT HAVE_FUNOPEN)
++
++
+ IF (ENABLE_RPMDB OR ENABLE_RPMPKG)
+     SET (libsolvext_SRCS ${libsolvext_SRCS}
+         pool_fileconflicts.c repo_rpmdb.c)
+diff -u -r -N libsolv-0.7.14-orig/ext/solv_xfopen.c libsolv-0.7.14/ext/solv_xfopen.c
+--- libsolv-0.7.14-orig/ext/solv_xfopen.c	2020-05-27 10:55:11.000000000 +0000
++++ libsolv-0.7.14/ext/solv_xfopen.c	2020-07-27 21:35:44.064115600 +0000
+@@ -12,6 +12,10 @@
+ #include <string.h>
+ #include <fcntl.h>
+ 
++#if !defined(HAVE_FUNOPEN) && !defined(HAVE_FOPENCOOKIE)
++#include "solv_xfopen_fallback_fopencookie.h"
++#endif
++
+ #ifdef _WIN32
+   #include "fmemopen.c"
+ #endif
+@@ -26,7 +30,7 @@
+ 	ssize_t (*cwrite)(void *, const char *, size_t),
+ 	int (*cclose)(void *))
+ {
+-#ifdef HAVE_FUNOPEN
++#if defined(HAVE_FUNOPEN) && !defined(HAVE_FOPENCOOKIE)
+   if (!cookie)
+     return 0;
+   return funopen(cookie,
+@@ -35,7 +39,7 @@
+       (fpos_t (*)(void *, fpos_t, int))NULL,					/* seekfn */
+       cclose
+       );
+-#elif defined(HAVE_FOPENCOOKIE)
++#else
+   cookie_io_functions_t cio;
+ 
+   if (!cookie)
+@@ -47,8 +51,6 @@
+     cio.write = cwrite;
+   cio.close = cclose;
+   return  fopencookie(cookie, *mode == 'w' ? "w" : "r", cio);
+-#else
+-# error Need to implement custom I/O
+ #endif
+ }
+ 
+diff -u -r -N libsolv-0.7.14-orig/ext/solv_xfopen_fallback_fopencookie.c libsolv-0.7.14/ext/solv_xfopen_fallback_fopencookie.c
+--- libsolv-0.7.14-orig/ext/solv_xfopen_fallback_fopencookie.c	1970-01-01 00:00:00.000000000 +0000
++++ libsolv-0.7.14/ext/solv_xfopen_fallback_fopencookie.c	2020-07-27 21:29:29.814910960 +0000
+@@ -0,0 +1,124 @@
++/*
++ *	Provides a very limited fopencookie() for environments with a libc
++ *	that lacks it.
++ *
++ *	Authors: zhasha & nsz
++ *	Modified for libsolv by Neal Gompa
++ *
++ *	This program is licensed under the BSD license, read LICENSE.BSD
++ *	for further information.
++ *
++ */
++
++#define _LARGEFILE64_SOURCE 1
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <sys/types.h>
++#include <errno.h>
++#include "solv_xfopen_fallback_fopencookie.h"
++
++extern int pipe2(int[2], int);
++
++struct ctx {
++    int fd;
++    void *cookie;
++    struct cookie_io_functions_t io;
++    char buf[1024];
++};
++
++static void *proxy(void *arg)
++{
++    struct ctx *ctx = arg;
++    ssize_t r;
++    size_t n, k;
++
++    pthread_detach(pthread_self());
++
++    while (1) {
++        r = ctx->io.read ?
++            (ctx->io.read)(ctx->cookie, ctx->buf, sizeof(ctx->buf)) :
++            read(ctx->fd, ctx->buf, sizeof(ctx->buf));
++        if (r < 0) {
++            if (errno != EINTR) { break; }
++            continue;
++        }
++        if (r == 0) { break; }
++
++        n = r, k = 0;
++        while (n > 0) {
++            r = ctx->io.write ?
++                (ctx->io.write)(ctx->cookie, ctx->buf + k, n) :
++                write(ctx->fd, ctx->buf + k, n);
++            if (r < 0) {
++                if (errno != EINTR) { break; }
++                continue;
++            }
++            if (r == 0) { break; }
++
++            n -= r, k += r;
++        }
++        if (n > 0) { break; }
++    }
++
++    if (ctx->io.close) { (ctx->io.close)(ctx->cookie); }
++    close(ctx->fd);
++    return NULL;
++}
++
++FILE *fopencookie(void *cookie, const char *mode, struct cookie_io_functions_t io)
++{
++    struct ctx *ctx = NULL;
++    int rd = 0, wr = 0;
++    int p[2] = { -1, -1 };
++    FILE *f = NULL;
++    pthread_t dummy;
++
++    switch (mode[0]) {
++        case 'a':
++        case 'w': wr = 1; break;
++        case 'r': rd = 1; break;
++        default:
++            errno = EINVAL;
++            return NULL;
++    }
++    switch (mode[1]) {
++        case '\0': break;
++        case '+':
++            if (mode[2] == '\0') {
++                errno = ENOTSUP;
++                return NULL;
++            }
++        default:
++            errno = EINVAL;
++            return NULL;
++    }
++    if (io.seek) {
++        errno = ENOTSUP;
++        return NULL;
++    }
++
++    ctx = malloc(sizeof(*ctx));
++    if (!ctx) { return NULL; }
++    if (pipe2(p, O_CLOEXEC) != 0) { goto err; }
++    if ((f = fdopen(p[wr], mode)) == NULL) { goto err; }
++    p[wr] = -1;
++    ctx->fd = p[rd];
++    ctx->cookie = cookie;
++    ctx->io.read = rd ? io.read : NULL;
++    ctx->io.write = wr ? io.write : NULL;
++    ctx->io.seek = NULL;
++    ctx->io.close = io.close;
++    if (pthread_create(&dummy, NULL, proxy, ctx) != 0) { goto err; }
++
++    return f;
++
++err:
++    if (p[0] >= 0) { close(p[0]); }
++    if (p[1] >= 0) { close(p[1]); }
++    if (f) { fclose(f); }
++    free(ctx);
++    return NULL;
++}
+diff -u -r -N libsolv-0.7.14-orig/ext/solv_xfopen_fallback_fopencookie.h libsolv-0.7.14/ext/solv_xfopen_fallback_fopencookie.h
+--- libsolv-0.7.14-orig/ext/solv_xfopen_fallback_fopencookie.h	1970-01-01 00:00:00.000000000 +0000
++++ libsolv-0.7.14/ext/solv_xfopen_fallback_fopencookie.h	2020-07-27 21:29:29.815808320 +0000
+@@ -0,0 +1,28 @@
++/*
++ *	Provides a very limited fopencookie() for environments with a libc
++ *	that lacks it.
++ *
++ *	Authors: zhasha & nsz
++ *	Modified for libsolv by Neal Gompa
++ *
++ *	This program is licensed under the BSD license, read LICENSE.BSD
++ *	for further information.
++ *
++ */
++
++#ifndef SOLV_XFOPEN_FALLBACK_FOPENCOOKIE_H
++#define SOLV_XFOPEN_FALLBACK_FOPENCOOKIE_H
++
++#include <stdio.h>
++#include <stdint.h>
++
++typedef struct cookie_io_functions_t {
++    ssize_t (*read)(void *, char *, size_t);
++    ssize_t (*write)(void *, const char *, size_t);
++    int (*seek)(void *, off64_t, int);
++    int (*close)(void *);
++} cookie_io_functions_t;
++
++FILE *fopencookie(void *cookie, const char *mode, struct cookie_io_functions_t io);
++
++#endif

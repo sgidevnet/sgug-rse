@@ -4,7 +4,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.28
+Version: 0.1.29
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -32,6 +32,7 @@ to develop programs that use libdicl library.
 %build
 
 %{configure}
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 make %{?_smp_mflags}
 
 %check
@@ -55,6 +56,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl-0.1.la
 
 
 %changelog
+* Mon Jun 27 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.29-1
+- Add dprintf, vdprintf
+
 * Thu Jun 18 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.28-1
 - Add strptime and strftime, switch to lgpl2.1
 

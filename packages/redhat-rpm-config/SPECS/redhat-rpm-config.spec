@@ -7,7 +7,7 @@
 Summary: Red Hat specific rpm configuration files
 Name: redhat-rpm-config
 Version: 143
-Release: 5%{?dist}
+Release: 6%{?dist}
 # No version specified.
 License: GPL+
 URL: https://src.fedoraproject.org/rpms/redhat-rpm-config
@@ -211,6 +211,9 @@ install -p -m 644 -t %{buildroot}%{_rpmluadir}/fedora/srpm forge.lua
 #%%{_rpmconfigdir}/macros.d/macros.kmp
 
 %changelog
+* Mon Jul 27 2020 Daniel Hams <daniel.hams@gmail.com> - 143-6
+- Another mangle fix, change /usr/bin/python to sgug one
+
 * Thu Jul 23 2020 Daniel Hams <daniel.hams@gmail.com> - 143-5
 - Fix the broken shebang mangling so that /usr/bin/perl is rewritten too
 
