@@ -318,6 +318,7 @@ uuid
 vim
 wget
 which
+worker
 xcb-proto
 xhtml1-dtds
 xhtml2fo-style-xsl
