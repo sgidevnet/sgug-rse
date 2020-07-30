@@ -3,7 +3,7 @@
 
 Name: docbook5-style-xsl
 Version: 1.79.2
-Release: 8%{?dist}
+Release: 9%{?dist}
 
 Summary: Norman Walsh's XSL stylesheets for DocBook 5.X
 
@@ -74,6 +74,9 @@ rm -rf $DESTDIR%{_datadir}/sgml/docbook/xsl-ns-stylesheets/install.sh
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_datadir}/sgml/docbook/xsl-ns-stylesheets-%version/tools/bin/docbook-xsl-update
 perl -pi -e "s|/usr/bin/perl|%{_bindir}/perl|g" $RPM_BUILD_ROOT%{_datadir}/sgml/docbook/xsl-ns-stylesheets-%version/fo/pdf2index
 
+# And remove a script that uses ruby we don't currently have
+rm -f $RPM_BUILD_ROOT%{_datadir}/sgml/docbook/xsl-ns-stylesheets-%version/epub/bin/dbtoepub
+
 %files
 %doc BUGS
 %doc README COPYING
@@ -123,6 +126,9 @@ if [ "$1" = 0 ]; then
 fi
 
 %changelog
+* Thu Jul 30 2020 Daniel Hams <daniel.hams@gmail.com> - 1.79.2-9
+- Remove epub translator that attempts to use ruby (we don''t have it yet)
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.79.2-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
