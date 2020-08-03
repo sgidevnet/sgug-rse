@@ -11,7 +11,7 @@
 
 Name:		cairo
 Version:	1.16.0
-Release:	10%{?dist}
+Release:	11%{?dist}
 Summary:	A 2D graphics library
 
 License:	LGPLv2 or MPLv1.1
@@ -107,6 +107,7 @@ export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS -lgen"
 # Cairo has a broken libtool that installs cairo-sphinx as the libtool script
 # autoreconf is used to replace that libtool version
+# Also, for now DON'T ACTIVATE OR USE LIBXCB - causes issues
 autoreconf -fi
 %configure --disable-static	\
 	--enable-xlib		\
@@ -117,8 +118,10 @@ autoreconf -fi
         --enable-png            \
 	--enable-tee		\
         --enable-xml            \
-        --enable-xlib-xcb       \
-        --enable-gobject
+        --enable-gobject        \
+        --disable-xcb           \
+        --disable-xlib-xcb      \
+        --disable-xcb-shm
 
 #        --disable-valgrind      \
 #        --disable-gtk-doc       \
@@ -153,7 +156,7 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/cairo/cairo-sphinx.so
 %{_includedir}/cairo/cairo-xlib-xrender.h
 %{_includedir}/cairo/cairo-xlib.h
 %{_includedir}/cairo/cairo-script.h
-%{_includedir}/cairo/cairo-xcb.h
+#%%{_includedir}/cairo/cairo-xcb.h
 %{_includedir}/cairo/cairo-xml.h
 %{_libdir}/libcairo.so
 %{_libdir}/libcairo-script-interpreter.so
@@ -168,9 +171,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/cairo/cairo-sphinx.so
 %{_libdir}/pkgconfig/cairo-xlib.pc
 %{_libdir}/pkgconfig/cairo-xlib-xrender.pc
 %{_libdir}/pkgconfig/cairo-script.pc
-%{_libdir}/pkgconfig/cairo-xcb-shm.pc
-%{_libdir}/pkgconfig/cairo-xcb.pc
-%{_libdir}/pkgconfig/cairo-xlib-xcb.pc
+#%%{_libdir}/pkgconfig/cairo-xcb-shm.pc
+#%%{_libdir}/pkgconfig/cairo-xcb.pc
+#%%{_libdir}/pkgconfig/cairo-xlib-xcb.pc
 %{_libdir}/pkgconfig/cairo-xml.pc
 %{_datadir}/gtk-doc/html/cairo
 %{_bindir}/cairo-sphinx
@@ -188,6 +191,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/cairo/cairo-sphinx.so
 #%%{_libdir}/cairo/
 
 %changelog
+* Mon Jul 20 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16.0-11
+- Disable use of xcb - the shm calls arrive out of seqn and cause application crashes in GTK.
+
 * Sun Jun 28 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16.0-10
 - Force an autoreconf to avoid using the broken libtool in the project
 

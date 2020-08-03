@@ -10,7 +10,7 @@
 Summary:	Font configuration and customization library
 Name:		fontconfig
 Version:	2.13.92
-Release:	3%{?dist}
+Release:	4%{?dist}
 # src/ftglue.[ch] is in Public Domain
 # src/fccache.c contains Public Domain code
 # fc-case/CaseFolding.txt is in the UCD
@@ -77,8 +77,11 @@ export HASDOCBOOK=no
 autoreconf
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1"
-%configure	--with-add-fonts=%{_prefix}/share/X11/fonts/Type1,%{_prefix}/share/X11/fonts/TTF,%{_prefix}/share/fonts,/usr/lib/X11/fonts/100dpi,/usr/lib/X11/fonts/75dpi,/usr/lib/X11/fonts/misc,/usr/lib/X11/fonts/Type1,/usr/lib/X11/fonts/Speedo,/usr/lib/X11/fonts/CID \
-		--disable-static --with-cache-dir=%{_prefix}/lib/fontconfig/cache
+%configure \
+    --with-default-fonts=%{_prefix}/share/fonts \
+    --with-add-fonts=%{_prefix}/share/X11/fonts/Type1,%{_prefix}/share/X11/fonts/TTF,%{_prefix}/share/fonts,/usr/lib/X11/fonts/100dpi,/usr/lib/X11/fonts/75dpi,/usr/lib/X11/fonts/misc,/usr/lib/X11/fonts/Type1,/usr/lib/X11/fonts/Speedo,/usr/lib/X11/fonts/CID \
+    --disable-static \
+    --with-cache-dir=%{_prefix}/lib/fontconfig/cache
 
 make %{?_smp_mflags}
 
@@ -88,12 +91,12 @@ make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 install -p -m 0644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/fonts/conf.d
-ln -s %{_fontconfig_templatedir}/25-unhint-nonlatin.conf $RPM_BUILD_ROOT%{_fontconfig_confdir}/
+ln -sf %{_fontconfig_templatedir}/25-unhint-nonlatin.conf $RPM_BUILD_ROOT%{_fontconfig_confdir}/
 
 # move installed doc files back to build directory to package them
 # in the right place
-mv $RPM_BUILD_ROOT%{_docdir}/fontconfig/* .
-rmdir $RPM_BUILD_ROOT%{_docdir}/fontconfig/
+cp -rf $RPM_BUILD_ROOT%{_docdir}/fontconfig/* .
+rm -rf $RPM_BUILD_ROOT%{_docdir}/fontconfig
 
 # We aren't multilib, don't do this unnecessarily
 # rename fc-cache binary
@@ -106,29 +109,31 @@ rmdir $RPM_BUILD_ROOT%{_docdir}/fontconfig/
 %find_lang %{name}-conf
 cat %{name}-conf.lang >> %{name}.lang
 
+rm -f $RPM_BUILD_ROOT%{_prefix}/etc/fonts/fonts.conf.bak
+
 %check
 make check
 
-#%%post
-#umask 0022
-#
-#mkdir -p /usr/lib/fontconfig/cache
-#
-#[[ -d %{_localstatedir}/cache/fontconfig ]] && rm -rf %{_localstatedir}/cache/fontconfig/* 2> /dev/null || :
-#
-## Force regeneration of all fontconfig cache files
-## The check for existance is needed on dual-arch installs (the second
-##  copy of fontconfig might install the binary instead of the first)
-## The HOME setting is to avoid problems if HOME hasn't been reset
-#if [ -x /usr/bin/fc-cache ] && /usr/bin/fc-cache --version 2>&1 | grep -q %{version} ; then
-#  HOME=/root /usr/bin/fc-cache -f
-#fi
-#
-#%%transfiletriggerin -- /usr/share/fonts /usr/share/X11/fonts/Type1 /usr/share/X11/fonts/TTF /usr/local/share/fonts
-#HOME=/root /usr/bin/fc-cache -s
-#
-#%%transfiletriggerpostun -- /usr/share/fonts /usr/share/X11/fonts/Type1 /usr/share/X11/fonts/TTF /usr/local/share/fonts
-#HOME=/root /usr/bin/fc-cache -s
+%post
+umask 0022
+
+mkdir -p %{_prefix}/lib/fontconfig/cache
+
+[[ -d %{_localstatedir}/cache/fontconfig ]] && rm -rf %{_localstatedir}/cache/fontconfig/* 2> /dev/null || :
+
+# Force regeneration of all fontconfig cache files
+# The check for existance is needed on dual-arch installs (the second
+#  copy of fontconfig might install the binary instead of the first)
+# The HOME setting is to avoid problems if HOME hasn't been reset
+if [ -x %{_bindir}/fc-cache ] && %{_bindir}/fc-cache -V 2>&1 | grep -q %{version} ; then
+  HOME=/root %{_bindir}/fc-cache -f
+fi
+
+%transfiletriggerin -- %{_prefix}/fonts %{_prefix}/share/X11/fonts/Type1 %{_prefix}/share/X11/fonts/TTF
+HOME=/root %{_bindir}/fc-cache -s
+
+%transfiletriggerpostun -- %{_prefix}/fonts %{_prefix}/share/X11/fonts/Type1 %{_prefix}/share/X11/fonts/TTF
+HOME=/root %{_bindir}/fc-cache -s
 
 %files -f %{name}.lang
 %doc README AUTHORS
@@ -167,6 +172,9 @@ make check
 %doc fontconfig-devel.txt fontconfig-devel
 
 %changelog
+* Wed Jul 22 2020 Daniel Hams <daniel.hams@gmail.com> - 2.13.92-4
+- Fix up the font cache regeneration and triggers, correct some paths
+
 * Wed Aug 28 2019 Akira TAGOH <tagoh@redhat.com> - 2.13.92-3
 - Do not return false on FcConfigParseAndLoad*() if complain is set to false.
   Resolves: rhbz#1744377

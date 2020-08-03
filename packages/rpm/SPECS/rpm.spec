@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 15
+%global rel 16
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -349,6 +349,14 @@ perl -pi -e "s|/usr/bin/sh|%{_prefix}/bin/sh|g" mkinstalldirs
 perl -pi -e "s|/bin/bash|%{_prefix}/bin/bash|g" scripts/pkgconfigdeps.sh
 perl -pi -e "s|/usr/bin/pkg-config|%{_prefix}/bin/pkg-config|g" scripts/pkgconfigdeps.sh
 
+# Rewrite some /usr/bin/env bash usages that aren''t fixed by macros (yet)
+perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/check-prereqs
+perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/check-rpaths-worker
+perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/find-lang.sh
+perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/fontconfig.prov
+perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/rpmdb_loadcvt
+perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/find-debuginfo.sh
+
 %if %{with int_bdb}
 ln -s db-%{bdbver} db
 %endif
@@ -601,6 +609,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Thu Jul 30 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-16
+- Rewrite some /usr/bin/env paths that aren''t fixed by macros (yet)
+
 * Mon Jun 18 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-15
 - Depend on newer libdicl
 

@@ -4,7 +4,7 @@
 
 Name:           gobject-introspection
 Version:        1.62.0
-Release:        7%{?dist}
+Release:        8%{?dist}
 Summary:        Introspection system for GObject-based libraries
 
 License:        GPLv2+, LGPLv2+, MIT
@@ -65,6 +65,8 @@ perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" giscanner/dumper.py
 
 %build
 export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-irix/girepository/:$LD_LIBRARYN32_PATH
+export CC=mips-sgi-irix6.5-gcc
+export CXX=mips-sgi-irix6.5-g++
 
 %meson -Ddoctool=true -Dgtk_doc=false -Dpython=%{__python3}
 %meson_build
@@ -93,6 +95,9 @@ export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-ir
 #%%{_datadir}/gtk-doc/html/gi/
 
 %changelog
+* Thu Jul 30 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-8
+- Be explicit about which compilers to use
+
 * Sat Jun 20 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-7
 - Fix some hardcoded paths + reenable deps now we have packaged enough python pieces
 

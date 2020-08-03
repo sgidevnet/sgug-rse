@@ -15,10 +15,12 @@
 #
 # This file is intended to be processed by some world builder automation.
 #
+abattis-cantarell-fonts
 alternatives
 asciidoc
 aterm
 atk
+audiofile
 autoconf
 automake
 bacula-client
@@ -60,6 +62,7 @@ flac
 flex
 fltk
 fontconfig
+fontpackages
 fonts-rpm-macros
 freetype
 fribidi
@@ -243,6 +246,7 @@ perl-srpm-macros
 pidgin
 pixman
 pkgconfig
+purple-discord
 popt
 pyparsing
 pytest
@@ -314,6 +318,7 @@ uuid
 vim
 wget
 which
+worker
 xcb-proto
 xhtml1-dtds
 xhtml2fo-style-xsl

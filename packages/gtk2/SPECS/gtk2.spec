@@ -20,7 +20,7 @@
 Summary: GTK+ graphical user interface library
 Name: gtk2
 Version: 2.24.32
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: LGPLv2+
 URL: http://www.gtk.org
 #VCS: git:git://git.gnome.org/gtk+#gtk-2-24
@@ -334,6 +334,9 @@ gtk-query-immodules-2.0-%{__isa_bits} --update-cache
 #%%doc tmpdocs/examples
 
 %changelog
+* Mon Jul 20 2020 Daniel Hams <daniel.hams@gmail.com> - 2.24.32-7
+- Fix to avoid use of buggy XkbSelecteventDetails call that causes GTK crashes.
+
 * Sun Jun 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.24.32-6
 - Upgrade to latest from fc31, fix up cups, xml-catalog, icon catalog, use python3, fix up compilation bug with IRIX headers
 

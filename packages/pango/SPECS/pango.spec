@@ -9,13 +9,15 @@
 
 Name: pango
 Version: 1.43.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 Summary: System for layout and rendering of internationalized text
 
 License: LGPLv2+
 URL: http://www.pango.org
 Source0: https://download.gnome.org/sources/%{name}/1.43/%{name}-%{version}.tar.xz
 #Patch0: pango-fixes-pkg-config.patch
+
+Patch100: pango.sgifixes.patch
 
 BuildRequires: pkgconfig(cairo) >= %{cairo_version}
 BuildRequires: pkgconfig(freetype2) >= %{freetype_version}
@@ -76,10 +78,20 @@ the functionality of the installed %{name} package.
 
 %prep
 %setup -q -n pango-%{version}
-#%patch0 -p1 -b .pc
+#%%patch0 -p1 -b .pc
+
+%patch100 -p1
+
+# A place to generate SGUG patches
+#exit 1
 
 %build
 export LD_LIBRARYN32_PATH=%{_builddir}/pango-1.43.0/mips-sgug-irix/pango/:$LD_LIBRARYN32_PATH
+export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export LDFLAGS="$RPM_LD_FLAGS"
+export CC=mips-sgi-irix6.5-gcc
+export CXX=mips-sgi-irix6.5-g++
+export CXXFLAGS="$CFLAGS"
 
 %meson -Denable_docs=false
 %meson_build
@@ -127,6 +139,9 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man1/pan*
 
 
 %changelog
+* Thu Jul 23 2020 Daniel Hams <daniel.hams@gmail.com> - 1.43.0-4
+- Add patch to avoid defining "POSIX" CPPFLAGS, clean up vars+compiler, one test still failing.
+
 * Mon May 1 2020 HAL <hal@null.not> - 1.16.0-6
 - removed the docs so it will compile nicely on Irix 6.5 without gtk-doc
 
