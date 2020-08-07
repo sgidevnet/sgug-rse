@@ -131,6 +131,9 @@ while IFS= read -r -d $'\0' f; do
   # If the shebang has a /usr/bin/perl point at the sgug one
   shebang=$(echo "$shebang" | sed -r -e 's@^/usr/bin/perl@/usr/sgug/bin/perl@')
 
+  # If the shebang has a /usr/bin/python point at the sgug one
+  shebang=$(echo "$shebang" | sed -r -e 's@^/usr/bin/python@/usr/sgug/bin/python@')
+
   # Replace ambiguous python with python3
   py_shebang=$(echo "$shebang" | sed -r -e 's@/usr/sgug/bin/python(\s|$)@/usr/sgug/bin/python3\1@')
 
