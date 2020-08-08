@@ -1,0 +1,15 @@
+diff -u -r EV-4.27-orig/schmorp.h EV-4.27/schmorp.h
+--- EV-4.27-orig/schmorp.h	2018-12-28 12:20:09.000000000 +0000
++++ EV-4.27/schmorp.h	2020-05-18 18:10:09.492763360 +0000
+@@ -9,6 +9,11 @@
+ #include <signal.h>
+ #include <errno.h>
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <fcntl.h>
++#endif
++
+ #if defined(WIN32 ) || defined(_MINIX)
+ # define SCHMORP_H_PREFER_SELECT 1
+ #endif

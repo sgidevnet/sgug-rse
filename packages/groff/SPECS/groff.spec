@@ -3,7 +3,7 @@
 Summary: A document formatting system
 Name: groff
 Version: 1.22.4
-Release: 21%{?dist}
+Release: 23%{?dist}
 License: GPLv3+ and GFDL and BSD and MIT
 URL: http://www.gnu.org/software/groff/
 Source: ftp://ftp.gnu.org/gnu/groff/groff-%{version}.tar.gz
@@ -20,7 +20,7 @@ Source: ftp://ftp.gnu.org/gnu/groff/groff-%{version}.tar.gz
 
 Patch10: groff.sgifixes.patch
 
-#Requires: coreutils, groff-base = %{version}-%{release}
+Requires: coreutils, groff-base = %{version}-%{release}
 BuildRequires: gcc, gcc-c++
 #BuildRequires: git, netpbm-progs, perl-generators, psutils, ghostscript
 BuildRequires: git, perl-generators
@@ -70,7 +70,7 @@ roff2html roff2pdf roff2ps roff2text roff2x (roff code converters).
 %package x11
 Summary: Parts of the groff formatting system that require X Windows System
 Requires: groff-base = %{version}-%{release}
-#BuildRequires: libXaw-devel, libXmu-devel
+BuildRequires: libXaw-devel, libXmu-devel
 Provides: groff-gxditview = %{version}-%{release}
 Obsoletes: groff-gxditview < 1.20.1
 
@@ -108,10 +108,13 @@ for file in NEWS src/devices/grolbp/grolbp.1.man doc/webpage.ms \
 done
 
 %build
+# Avoid sharing config cache entries (causes problems)
+export CPPFLAGS="-DGROFF_HAVE_UNIQ_CONFIG_CACHE"
 %configure \
     --docdir=%{_pkgdocdir} \
     --with-appresdir=%{_datadir}/X11/app-defaults \
-    --with-grofferdir=%{_datadir}/%{name}/%{version}/groffer
+    --with-grofferdir=%{_datadir}/%{name}/%{version}/groffer \
+    --with-x
 make %{?_smp_mflags}
 
 %install
@@ -428,8 +431,11 @@ chmod 755 %{buildroot}%{_datadir}/groff/%{version}/font/devlj4/generate/special.
 %doc %{_pkgdocdir}/pdf/
 
 %changelog
-* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.22.4-21
-- Remove hard coded shell paths/bashisms
+* Thu Aug 06 2020 Daniel Hams <daniel.hams@gmail.com> - 1.22.4-23
+- Use a standalone config cache for groff - otherwise the X11 pieces are missing and the build will fail.
+
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.22.4-22
+- Move over to sgug-rse libX11
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.22.3-20
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

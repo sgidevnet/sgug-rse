@@ -3,13 +3,14 @@
 
 Name:           neofetch
 Version:        6.0.0
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        CLI system information tool written in Bash
 
 License:        MIT
 URL:            https://github.com/dylanaraps/%{name}
 Source0:        https://github.com/dylanaraps/%{name}/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz
-Patch0:         neofetch.sgirpmfixes.patch
+
+Patch100:         neofetch.sgirpmfixes.patch
 
 BuildArch:      noarch
 Requires:       bash >= 3.2
@@ -34,6 +35,10 @@ running, what theme/icons you're using and more.
 
 %prep
 %autosetup
+
+# For patching
+#exit 1
+
 sed 's,/usr/bin/env bash,%{_bindir}/bash,g' -i neofetch
 
 %build
@@ -48,6 +53,9 @@ sed 's,/usr/bin/env bash,%{_bindir}/bash,g' -i neofetch
 %{_mandir}/man1/%{name}.1*
 
 %changelog
+* Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 6.0.0-5
+- Bug fix to get the glxinfo calls working again (irix glxinfo doesn''t like our newer libX11 stuff)
+
 * Sat Aug 03 2019 K. de Jong <keesdejong@fedoraproject.org> - 6.0.0-4
 - Red Hat Bugzilla - Bug 1736808
 

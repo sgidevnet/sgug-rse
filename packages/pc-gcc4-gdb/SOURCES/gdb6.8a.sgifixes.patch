@@ -1,0 +1,83 @@
+diff -u -r -w gdb-6.8/gdb/defs.h gdb-6.8-patched/gdb/defs.h
+--- gdb-6.8/gdb/defs.h 2008-01-18 17:07:39.000000000 +0000
++++ gdb-6.8-patched/gdb/defs.h 2019-05-03 20:16:16.158229440 +0000
+@@ -49,6 +49,12 @@
+ /* For ``enum target_signal''.  */
+ #include "gdb/signals.h"
+ 
++#include <sys/signal.h>
++
++#if !defined(NSIG)
++#define NSIG NUMSIGS
++#endif
++
+ /* Just in case they're not defined in stdio.h.  */
+ 
+ #ifndef SEEK_SET
+diff -u -r -w gdb-6.8/gdb/tui/tui-win.c gdb-6.8-patched/gdb/tui/tui-win.c
+--- gdb-6.8/gdb/tui/tui-win.c 2008-01-01 22:53:22.000000000 +0000
++++ gdb-6.8-patched/gdb/tui/tui-win.c 2019-05-03 20:16:16.168851120 +0000
+@@ -51,6 +51,7 @@
+ #include "readline/readline.h"
+ 
+ #include <signal.h>
++#include <sys/signal.h>
+ 
+ /*******************************
+ ** Static Local Decls
+diff -u -r -w gdb-6.8/libiberty/strsignal.c gdb-6.8-patched/libiberty/strsignal.c
+--- gdb-6.8/libiberty/strsignal.c 2007-01-30 23:13:04.000000000 +0000
++++ gdb-6.8-patched/libiberty/strsignal.c 2019-05-03 20:29:30.791425480 +0000
+@@ -20,6 +20,9 @@
+ 
+ #include <stdio.h>
+ #include <signal.h>
++#if defined(__sgi)
++#include <sys/signal.h>
++#endif
+ 
+ /*  Routines imported from standard C runtime libraries. */
+ 
+@@ -248,6 +251,8 @@
+ #else
+ #ifdef _NSIG
+ static int sys_nsig = _NSIG;
++#else
++static int sys_nsig = NUMSIGS;
+ #endif
+ #endif
+ extern const char * const sys_siglist[];
+diff -u -r -w gdb-6.8/sim/common/sim-arange.c gdb-6.8-patched/sim/common/sim-arange.c
+--- gdb-6.8/sim/common/sim-arange.c 2008-01-01 22:53:23.000000000 +0000
++++ gdb-6.8-patched/sim/common/sim-arange.c 2019-05-03 20:16:16.690833560 +0000
+@@ -280,11 +280,7 @@
+   build_search_tree (ar);
+ }
+ 
+-#endif /* DEFINE_NON_INLINE_P */
+-
+-#if DEFINE_INLINE_P
+-
+-SIM_ARANGE_INLINE int
++int
+ sim_addr_range_hit_p (ADDR_RANGE *ar, address_word addr)
+ {
+   ADDR_RANGE_TREE *t = ar->range_tree;
+@@ -301,4 +297,4 @@
+   return 0;
+ }
+ 
+-#endif /* DEFINE_INLINE_P */
++#endif /* DEFINE_NON_INLINE_P */
+diff -u -r -w gdb-6.8/sim/common/sim-arange.h gdb-6.8-patched/sim/common/sim-arange.h
+--- gdb-6.8/sim/common/sim-arange.h 2008-01-01 22:53:23.000000000 +0000
++++ gdb-6.8-patched/sim/common/sim-arange.h 2019-05-03 20:16:16.693143080 +0000
+@@ -62,7 +62,7 @@
+ 
+ /* Return non-zero if ADDR is in range AR, traversing the entire tree.
+    If no range is specified, that is defined to mean "everything".  */
+-extern INLINE int
++extern int
+ sim_addr_range_hit_p (ADDR_RANGE * /*ar*/, address_word /*addr*/);
+ #define ADDR_RANGE_HIT_P(ar, addr) \
+   ((ar)->range_tree == NULL || sim_addr_range_hit_p ((ar), (addr)))

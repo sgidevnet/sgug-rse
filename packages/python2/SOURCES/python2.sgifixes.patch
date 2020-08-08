@@ -1,0 +1,592 @@
+diff -u -r -N Python-2.7.18-orig/Include/Python.h Python-2.7.18/Include/Python.h
+--- Python-2.7.18-orig/Include/Python.h	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Include/Python.h	2020-06-12 22:49:07.433926800 +0000
+@@ -1,5 +1,14 @@
+ #ifndef Py_PYTHON_H
+ #define Py_PYTHON_H
++
++/* Do this first to void pollution from other includes */
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++
+ /* Since this is a "meta-include" file, no #ifdef __cplusplus / extern "C" { */
+ 
+ /* Include nearly all Python header files */
+diff -u -r -N Python-2.7.18-orig/Lib/distutils/command/install.py Python-2.7.18/Lib/distutils/command/install.py
+--- Python-2.7.18-orig/Lib/distutils/command/install.py	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Lib/distutils/command/install.py	2020-06-12 22:49:07.436318400 +0000
+@@ -41,15 +41,15 @@
+ 
+ INSTALL_SCHEMES = {
+     'unix_prefix': {
+-        'purelib': '$base/lib/python$py_version_short/site-packages',
+-        'platlib': '$platbase/lib/python$py_version_short/site-packages',
++        'purelib': '$base/lib32/python$py_version_short/site-packages',
++        'platlib': '$platbase/lib32/python$py_version_short/site-packages',
+         'headers': '$base/include/python$py_version_short/$dist_name',
+         'scripts': '$base/bin',
+         'data'   : '$base',
+         },
+     'unix_home': {
+-        'purelib': '$base/lib/python',
+-        'platlib': '$base/lib/python',
++        'purelib': '$base/lib32/python',
++        'platlib': '$base/lib32/python',
+         'headers': '$base/include/python/$dist_name',
+         'scripts': '$base/bin',
+         'data'   : '$base',
+diff -u -r -N Python-2.7.18-orig/Lib/distutils/sysconfig.py Python-2.7.18/Lib/distutils/sysconfig.py
+--- Python-2.7.18-orig/Lib/distutils/sysconfig.py	2020-06-12 09:48:30.459778840 +0000
++++ Python-2.7.18/Lib/distutils/sysconfig.py	2020-06-12 22:49:07.438177440 +0000
+@@ -131,7 +131,7 @@
+ 
+     if os.name == "posix":
+         libpython = os.path.join(prefix,
+-                                 "lib", "python" + get_python_version())
++                                 "lib32", "python" + get_python_version())
+         if standard_lib:
+             return libpython
+         else:
+diff -u -r -N Python-2.7.18-orig/Lib/distutils/sysconfig.py.debug-build Python-2.7.18/Lib/distutils/sysconfig.py.debug-build
+--- Python-2.7.18-orig/Lib/distutils/sysconfig.py.debug-build	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Lib/distutils/sysconfig.py.debug-build	2020-06-12 22:49:07.439927120 +0000
+@@ -129,8 +129,12 @@
+         prefix = plat_specific and EXEC_PREFIX or PREFIX
+ 
+     if os.name == "posix":
++        if plat_specific or standard_lib:
++            lib = "lib32"
++        else:
++            lib = "lib"
+         libpython = os.path.join(prefix,
+-                                 "lib", "python" + get_python_version())
++                                 lib, "python" + get_python_version())
+         if standard_lib:
+             return libpython
+         else:
+diff -u -r -N Python-2.7.18-orig/Lib/distutils/tests/test_install.py Python-2.7.18/Lib/distutils/tests/test_install.py
+--- Python-2.7.18-orig/Lib/distutils/tests/test_install.py	2020-06-12 09:48:30.460983560 +0000
++++ Python-2.7.18/Lib/distutils/tests/test_install.py	2020-06-12 22:49:07.441605040 +0000
+@@ -59,8 +59,9 @@
+             self.assertEqual(got, expected)
+ 
+         libdir = os.path.join(destination, "lib", "python")
++        platlibdir = os.path.join(destination, "lib32", "python")
+         check_path(cmd.install_lib, libdir)
+-        check_path(cmd.install_platlib, libdir)
++        check_path(cmd.install_platlib, platlibdir)
+         check_path(cmd.install_purelib, libdir)
+         check_path(cmd.install_headers,
+                    os.path.join(destination, "include", "python", "foopkg"))
+diff -u -r -N Python-2.7.18-orig/Lib/distutils/tests/test_install.py.debug-build Python-2.7.18/Lib/distutils/tests/test_install.py.debug-build
+--- Python-2.7.18-orig/Lib/distutils/tests/test_install.py.debug-build	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Lib/distutils/tests/test_install.py.debug-build	2020-06-12 22:49:07.443065040 +0000
+@@ -58,8 +58,9 @@
+             self.assertEqual(got, expected)
+ 
+         libdir = os.path.join(destination, "lib", "python")
++        platlibdir = os.path.join(destination, "lib32", "python")
+         check_path(cmd.install_lib, libdir)
+-        check_path(cmd.install_platlib, libdir)
++        check_path(cmd.install_platlib, platlibdir)
+         check_path(cmd.install_purelib, libdir)
+         check_path(cmd.install_headers,
+                    os.path.join(destination, "include", "python", "foopkg"))
+diff -u -r -N Python-2.7.18-orig/Lib/multiprocessing/__init__.py Python-2.7.18/Lib/multiprocessing/__init__.py
+--- Python-2.7.18-orig/Lib/multiprocessing/__init__.py	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Lib/multiprocessing/__init__.py	2020-06-12 22:49:20.670400680 +0000
+@@ -124,6 +124,12 @@
+                 num = int(p.read())
+         except ValueError:
+             num = 0
++    elif sys.platform.startswith('irix'):
++        try:
++            with os.popen('/usr/sbin/sysconf NPROC_ONLN') as p:
++                num = int(p.read())
++        except ValueError:
++            num = 0
+     else:
+         try:
+             num = os.sysconf('SC_NPROCESSORS_ONLN')
+diff -u -r -N Python-2.7.18-orig/Lib/site.py Python-2.7.18/Lib/site.py
+--- Python-2.7.18-orig/Lib/site.py	2020-06-12 09:48:30.528210200 +0000
++++ Python-2.7.18/Lib/site.py	2020-06-12 22:49:07.444969040 +0000
+@@ -288,13 +288,17 @@
+         if sys.platform in ('os2emx', 'riscos'):
+             sitepackages.append(os.path.join(prefix, "Lib", "site-packages"))
+         elif os.sep == '/':
+-            sitepackages.append(os.path.join(prefix, "lib",
++            sitepackages.append(os.path.join(prefix, "lib32",
+                                         "python" + sys.version[:3],
+                                         "site-packages"))
+-            sitepackages.append(os.path.join(prefix, "lib", "site-python"))
++            sitepackages.append(os.path.join(prefix, "lib32",
++                                        "python" + sys.version[:3],
++                                        "site-packages"))
++            sitepackages.append(os.path.join(prefix, "lib32", "site-python"))
+         else:
+             sitepackages.append(prefix)
+-            sitepackages.append(os.path.join(prefix, "lib", "site-packages"))
++            sitepackages.append(os.path.join(prefix, "lib32", "site-packages"))
++            sitepackages.append(os.path.join(prefix, "lib32", "site-packages"))
+     return sitepackages
+ 
+ def addsitepackages(known_paths):
+diff -u -r -N Python-2.7.18-orig/Lib/sysconfig.py Python-2.7.18/Lib/sysconfig.py
+--- Python-2.7.18-orig/Lib/sysconfig.py	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Lib/sysconfig.py	2020-06-12 22:49:07.447140720 +0000
+@@ -7,20 +7,20 @@
+ 
+ _INSTALL_SCHEMES = {
+     'posix_prefix': {
+-        'stdlib': '{base}/lib/python{py_version_short}',
+-        'platstdlib': '{platbase}/lib/python{py_version_short}',
+-        'purelib': '{base}/lib/python{py_version_short}/site-packages',
+-        'platlib': '{platbase}/lib/python{py_version_short}/site-packages',
++        'stdlib': '{base}/lib32/python{py_version_short}',
++        'platstdlib': '{platbase}/lib32/python{py_version_short}',
++        'purelib': '{base}/lib32/python{py_version_short}/site-packages',
++        'platlib': '{platbase}/lib32/python{py_version_short}/site-packages',
+         'include': '{base}/include/python{py_version_short}',
+         'platinclude': '{platbase}/include/python{py_version_short}',
+         'scripts': '{base}/bin',
+         'data': '{base}',
+         },
+     'posix_home': {
+-        'stdlib': '{base}/lib/python',
+-        'platstdlib': '{base}/lib/python',
+-        'purelib': '{base}/lib/python',
+-        'platlib': '{base}/lib/python',
++        'stdlib': '{base}/lib32/python',
++        'platstdlib': '{base}/lib32/python',
++        'purelib': '{base}/lib32/python',
++        'platlib': '{base}/lib32/python',
+         'include': '{base}/include/python',
+         'platinclude': '{base}/include/python',
+         'scripts': '{base}/bin',
+@@ -65,10 +65,10 @@
+         'data'   : '{userbase}',
+         },
+     'posix_user': {
+-        'stdlib': '{userbase}/lib/python{py_version_short}',
+-        'platstdlib': '{userbase}/lib/python{py_version_short}',
+-        'purelib': '{userbase}/lib/python{py_version_short}/site-packages',
+-        'platlib': '{userbase}/lib/python{py_version_short}/site-packages',
++        'stdlib': '{userbase}/lib32/python{py_version_short}',
++        'platstdlib': '{userbase}/lib32/python{py_version_short}',
++        'purelib': '{userbase}/lib32/python{py_version_short}/site-packages',
++        'platlib': '{userbase}/lib32/python{py_version_short}/site-packages',
+         'include': '{userbase}/include/python{py_version_short}',
+         'scripts': '{userbase}/bin',
+         'data'   : '{userbase}',
+diff -u -r -N Python-2.7.18-orig/Lib/test/test_site.py Python-2.7.18/Lib/test/test_site.py
+--- Python-2.7.18-orig/Lib/test/test_site.py	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Lib/test/test_site.py	2020-06-12 22:49:07.449182000 +0000
+@@ -254,17 +254,20 @@
+             self.assertEqual(dirs[0], wanted)
+         elif os.sep == '/':
+             # OS X, Linux, FreeBSD, etc
+-            self.assertEqual(len(dirs), 2)
+-            wanted = os.path.join('xoxo', 'lib', 'python' + sys.version[:3],
++            self.assertEqual(len(dirs), 3)
++            wanted = os.path.join('xoxo', 'lib32', 'python' + sys.version[:3],
+                                   'site-packages')
+             self.assertEqual(dirs[0], wanted)
+-            wanted = os.path.join('xoxo', 'lib', 'site-python')
++            wanted = os.path.join('xoxo', 'lib32', 'python' + sys.version[:3],
++                                   'site-packages')
+             self.assertEqual(dirs[1], wanted)
++            wanted = os.path.join('xoxo', 'lib32', 'site-python')
++            self.assertEqual(dirs[2], wanted)
+         else:
+             # other platforms
+             self.assertEqual(len(dirs), 2)
+             self.assertEqual(dirs[0], 'xoxo')
+-            wanted = os.path.join('xoxo', 'lib', 'site-packages')
++            wanted = os.path.join('xoxo', 'lib32', 'site-packages')
+             self.assertEqual(dirs[1], wanted)
+ 
+     def test_no_home_directory(self):
+diff -u -r -N Python-2.7.18-orig/Makefile.pre.in Python-2.7.18/Makefile.pre.in
+--- Python-2.7.18-orig/Makefile.pre.in	2020-06-12 09:48:30.464971960 +0000
++++ Python-2.7.18/Makefile.pre.in	2020-06-12 22:49:07.452044800 +0000
+@@ -110,7 +110,7 @@
+ MANDIR=		@mandir@
+ INCLUDEDIR=	@includedir@
+ CONFINCLUDEDIR=	$(exec_prefix)/include
+-SCRIPTDIR=	$(prefix)/lib
++SCRIPTDIR=	$(prefix)/lib32
+ 
+ # Detailed destination directories
+ BINLIBDEST=	$(LIBDIR)/python$(VERSION)
+diff -u -r -N Python-2.7.18-orig/Makefile.pre.in.debug-build Python-2.7.18/Makefile.pre.in.debug-build
+--- Python-2.7.18-orig/Makefile.pre.in.debug-build	2020-06-12 09:48:30.447896600 +0000
++++ Python-2.7.18/Makefile.pre.in.debug-build	2020-06-12 22:49:07.454558320 +0000
+@@ -110,7 +110,7 @@
+ MANDIR=		@mandir@
+ INCLUDEDIR=	@includedir@
+ CONFINCLUDEDIR=	$(exec_prefix)/include
+-SCRIPTDIR=	$(prefix)/lib
++SCRIPTDIR=	$(prefix)/lib32
+ 
+ # Detailed destination directories
+ BINLIBDEST=	$(LIBDIR)/python$(VERSION)
+diff -u -r -N Python-2.7.18-orig/Makefile.pre.in.no-static-lib Python-2.7.18/Makefile.pre.in.no-static-lib
+--- Python-2.7.18-orig/Makefile.pre.in.no-static-lib	2020-06-12 09:48:30.373504840 +0000
++++ Python-2.7.18/Makefile.pre.in.no-static-lib	2020-06-12 22:49:07.457117600 +0000
+@@ -110,7 +110,7 @@
+ MANDIR=		@mandir@
+ INCLUDEDIR=	@includedir@
+ CONFINCLUDEDIR=	$(exec_prefix)/include
+-SCRIPTDIR=	$(prefix)/lib
++SCRIPTDIR=	$(prefix)/lib32
+ 
+ # Detailed destination directories
+ BINLIBDEST=	$(LIBDIR)/python$(VERSION)
+diff -u -r -N Python-2.7.18-orig/Modules/Setup.dist Python-2.7.18/Modules/Setup.dist
+--- Python-2.7.18-orig/Modules/Setup.dist	2020-06-12 09:48:30.765453280 +0000
++++ Python-2.7.18/Modules/Setup.dist	2020-06-12 22:49:07.458961600 +0000
+@@ -415,8 +415,8 @@
+ #
+ # Edit the variables DB and DBLIBVERto point to the db top directory
+ # and the subdirectory of PORT where you built it.
+-DBINC=/usr/include/libdb
+-DBLIB=/usr/lib
++DBINC=/usr/sgug/include/libdb
++DBLIB=/usr/sgug/lib32
+ _bsddb _bsddb.c -I$(DBINC) -L$(DBLIB) -ldb
+ 
+ # Historical Berkeley DB 1.85
+diff -u -r -N Python-2.7.18-orig/Modules/_ctypes/_ctypes.c Python-2.7.18/Modules/_ctypes/_ctypes.c
+--- Python-2.7.18-orig/Modules/_ctypes/_ctypes.c	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Modules/_ctypes/_ctypes.c	2020-06-12 22:49:35.660040960 +0000
+@@ -4101,7 +4101,7 @@
+         }
+     }
+ 
+-    result = _ctypes_callproc(pProc,
++    result = _ctypes_callproc((PPROC)pProc,
+                        callargs,
+ #ifdef MS_WIN32
+                        piunk,
+diff -u -r -N Python-2.7.18-orig/Modules/_ctypes/callproc.c Python-2.7.18/Modules/_ctypes/callproc.c
+--- Python-2.7.18-orig/Modules/_ctypes/callproc.c	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Modules/_ctypes/callproc.c	2020-06-12 22:49:41.622658320 +0000
+@@ -836,7 +836,7 @@
+ #endif
+         delta =
+ #endif
+-                ffi_call(&cif, (void *)pProc, resmem, avalues);
++	  ffi_call(&cif, FFI_FN(pProc), resmem, avalues);
+ #ifdef MS_WIN32
+ #ifndef DONT_USE_SEH
+     }
+@@ -936,7 +936,7 @@
+            O_get), we have to call Py_DECREF because O_get has already
+            called Py_INCREF.
+         */
+-        if (dict->getfunc == _ctypes_get_fielddesc("O")->getfunc) {
++        if (retval && dict->getfunc == _ctypes_get_fielddesc("O")->getfunc) {
+             Py_DECREF(retval);
+         }
+     } else
+diff -u -r -N Python-2.7.18-orig/Modules/_multiprocessing/semaphore.c Python-2.7.18/Modules/_multiprocessing/semaphore.c
+--- Python-2.7.18-orig/Modules/_multiprocessing/semaphore.c	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Modules/_multiprocessing/semaphore.c	2020-06-12 22:49:48.532702520 +0000
+@@ -446,7 +446,7 @@
+     do {
+         unsigned long suffix;
+         _PyOS_URandom((char *)&suffix, sizeof(suffix));
+-        PyOS_snprintf(buffer, sizeof(buffer), "/mp%ld-%lu", (long)getpid(),
++        PyOS_snprintf(buffer, sizeof(buffer), "/tmp/mp%ld-%lu", (long)getpid(),
+                       suffix);
+         SEM_CLEAR_ERROR();
+         handle = SEM_CREATE(buffer, value, maxvalue);
+diff -u -r -N Python-2.7.18-orig/Modules/getpath.c Python-2.7.18/Modules/getpath.c
+--- Python-2.7.18-orig/Modules/getpath.c	2020-06-12 09:48:30.836439920 +0000
++++ Python-2.7.18/Modules/getpath.c	2020-06-12 22:49:07.461135200 +0000
+@@ -108,7 +108,7 @@
+ static char exec_prefix[MAXPATHLEN+1];
+ static char progpath[MAXPATHLEN+1];
+ static char *module_search_path = NULL;
+-static char lib_python[] = "lib/python" VERSION;
++static char lib_python[] = "lib32/python" VERSION;
+ 
+ static void
+ reduce(char *dir)
+@@ -538,7 +538,7 @@
+     }
+     else
+         strncpy(zip_path, PREFIX, MAXPATHLEN);
+-    joinpath(zip_path, "lib/python00.zip");
++    joinpath(zip_path, "lib32/python00.zip");
+     bufsz = strlen(zip_path);   /* Replace "00" with version */
+     zip_path[bufsz - 6] = VERSION[0];
+     zip_path[bufsz - 5] = VERSION[2];
+@@ -548,7 +548,7 @@
+             fprintf(stderr,
+                 "Could not find platform dependent libraries <exec_prefix>\n");
+         strncpy(exec_prefix, EXEC_PREFIX, MAXPATHLEN);
+-        joinpath(exec_prefix, "lib/lib-dynload");
++        joinpath(exec_prefix, "lib32/lib-dynload");
+     }
+     /* If we found EXEC_PREFIX do *not* reduce it!  (Yet.) */
+ 
+diff -u -r -N Python-2.7.18-orig/Modules/getpath.c.fix-for-usr-move Python-2.7.18/Modules/getpath.c.fix-for-usr-move
+--- Python-2.7.18-orig/Modules/getpath.c.fix-for-usr-move	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Modules/getpath.c.fix-for-usr-move	2020-06-12 22:49:07.463186000 +0000
+@@ -108,7 +108,7 @@
+ static char exec_prefix[MAXPATHLEN+1];
+ static char progpath[MAXPATHLEN+1];
+ static char *module_search_path = NULL;
+-static char lib_python[] = "lib/python" VERSION;
++static char lib_python[] = "lib32/python" VERSION;
+ 
+ static void
+ reduce(char *dir)
+@@ -530,7 +530,7 @@
+             fprintf(stderr,
+                 "Could not find platform dependent libraries <exec_prefix>\n");
+         strncpy(exec_prefix, EXEC_PREFIX, MAXPATHLEN);
+-        joinpath(exec_prefix, "lib/lib-dynload");
++        joinpath(exec_prefix, "lib32/lib-dynload");
+     }
+     /* If we found EXEC_PREFIX do *not* reduce it!  (Yet.) */
+ 
+diff -u -r -N Python-2.7.18-orig/Modules/selectmodule.c Python-2.7.18/Modules/selectmodule.c
+--- Python-2.7.18-orig/Modules/selectmodule.c	2020-04-19 22:13:39.000000000 +0000
++++ Python-2.7.18/Modules/selectmodule.c	2020-06-12 22:49:07.466681760 +0000
+@@ -32,9 +32,9 @@
+ #include <sys/poll.h>
+ #endif
+ 
+-#ifdef __sgi
++#if defined(__sgi)
+ /* This is missing from unistd.h */
+-extern void bzero(void *, int);
++extern void bzero(void *, size_t);
+ #endif
+ 
+ #ifdef HAVE_SYS_TYPES_H
+diff -u -r -N Python-2.7.18-orig/Modules/socketmodule.c Python-2.7.18/Modules/socketmodule.c
+--- Python-2.7.18-orig/Modules/socketmodule.c	2020-06-12 09:48:30.436185320 +0000
++++ Python-2.7.18/Modules/socketmodule.c	2020-06-12 22:49:07.473679440 +0000
+@@ -246,7 +246,7 @@
+ # include <os2.h>
+ #endif
+ 
+-#if defined(__sgi) && _COMPILER_VERSION>700 && !_SGIAPI
++#if defined(__sgi)
+ /* make sure that the reentrant (gethostbyaddr_r etc)
+    functions are declared correctly if compiling with
+    MIPSPro 7.x in ANSI C mode (default) */
+@@ -332,7 +332,7 @@
+ #endif
+ 
+ /* include Python's addrinfo.h unless it causes trouble */
+-#if defined(__sgi) && _COMPILER_VERSION>700 && defined(_SS_ALIGNSIZE)
++#if defined(__sgi)
+   /* Do not include addinfo.h on some newer IRIX versions.
+    * _SS_ALIGNSIZE is defined in sys/socket.h by 6.5.21,
+    * for example, but not by 6.5.10.
+diff -u -r -N Python-2.7.18-orig/configure.ac Python-2.7.18/configure.ac
+--- Python-2.7.18-orig/configure.ac	2020-06-12 09:48:30.494285160 +0000
++++ Python-2.7.18/configure.ac	2020-06-12 22:49:07.480410080 +0000
+@@ -104,6 +104,7 @@
+ # them.
+ AC_DEFINE(_DARWIN_C_SOURCE, 1, [Define on Darwin to activate all library features])
+ 
++AC_DEFINE(_SGI_SOURCE, 1, [Define on IRIX to activate all library features])
+ 
+ define_xopen_source=yes
+ 
+@@ -614,38 +615,38 @@
+ (it is also a good idea to do 'make clean' before compiling)])
+ fi
+ 
+-if test "$MACHDEP" = "irix6" && test "$CC" != "gcc"; then
+-    # Normally, MIPSpro CC treats #error directives as warnings, which means
+-    # a successful exit code is returned (0).  This is a problem because IRIX
+-    # has a bunch of system headers with this guard at the top:
+-    #
+-    #  #ifndef __c99
+-    #  #error This header file is to be used only for c99 mode compilations
+-    #  #else
+-    #
+-    # When autoconf tests for such a header, like stdint.h, this happens:
+-    #
+-    #  configure:4619: cc -c   conftest.c >&5
+-    #  cc-1035 cc: WARNING File = /usr/include/stdint.h, Line = 5
+-    #    #error directive:  This header file is to be used only for c99 mode
+-    #            compilations
+-    #
+-    #    #error This header file is to be used only for c99 mode compilations
+-    #     ^
+-    #
+-    #  configure:4619: $? = 0
+-    #  configure:4619: result: yes
+-    #
+-    # Therefore, we use `-diag_error 1035` to have the compiler treat the
+-    # warning as an error, which causes cc to return a non-zero result,
+-    # which autoconf can interpret correctly.
+-    CFLAGS="$CFLAGS -diag_error 1035"
+-    # Whilst we're here, we might as well make sure CXX defaults to something
+-    # sensible if we're not using gcc.
+-    if test -z "$CXX"; then
+-        CXX="CC"
+-    fi
+-fi
++dnl if test "$MACHDEP" = "irix6" && test "$CC" != "gcc"; then
++dnl     # Normally, MIPSpro CC treats #error directives as warnings, which means
++dnl     # a successful exit code is returned (0).  This is a problem because IRIX
++dnl     # has a bunch of system headers with this guard at the top:
++dnl     #
++dnl     #  #ifndef __c99
++dnl     #  #error This header file is to be used only for c99 mode compilations
++dnl     #  #else
++dnl     #
++dnl     # When autoconf tests for such a header, like stdint.h, this happens:
++dnl     #
++dnl     #  configure:4619: cc -c   conftest.c >&5
++dnl     #  cc-1035 cc: WARNING File = /usr/include/stdint.h, Line = 5
++dnl     #    #error directive:  This header file is to be used only for c99 mode
++dnl     #            compilations
++dnl     #
++dnl     #    #error This header file is to be used only for c99 mode compilations
++dnl     #     ^
++dnl     #
++dnl     #  configure:4619: $? = 0
++dnl     #  configure:4619: result: yes
++dnl     #
++dnl     # Therefore, we use `-diag_error 1035` to have the compiler treat the
++dnl     # warning as an error, which causes cc to return a non-zero result,
++dnl     # which autoconf can interpret correctly.
++dnl     CFLAGS="$CFLAGS -diag_error 1035"
++dnl     # Whilst we're here, we might as well make sure CXX defaults to something
++dnl     # sensible if we're not using gcc.
++dnl     if test -z "$CXX"; then
++dnl         CXX="CC"
++dnl     fi
++dnl fi
+ 
+ # If the user set CFLAGS, use this instead of the automatically
+ # determined setting
+@@ -917,6 +918,12 @@
+           LDLIBRARY='libpython$(VERSION).dll.a'
+           DLLLIBRARY='libpython$(VERSION).dll'
+           ;;
++    irix*|IRIX*)
++	  LDLIBRARY='libpython$(VERSION).so'
++	  BLDLIBRARY='-Wl,-R,$(LIBDIR) -L. -lpython$(VERSION)'
++	  RUNSHARED=LD_LIBRARYN32_PATH=`pwd`${LD_LIBRARYN32_PATH:+:${LD_LIBRARYN32_PATH}}
++	  INSTSONAME="$LDLIBRARY".$SOVERSION
++          ;;
+     SunOS*)
+ 	  LDLIBRARY='libpython$(VERSION).so'
+ 	  BLDLIBRARY='-Wl,-R,$(LIBDIR) -L. -lpython$(VERSION)'
+@@ -2171,8 +2178,10 @@
+ 		BLDSHARED="\$(srcdir)/Modules/ld_so_beos $LDLIBRARY"
+ 		LDSHARED="\$(BINLIBDEST)/config/ld_so_beos \$(LIBDIR)/$LDLIBRARY"
+ 		;;
+-	IRIX/5*) LDSHARED="ld -shared";;
+-	IRIX*/6*) LDSHARED="ld ${SGI_ABI} -shared -all";;
++	irix*|IRIX*)
++	        LDSHARED='$(CC) -shared'
++	        LDCXXSHARED='$(CXX) -shared'
++                ;;
+ 	SunOS/5*) 
+ 		if test "$GCC" = "yes" ; then
+ 			LDSHARED='$(CC) -shared'
+@@ -4077,13 +4086,13 @@
+ #include <sys/stat.h>
+ 
+ int main(void) {
+-  sem_t *a = sem_open("/autoconf", O_CREAT, S_IRUSR|S_IWUSR, 0);
++  sem_t *a = sem_open("/tmp/autoconf", O_CREAT, S_IRUSR|S_IWUSR, 0);
+   if (a == SEM_FAILED) {
+     perror("sem_open");
+     return 1;
+   }
+   sem_close(a);
+-  sem_unlink("/autoconf");
++  sem_unlink("/tmp/autoconf");
+   return 0;
+ }
+ ]])],
+@@ -4109,7 +4118,7 @@
+ #include <sys/stat.h>
+ 
+ int main(void){
+-  sem_t *a = sem_open("/autocftw", O_CREAT, S_IRUSR|S_IWUSR, 0);
++  sem_t *a = sem_open("/tmp/autocftw", O_CREAT, S_IRUSR|S_IWUSR, 0);
+   int count;
+   int res;
+   if(a==SEM_FAILED){
+@@ -4119,7 +4128,7 @@
+   }
+   res = sem_getvalue(a, &count);
+   sem_close(a);
+-  sem_unlink("/autocftw");
++  sem_unlink("/tmp/autocftw");
+   return res==-1 ? 1 : 0;
+ }
+ ]])],
+diff -u -r -N Python-2.7.18-orig/setup.py Python-2.7.18/setup.py
+--- Python-2.7.18-orig/setup.py	2020-06-12 09:48:30.907388000 +0000
++++ Python-2.7.18/setup.py	2020-06-12 22:49:07.484686160 +0000
+@@ -502,8 +502,8 @@
+     def detect_modules(self):
+         # Ensure that /usr/local is always used
+         if not cross_compiling:
+-            add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
+-            add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
++            add_dir_to_list(self.compiler.library_dirs, '/usr/sgug/lib32')
++            add_dir_to_list(self.compiler.include_dirs, '/usr/sgug/include')
+         if cross_compiling:
+             self.add_gcc_paths()
+         self.add_multiarch_paths()
+@@ -565,12 +565,12 @@
+         lib_dirs = self.compiler.library_dirs[:]
+         if not cross_compiling:
+             for d in (
+-                '/usr/include',
++                '/usr/sgug/include', '/usr/include',
+                 ):
+                 add_dir_to_list(inc_dirs, d)
+             for d in (
+-                '/lib64', '/usr/lib64',
+-                '/lib', '/usr/lib',
++                '/usr/sgug/lib32', '/usr/lib32',
++                '/lib32', '/usr/lib',
+                 ):
+                 add_dir_to_list(lib_dirs, d)
+         exts = []
+@@ -828,11 +828,11 @@
+             elif curses_library:
+                 readline_libs.append(curses_library)
+             elif self.compiler.find_library_file(lib_dirs +
+-                                                     ['/usr/lib/termcap'],
++                                                     ['/usr/lib32/termcap'],
+                                                      'termcap'):
+                 readline_libs.append('termcap')
+             exts.append( Extension('readline', ['readline.c'],
+-                                   library_dirs=['/usr/lib/termcap'],
++                                   library_dirs=['/usr/lib32/termcap'],
+                                    extra_link_args=readline_extra_link_args,
+                                    libraries=readline_libs) )
+         else:
+@@ -867,8 +867,8 @@
+             if krb5_h:
+                 ssl_incs += krb5_h
+         ssl_libs = find_library_file(self.compiler, 'ssl',lib_dirs,
+-                                     ['/usr/local/ssl/lib',
+-                                      '/usr/contrib/ssl/lib/'
++                                     ['/usr/local/ssl/lib32',
++                                      '/usr/contrib/ssl/lib32/'
+                                      ] )
+ 
+         if (ssl_incs is not None and

@@ -1,0 +1,14 @@
+--- jack-audio-connection-kit-0.125.0/libjack/shm.c~	2020-02-25 04:24:35.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/shm.c	2020-02-25 05:05:22.772922560 +0000
+@@ -234,7 +234,11 @@
+ jack_set_server_prefix (const char *server_name)
+ {
+ 	snprintf (jack_shm_server_prefix, sizeof(jack_shm_server_prefix),
++#if defined(__sgi)
++		  "/jack-%ld:%s:", getuid (), server_name);
++#else
+ 		  "/jack-%d:%s:", getuid (), server_name);
++#endif
+ }
+ 
+ /* gain server addressability to shared memory registration segment

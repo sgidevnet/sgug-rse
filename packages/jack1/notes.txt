@@ -1,0 +1,1 @@
+This compiles, that is all. No IRIX specific backend, and it segfaults when launched with the dummy driver, so still more to do. I will upload the source package as a fake release in WIP since the source bundle on the jack site is broken.

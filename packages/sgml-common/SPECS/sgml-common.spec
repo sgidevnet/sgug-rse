@@ -5,7 +5,7 @@
 
 Name: sgml-common
 Version: 0.6.3
-Release: 53%{?dist}
+Release: 55%{?dist}
 
 Summary: Common SGML catalog and DTD files
 
@@ -34,6 +34,8 @@ Source10: sgml.conf.5
 Patch0: sgml-common-umask.patch
 Patch1: sgml-common-xmldir.patch
 Patch2: sgml-common-quotes.patch
+
+Patch100: sgml-common.sgifixes.patch
 
 BuildRequires: libxml2
 BuildRequires: automake
@@ -65,6 +67,11 @@ but that don't need to be included in main package.
 %patch1 -p1 -b .xmldir
 %patch2 -p1 -b .quotes
 
+%patch100 -p1
+
+# A place to generate the sgug patch
+#exit 1
+
 # replace bogus links with files
 automakedir=`ls -1d %{_prefix}/share/automake* | head -n +1`
 for file in COPYING INSTALL install-sh missing mkinstalldirs; do
@@ -74,6 +81,13 @@ done
 
 %build
 %configure
+
+# Rewrite some hardcoded paths
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" bin/install-catalog
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" bin/sgmlwhich
+
+perl -pi -e "s|/etc/sgml|%{_sysconfdir}/sgml|g" bin/install-catalog
+perl -pi -e "s|/etc/sgml|%{_sysconfdir}/sgml|g" bin/sgmlwhich
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -202,6 +216,12 @@ fi
 %{_datadir}/xml/datatypes.dtd
 
 %changelog
+* Sat Jun 27 2020 Daniel Hams <daniel.hams@gmail.com> - 0.6.3-55
+- Correct Linux style paths in the sgml configuration file installed
+
+* Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> - 0.6.3-54
+- Rewrite some hardcoded paths
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.6.3-53
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

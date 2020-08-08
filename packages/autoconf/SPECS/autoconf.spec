@@ -9,7 +9,7 @@
 Summary:    A GNU tool for automatically configuring source code
 Name:       autoconf
 Version:    2.69
-Release:    32%{?dist}
+Release:    33%{?dist}
 License:    GPLv2+ and GFDL
 Source0:    http://ftpmirror.gnu.org/autoconf/autoconf-%{version}.tar.xz
 Source1:    config.site
@@ -110,6 +110,9 @@ mkdir -p %{buildroot}%{_emacs_sitestartdir}
 install -p -m 0644 %{SOURCE2} %{buildroot}%{_emacs_sitestartdir}
 %endif
 
+# Rewrite some bogus hardcoded /bin/sh stuff
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" $RPM_BUILD_ROOT%{_bindir}/autoconf
+
 %files
 %license COPYING*
 %{_bindir}/*
@@ -128,6 +131,9 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{_emacs_sitestartdir}
 
 
 %changelog
+* Fri May 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.69-33
+- Remove more hard coded shell paths
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.69-32
 - Remove hard coded shell paths
 

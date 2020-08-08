@@ -1,0 +1,26 @@
+--- libxcb-1.13.1/src/xcb_conn.c.orig	2020-04-13 22:01:11.423618360 +0000
++++ libxcb-1.13.1/src/xcb_conn.c	2020-04-13 22:01:49.768094680 +0000
+@@ -23,6 +23,10 @@
+  * authorization from the authors.
+  */
+ 
++#if defined(__sgi)
++#define _XOPEN_SOURCE 500
++#endif
++
+ /* Connection management: the core of XCB. */
+ 
+ #ifdef HAVE_CONFIG_H
+--- libxcb-1.13.1/src/xcb_in.c~	2018-09-27 13:02:28.000000000 +0000
++++ libxcb-1.13.1/src/xcb_in.c	2020-04-13 22:02:12.615337880 +0000
+@@ -23,6 +23,10 @@
+  * authorization from the authors.
+  */
+ 
++#if defined(__sgi)
++#define _XOPEN_SOURCE 500
++#endif
++
+ /* Stuff that reads stuff from the server. */
+ 
+ #ifdef HAVE_CONFIG_H

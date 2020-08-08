@@ -1,0 +1,23 @@
+diff -Naur xorg-x11-utils-7.5.orig/xlsclients-1.1.4/xlsclients.c xorg-x11-utils-7.5/xlsclients-1.1.4/xlsclients.c
+--- xorg-x11-utils-7.5.orig/xlsclients-1.1.4/xlsclients.c	2018-03-09 17:56:39.000000000 +0000
++++ xorg-x11-utils-7.5/xlsclients-1.1.4/xlsclients.c	2020-04-17 14:05:15.293169227 +0000
+@@ -58,6 +58,7 @@
+ static void print_text_field (xcb_connection_t *dpy, const char *s, xcb_get_property_reply_t *tp );
+ static int print_quoted_word (char *s, int maxlen);
+ static void unknown (xcb_connection_t *dpy, xcb_atom_t actual_type, int actual_format );
++size_t strnlen(const char*, size_t);
+ 
+ /* For convenience: */
+ typedef int Bool;
+diff -Naur xorg-x11-utils-7.5.orig/xwininfo-1.1.5/xwininfo.c xorg-x11-utils-7.5/xwininfo-1.1.5/xwininfo.c
+--- xorg-x11-utils-7.5.orig/xwininfo-1.1.5/xwininfo.c	2019-07-14 13:54:40.000000000 +0000
++++ xorg-x11-utils-7.5/xwininfo-1.1.5/xwininfo.c	2020-04-17 14:05:46.748455908 +0000
+@@ -89,7 +89,7 @@
+ 
+ /* Include routines to handle parsing defaults */
+ #include "dsimple.h"
+-
++size_t strnlen(const char*, size_t);
+ typedef struct {
+     long code;
+     const char *name;

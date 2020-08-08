@@ -1,0 +1,12 @@
+diff -Naur malaga-7.12.orig/values.h malaga-7.12/values.h
+--- malaga-7.12-orig/values.h    2006-05-01 05:04:30.000000000 +0000
++++ malaga-7.12/values.h       2020-06-21 11:41:50.577258320 +0000
+@@ -17,7 +17,7 @@
+ 
+ /* Types. ===================================================================*/
+ 
+-typedef u_short_t cell_t;
++typedef short cell_t;
+ /* A value is stored in one or more cells.
+  * Use this type if you want to allocate memory (pools etc.) for values. */ 
+ 

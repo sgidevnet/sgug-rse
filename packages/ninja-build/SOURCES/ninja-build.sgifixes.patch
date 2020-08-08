@@ -1,0 +1,270 @@
+diff -u -r ninja-1.9.0-orig/configure.py ninja-1.9.0/configure.py
+--- ninja-1.9.0-orig/configure.py	2019-01-30 18:58:59.000000000 +0000
++++ ninja-1.9.0/configure.py	2020-06-01 21:03:22.450684800 +0000
+@@ -60,6 +60,8 @@
+             self._platform = 'netbsd'
+         elif self._platform.startswith('aix'):
+             self._platform = 'aix'
++        elif self._platform.startswith('irix'):
++            self._platform = 'irix'
+         elif self._platform.startswith('dragonfly'):
+             self._platform = 'dragonfly'
+ 
+@@ -67,7 +69,7 @@
+     def known_platforms():
+       return ['linux', 'darwin', 'freebsd', 'openbsd', 'solaris', 'sunos5',
+               'mingw', 'msvc', 'gnukfreebsd', 'bitrig', 'netbsd', 'aix',
+-              'dragonfly']
++              'dragonfly', 'irix']
+ 
+     def platform(self):
+         return self._platform
+@@ -97,6 +99,9 @@
+     def is_aix(self):
+         return self._platform == 'aix'
+ 
++    def is_irix(self):
++        return self._platform == 'irix'
++
+     def uses_usr_local(self):
+         return self._platform in ('freebsd', 'openbsd', 'bitrig', 'dragonfly', 'netbsd')
+ 
+diff -u -r ninja-1.9.0-orig/src/build_log.cc ninja-1.9.0/src/build_log.cc
+--- ninja-1.9.0-orig/src/build_log.cc	2019-01-30 18:58:59.000000000 +0000
++++ ninja-1.9.0/src/build_log.cc	2020-06-01 21:03:22.452556960 +0000
+@@ -302,7 +302,7 @@
+     if (!end)
+       continue;
+     *end = 0;
+-    restat_mtime = strtoll(start, NULL, 10);
++    restat_mtime = ::strtoll(start, NULL, 10);
+     start = end + 1;
+ 
+     end = (char*)memchr(start, kFieldSeparator, line_end - start);
+@@ -329,7 +329,7 @@
+     entry->mtime = restat_mtime;
+     if (log_version >= 5) {
+       char c = *end; *end = '\0';
+-      entry->command_hash = (uint64_t)strtoull(start, NULL, 16);
++      entry->command_hash = (uint64_t)::strtoull(start, NULL, 16);
+       *end = c;
+     } else {
+       entry->command_hash = LogEntry::HashCommand(StringPiece(start,
+diff -u -r ninja-1.9.0-orig/src/disk_interface.cc ninja-1.9.0/src/disk_interface.cc
+--- ninja-1.9.0-orig/src/disk_interface.cc	2019-01-30 18:58:59.000000000 +0000
++++ ninja-1.9.0/src/disk_interface.cc	2020-06-01 21:03:22.454171920 +0000
+@@ -206,7 +206,7 @@
+   return ((int64_t)st.st_mtimespec.tv_sec * 1000000000LL +
+           st.st_mtimespec.tv_nsec);
+ #elif (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700 || defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || \
+-       defined(__BIONIC__) || (defined (__SVR4) && defined (__sun)) || defined(__FreeBSD__))
++       defined(__BIONIC__) || (defined (__SVR4) && defined (__sun)) || defined(__FreeBSD__) || defined(__sgi))
+   // For glibc, see "Timestamp files" in the Notes of http://www.kernel.org/doc/man-pages/online/pages/man2/stat.2.html
+   // newlib, uClibc and musl follow the kernel (or Cygwin) headers and define the right macro values above.
+   // For bsd, see https://github.com/freebsd/freebsd/blob/master/sys/sys/stat.h and similar
+diff -u -r ninja-1.9.0-orig/src/ninja.cc ninja-1.9.0/src/ninja.cc
+--- ninja-1.9.0-orig/src/ninja.cc	2019-01-30 18:58:59.000000000 +0000
++++ ninja-1.9.0/src/ninja.cc	2020-06-01 21:03:22.457178400 +0000
+@@ -733,14 +733,30 @@
+   bool first = true;
+   vector<char> cwd;
+ 
++#if defined(__sgi)
++  errno = 0;
++  char * libcgetcwd = getcwd(NULL,-1);
++  if( libcgetcwd == NULL ) {
++    Error("cannot determine working directory: %s", strerror(errno));
++    return 1;
++  } else {
++    cwd.resize(strlen(libcgetcwd)+1);
++    strcpy(&cwd[0],libcgetcwd);
++    free(libcgetcwd);
++  }
++  errno = 0;
++#else
++  char * success;
+   do {
+     cwd.resize(cwd.size() + 1024);
+     errno = 0;
+-  } while (!getcwd(&cwd[0], cwd.size()) && errno == ERANGE);
+-  if (errno != 0 && errno != ERANGE) {
++    success = getcwd(&cwd[0], cwd.size();
++  } while (!success && errno == ERANGE);
++  if (!success) {
+     Error("cannot determine working directory: %s", strerror(errno));
+     return 1;
+   }
++#endif
+ 
+   putchar('[');
+   for (vector<Edge*>::iterator e = state_.edges_.begin();
+@@ -1135,7 +1151,7 @@
+         break;
+       case 'j': {
+         char* end;
+-        int value = strtol(optarg, &end, 10);
++        int value = ::strtol(optarg, &end, 10);
+         if (*end != 0 || value < 0)
+           Fatal("invalid -j parameter");
+ 
+@@ -1146,7 +1162,7 @@
+       }
+       case 'k': {
+         char* end;
+-        int value = strtol(optarg, &end, 10);
++        int value = ::strtol(optarg, &end, 10);
+         if (*end != 0)
+           Fatal("-k parameter not numeric; did you mean -k 0?");
+ 
+@@ -1158,7 +1174,7 @@
+       }
+       case 'l': {
+         char* end;
+-        double value = strtod(optarg, &end);
++        double value = ::strtod(optarg, &end);
+         if (end == optarg)
+           Fatal("-l parameter not numeric: did you mean -l 0.0?");
+         config->max_load_average = value;
+diff -u -r ninja-1.9.0-orig/src/subprocess-posix.cc ninja-1.9.0/src/subprocess-posix.cc
+--- ninja-1.9.0-orig/src/subprocess-posix.cc	2019-01-30 18:58:59.000000000 +0000
++++ ninja-1.9.0/src/subprocess-posix.cc	2020-06-01 21:03:22.458877040 +0000
+@@ -12,6 +12,13 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++
+ #include "subprocess.h"
+ 
+ #include <sys/select.h>
+@@ -110,8 +117,8 @@
+   if (err != 0)
+     Fatal("posix_spawnattr_setflags: %s", strerror(err));
+ 
+-  const char* spawned_args[] = { "/bin/sh", "-c", command.c_str(), NULL };
+-  err = posix_spawn(&pid_, "/bin/sh", &action, &attr,
++  const char* spawned_args[] = { "/usr/sgug/bin/sh", "-c", command.c_str(), NULL };
++  err = posix_spawn(&pid_, "/usr/sgug/bin/sh", &action, &attr,
+         const_cast<char**>(spawned_args), environ);
+   if (err != 0)
+     Fatal("posix_spawn: %s", strerror(err));
+@@ -298,7 +305,15 @@
+   }
+ 
+   interrupted_ = 0;
++#if !defined(__sgi)
+   int ret = pselect(nfds, &set, 0, 0, 0, &old_mask_);
++#else
++#undef select
++  sigset_t origmask;
++  pthread_sigmask (SIG_SETMASK, &old_mask_, &origmask);
++  int ret = select(nfds, &set, 0, 0, 0);
++  pthread_sigmask (SIG_SETMASK, &origmask, NULL);
++#endif
+   if (ret == -1) {
+     if (errno != EINTR) {
+       perror("ninja: pselect");
+diff -u -r ninja-1.9.0-orig/src/subprocess_test.cc ninja-1.9.0/src/subprocess_test.cc
+--- ninja-1.9.0-orig/src/subprocess_test.cc	2019-01-30 18:58:59.000000000 +0000
++++ ninja-1.9.0/src/subprocess_test.cc	2020-06-01 21:03:31.799393600 +0000
+@@ -128,7 +128,11 @@
+     subprocs_.DoWork();
+   }
+ 
++#if defined(__sgi)
++  EXPECT_EQ(ExitFailure, subproc->Finish());
++#else
+   EXPECT_EQ(ExitInterrupted, subproc->Finish());
++#endif
+ }
+ 
+ TEST_F(SubprocessTest, InterruptParentWithSigHup) {
+diff -u -r ninja-1.9.0-orig/src/util.cc ninja-1.9.0/src/util.cc
+--- ninja-1.9.0-orig/src/util.cc	2019-01-30 18:58:59.000000000 +0000
++++ ninja-1.9.0/src/util.cc	2020-06-01 21:03:22.461022000 +0000
+@@ -45,7 +45,7 @@
+ #elif defined(__SVR4) && defined(__sun)
+ #include <unistd.h>
+ #include <sys/loadavg.h>
+-#elif defined(_AIX)
++#elif defined(_AIX) && !defined(__PASE__)
+ #include <libperfstat.h>
+ #elif defined(linux) || defined(__GLIBC__)
+ #include <sys/sysinfo.h>
+@@ -481,12 +481,23 @@
+ 
+ int GetProcessorCount() {
+ #ifdef _WIN32
+-  SYSTEM_INFO info;
+-  GetNativeSystemInfo(&info);
+-  return info.dwNumberOfProcessors;
++  return GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
++#else
++#ifdef CPU_COUNT
++  // The number of exposed processors might not represent the actual number of
++  // processors threads can run on. This happens when a CPU set limitation is
++  // active, see https://github.com/ninja-build/ninja/issues/1278
++  cpu_set_t set;
++  if (sched_getaffinity(getpid(), sizeof(set), &set) == 0) {
++    return CPU_COUNT(&set);
++  }
++#endif
++#ifdef __sgi
++  return sysconf(_SC_NPROC_ONLN);
+ #else
+   return sysconf(_SC_NPROCESSORS_ONLN);
+ #endif
++#endif
+ }
+ 
+ #if defined(_WIN32) || defined(__CYGWIN__)
+@@ -555,6 +566,10 @@
+ 
+   return posix_compatible_load;
+ }
++#elif defined(__PASE__)
++double GetLoadAverage() {
++  return -0.0f;
++}
+ #elif defined(_AIX)
+ double GetLoadAverage() {
+   perfstat_cpu_total_t cpu_stats;
+@@ -565,7 +580,7 @@
+   // Calculation taken from comment in libperfstats.h
+   return double(cpu_stats.loadavg[0]) / double(1 << SBITS);
+ }
+-#elif defined(__UCLIBC__)
++#elif defined(__UCLIBC__) || (defined(__BIONIC__) && __ANDROID_API__ < 29)
+ double GetLoadAverage() {
+   struct sysinfo si;
+   if (sysinfo(&si) != 0)
+@@ -575,16 +590,24 @@
+ #else
+ double GetLoadAverage() {
+   double loadavg[3] = { 0.0f, 0.0f, 0.0f };
++#ifndef __sgi
+   if (getloadavg(loadavg, 3) < 0) {
+     // Maybe we should return an error here or the availability of
+     // getloadavg(3) should be checked when ninja is configured.
+     return -0.0f;
+   }
++#endif
+   return loadavg[0];
+ }
+ #endif // _WIN32
+ 
+ string ElideMiddle(const string& str, size_t width) {
++  switch (width) {
++      case 0: return "";
++      case 1: return ".";
++      case 2: return "..";
++      case 3: return "...";
++  }
+   const int kMargin = 3;  // Space for "...".
+   string result = str;
+   if (result.size() > width) {

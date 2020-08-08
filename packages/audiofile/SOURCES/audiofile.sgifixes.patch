@@ -1,0 +1,29 @@
+diff -u -r audiofile-0.3.6-orig/libaudiofile/CAF.cpp audiofile-0.3.6/libaudiofile/CAF.cpp
+--- audiofile-0.3.6-orig/libaudiofile/CAF.cpp	2013-03-06 05:30:03.000000000 +0000
++++ audiofile-0.3.6/libaudiofile/CAF.cpp	2020-07-26 14:12:11.685853400 +0000
+@@ -33,6 +33,9 @@
+ #include <stdint.h>
+ #include <string.h>
+ #include <string>
++#if defined(__sgi)
++#include <strings.h>
++#endif
+ #include <vector>
+ 
+ const int _af_caf_compression_types[_AF_CAF_NUM_COMPTYPES] =
+diff -u -r audiofile-0.3.6-orig/libaudiofile/FLACFile.cpp audiofile-0.3.6/libaudiofile/FLACFile.cpp
+--- audiofile-0.3.6-orig/libaudiofile/FLACFile.cpp	2013-03-06 05:30:03.000000000 +0000
++++ audiofile-0.3.6/libaudiofile/FLACFile.cpp	2020-07-26 14:12:04.756583400 +0000
+@@ -17,6 +17,12 @@
+ 	Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ 	Boston, MA  02110-1301  USA
+ */
++#if defined(__sgi)
++#include <stdarg.h>
++#include <stdio.h>
++#include <wchar.h>
++#include <stdlib.h>
++#endif
+ 
+ #include "config.h"
+ #include "FLACFile.h"

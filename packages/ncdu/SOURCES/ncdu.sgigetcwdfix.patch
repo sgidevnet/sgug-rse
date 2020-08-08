@@ -1,0 +1,28 @@
+diff -u -r ncdu-1.14.2-orig/src/path.c ncdu-1.14.2/src/path.c
+--- ncdu-1.14.2-orig/src/path.c	2020-02-10 15:00:01.000000000 +0000
++++ ncdu-1.14.2/src/path.c	2020-04-21 13:03:24.273379480 +0000
+@@ -97,6 +97,16 @@
+ 
+   /* not an absolute path? prepend cwd */
+   if(path[0] != '/') {
++#if defined(__sgi)
++    char *cwd;
++    if( (cwd = getcwd(NULL, 1024)) == NULL ) {
++      return NULL;
++    }
++    size_t cwdlen = strlen(cwd);
++    ret = xmalloc(cwdlen+1);
++    strcpy(ret, cwd);
++    free(cwd);
++#else
+     n = RPATH_CNKSZ;
+     ret = xmalloc(n);
+     errno = 0;
+@@ -109,6 +119,7 @@
+       free(ret);
+       return NULL;
+     }
++#endif
+ 
+     i = strlen(path) + strlen(ret) + 2;
+     if(i > n)

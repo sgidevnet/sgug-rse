@@ -1,0 +1,227 @@
+diff -u -r make-4.3-orig/src/job.c make-4.3/src/job.c
+--- make-4.3-orig/src/job.c	2020-01-19 20:32:59.000000000 +0000
++++ make-4.3/src/job.c	2020-05-16 08:57:57.597293880 +0000
+@@ -77,7 +77,7 @@
+ 
+ #else
+ 
+-const char *default_shell = "/bin/sh";
++const char *default_shell = "/usr/sgug/bin/sh";
+ int batch_mode_shell = 0;
+ 
+ #endif
+@@ -469,6 +469,7 @@
+ }
+ 
+ #ifdef POSIX
++#warning "Using sigprocmask (good, this is posix)"
+ extern sigset_t fatal_signal_set;
+ 
+ static void
+@@ -492,6 +493,7 @@
+ }
+ 
+ #elif defined(HAVE_SIGSETMASK)
++#error "Using sigblock and sigsetmask"
+ 
+ extern int fatal_signal_mask;
+ 
+@@ -514,7 +516,7 @@
+ }
+ 
+ #else
+-
++#error "Not managing signals at all!"
+ #define block_sigs()
+ #define unblock_sigs()
+ 
+@@ -602,7 +604,7 @@
+ 
+   jobserver_signal ();
+ 
+-#ifdef __EMX__
++#if defined(__EMX__) || defined(__sgi)
+   /* The signal handler must called only once! */
+   signal (SIGCHLD, SIG_DFL);
+ #endif
+diff -u -r make-4.3-orig/src/main.c make-4.3/src/main.c
+--- make-4.3-orig/src/main.c	2020-01-19 20:32:59.000000000 +0000
++++ make-4.3/src/main.c	2020-05-16 08:57:57.602273080 +0000
+@@ -1867,7 +1867,7 @@
+ # endif
+   }
+ 
+-#ifdef HAVE_PSELECT
++#if defined(HAVE_PSELECT)
+   /* If we have pselect() then we need to block SIGCHLD so it's deferred.  */
+   {
+     sigset_t block;
+diff -u -r make-4.3-orig/src/posixos.c make-4.3/src/posixos.c
+--- make-4.3-orig/src/posixos.c	2020-01-03 07:11:27.000000000 +0000
++++ make-4.3/src/posixos.c	2020-05-16 08:57:57.604209000 +0000
+@@ -28,10 +28,21 @@
+ # include <sys/select.h>
+ #endif
+ 
++#if defined(__sgi)
++/* use xpg5 socket style */
++#define _XOPEN_SOURCE 500
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++
+ #include "debug.h"
+ #include "job.h"
+ #include "os.h"
+ 
++/*#include <libsguginstr/libsguginstr.h>*/
++
+ #ifdef MAKE_JOBSERVER
+ 
+ /* This section provides OS-specific functions to support the jobserver.  */
+@@ -47,10 +58,23 @@
+ /* Token written to the pipe (could be any character...)  */
+ static char token = '+';
+ 
++/**/
++#if defined(__sgi)
++/* Original definition:
++#define EINTRLOOP(_v,_c)   while (((_v)=_c)==-1 && errno==EINTR)
++*/
++#undef EINTRLOOP
++/* We redefine it so that errno is manually reset */
++#define EINTRLOOP(_v,_c)   do { errno = 0; (_v) = _c; } \
++                           while((_v)==-1 && errno==EINTR)
++
++#endif
++/**/
++
+ static int
+ make_job_rfd (void)
+ {
+-#ifdef HAVE_PSELECT
++#if !defined(__sgi) || defined(HAVE_PSELECT)
+   /* Pretend we succeeded.  */
+   return 0;
+ #else
+@@ -58,6 +82,11 @@
+   if (job_rfd >= 0)
+     fd_noinherit (job_rfd);
+ 
++  /*if (job_rfd < 0) {
++    siprintf("SGUG mjf job_fds[0]=%d job_fds[1]=%d job_rfd=%d errno=%d\n",
++	     job_fds[0], job_fds[1], job_rfd, errno);
++  }*/
++
+   return job_rfd;
+ #endif
+ }
+@@ -66,7 +95,7 @@
+ set_blocking (int fd, int blocking)
+ {
+   /* If we're not using pselect() don't change the blocking.  */
+-#ifdef HAVE_PSELECT
++#if !defined(__sgi) || defined(HAVE_PSELECT)
+   int flags;
+   EINTRLOOP (flags, fcntl (fd, F_GETFL));
+   if (flags >= 0)
+@@ -94,8 +123,11 @@
+   fd_noinherit (job_fds[0]);
+   fd_noinherit (job_fds[1]);
+ 
+-  if (make_job_rfd () < 0)
++  int job_rfd_val = make_job_rfd();
++  if (job_rfd_val < 0) {
++    /*siprintf("SGUG jss job_rfd_val=%d\n", job_rfd_val);*/
+     pfatal_with_name (_("duping jobs pipe"));
++  }
+ 
+   while (slots--)
+     {
+@@ -107,6 +139,11 @@
+   /* When using pselect() we want the read to be non-blocking.  */
+   set_blocking (job_fds[0], 0);
+ 
++  /* By default we don't send the job pipe FDs to our children.
++     See jobserver_pre_child() and jobserver_post_child(). */
++  fd_noinherit (job_fds[0]);
++  fd_noinherit (job_fds[1]);
++
+   return 1;
+ }
+ 
+@@ -247,12 +284,16 @@
+ jobserver_pre_acquire (void)
+ {
+   /* Make sure we have a dup'd FD.  */
+-  if (job_rfd < 0 && job_fds[0] >= 0 && make_job_rfd () < 0)
+-    pfatal_with_name (_("duping jobs pipe"));
++  if (job_rfd < 0 && job_fds[0] >= 0 ) {
++    int job_rfd_val = make_job_rfd();
++    if( job_rfd_val < 0) {
++      /*siprintf("SGUG jspa job_rfd_val=%d\n", job_rfd_val);*/
++      pfatal_with_name (_("duping jobs pipe"));
++    }
++  }
+ }
+ 
+-#ifdef HAVE_PSELECT
+-
++#if !defined(__sgi) || defined(HAVE_PSELECT)
+ /* Use pselect() to atomically wait for both a signal and a file descriptor.
+    It also provides a timeout facility so we don't need to use SIGALRM.
+ 
+@@ -263,18 +304,30 @@
+ unsigned int
+ jobserver_acquire (int timeout)
+ {
++#if defined(__sgi)
++  struct timeval tval;
++  struct timeval *tvalp = NULL;
++#else
+   struct timespec spec;
+   struct timespec *specp = NULL;
++#endif
+   sigset_t empty;
+ 
+   sigemptyset (&empty);
+ 
+   if (timeout)
+     {
++#if defined(__sgi)
++      /* Alarm after one second (is this too granular?)  */
++      tval.tv_sec = 1;
++      tval.tv_usec = 0;
++      tvalp = &tval;
++#else
+       /* Alarm after one second (is this too granular?)  */
+       spec.tv_sec = 1;
+       spec.tv_nsec = 0;
+       specp = &spec;
++#endif
+     }
+ 
+   while (1)
+@@ -286,7 +339,11 @@
+       FD_ZERO (&readfds);
+       FD_SET (job_fds[0], &readfds);
+ 
++#if defined(__sgi)
++      r = select (job_fds[0]+1, &readfds, NULL, NULL, tvalp);
++#else
+       r = pselect (job_fds[0]+1, &readfds, NULL, NULL, specp, &empty);
++#endif
+       if (r < 0)
+         switch (errno)
+           {
+@@ -362,7 +419,7 @@
+ {
+   struct sigaction sa;
+ 
+-#ifdef __EMX__
++#if defined(__EMX__) || defined(__sgi)
+   /* The child handler must be turned off here.  */
+   signal (SIGCHLD, SIG_DFL);
+ #endif

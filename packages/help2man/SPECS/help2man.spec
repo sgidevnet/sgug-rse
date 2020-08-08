@@ -1,14 +1,11 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
-
 # Supported build option:
 #
 # --with nls ... build this package with --enable-nls 
 
 Name:           help2man
 Summary:        Create simple man pages from --help output
-Version:        1.47.10
-Release:        2%{?dist}
+Version:        1.47.14
+Release:        1%{?dist}
 License:        GPLv3+
 URL:            http://www.gnu.org/software/help2man
 Source:         ftp://ftp.gnu.org/gnu/help2man/help2man-%{version}.tar.xz
@@ -60,8 +57,17 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.47.10-2
-- Remove hard coded shell paths
+* Thu Jun 25 2020  HAL <notes2@gmx.de> - 1.47.14-1
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
+* Sat Apr 25 2020 Ralf Corsépius <corsepiu@fedoraproject.org> - 1.47.14-1
+- Upstream update.
+
+* Wed Mar 18 2020 Ralf Corsépius <corsepiu@fedoraproject.org> - 1.47.13-1
+- Upstream update.
+
+* Tue Mar 17 2020 Ralf Corsépius <corsepiu@fedoraproject.org> - 1.47.12-1
+- Upstream update.
 
 * Sat Sep 14 2019 Ralf Corsépius <corsepiu@fedoraproject.org> - 1.47.11-1
 - Upstream update.

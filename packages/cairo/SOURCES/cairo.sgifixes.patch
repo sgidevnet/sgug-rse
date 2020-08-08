@@ -1,0 +1,12 @@
+diff -Naur cairo-1.16.0.orig/util/cairo-sphinx/fdr.c cairo-1.16.0/util/cairo-sphinx/fdr.c
+--- cairo-1.16.0.orig/util/cairo-sphinx/fdr.c	2018-08-16 18:10:53.000000000 +0000
++++ cairo-1.16.0/util/cairo-sphinx/fdr.c	2020-04-21 15:12:00.216336222 +0000
+@@ -32,7 +32,7 @@
+ #include <errno.h>
+ 
+ #include <dlfcn.h>
+-
++#define RTLD_NEXT  0
+ static void *_dlhandle = RTLD_NEXT;
+ #define DLCALL(name, args...) ({ \
+     static typeof (&name) name##_real; \

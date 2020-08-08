@@ -1,0 +1,8 @@
+--- imake-1.0.8/imake-1.0.8/mkhtmlindex.pl	2020-04-05 15:31:23.862248915 +0000
++++ imake-1.0.8/imake-1.0.8/mkhtmlindex.pl	2020-04-05 15:30:25.922361831 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ #
+ # Copyright © 2000,2001 by VA Linux Systems, Inc.
+ #

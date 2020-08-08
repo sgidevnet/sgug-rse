@@ -1,0 +1,14 @@
+--- zip30/unix/configure.orig	2020-04-12 16:41:10.326459120 +0000
++++ zip30/unix/configure	2020-04-12 16:41:16.267119760 +0000
+@@ -686,6 +686,11 @@
+ 
+ rm -f a.out conftest.c conftest.o conftest null
+ 
++# Hack added to get around this crazy unnecessary local project
++# way of doing flags
++LFLAGS1="${LFLAGS1} ${LD_EXT_FLAGS}"
++LFLAGS2="${LFLAGS2} ${LD_EXT_FLAGS}"
++
+ echo CC=\"${CC}\" CFLAGS=\"${CFLAGS}\"  CPP=\"${CPP}\" OBJA=\"${OBJA}\" \
+        OCRCU8=\"${OCRCU8}\" OCRCTB=\"${OCRCTB}\" \
+        BINDIR=${BINDIR} MANDIR=${MANDIR} LFLAGS1=\"${LFLAGS1}\" \

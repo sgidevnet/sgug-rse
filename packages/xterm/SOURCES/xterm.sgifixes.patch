@@ -1,0 +1,22 @@
+diff -u -r xterm-351-orig/main.c xterm-351/main.c
+--- xterm-351-orig/main.c	2019-11-17 20:11:09.000000000 +0000
++++ xterm-351/main.c	2020-07-07 15:49:22.278167480 +0000
+@@ -3344,7 +3344,9 @@
+ 			device, (long) uid, (long) gid);
+ 	}
+ 	TRACE(("...chown failed: %s\n", strerror(why)));
+-    } else if (chmod(device, (mode_t) mode) < 0) {
++    }
++#if !defined(__sgi)
++    else if (chmod(device, (mode_t) mode) < 0) {
+ 	why = errno;
+ 	if (why != ENOENT) {
+ 	    struct stat sb;
+@@ -3362,6 +3364,7 @@
+ 	}
+ 	TRACE(("...chmod failed: %s\n", strerror(why)));
+     }
++#endif
+ }
+ 
+ /*
