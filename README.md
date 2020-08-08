@@ -44,11 +44,11 @@ rm -rf /usr/sgug/*
 You'll find three main archives - and there might be "update" archives too that need to be extracted:
 
 ```
-sgug-rse-selfhoster-0.0.5beta.tar.gz
-sgug-rse-srpms-0.0.5beta.tar.gz
-sgug-rse-rpms-0.0.5beta.tar.gz
+sgug-rse-selfhoster-0.0.6beta.tar.gz
+sgug-rse-srpms-0.0.6beta.tar.gz
+sgug-rse-rpms-0.0.6beta.tar.gz
 
-sgug-rse-rpms-0.0.5betaupdateNUM.tar.gz
+sgug-rse-rpms-0.0.6betaupdateNUM.tar.gz
 ```
 
 (5) Extract the selfhoster archive under /usr as root (important, sgug-rse _installation_ files are root owned and managed):
@@ -56,7 +56,7 @@ sgug-rse-rpms-0.0.5betaupdateNUM.tar.gz
 ```
 su - (enter root password)
 cd /usr
-gunzip -dc /path/to/sgug-rse-selfhoster-0.0.5beta.tar.gz |tar xf -
+gunzip -dc /path/to/sgug-rse-selfhoster-0.0.6beta.tar.gz |tar xf -
 (log out of root)
 ```
 
@@ -73,12 +73,12 @@ mkdir -p ~/rpmbuild/RPMS
 
 ```
 cd ~/rpmbuild
-gunzip -dc /path/to/sgug-rse-srpms-0.0.5beta.tar.gz | tar xf -
-gunzip -dc /path/to/sgug-rse-rpms-0.0.5beta.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-srpms-0.0.6beta.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-rpms-0.0.6beta.tar.gz | tar xf -
 # Optional
 mkdir ~/rpmupdates
 cd ~/rpmupdates
-gunzip -dc /path/to/sgug-rse-rpms-0.0.5betaupdateNUM.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-rpms-0.0.6betaupdateNUM.tar.gz | tar xf -
 ```
 
 (8) You'll need to clone this repo (sgug-rse) -
