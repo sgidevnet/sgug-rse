@@ -14,7 +14,7 @@ BuildRequires:  gcc
 BuildRequires:  libtool
 BuildRequires:  patchutils
 BuildRequires:  pkgconfig
-#BuildRequires:  subunit-devel
+BuildRequires:  subunit-devel
 BuildRequires:  texinfo
 
 %description
@@ -70,14 +70,12 @@ find . -name .cvsignore -exec rm {} +
 autoreconf -ivf
 
 %build
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %configure --disable-timeout-tests
 
 # Get rid of undesirable hardcoded rpaths
-#sed -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
-#    -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
-#    -i libtool
+sed -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
+    -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
+    -i libtool
 
 make %{?_smp_mflags}
 
@@ -89,7 +87,7 @@ rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}
 
 
 %check
-export LD_LIBRARYN32_PATH=$PWD/src/.libs
+export LD_LIBRARY_PATH=$PWD/src/.libs
 make check
 # Don't need to package the sh, log or trs files
 # when we scoop the other checkmk/test files for doc
@@ -97,7 +95,7 @@ rm -rf checkmk/test/check_checkmk*
 # these files are empty
 rm -rf checkmk/test/empty_input
 
-#%%ldconfig_scriptlets
+%ldconfig_scriptlets
 
 %files
 %doc AUTHORS ChangeLog
