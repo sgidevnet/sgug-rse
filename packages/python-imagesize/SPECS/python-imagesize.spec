@@ -57,7 +57,8 @@ py.test-3
 %files -n python3-%{pypi_name}
 %doc README.rst
 %license LICENSE.rst
-%{python3_sitelib}/*
+%{python3_sitelib}/imagesize*
+%{python3_sitelib}/__pycache__/imagesize*
 
 %changelog
 * Mon Oct 28 2019 Avram Lubkin <aviso@rockhopper.net> - 1.1.0-1
