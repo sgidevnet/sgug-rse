@@ -21,7 +21,7 @@
 
 Name:           lib%{libname}
 Version:        0.7.14
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Package dependency solver
 
 License:        BSD
@@ -50,8 +50,8 @@ BuildRequires:  libzstd-devel
 BuildRequires:  pkgconfig(zck)
 %endif
 
-Requires: libdicl >= 0.1.29
-BuildRequires: libdicl-devel >= 0.1.29
+Requires: libdicl >= 0.1.30
+BuildRequires: libdicl-devel >= 0.1.30
 
 %description
 A free package dependency solver using a satisfiability algorithm. The
@@ -85,7 +85,8 @@ Summary:        Applications demoing the %{name} library
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 # solv dependencies. Used as execlp() and system()
 Requires:       %{_bindir}/curl
-Requires:       %{_bindir}/gpg2
+# We don't have gpg2 (yet)
+#Requires:       %%{_bindir}/gpg2
 
 %description demo
 Applications demoing the %{name} library.
@@ -299,6 +300,9 @@ export LD_LIBRARYN32_PATH=$TEST_LIB_ROOT/src:$TEST_LIB_ROOT/ext:$TEST_LIB_ROOT/b
 %endif
 
 %changelog
+* Sat Aug 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.7.14-2
+- Get tests passing on RSE
+
 * Wed May 27 2020 Igor Raits <ignatenkobrain@fedoraproject.org> - 0.7.14-1
 - Update to 0.7.14
 

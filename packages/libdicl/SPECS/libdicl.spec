@@ -4,7 +4,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.29
+Version: 0.1.30
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -56,6 +56,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 
 %changelog
+* Sat Aug 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.30-1
+- Bug fix and little optimisation to funopen bits.
+
 * Sat Aug 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.29-1
 - Add dprintf, vdprintf, funopen impl/lib for libsolv
 
