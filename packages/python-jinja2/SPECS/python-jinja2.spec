@@ -26,11 +26,11 @@ Source0:        %{pypi_source}
 # and python-sphinx:
 %bcond_with docs
 
-%if 0%{?fedora} || 0%{?rhel} > 7
+#%if 0%{?fedora} || 0%{?rhel} > 7
 %bcond_without async
-%else
-%bcond_with async
-%endif
+#%else
+#%bcond_with async
+#%endif
 
 BuildArch:      noarch
 
