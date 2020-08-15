@@ -8,12 +8,12 @@
 # No internet in Koji
 %bcond_with internet
 
-%if 0%{?rhel} > 7
+#%%if 0%%{?rhel} > 7
 # Build without BuildRequires ImageMagick, to skip imgconverter tests
 %bcond_with imagemagick_tests
-%else
-%bcond_without imagemagick_tests
-%endif
+#%else
+#%%bcond_without imagemagick_tests
+#%endif
 
 
 %global upstream_name Sphinx
@@ -195,56 +195,56 @@ the Python docs:
       snippets and inclusion of appropriately formatted docstrings.
 
 
-%package -n python3-sphinx-latex
-Summary:       LaTeX builder dependencies for python3-sphinx
+# %package -n python3-sphinx-latex
+# Summary:       LaTeX builder dependencies for python3-sphinx
 
-Requires:      python3-sphinx = %{epoch}:%{version}-%{release}
-Requires:      texlive-collection-fontsrecommended
-Requires:      texlive-collection-latex
-Requires:      texlive-dvipng
-Requires:      texlive-dvisvgm
-Requires:      tex(amsmath.sty)
-Requires:      tex(amsthm.sty)
-Requires:      tex(anyfontsize.sty)
-Requires:      tex(article.cls)
-Requires:      tex(capt-of.sty)
-Requires:      tex(cmap.sty)
-Requires:      tex(color.sty)
-Requires:      tex(ctablestack.sty)
-Requires:      tex(fancyhdr.sty)
-Requires:      tex(fancyvrb.sty)
-Requires:      tex(fncychap.sty)
-Requires:      tex(framed.sty)
-Requires:      tex(FreeSerif.otf)
-Requires:      tex(geometry.sty)
-Requires:      tex(hyperref.sty)
-Requires:      tex(kvoptions.sty)
-Requires:      tex(luatex85.sty)
-Requires:      tex(needspace.sty)
-Requires:      tex(parskip.sty)
-Requires:      tex(polyglossia.sty)
-Requires:      tex(tabulary.sty)
-Requires:      tex(titlesec.sty)
-Requires:      tex(upquote.sty)
-Requires:      tex(utf8x.def)
-Requires:      tex(wrapfig.sty)
+# Requires:      python3-sphinx = %%{epoch}:%%{version}-%%{release}
+# Requires:      texlive-collection-fontsrecommended
+# Requires:      texlive-collection-latex
+# Requires:      texlive-dvipng
+# Requires:      texlive-dvisvgm
+# Requires:      tex(amsmath.sty)
+# Requires:      tex(amsthm.sty)
+# Requires:      tex(anyfontsize.sty)
+# Requires:      tex(article.cls)
+# Requires:      tex(capt-of.sty)
+# Requires:      tex(cmap.sty)
+# Requires:      tex(color.sty)
+# Requires:      tex(ctablestack.sty)
+# Requires:      tex(fancyhdr.sty)
+# Requires:      tex(fancyvrb.sty)
+# Requires:      tex(fncychap.sty)
+# Requires:      tex(framed.sty)
+# Requires:      tex(FreeSerif.otf)
+# Requires:      tex(geometry.sty)
+# Requires:      tex(hyperref.sty)
+# Requires:      tex(kvoptions.sty)
+# Requires:      tex(luatex85.sty)
+# Requires:      tex(needspace.sty)
+# Requires:      tex(parskip.sty)
+# Requires:      tex(polyglossia.sty)
+# Requires:      tex(tabulary.sty)
+# Requires:      tex(titlesec.sty)
+# Requires:      tex(upquote.sty)
+# Requires:      tex(utf8x.def)
+# Requires:      tex(wrapfig.sty)
 
-%{?python_provide:%python_provide python3-sphinx-latex}
+# %%{?python_provide:%%python_provide python3-sphinx-latex}
 
-# Remove in F33
-Obsoletes:     python-sphinx-latex < 1:2
-Provides:      python-sphinx-latex = %{epoch}:%{version}-%{release}
+# # Remove in F33
+# Obsoletes:     python-sphinx-latex < 1:2
+# Provides:      python-sphinx-latex = %%{epoch}:%%{version}-%%{release}
 
-%description  -n python3-sphinx-latex
-Sphinx is a tool that makes it easy to create intelligent and
-beautiful documentation for Python projects (or other documents
-consisting of multiple reStructuredText sources), written by Georg
-Brandl. It was originally created to translate the new Python
-documentation, but has now been cleaned up in the hope that it will be
-useful to many other projects.
+# %description  -n python3-sphinx-latex
+# Sphinx is a tool that makes it easy to create intelligent and
+# beautiful documentation for Python projects (or other documents
+# consisting of multiple reStructuredText sources), written by Georg
+# Brandl. It was originally created to translate the new Python
+# documentation, but has now been cleaned up in the hope that it will be
+# useful to many other projects.
 
-This package pulls in the TeX dependencies needed by Sphinx's LaTeX
-builder.
+# This package pulls in the TeX dependencies needed by Sphinx's LaTeX
+# builder.
 
 
 %package doc
@@ -278,13 +278,14 @@ rm tests/test_ext_imgconverter.py
 %py3_build
 
 export PYTHONPATH=$PWD
-pushd doc
+export PREV_WD=`pwd`
+cd doc
 export SPHINXBUILD="%{__python3} ../sphinx/cmd/build.py"
 make html SPHINXBUILD="$SPHINXBUILD"
 make man SPHINXBUILD="$SPHINXBUILD"
 rm -rf _build/html/.buildinfo
 mv _build/html ..
-popd
+cd $PREV_WD
 
 
 %install
@@ -302,14 +303,15 @@ done
 rm -f %{buildroot}%{python3_sitelib}/sphinx/locale/.DS_Store
 rm -rf %{buildroot}%{python3_sitelib}/sphinx/locale/.tx
 
-pushd doc
+export PREV_WD=`pwd`
+cd doc
 # Deliver man pages
 install -d %{buildroot}%{_mandir}/man1
 for f in _build/man/sphinx-*.1;
 do
     cp -p $f %{buildroot}%{_mandir}/man1/$(basename $f)
 done
-popd
+cd $PREV_WD
 
 # Deliver rst files
 rm -rf doc/_build
@@ -319,7 +321,7 @@ rm reST/make.bat
 
 # Move language files to /usr/share;
 # patch to support this incorporated in 0.6.6
-pushd %{buildroot}%{python3_sitelib}
+cd %{buildroot}%{python3_sitelib}
 
 for lang in `find sphinx/locale -maxdepth 1 -mindepth 1 -type d -not -path '*/\.*' -printf "%f "`;
 do
@@ -332,7 +334,7 @@ do
     %{buildroot}%{_datadir}/locale/$lang/LC_MESSAGES/
   rm -rf sphinx/locale/$lang
 done
-popd
+cd $PREV_WD
 
 # Create the sphinxcontrib directory, so we can own it
 # See https://bugzilla.redhat.com/show_bug.cgi?id=1669790 for rationale
@@ -375,8 +377,8 @@ export PATH=%{buildroot}%{_bindir}:$PATH
 %{_mandir}/man1/sphinx-*
 
 
-%files -n python3-sphinx-latex
-# empty, this is a metapackage
+#%files -n python3-sphinx-latex
+## empty, this is a metapackage
 
 
 %files doc
