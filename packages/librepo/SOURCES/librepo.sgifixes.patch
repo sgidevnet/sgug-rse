@@ -1,0 +1,78 @@
+diff -u -r librepo-1.12.0-orig/librepo/downloader.c librepo-1.12.0/librepo/downloader.c
+--- librepo-1.12.0-orig/librepo/downloader.c	2020-05-15 08:43:49.000000000 +0000
++++ librepo-1.12.0/librepo/downloader.c	2020-08-15 12:27:07.046892320 +0000
+@@ -18,6 +18,13 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++
+ #define _XOPEN_SOURCE   500 // Because of fdopen() and ftruncate()
+ #define _DEFAULT_SOURCE     // Because of futimes()
+ #define _BSD_SOURCE         // Because of futimes()
+@@ -31,7 +38,11 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/time.h>
++#if defined(__sgi)
++#include <sys/attributes.h>
++#else
+ #include <sys/xattr.h>
++#endif
+ #include <fcntl.h>
+ #include <curl/curl.h>
+ 
+@@ -979,6 +990,8 @@
+ 
+ #if __APPLE__
+     int attr_ret = fsetxattr(fd, XATTR_LIBREPO, "1", 1, 0, 0);
++#elif defined(__sgi)
++    int attr_ret = attr_setf(fd, XATTR_LIBREPO, "1", 1, 0);
+ #else
+     int attr_ret = fsetxattr(fd, XATTR_LIBREPO, "1", 1, 0);
+ #endif
+@@ -996,6 +1009,9 @@
+ {
+ #if __APPLE__
+     ssize_t attr_ret = fgetxattr(fd, XATTR_LIBREPO, NULL, 0, 0, 0);
++#elif defined(__sgi)
++    int valuelength;
++    ssize_t attr_ret = attr_getf(fd, XATTR_LIBREPO, NULL, 0, 0);
+ #else
+     ssize_t attr_ret = fgetxattr(fd, XATTR_LIBREPO, NULL, 0);
+ #endif
+@@ -1017,6 +1033,8 @@
+     if (fd != -1) {
+ #if __APPLE__
+         fremovexattr(fd, XATTR_LIBREPO, 0);
++#elif defined(__sgi)
++        attr_removef(fd, XATTR_LIBREPO, 0);
+ #else
+         fremovexattr(fd, XATTR_LIBREPO);
+ #endif
+@@ -1029,6 +1047,8 @@
+     }
+ #if __APPLE__
+     fremovexattr(fd, XATTR_LIBREPO, 0);
++#elif defined(__sgi)
++    attr_removef(fd, XATTR_LIBREPO, 0);
+ #else
+     fremovexattr(fd, XATTR_LIBREPO);
+ #endif
+@@ -2337,7 +2357,11 @@
+             curl_easy_getinfo(target->curl_handle, CURLINFO_FILETIME, &remote_filetime);
+             if (remote_filetime >= 0) {
+                 const struct timeval tv[] = {{remote_filetime, 0}, {remote_filetime, 0}};
++#if defined(__sgi)
++                if (utimes(target->target->fn, tv) == -1)
++#else
+                 if (futimes(fileno(target->f), tv) == -1)
++#endif
+                     g_debug("%s: Failed to change timestamps of downloaded file.", __func__);
+             } else {
+                 g_debug("%s: Unable to get remote time of retrieved document \"%s\"",

@@ -1,27 +1,27 @@
 %global libcurl_version 7.28.0
 
-%if 0%{?rhel} && 0%{?rhel} <= 7
-# Do not build bindings for python3 for RHEL <= 7
-%bcond_with python3
-# python-flask is not in RHEL7
-%bcond_with pythontests
-%else
+#%%if 0%%{?rhel} && 0%%{?rhel} <= 7
+## Do not build bindings for python3 for RHEL <= 7
+#%%bcond_with python3
+## python-flask is not in RHEL7
+#%%bcond_with pythontests
+#%%else
 %bcond_without python3
-%bcond_without pythontests
-%endif
+%bcond_with pythontests
+#%%endif
 
-%if 0%{?rhel} > 7 || 0%{?fedora} > 29
+#%%if 0%%{?rhel} > 7 || 0%%{?fedora} > 29
 # Do not build bindings for python2 for RHEL > 7 and Fedora > 29
 %bcond_with python2
-%else
-%bcond_without python2
-%endif
+#%%else
+#%%bcond_without python2
+#%%endif
 
-%if 0%{?rhel}
-%bcond_with zchunk
-%else
+#%%if 0%%{?rhel}
+#%%bcond_with zchunk
+#%%else
 %bcond_without zchunk
-%endif
+#%%endif
 
 %global dnf_conflict 2.8.8
 
@@ -34,13 +34,15 @@ License:        LGPLv2+
 URL:            https://github.com/rpm-software-management/librepo
 Source0:        %{url}/archive/%{version}/%{name}-%{version}.tar.gz
 
+Patch100:       librepo.sgifixes.patch
+
 BuildRequires:  cmake
 BuildRequires:  gcc
-BuildRequires:  check-devel
-BuildRequires:  doxygen
+#BuildRequires:  check-devel
+#BuildRequires:  doxygen
 BuildRequires:  pkgconfig(glib-2.0)
-BuildRequires:  gpgme-devel
-BuildRequires:  libattr-devel
+#BuildRequires:  gpgme-devel
+#BuildRequires:  libattr-devel
 BuildRequires:  libcurl-devel >= %{libcurl_version}
 BuildRequires:  pkgconfig(libxml-2.0)
 BuildRequires:  pkgconfig(libcrypto)
@@ -114,60 +116,72 @@ Python 3 bindings for the librepo library.
 %endif
 
 %prep
-%autosetup -p1
+%setup -q
+
+# A place to generate the sgug patch
+#exit 1
+
+%patch100 -p1
 
 mkdir build-py2
 mkdir build-py3
 
 %build
+export CC=mips-sgi-irix6.5-gcc
+export CXX=mips-sgi-irix6.5-g++
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CXXFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %if %{with python2}
-pushd build-py2
-  %cmake -DPYTHON_DESIRED:FILEPATH=%{__python2} %{!?with_zchunk:-DWITH_ZCHUNK=OFF} -DENABLE_PYTHON_TESTS=%{?with_pythontests:ON}%{!?with_pythontests:OFF} ..
+export PREV_WD=`pwd`
+cd build-py2
+  %cmake -DPYTHON_DESIRED:FILEPATH=%{__python2} %{!?with_zchunk:-DWITH_ZCHUNK=OFF} -DENABLE_PYTHON_TESTS=%{?with_pythontests:ON}%{!?with_pythontests:OFF} -DENABLE_DOCS=OFF ..
   %make_build
-popd
+cd $PREV_WD
 %endif
 
 %if %{with python3}
-pushd build-py3
-  %cmake -DPYTHON_DESIRED:FILEPATH=%{__python3} %{!?with_zchunk:-DWITH_ZCHUNK=OFF} -DENABLE_PYTHON_TESTS=%{?with_pythontests:ON}%{!?with_pythontests:OFF} ..
+cd build-py3
+  %cmake -DPYTHON_DESIRED:FILEPATH=%{__python3} %{!?with_zchunk:-DWITH_ZCHUNK=OFF} -DENABLE_PYTHON_TESTS=%{?with_pythontests:ON}%{!?with_pythontests:OFF} -DENABLE_DOCS=OFF ..
   %make_build
-popd
+cd $PREV_WD
 %endif
 
 %check
 %if %{with python2}
-pushd build-py2
+cd build-py2
   #ctest -VV
   make ARGS="-V" test
-popd
+cd $PREV_WD
 %endif
 
 %if %{with python3}
-pushd build-py3
+cd build-py3
   #ctest -VV
   make ARGS="-V" test
-popd
+cd $PREV_WD
 %endif
 
 %install
+export PREV_WD=`pwd`
 %if %{with python2}
-pushd build-py2
+cd build-py2
   %make_install
-popd
+cd $PREV_WD
 %endif
 
 %if %{with python3}
-pushd build-py3
+cd build-py3
   %make_install
-popd
+cd $PREV_WD
 %endif
 
-%if 0%{?rhel} && 0%{?rhel} <= 7
-%post -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
-%else
-%ldconfig_scriptlets
-%endif
+#%if 0%{?rhel} && 0%{?rhel} <= 7
+#%post -p /sbin/ldconfig
+#%postun -p /sbin/ldconfig
+#%else
+#%ldconfig_scriptlets
+#%endif
 
 %files
 %license COPYING
