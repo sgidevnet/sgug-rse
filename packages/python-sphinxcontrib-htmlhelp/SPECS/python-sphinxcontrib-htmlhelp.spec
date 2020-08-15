@@ -1,7 +1,7 @@
 %global pypi_name sphinxcontrib-htmlhelp
 
 # when bootstrapping sphinx, we cannot run tests yet
-%bcond_without check
+%bcond_with check
 
 Name:           python-%{pypi_name}
 Version:        1.0.1
@@ -50,7 +50,8 @@ done
 %py3_install
 
 # Move language files to /usr/share
-pushd %{buildroot}%{python3_sitelib}
+export PREV_WD=`pwd`
+cd %{buildroot}%{python3_sitelib}
 for lang in `find sphinxcontrib/htmlhelp/locales -maxdepth 1 -mindepth 1 -type d -not -path '*/\.*' -printf "%f "`;
 do
   test $lang == __pycache__ && continue
@@ -59,7 +60,7 @@ do
 done
 rm -rf sphinxcontrib/htmlhelp/locales
 ln -s %{_datadir}/locale sphinxcontrib/htmlhelp/locales
-popd
+cd $PREV_WD
 
 
 %find_lang sphinxcontrib.htmlhelp
