@@ -28,9 +28,7 @@ License:        BSD
 URL:            https://github.com/openSUSE/libsolv
 Source:         %{url}/archive/%{version}/%{name}-%{version}.tar.gz
 
-Patch1:         libsolv.fopencookiefallback.patch.new
-
-Patch100:       libsolv.sgifixes.patch.new
+Patch100:       libsolv.sgifixes.patch
 
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
@@ -51,6 +49,9 @@ BuildRequires:  libzstd-devel
 # -DENABLE_ZCHUNK_COMPRESSION=ON
 BuildRequires:  pkgconfig(zck)
 %endif
+
+Requires: libdicl >= 0.1.29
+BuildRequires: libdicl-devel >= 0.1.29
 
 %description
 A free package dependency solver using a satisfiability algorithm. The
@@ -146,10 +147,6 @@ Python 3 version.
 
 #exit 1
 
-%patch1 -p1
-
-#exit 1
-
 %patch100 -p1
 
 # A place to generate the sgug patch
@@ -161,10 +158,14 @@ perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" test/runtestcases.sh
 %build
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
-# We only use O2 - O3 causes a _very_ long compilation
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O2"
-#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O1"
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+
+#export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_FUNOPEN"
+
+# We only use O2 - O3 causes a _very_ long compilation (perl bindings)
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN -g -O2"
+#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN $RPM_OPT_FLAGS"
+
+export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1 $RPM_LD_FLAGS"
 %cmake . -B"%{_vpath_builddir}" -GNinja          \
   -DFEDORA=1                                     \
   -DENABLE_RPMDB=ON                              \
@@ -203,6 +204,8 @@ export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
   -DPYTHON_EXECUTABLE=%{__python3}               \
 %endif
 %endif
+  -DHAVE_FUNOPEN=1                               \
+  -DHAVE_QSORT_R=0                               \
   %{nil}
 %ninja_build -C "%{_vpath_builddir}"
 

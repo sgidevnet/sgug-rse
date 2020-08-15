@@ -1,6 +1,42 @@
-diff -u -r libsolv-0.7.14-orig/src/repopage.c libsolv-0.7.14/src/repopage.c
+diff -u -r -N libsolv-0.7.14-orig/bindings/solv.i libsolv-0.7.14/bindings/solv.i
+--- libsolv-0.7.14-orig/bindings/solv.i	2020-05-27 10:55:11.000000000 +0000
++++ libsolv-0.7.14/bindings/solv.i	2020-08-14 01:25:41.347111520 +0000
+@@ -4,6 +4,15 @@
+  * on the generated c code
+  */
+ 
++%begin %{
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++%}
++
+ %module solv
+ 
+ #ifdef SWIGRUBY
+diff -u -r -N libsolv-0.7.14-orig/ext/repo_products.c libsolv-0.7.14/ext/repo_products.c
+--- libsolv-0.7.14-orig/ext/repo_products.c	2020-05-27 10:55:11.000000000 +0000
++++ libsolv-0.7.14/ext/repo_products.c	2020-08-14 01:25:41.352617760 +0000
+@@ -11,6 +11,13 @@
+  * for further information
+  */
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++
+ #define _GNU_SOURCE
+ #define _XOPEN_SOURCE
+ #include <time.h>
+diff -u -r -N libsolv-0.7.14-orig/src/repopage.c libsolv-0.7.14/src/repopage.c
 --- libsolv-0.7.14-orig/src/repopage.c	2020-05-27 10:55:11.000000000 +0000
-+++ libsolv-0.7.14/src/repopage.c	2020-07-27 19:22:22.017187120 +0000
++++ libsolv-0.7.14/src/repopage.c	2020-08-14 01:25:41.354709760 +0000
 @@ -18,6 +18,13 @@
   * pages automatically get dropped.
   */

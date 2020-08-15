@@ -40,24 +40,24 @@ make check
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT prefix=%{_prefix} INSTALL='install -p'
-rm $RPM_BUILD_ROOT%{_libdir}/libdicl-0.1.la
+rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 %files
 #%%{!?_licensedir:%%global license %%doc}
 #%%license COPYING
 #%%doc README ChangeLog NEWS
-%{_libdir}/libdicl-0.1.so.*
+%{_libdir}/libdicl*.so.*
 
 %files devel
-%{_libdir}/libdicl-0.1.a
-%{_libdir}/libdicl-0.1.so
-%{_libdir}/pkgconfig/libdicl-0.1.pc
-%{_includedir}/libdicl-0.1
+%{_libdir}/libdicl*.a
+%{_libdir}/libdicl*.so
+%{_libdir}/pkgconfig/libdicl*.pc
+%{_includedir}/libdicl*
 
 
 %changelog
-* Mon Jun 27 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.29-1
-- Add dprintf, vdprintf
+* Sat Aug 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.29-1
+- Add dprintf, vdprintf, funopen impl/lib for libsolv
 
 * Thu Jun 18 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.28-1
 - Add strptime and strftime, switch to lgpl2.1
