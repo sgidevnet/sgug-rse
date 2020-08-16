@@ -40,7 +40,11 @@ export CONFIG_SHELL="$SHELL"
 %patch2 -p1 -b .gawk
 
 perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" autogen.sh
-perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" src/gpg-error-config-test.sh
+# The gpgrt-config script is _really_ slow with anything other than
+# bash - and it's still quite slow with that, too.
+perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" src/gpgrt-config
+perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" src/gpg-error-config.in
+perl -pi -e "s|/bin/sh|%{_bindir}/bash|g" src/gpg-error-config-test.sh
 
 autoreconf -f
 
