@@ -1,3 +1,5 @@
+#%%global __strip /bin/true
+
 Name:    libassuan
 Summary: GnuPG IPC library
 Version: 2.5.3
@@ -50,6 +52,7 @@ This package contains files needed to develop applications using %{name}.
 
 %build
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+#export CFLAGS="-g -O0"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %configure \
   --includedir=%{_includedir}/libassuan2

@@ -1,0 +1,67 @@
+diff -u -r libassuan-2.5.3-orig/src/assuan-defs.h libassuan-2.5.3/src/assuan-defs.h
+--- libassuan-2.5.3-orig/src/assuan-defs.h	2018-07-02 16:46:50.000000000 +0000
++++ libassuan-2.5.3/src/assuan-defs.h	2020-08-16 03:12:36.240969600 +0000
+@@ -55,6 +55,9 @@
+ 
+ #define LINELENGTH ASSUAN_LINELENGTH
+ 
++#if defined(__sgi)
++#define SCM_RIGHTS 0x01
++#endif
+ 
+ struct cmdtbl_s
+ {
+diff -u -r libassuan-2.5.3-orig/src/assuan-logging.c libassuan-2.5.3/src/assuan-logging.c
+--- libassuan-2.5.3-orig/src/assuan-logging.c	2017-11-15 15:35:09.000000000 +0000
++++ libassuan-2.5.3/src/assuan-logging.c	2020-08-16 03:12:43.306578680 +0000
+@@ -143,7 +143,11 @@
+ 
+   prf = assuan_get_assuan_log_prefix ();
+   if (*prf)
++#if defined(__sgi)
++    fprintf (fp, "%s[%ld]: ", prf, getpid ());
++#else
+     fprintf (fp, "%s[%u]: ", prf, (unsigned int)getpid ());
++#endif
+ 
+   fprintf (fp, "%s", msg);
+   /* If the log stream is a file, the output would be buffered.  This
+diff -u -r libassuan-2.5.3-orig/src/assuan-pipe-connect.c libassuan-2.5.3/src/assuan-pipe-connect.c
+--- libassuan-2.5.3-orig/src/assuan-pipe-connect.c	2017-11-15 15:35:41.000000000 +0000
++++ libassuan-2.5.3/src/assuan-pipe-connect.c	2020-08-16 03:12:36.266025920 +0000
+@@ -139,7 +139,11 @@
+        assuan server is able to read the actual pid of the client.
+        The server can't use getppid because it might have been double
+        forked before the assuan server has been initialized. */
++#if defined(__sgi)
++    sprintf (mypidstr, "%ld", atp->parent_pid);
++#else
+     sprintf (mypidstr, "%lu", (unsigned long) atp->parent_pid);
++#endif
+     setenv ("_assuan_pipe_connect_pid", mypidstr, 1);
+ 
+     /* Make sure that we never pass a connection fd variable when
+@@ -255,7 +259,11 @@
+        assuan server is able to read the actual pid of the client.
+        The server can't use getppid because it might have been double
+        forked before the assuan server has been initialized. */
++#if defined(__sgi)
++    sprintf (mypidstr, "%ld", atp->parent_pid);
++#else
+     sprintf (mypidstr, "%lu", (unsigned long) atp->parent_pid);
++#endif
+     setenv ("_assuan_pipe_connect_pid", mypidstr, 1);
+ 
+     /* Now set the environment variable used to convey the
+@@ -303,7 +311,11 @@
+   if (! ctx->flags.no_fixsignals)
+     fix_signals ();
+ 
++#if defined(__sgi)
++  sprintf (mypidstr, "%ld", getpid ());
++#else
+   sprintf (mypidstr, "%lu", (unsigned long)getpid ());
++#endif
+ 
+   if (fd_child_list)
+     while (fd_child_list[child_fds_cnt] != ASSUAN_INVALID_FD)
