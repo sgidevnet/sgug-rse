@@ -28,7 +28,7 @@ Patch20: gnupg-2.2.18-tests-add-test-cases-for-import-without-uid.patch
 Patch21: gnupg-2.2.18-gpg-allow-import-of-previously-known-keys-even-without-UI.patch
 Patch22: gnupg-2.2.18-gpg-accept-subkeys-with-a-good-revocation-but-no-self-sig.patch
 
-Patch100: gnupg.sgifixes.patch
+Patch100: gnupg2.sgifixes.patch
 
 URL:     http://www.gnupg.org/
 
