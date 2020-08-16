@@ -39,7 +39,7 @@ programs that use cppunit.
 
 %build
 #%%configure --enable-doxygen --disable-static --disable-silent-rules
-%configure --disable-doxygen --disable-static --disable-silent-rules
+%configure --disable-doxygen --disable-static --disable-silent-rules --disable-werror
 #sed -i \
 #    -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
 #    -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
