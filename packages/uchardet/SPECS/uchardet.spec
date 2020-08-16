@@ -31,6 +31,11 @@ for developing tools for uchardet.
 mkdir build
 
 %build
+export CC=mips-sgi-irix6.5-gcc
+export CXX=mips-sgi-irix6.5-g++
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 cd build
   %cmake .. \
     -DCMAKE_INSTALL_LIBDIR=%{_libdir} \
@@ -66,6 +71,9 @@ cd build
 %{_libdir}/pkgconfig/%{name}.pc
 
 %changelog
+* Sun Aug 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.6-9
+- Now we have cmake, get this working
+
 * Mon Apr 13 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.6-9
 - Pull into wip. Missing cmake.
 
