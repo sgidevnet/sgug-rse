@@ -1,3 +1,5 @@
+#%%global __strip /bin/true
+
 %global libcurl_version 7.28.0
 
 #%%if 0%%{?rhel} && 0%%{?rhel} <= 7
@@ -41,7 +43,7 @@ BuildRequires:  gcc
 #BuildRequires:  check-devel
 #BuildRequires:  doxygen
 BuildRequires:  pkgconfig(glib-2.0)
-#BuildRequires:  gpgme-devel
+BuildRequires:  gpgme-devel
 #BuildRequires:  libattr-devel
 BuildRequires:  libcurl-devel >= %{libcurl_version}
 BuildRequires:  pkgconfig(libxml-2.0)
@@ -118,10 +120,18 @@ Python 3 bindings for the librepo library.
 %prep
 %setup -q
 
-# A place to generate the sgug patch
 #exit 1
 
 %patch100 -p1
+
+# A place to generate the sgug patch
+#exit 1
+
+# Rewrite some hardcoded scripts maybe needed for testing
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" tests/run_tests.sh.in
+perl -pi -e "s|/LD_LIBRARY_PATH|LD_LIBRARYN32_PATH|g" tests/run_tests.sh.in
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" utils/cleanup.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" utils/make_rpm.sh
 
 mkdir build-py2
 mkdir build-py3
@@ -129,9 +139,12 @@ mkdir build-py3
 %build
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
+#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
 export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
-export CXXFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CXXFLAGS="$CFLAGS"
+#export LDFLAGS="-ldicl-0.1"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+
 %if %{with python2}
 export PREV_WD=`pwd`
 cd build-py2

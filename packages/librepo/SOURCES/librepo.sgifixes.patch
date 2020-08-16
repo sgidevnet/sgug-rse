@@ -1,6 +1,40 @@
+diff -u -r librepo-1.12.0-orig/librepo/checksum.c librepo-1.12.0/librepo/checksum.c
+--- librepo-1.12.0-orig/librepo/checksum.c	2020-05-15 08:43:49.000000000 +0000
++++ librepo-1.12.0/librepo/checksum.c	2020-08-16 15:01:49.296817040 +0000
+@@ -26,7 +26,11 @@
+ #include <errno.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#if defined(__sgi)
++#include <sys/attributes.h>
++#else
+ #include <sys/xattr.h>
++#endif
+ #include <unistd.h>
+ #include <openssl/evp.h>
+ 
+@@ -228,6 +232,9 @@
+                                   (unsigned long long) st.st_mtime);
+ #if __APPLE__
+             ssize_t attr_size = fgetxattr(fd, key, &buf, sizeof(buf), 0, 0);
++#elif defined(__sgi)
++	    int attrsize_int = sizeof(buf);
++            ssize_t attr_size = (attr_getf(fd, key, buf, &attrsize_int, 0) == -1 ? -1 : attrsize_int);
+ #else
+             ssize_t attr_size = fgetxattr(fd, key, &buf, sizeof(buf));
+ #endif
+@@ -259,6 +266,8 @@
+                                   (unsigned long long) st.st_mtime);
+ #if __APPLE__
+             fsetxattr(fd, key, checksum, strlen(checksum)+1, 0, 0);
++#elif defined(__sgi)
++            attr_setf(fd, key, checksum, strlen(checksum)+1, 0);
+ #else
+             fsetxattr(fd, key, checksum, strlen(checksum)+1, 0);
+ #endif
 diff -u -r librepo-1.12.0-orig/librepo/downloader.c librepo-1.12.0/librepo/downloader.c
 --- librepo-1.12.0-orig/librepo/downloader.c	2020-05-15 08:43:49.000000000 +0000
-+++ librepo-1.12.0/librepo/downloader.c	2020-08-15 12:27:07.046892320 +0000
++++ librepo-1.12.0/librepo/downloader.c	2020-08-16 15:01:49.311205120 +0000
 @@ -18,6 +18,13 @@
   * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
   */
@@ -36,17 +70,20 @@ diff -u -r librepo-1.12.0-orig/librepo/downloader.c librepo-1.12.0/librepo/downl
  #else
      int attr_ret = fsetxattr(fd, XATTR_LIBREPO, "1", 1, 0);
  #endif
-@@ -996,6 +1009,9 @@
+@@ -994,8 +1007,12 @@
+ static gboolean
+ has_librepo_xattr(int fd)
  {
++  char buf[1024];
  #if __APPLE__
      ssize_t attr_ret = fgetxattr(fd, XATTR_LIBREPO, NULL, 0, 0, 0);
 +#elif defined(__sgi)
-+    int valuelength;
-+    ssize_t attr_ret = attr_getf(fd, XATTR_LIBREPO, NULL, 0, 0);
++    int bufsize=sizeof(buf);
++    ssize_t attr_ret = (attr_getf(fd, XATTR_LIBREPO, buf, &bufsize, 0) == -1 ? -1 : bufsize);
  #else
      ssize_t attr_ret = fgetxattr(fd, XATTR_LIBREPO, NULL, 0);
  #endif
-@@ -1017,6 +1033,8 @@
+@@ -1017,6 +1034,8 @@
      if (fd != -1) {
  #if __APPLE__
          fremovexattr(fd, XATTR_LIBREPO, 0);
@@ -55,7 +92,7 @@ diff -u -r librepo-1.12.0-orig/librepo/downloader.c librepo-1.12.0/librepo/downl
  #else
          fremovexattr(fd, XATTR_LIBREPO);
  #endif
-@@ -1029,6 +1047,8 @@
+@@ -1029,6 +1048,8 @@
      }
  #if __APPLE__
      fremovexattr(fd, XATTR_LIBREPO, 0);
@@ -64,7 +101,7 @@ diff -u -r librepo-1.12.0-orig/librepo/downloader.c librepo-1.12.0/librepo/downl
  #else
      fremovexattr(fd, XATTR_LIBREPO);
  #endif
-@@ -2337,7 +2357,11 @@
+@@ -2337,7 +2358,11 @@
              curl_easy_getinfo(target->curl_handle, CURLINFO_FILETIME, &remote_filetime);
              if (remote_filetime >= 0) {
                  const struct timeval tv[] = {{remote_filetime, 0}, {remote_filetime, 0}};
@@ -76,3 +113,121 @@ diff -u -r librepo-1.12.0-orig/librepo/downloader.c librepo-1.12.0/librepo/downl
                      g_debug("%s: Failed to change timestamps of downloaded file.", __func__);
              } else {
                  g_debug("%s: Unable to get remote time of retrieved document \"%s\"",
+diff -u -r librepo-1.12.0-orig/librepo/gpg.c librepo-1.12.0/librepo/gpg.c
+--- librepo-1.12.0-orig/librepo/gpg.c	2020-05-15 08:43:49.000000000 +0000
++++ librepo-1.12.0/librepo/gpg.c	2020-08-16 15:03:00.996526920 +0000
+@@ -54,7 +54,11 @@
+  */
+ void ensure_socket_dir_exists() {
+     char dirname[32];
++#if defined(__sgi)
++    snprintf(dirname, sizeof(dirname), "/run/user/%ld", getuid());
++#else
+     snprintf(dirname, sizeof(dirname), "/run/user/%u", getuid());
++#endif
+     int res = mkdir(dirname, 0700);
+     if (res != 0 && errno != EEXIST) {
+         g_debug("Failed to create \"%s\": %d - %s\n", dirname, errno, strerror(errno));
+diff -u -r librepo-1.12.0-orig/librepo/handle.c librepo-1.12.0/librepo/handle.c
+--- librepo-1.12.0-orig/librepo/handle.c	2020-05-15 08:43:49.000000000 +0000
++++ librepo-1.12.0/librepo/handle.c	2020-08-16 15:01:49.314514560 +0000
+@@ -18,6 +18,14 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#include <sys/stat.h>
++#endif
++
+ #define _POSIX_C_SOURCE 200809L
+ #define _BSD_SOURCE
+ 
+diff -u -r librepo-1.12.0-orig/librepo/mirrorlist.c librepo-1.12.0/librepo/mirrorlist.c
+--- librepo-1.12.0-orig/librepo/mirrorlist.c	2020-05-15 08:43:49.000000000 +0000
++++ librepo-1.12.0/librepo/mirrorlist.c	2020-08-16 15:01:49.315911360 +0000
+@@ -18,6 +18,14 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#include <sys/stat.h>
++#endif
++
+ #define _POSIX_SOURCE
+ 
+ #include <errno.h>
+diff -u -r librepo-1.12.0-orig/librepo/python/metadatatarget-py.c librepo-1.12.0/librepo/python/metadatatarget-py.c
+--- librepo-1.12.0-orig/librepo/python/metadatatarget-py.c	2020-05-15 08:43:49.000000000 +0000
++++ librepo-1.12.0/librepo/python/metadatatarget-py.c	2020-08-16 15:01:49.317673440 +0000
+@@ -18,7 +18,10 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ 
+ #include "librepo/librepo.h"
+ #include "librepo/downloader_internal.h"
+diff -u -r librepo-1.12.0-orig/librepo/yum.c librepo-1.12.0/librepo/yum.c
+--- librepo-1.12.0-orig/librepo/yum.c	2020-05-15 08:43:49.000000000 +0000
++++ librepo-1.12.0/librepo/yum.c	2020-08-16 15:01:49.320276400 +0000
+@@ -18,6 +18,14 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++#if defined(__sgi)
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#include <sys/stat.h>
++#endif
++
+ #define _POSIX_SOURCE
+ #define _DEFAULT_SOURCE
+ #define  BITS_IN_BYTE 8
+diff -u -r librepo-1.12.0-orig/tests/test_checksum.c librepo-1.12.0/tests/test_checksum.c
+--- librepo-1.12.0-orig/tests/test_checksum.c	2020-05-15 08:43:49.000000000 +0000
++++ librepo-1.12.0/tests/test_checksum.c	2020-08-16 15:01:49.321969440 +0000
+@@ -6,7 +6,11 @@
+ #include <string.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#if defined(__sgi)
++#include <sys/attributes.h>
++#else
+ #include <sys/xattr.h>
++#endif
+ #include <fcntl.h>
+ 
+ #include "librepo/util.h"
+@@ -115,6 +119,9 @@
+                           (unsigned long long) st.st_mtime);
+ #if __APPLE__
+     attr_ret = getxattr(filename, key, &buf, sizeof(buf), 0, 0);
++#elif defined(__sgi)
++    int attrsize_int = sizeof(buf);
++    attr_ret = (attr_get(filename, key, buf, &attrsize_int, 0) == -1 ? -1 : attrsize_int);
+ #else
+     attr_ret = getxattr(filename, key, &buf, sizeof(buf));
+ #endif
+@@ -142,6 +149,9 @@
+                           (unsigned long long) st.st_mtime);
+ #if __APPLE__
+     attr_ret = getxattr(filename, key, &buf, sizeof(buf), 0, 0);
++#elif defined(__sgi)
++    attrsize_int = sizeof(buf);
++    attr_ret = (attr_get(filename, key, buf, &attrsize_int, 0) == -1 ? -1 : attrsize_int);
+ #else
+     attr_ret = getxattr(filename, key, &buf, sizeof(buf));
+ #endif
