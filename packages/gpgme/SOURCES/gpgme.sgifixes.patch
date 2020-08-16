@@ -1,0 +1,15 @@
+diff -u -r gpgme-1.13.1-orig/tests/gpg/t-eventloop.c gpgme-1.13.1/tests/gpg/t-eventloop.c
+--- gpgme-1.13.1-orig/tests/gpg/t-eventloop.c	2018-12-03 09:37:25.000000000 +0000
++++ gpgme-1.13.1/tests/gpg/t-eventloop.c	2020-08-15 16:09:03.877610840 +0000
+@@ -19,6 +19,11 @@
+  * SPDX-License-Identifier: LGPL-2.1-or-later
+  */
+ 
++#if defined(__sgi)
++#include <time.h>
++#include <sys/time.h>
++#endif
++
+ /* We need to include config.h so that we know whether we are building
+    with large file system (LFS) support. */
+ #ifdef HAVE_CONFIG_H
