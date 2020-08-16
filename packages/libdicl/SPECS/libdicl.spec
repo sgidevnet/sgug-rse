@@ -4,7 +4,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.30
+Version: 0.1.31
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -56,6 +56,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 
 %changelog
+* Sun Aug 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.31-1
+- Fix longstanding issue with rpl_select causing uknown fd_set compilation problems
+
 * Sat Aug 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.30-1
 - Bug fix and little optimisation to funopen bits.
 
