@@ -1,3 +1,5 @@
+#%%global __strip /bin/true
+
 Name:           check
 Version:        0.12.0
 Release:        5%{?dist}
@@ -71,7 +73,10 @@ autoreconf -ivf
 
 %build
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+#export CFLAGS="-g -O0"
+#export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+#export LDFLAGS="-ldicl-0.1"
 %configure --disable-timeout-tests
 
 # Get rid of undesirable hardcoded rpaths
