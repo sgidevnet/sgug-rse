@@ -4,7 +4,7 @@ Version: 2.0.3
 %forgemeta
 
 #https://src.fedoraproject.org/rpms/redhat-rpm-config/pull-request/51
-%global _spectemplatedir %{_datadir}/rpmdevtools/fedora
+%global _spectemplatedir %{_datadir}/rpmdevtools/sgug
 %global _docdir_fmt     %{name}
 %global ftcgtemplatedir %{_datadir}/fontconfig/templates
 
@@ -17,7 +17,7 @@ Version: 2.0.3
 BuildArch: noarch
 
 Name:      fonts-rpm-macros
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Build-stage rpm automation for fonts packages
 
 License:   GPLv3+
@@ -33,7 +33,7 @@ Obsoletes: fontpackages-devel < %{version}-%{release}
 Obsoletes: fontpackages-tools < %{version}-%{release}
 
 Requires:  fontconfig
-Requires:  libappstream-glib
+#Requires:  libappstream-glib
 Requires:  uchardet
 
 # For the experimental generator
@@ -112,38 +112,38 @@ install -m 0644 -vp   templates/fontconfig/*{conf,txt} \
 install -m 0755 -vd   %{buildroot}%{rpmmacrodir}
 install -m 0644 -vp   rpm/macros.d/macros.fonts-* \
                       %{buildroot}%{rpmmacrodir}
-install -m 0755 -vd   %{buildroot}%{_rpmluadir}/fedora/srpm
+install -m 0755 -vd   %{buildroot}%{_rpmluadir}/sgug/srpm
 install -m 0644 -vp   rpm/lua/srpm/*lua \
-                      %{buildroot}%{_rpmluadir}/fedora/srpm
-install -m 0755 -vd   %{buildroot}%{_rpmluadir}/fedora/rpm
+                      %{buildroot}%{_rpmluadir}/sgug/srpm
+install -m 0755 -vd   %{buildroot}%{_rpmluadir}/sgug/rpm
 install -m 0644 -vp   rpm/lua/rpm/*lua \
-                      %{buildroot}%{_rpmluadir}/fedora/rpm
+                      %{buildroot}%{_rpmluadir}/sgug/rpm
 
 install -m 0755 -vd   %{buildroot}%{_bindir}
 install -m 0755 -vp   bin/* %{buildroot}%{_bindir}
 
 # For now remove the files that should be in the RPMs we can't yet use
 # due to more python madness.
-rm $RPM_BUILD_ROOT%{_bindir}/*
-rm $RPM_BUILD_ROOT%{rpmmacrodir}/macros.fonts-rpm*
-rm $RPM_BUILD_ROOT%{_rpmluadir}/fedora/rpm/*.lua
+#rm $RPM_BUILD_ROOT%{_bindir}/*
+#rm $RPM_BUILD_ROOT%{rpmmacrodir}/macros.fonts-rpm*
+#rm $RPM_BUILD_ROOT%{_rpmluadir}/sgug/rpm/*.lua
 #rm $RPM_BUILD_ROOT/LICENSE-templates.txt
 #rm $RPM_BUILD_ROOT/ *.md changelog.txt
 rm $RPM_BUILD_ROOT%{_spectemplatedir}/*.spec
 rm $RPM_BUILD_ROOT%{ftcgtemplatedir}/*conf
 rm $RPM_BUILD_ROOT%{ftcgtemplatedir}/*txt
 
-#%files
-#%license LICENSE.txt
-#%{_bindir}/*
-#%{rpmmacrodir}/macros.fonts-rpm*
-#%{_rpmluadir}/fedora/rpm/*.lua
+%files
+%license LICENSE.txt
+%{_bindir}/*
+%{rpmmacrodir}/macros.fonts-rpm*
+%{_rpmluadir}/sgug/rpm/*.lua
 
 %files -n fonts-srpm-macros
 %license LICENSE.txt
 %doc     *.md changelog.txt
 %{rpmmacrodir}/macros.fonts-srpm*
-%{_rpmluadir}/fedora/srpm/*.lua
+%{_rpmluadir}/sgug/srpm/*.lua
 
 %files -n fonts-filesystem
 %dir %{_datadir}/fontconfig
@@ -161,8 +161,11 @@ rm $RPM_BUILD_ROOT%{ftcgtemplatedir}/*txt
 #%doc %{ftcgtemplatedir}/*txt
 
 %changelog
+* Sun Aug 16 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.3-2
+- Re-enable the rpm-macros package
+
 * Mon Apr 13 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.3-1
-✅ Import into wip, disable packages needing tree of python deps
+- Import into wip, disable packages needing tree of python deps
 
 * Sat Feb 29 2020 Nicolas Mailhot <nim@fedoraproject.org>
 - 2.0.3-1
