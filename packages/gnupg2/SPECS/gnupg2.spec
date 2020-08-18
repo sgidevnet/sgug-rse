@@ -1,3 +1,5 @@
+#%%global __strip /bin/true
+
 %if 0%{?fedora} && 0%{?fedora} < 30
 %bcond_with unversioned_gpg
 %else
