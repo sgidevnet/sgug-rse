@@ -137,6 +137,9 @@ Obsoletes:      platform-python-gpg < %{version}-%{release}
 # https://github.com/gpg/gpgme/pull/4
 sed -i 's/3.8/%{python3_version}/g' configure
 
+# A place to generate the sgug patch
+#exit 1
+
 # Rewrite hardcoded /bin/sh paths in the tests
 perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" tests/start-stop-agent
 perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" tests/gpg/initial.test
@@ -148,8 +151,6 @@ perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" tests/gpgsm/final.test
 perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" tests/json/initial.test
 perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" tests/json/final.test
 
-#exit 1
-
 %build
 # People neeed to learn that you can't run autogen.sh anymore
 #./autogen.sh
@@ -158,7 +159,10 @@ perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" tests/json/final.test
 
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 #CFLAGS="-g -O0 -I%{_includedir}/libassuan2"
+#CXXFLAGS="-g -O0"
 CFLAGS="$RPM_OPT_FLAGS -I%{_includedir}/libassuan2"
+CXXFLAGS="$RPM_OPT_FLAGS"
+#export LDFLAGS="-ldicl-0.1"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 
 #%%configure --disable-static --disable-silent-rules --enable-languages=cpp,qt,python
