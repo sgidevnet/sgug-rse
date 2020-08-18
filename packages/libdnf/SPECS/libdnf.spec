@@ -1,3 +1,5 @@
+%global __strip /bin/true
+
 %global libsolv_version 0.7.7
 %global libmodulemd_version 2.5.0
 %global librepo_version 1.12.0
@@ -27,12 +29,12 @@
 %bcond_without python3
 %endif
 
-%if 0%{?rhel} > 7 || 0%{?fedora} > 29
+#%%if 0%%{?rhel} > 7 || 0%%{?fedora} > 29
 # Disable python2 build by default
 %bcond_with python2
-%else
-%bcond_without python2
-%endif
+#%%else
+#%%bcond_without python2
+#%%endif
 
 %if 0%{?rhel} && ! 0%{?centos}
 %bcond_without rhsm
@@ -60,6 +62,8 @@ License:        LGPLv2+
 URL:            https://github.com/rpm-software-management/libdnf
 Source0:        %{url}/archive/%{version}/%{name}-%{version}.tar.gz
 
+Patch100:       libdnf.sgifixes.patch
+
 BuildRequires:  cmake
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
@@ -70,7 +74,7 @@ BuildRequires:  pkgconfig(check)
 BuildRequires:  valgrind
 %endif
 BuildRequires:  pkgconfig(gio-unix-2.0) >= 2.46.0
-BuildRequires:  pkgconfig(gtk-doc)
+#BuildRequires:  pkgconfig(gtk-doc)
 BuildRequires:  rpm-devel >= 4.11.0
 %if %{with rhsm}
 BuildRequires:  pkgconfig(librhsm) >= 0.0.3
@@ -83,7 +87,7 @@ BuildRequires:  pkgconfig(json-c)
 BuildRequires:  pkgconfig(cppunit)
 BuildRequires:  pkgconfig(libcrypto)
 BuildRequires:  pkgconfig(modulemd-2.0) >= %{libmodulemd_version}
-BuildRequires:  pkgconfig(smartcols)
+#BuildRequires:  pkgconfig(smartcols)
 BuildRequires:  gettext
 BuildRequires:  gpgme-devel
 
@@ -200,76 +204,98 @@ mkdir build-py2
 mkdir build-py3
 %endif
 
+#exit 1
+
+# A place to generate sgug patch
+#%%patch100 -p1
+
+#exit 1
+
 %build
+export CC=mips-sgi-irix6.5-gcc
+export CXX=mips-sgi-irix6.5-g++
+#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_FUNOPEN -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
+#export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_FUNOPEN -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CXXFLAGS="$CFLAGS"
+#export LDFLAGS="-ldicl-0.1"
+export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1"
+#export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1 $RPM_LD_FLAGS"
 %if %{with python2}
-pushd build-py2
+export PREV_WD=`pwd`
+cd build-py2
   %if 0%{?mageia} || 0%{?suse_version}
     cd ..
     %define _cmake_builddir build-py2
     %define __builddir build-py2
   %endif
   %cmake -DPYTHON_DESIRED:FILEPATH=%{__python2} -DWITH_MAN=OFF ../ %{!?with_zchunk:-DWITH_ZCHUNK=OFF} %{!?with_valgrind:-DDISABLE_VALGRIND=1} %{_cmake_opts} -DLIBDNF_MAJOR_VERSION=%{libdnf_major_version} -DLIBDNF_MINOR_VERSION=%{libdnf_minor_version} -DLIBDNF_MICRO_VERSION=%{libdnf_micro_version} \
-    -DWITH_SANITIZERS=%{?with_sanitizers:ON}%{!?with_sanitizers:OFF}
+    -DWITH_SANITIZERS=%{?with_sanitizers:ON}%{!?with_sanitizers:OFF} \
+    -DWITH_GTKDOC=OFF
   %make_build
-popd
+cd $PREV_WD
 %endif
 # endif with python2
 
 %if %{with python3}
-pushd build-py3
+export PREV_WD=`pwd`
+cd build-py3
   %if 0%{?mageia} || 0%{?suse_version}
     cd ..
     %define _cmake_builddir build-py3
     %define __builddir build-py3
   %endif
   %cmake -DPYTHON_DESIRED:FILEPATH=%{__python3} -DWITH_GIR=0 -DWITH_MAN=0 -Dgtkdoc=0 ../ %{!?with_zchunk:-DWITH_ZCHUNK=OFF} %{!?with_valgrind:-DDISABLE_VALGRIND=1} %{_cmake_opts} -DLIBDNF_MAJOR_VERSION=%{libdnf_major_version} -DLIBDNF_MINOR_VERSION=%{libdnf_minor_version} -DLIBDNF_MICRO_VERSION=%{libdnf_micro_version} \
-    -DWITH_SANITIZERS=%{?with_sanitizers:ON}%{!?with_sanitizers:OFF}
+    -DWITH_SANITIZERS=%{?with_sanitizers:ON}%{!?with_sanitizers:OFF} \
+    -DWITH_GTKDOC=OFF
   %make_build
-popd
+cd $PREV_WD
 %endif
 
 %check
+export PREV_WD=`pwd`
 %if %{with python2}
-pushd build-py2
+cd build-py2
   make ARGS="-V" test
-popd
+cd
 %endif
 %if %{with python3}
 # If we didn't run the general tests yet, do it now.
 %if %{without python2}
-pushd build-py3
+cd build-py3
   make ARGS="-V" test
-popd
+cd $PREV_WD
 %else
 # Otherwise, run just the Python tests, not all of
 # them, since we have coverage of the core from the
 # first build
-pushd build-py3/python/hawkey/tests
+cd build-py3/python/hawkey/tests
   make ARGS="-V" test
-popd
+cd $PREV_WD
 %endif
 %endif
 
 %install
+export PREV_WD=`pwd`
 %if %{with python2}
-pushd build-py2
+cd build-py2
   %make_install
-popd
+cd $PREV_WD
 %endif
 %if %{with python3}
-pushd build-py3
+cd build-py3
   %make_install
-popd
+cd $PREV_WD
 %endif
 
 %find_lang %{name}
 
-%if (0%{?rhel} && 0%{?rhel} <= 7) || 0%{?suse_version}
-%post -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
-%else
-%ldconfig_scriptlets
-%endif
+#%if (0%{?rhel} && 0%{?rhel} <= 7) || 0%{?suse_version}
+#%post -p /sbin/ldconfig
+#%postun -p /sbin/ldconfig
+#%else
+#%ldconfig_scriptlets
+#%endif
 
 %files -f %{name}.lang
 %license COPYING
@@ -280,7 +306,7 @@ popd
 %{_libdir}/libdnf/plugins/README
 
 %files devel
-%doc %{_datadir}/gtk-doc/html/%{name}/
+#%%doc %%{_datadir}/gtk-doc/html/%%{name}/
 %{_libdir}/%{name}.so
 %{_libdir}/pkgconfig/%{name}.pc
 %{_includedir}/%{name}/

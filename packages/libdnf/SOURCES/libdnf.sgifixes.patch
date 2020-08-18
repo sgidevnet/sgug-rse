@@ -1,0 +1,208 @@
+diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo.cpp libdnf-0.48.0/libdnf/dnf-repo.cpp
+--- libdnf-0.48.0-orig/libdnf/dnf-repo.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/dnf-repo.cpp	2020-08-16 21:23:01.988559960 +0000
+@@ -2402,7 +2402,7 @@
+ 
+     try {
+         auto mdfile = libdnf::File::newFile(path);
+-        mdfile->open("r");
++        mdfile->dnfopen("r");
+         const auto &fcontent = mdfile->getContent();
+         mdfile->close();
+         auto data = g_malloc(fcontent.length());
+diff -u -r libdnf-0.48.0-orig/libdnf/hy-iutil.cpp libdnf-0.48.0/libdnf/hy-iutil.cpp
+--- libdnf-0.48.0-orig/libdnf/hy-iutil.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/hy-iutil.cpp	2020-08-16 21:23:01.990621240 +0000
+@@ -22,7 +22,9 @@
+ #include <errno.h>
+ #include <dirent.h>
+ #include <fcntl.h>
++#if !defined(__sgi)
+ #include <linux/limits.h>
++#endif
+ #include <pwd.h>
+ #include <unistd.h>
+ #include <stdio.h>
+diff -u -r libdnf-0.48.0-orig/libdnf/hy-util.cpp libdnf-0.48.0/libdnf/hy-util.cpp
+--- libdnf-0.48.0-orig/libdnf/hy-util.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/hy-util.cpp	2020-08-16 21:23:01.992514520 +0000
+@@ -24,7 +24,9 @@
+ #include <ctype.h>
+ #include <sys/utsname.h>
+ #include <sys/stat.h>
++#if !defined(__sgi)
+ #include <sys/auxv.h>
++#endif
+ 
+ // hawkey
+ #include "dnf-types.h"
+@@ -101,6 +103,7 @@
+     if (uname(&un) < 0)
+         return DNF_ERROR_FAILED;
+ 
++#if !defined(__sgi)
+     if (!strncmp(un.machine, "armv", 4)) {
+         /* un.machine is armvXE, where X is version number and E is
+          * endianness (b or l); we need to add modifiers such as
+@@ -118,6 +121,8 @@
+         *modifier++ = endian;
+         *modifier = 0;
+     }
++#endif
++
+ #ifdef __MIPSEL__
+     if (!strcmp(un.machine, "mips"))
+         strcpy(un.machine, "mipsel");
+diff -u -r libdnf-0.48.0-orig/libdnf/module/ModulePackage.cpp libdnf-0.48.0/libdnf/module/ModulePackage.cpp
+--- libdnf-0.48.0-orig/libdnf/module/ModulePackage.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/module/ModulePackage.cpp	2020-08-16 21:23:01.994510280 +0000
+@@ -405,7 +405,7 @@
+ static std::pair<std::string, std::string> getPlatformStream(const std::string &osReleasePath)
+ {
+     auto file = File::newFile(osReleasePath);
+-    file->open("r");
++    file->dnfopen("r");
+     std::string line;
+     while (file->readLine(line)) {
+         if (line.find("PLATFORM_ID") != std::string::npos) {
+diff -u -r libdnf-0.48.0-orig/libdnf/module/ModulePackageContainer.cpp libdnf-0.48.0/libdnf/module/ModulePackageContainer.cpp
+--- libdnf-0.48.0-orig/libdnf/module/ModulePackageContainer.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/module/ModulePackageContainer.cpp	2020-08-16 21:23:01.998703400 +0000
+@@ -103,7 +103,7 @@
+ {
+     auto yaml = File::newFile(filePath);
+ 
+-    yaml->open("r");
++    yaml->dnfopen("r");
+     const auto &yamlContent = yaml->getContent();
+     yaml->close();
+ 
+diff -u -r libdnf-0.48.0-orig/libdnf/plugin/plugin.cpp libdnf-0.48.0/libdnf/plugin/plugin.cpp
+--- libdnf-0.48.0-orig/libdnf/plugin/plugin.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/plugin/plugin.cpp	2020-08-16 21:23:02.000232120 +0000
+@@ -98,7 +98,11 @@
+         dirPath.push_back('/');
+     struct dirent **namelist;
+     auto count = scandir(dirPath.c_str(), &namelist,
++#if defined(__sgi)
++                         [](struct dirent *dent)->int{return string::endsWith(dent->d_name, ".so");},
++#else
+                          [](const struct dirent *dent)->int{return string::endsWith(dent->d_name, ".so");},
++#endif
+                          alphasort);
+     if (count == -1) {
+         int errnum = errno;
+diff -u -r libdnf-0.48.0-orig/libdnf/repo/Repo.cpp libdnf-0.48.0/libdnf/repo/Repo.cpp
+--- libdnf-0.48.0-orig/libdnf/repo/Repo.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/repo/Repo.cpp	2020-08-16 21:23:02.004214200 +0000
+@@ -420,7 +420,7 @@
+     if (path.empty()) return "";
+ 
+     auto mdfile = File::newFile(path);
+-    mdfile->open("r");
++    mdfile->dnfopen("r");
+     const auto &content = mdfile->getContent();
+     mdfile->close();
+     return content;
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/CompressedFile.cpp libdnf-0.48.0/libdnf/utils/CompressedFile.cpp
+--- libdnf-0.48.0-orig/libdnf/utils/CompressedFile.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/CompressedFile.cpp	2020-08-16 21:23:02.005689400 +0000
+@@ -16,7 +16,7 @@
+ 
+ CompressedFile::~CompressedFile() = default;
+ 
+-void CompressedFile::open(const char *mode)
++void CompressedFile::dnfopen(const char *mode)
+ {
+     // There are situations when solv_xfopen returns NULL but it does not set errno.
+     // In this case errno value is random, so we set a default value.
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/CompressedFile.hpp libdnf-0.48.0/libdnf/utils/CompressedFile.hpp
+--- libdnf-0.48.0-orig/libdnf/utils/CompressedFile.hpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/CompressedFile.hpp	2020-08-16 21:23:02.006924440 +0000
+@@ -11,7 +11,7 @@
+     explicit CompressedFile(const std::string &filePath);
+     ~CompressedFile() override;
+ 
+-    void open(const char *mode) override;
++    void dnfopen(const char *mode) override;
+ 
+     std::string getContent() override;
+ };
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/File.cpp libdnf-0.48.0/libdnf/utils/File.cpp
+--- libdnf-0.48.0-orig/libdnf/utils/File.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/File.cpp	2020-08-16 21:23:02.008111400 +0000
+@@ -40,7 +40,7 @@
+     } catch (IOError &) {}
+ }
+ 
+-void File::open(const char *mode)
++void File::dnfopen(const char *mode)
+ {
+     file = fopen(filePath.c_str(), mode);
+     if (!file) {
+@@ -72,6 +72,14 @@
+     return ret;
+ }
+ 
++#if defined(__sgi)
++#undef getline
++#define getline rpl_getline
++extern "C" {
++export ssize_t rpl_getline(char **, size_t *, FILE*);
++}
++#endif
++
+ bool File::readLine(std::string &line)
+ {
+     char *buffer = nullptr;
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/File.hpp libdnf-0.48.0/libdnf/utils/File.hpp
+--- libdnf-0.48.0-orig/libdnf/utils/File.hpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/File.hpp	2020-08-16 21:23:02.009206440 +0000
+@@ -47,7 +47,7 @@
+     File & operator=(const File&) = delete;
+     virtual ~File();
+ 
+-    virtual void open(const char *mode);
++    virtual void dnfopen(const char *mode);
+     void close();
+ 
+     size_t read(char *buffer, size_t count);
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/os-release.cpp libdnf-0.48.0/libdnf/utils/os-release.cpp
+--- libdnf-0.48.0-orig/libdnf/utils/os-release.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/os-release.cpp	2020-08-16 21:23:02.010453560 +0000
+@@ -50,7 +50,7 @@
+     std::string path = *it;
+ 
+     auto file = libdnf::File::newFile(path);
+-    file->open("r");
++    file->dnfopen("r");
+     std::string line;
+     while (file->readLine(line)) {
+         // remove trailing spaces and newline
+diff -u -r libdnf-0.48.0-orig/tests/CMakeLists.txt libdnf-0.48.0/tests/CMakeLists.txt
+--- libdnf-0.48.0-orig/tests/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/tests/CMakeLists.txt	2020-08-16 21:23:36.298017360 +0000
+@@ -18,4 +18,4 @@
+ target_link_libraries(run_tests libdnf cppunit)
+ 
+ add_test(NAME test_cpp COMMAND ${CMAKE_CURRENT_BINARY_DIR}/run_tests DEPENDS run_tests COMMENT "Running CPPUNIT tests...")
+-set_property(TEST test_cpp PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/libdnf")
++set_property(TEST test_cpp PROPERTY ENVIRONMENT "LD_LIBRARYN32_PATH=${CMAKE_BINARY_DIR}/libdnf:$ENV{LD_LIBRARYN32_PATH}")
+diff -u -r libdnf-0.48.0-orig/tests/hawkey/CMakeLists.txt libdnf-0.48.0/tests/hawkey/CMakeLists.txt
+--- libdnf-0.48.0-orig/tests/hawkey/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/tests/hawkey/CMakeLists.txt	2020-08-16 21:23:48.434063360 +0000
+@@ -34,4 +34,4 @@
+     ${RPMDB_LIBRARY}
+ )
+ add_test(test_hawkey_main test_hawkey_main "${CMAKE_CURRENT_SOURCE_DIR}/data/tests/hawkey/")
+-set_property(TEST test_hawkey_main PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/libdnf")
++set_property(TEST test_hawkey_main PROPERTY ENVIRONMENT "LD_LIBRARYN32_PATH=${CMAKE_BINARY_DIR}/libdnf:$ENV{LD_LIBRARYN32_PATH}")
+diff -u -r libdnf-0.48.0-orig/tests/libdnf/CMakeLists.txt libdnf-0.48.0/tests/libdnf/CMakeLists.txt
+--- libdnf-0.48.0-orig/tests/libdnf/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/tests/libdnf/CMakeLists.txt	2020-08-16 21:23:05.795240920 +0000
+@@ -15,4 +15,4 @@
+ )
+ 
+ add_test(test_libdnf_main test_libdnf_main)
+-set_property(TEST test_libdnf_main PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/libdnf")
++set_property(TEST test_libdnf_main PROPERTY ENVIRONMENT "LD_LIBRARYN32_PATH=${CMAKE_BINARY_DIR}/libdnf:$ENV{LD_LIBRARYN32_PATH}")
