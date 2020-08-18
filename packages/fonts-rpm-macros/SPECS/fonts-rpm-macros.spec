@@ -112,12 +112,12 @@ install -m 0644 -vp   templates/fontconfig/*{conf,txt} \
 install -m 0755 -vd   %{buildroot}%{rpmmacrodir}
 install -m 0644 -vp   rpm/macros.d/macros.fonts-* \
                       %{buildroot}%{rpmmacrodir}
-install -m 0755 -vd   %{buildroot}%{_rpmluadir}/sgug/srpm
+install -m 0755 -vd   %{buildroot}%{_rpmluadir}/fedora/srpm
 install -m 0644 -vp   rpm/lua/srpm/*lua \
-                      %{buildroot}%{_rpmluadir}/sgug/srpm
-install -m 0755 -vd   %{buildroot}%{_rpmluadir}/sgug/rpm
+                      %{buildroot}%{_rpmluadir}/fedora/srpm
+install -m 0755 -vd   %{buildroot}%{_rpmluadir}/fedora/rpm
 install -m 0644 -vp   rpm/lua/rpm/*lua \
-                      %{buildroot}%{_rpmluadir}/sgug/rpm
+                      %{buildroot}%{_rpmluadir}/fedora/rpm
 
 install -m 0755 -vd   %{buildroot}%{_bindir}
 install -m 0755 -vp   bin/* %{buildroot}%{_bindir}
@@ -126,7 +126,7 @@ install -m 0755 -vp   bin/* %{buildroot}%{_bindir}
 # due to more python madness.
 #rm $RPM_BUILD_ROOT%{_bindir}/*
 #rm $RPM_BUILD_ROOT%{rpmmacrodir}/macros.fonts-rpm*
-#rm $RPM_BUILD_ROOT%{_rpmluadir}/sgug/rpm/*.lua
+#rm $RPM_BUILD_ROOT%{_rpmluadir}/fedora/rpm/*.lua
 #rm $RPM_BUILD_ROOT/LICENSE-templates.txt
 #rm $RPM_BUILD_ROOT/ *.md changelog.txt
 rm $RPM_BUILD_ROOT%{_spectemplatedir}/*.spec
@@ -137,13 +137,13 @@ rm $RPM_BUILD_ROOT%{ftcgtemplatedir}/*txt
 %license LICENSE.txt
 %{_bindir}/*
 %{rpmmacrodir}/macros.fonts-rpm*
-%{_rpmluadir}/sgug/rpm/*.lua
+%{_rpmluadir}/fedora/rpm/*.lua
 
 %files -n fonts-srpm-macros
 %license LICENSE.txt
 %doc     *.md changelog.txt
 %{rpmmacrodir}/macros.fonts-srpm*
-%{_rpmluadir}/sgug/srpm/*.lua
+%{_rpmluadir}/fedora/srpm/*.lua
 
 %files -n fonts-filesystem
 %dir %{_datadir}/fontconfig
