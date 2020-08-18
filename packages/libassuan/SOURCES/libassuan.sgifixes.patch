@@ -1,6 +1,6 @@
 diff -u -r libassuan-2.5.3-orig/src/assuan-defs.h libassuan-2.5.3/src/assuan-defs.h
 --- libassuan-2.5.3-orig/src/assuan-defs.h	2018-07-02 16:46:50.000000000 +0000
-+++ libassuan-2.5.3/src/assuan-defs.h	2020-08-16 03:12:36.240969600 +0000
++++ libassuan-2.5.3/src/assuan-defs.h	2020-08-18 04:56:25.017993320 +0000
 @@ -55,6 +55,9 @@
  
  #define LINELENGTH ASSUAN_LINELENGTH
@@ -13,7 +13,7 @@ diff -u -r libassuan-2.5.3-orig/src/assuan-defs.h libassuan-2.5.3/src/assuan-def
  {
 diff -u -r libassuan-2.5.3-orig/src/assuan-logging.c libassuan-2.5.3/src/assuan-logging.c
 --- libassuan-2.5.3-orig/src/assuan-logging.c	2017-11-15 15:35:09.000000000 +0000
-+++ libassuan-2.5.3/src/assuan-logging.c	2020-08-16 03:12:43.306578680 +0000
++++ libassuan-2.5.3/src/assuan-logging.c	2020-08-18 04:56:25.019564360 +0000
 @@ -143,7 +143,11 @@
  
    prf = assuan_get_assuan_log_prefix ();
@@ -28,7 +28,7 @@ diff -u -r libassuan-2.5.3-orig/src/assuan-logging.c libassuan-2.5.3/src/assuan-
    /* If the log stream is a file, the output would be buffered.  This
 diff -u -r libassuan-2.5.3-orig/src/assuan-pipe-connect.c libassuan-2.5.3/src/assuan-pipe-connect.c
 --- libassuan-2.5.3-orig/src/assuan-pipe-connect.c	2017-11-15 15:35:41.000000000 +0000
-+++ libassuan-2.5.3/src/assuan-pipe-connect.c	2020-08-16 03:12:36.266025920 +0000
++++ libassuan-2.5.3/src/assuan-pipe-connect.c	2020-08-18 04:56:25.021460520 +0000
 @@ -139,7 +139,11 @@
         assuan server is able to read the actual pid of the client.
         The server can't use getppid because it might have been double
@@ -65,3 +65,43 @@ diff -u -r libassuan-2.5.3-orig/src/assuan-pipe-connect.c libassuan-2.5.3/src/as
  
    if (fd_child_list)
      while (fd_child_list[child_fds_cnt] != ASSUAN_INVALID_FD)
+diff -u -r libassuan-2.5.3-orig/src/posix-types.inc.h libassuan-2.5.3/src/posix-types.inc.h
+--- libassuan-2.5.3-orig/src/posix-types.inc.h	2017-11-15 15:55:23.000000000 +0000
++++ libassuan-2.5.3/src/posix-types.inc.h	2020-08-18 04:56:25.022622200 +0000
+@@ -20,5 +20,9 @@
+ ##
+ ## This file is included by the mkheader tool.  Lines starting with
+ ## a double hash mark are not copied to the destination file.
++#if defined(__sgi)
++typedef struct xpg5_msghdr *assuan_msghdr_t;
++#else
+ typedef struct msghdr *assuan_msghdr_t;
++#endif
+ ##EOF##
+diff -u -r libassuan-2.5.3-orig/src/system-posix.c libassuan-2.5.3/src/system-posix.c
+--- libassuan-2.5.3-orig/src/system-posix.c	2017-11-15 16:02:52.000000000 +0000
++++ libassuan-2.5.3/src/system-posix.c	2020-08-18 04:57:02.912287480 +0000
+@@ -130,7 +130,11 @@
+   int ret;
+ 
+   do
++#if defined(__sgi)
++    ret = _xpg5_recvmsg (fd, msg, flags);
++#else
+     ret = recvmsg (fd, msg, flags);
++#endif
+   while (ret == -1 && errno == EINTR);
+ 
+   return ret;
+@@ -145,7 +149,11 @@
+   int ret;
+ 
+   do
++#if defined(__sgi)
++    ret = _xpg5_sendmsg (fd, msg, flags);
++#else
+     ret = sendmsg (fd, msg, flags);
++#endif
+   while (ret == -1 && errno == EINTR);
+ 
+   return ret;
