@@ -211,8 +211,8 @@ install -p -m 644 -t %{buildroot}%{_rpmluadir}/fedora/srpm forge.lua
 #%%{_rpmconfigdir}/macros.d/macros.kmp
 
 %changelog
-* Mon Jul 27 2020 Daniel Hams <daniel.hams@gmail.com> - 143-6
-- Another mangle fix, change /usr/bin/python to sgug one
+* Sat Aug 01 2020 Daniel Hams <daniel.hams@gmail.com> - 143-6
+- And add python to the rewrites
 
 * Thu Jul 23 2020 Daniel Hams <daniel.hams@gmail.com> - 143-5
 - Fix the broken shebang mangling so that /usr/bin/perl is rewritten too

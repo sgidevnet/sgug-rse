@@ -1,0 +1,283 @@
+diff -u -r jack-audio-connection-kit-0.125.0-orig/drivers/dummy/dummy_driver.c jack-audio-connection-kit-0.125.0/drivers/dummy/dummy_driver.c
+--- jack-audio-connection-kit-0.125.0-orig/drivers/dummy/dummy_driver.c	2020-02-25 04:24:31.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/drivers/dummy/dummy_driver.c	2020-07-27 00:12:36.833306400 +0000
+@@ -281,16 +281,21 @@
+ 	unsigned int chn;
+ 	int port_flags;
+ 
++	jack_info("dummy_driver_attach begin");
++
+ 	if (driver->engine->set_buffer_size (driver->engine, driver->period_size)) {
+ 		jack_error ("dummy: cannot set engine buffer size to %d (check MIDI)", driver->period_size);
+ 		return -1;
+ 	}
++	jack_info("driver->engine->set_sample_rate");
+ 	driver->engine->set_sample_rate (driver->engine, driver->sample_rate);
+ 
+ 	port_flags = JackPortIsOutput | JackPortIsPhysical | JackPortIsTerminal;
+ 
++	jack_info("jack_port_register begin");
+ 	for (chn = 0; chn < driver->capture_channels; chn++) {
+ 		snprintf (buf, sizeof(buf) - 1, "capture_%u", chn + 1);
++		jack_info("jack_port_register buf=%s", buf);
+ 
+ 		port = jack_port_register (driver->client, buf,
+ 					   JACK_DEFAULT_AUDIO_TYPE,
+@@ -299,13 +304,17 @@
+ 			jack_error ("DUMMY: cannot register port for %s", buf);
+ 			break;
+ 		}
++		jack_info("jack_port_register one done");
+ 
+ 		driver->capture_ports =
+ 			jack_slist_append (driver->capture_ports, port);
+ 	}
++	jack_info("jack_port_register done");
+ 
+ 	port_flags = JackPortIsInput | JackPortIsPhysical | JackPortIsTerminal;
+ 
++	jack_info("jack_port_register begin");
++
+ 	for (chn = 0; chn < driver->playback_channels; chn++) {
+ 		snprintf (buf, sizeof(buf) - 1, "playback_%u", chn + 1);
+ 
+@@ -322,7 +331,11 @@
+ 			jack_slist_append (driver->playback_ports, port);
+ 	}
+ 
++	jack_info("jack_port_register done");
++
++	jack_info("jack_activate begin");
+ 	jack_activate (driver->client);
++	jack_info("jack_activate done");
+ 
+ 	return 0;
+ }
+@@ -406,6 +419,7 @@
+ 	driver->client = client;
+ 	driver->engine = NULL;
+ 
++	jack_info ("dummy driver created");
+ 	return (jack_driver_t*)driver;
+ }
+ 
+Only in jack-audio-connection-kit-0.125.0/drivers/dummy: dummy_driver.c.sgifixesnew
+diff -u -r jack-audio-connection-kit-0.125.0-orig/jackd/engine.c jack-audio-connection-kit-0.125.0/jackd/engine.c
+--- jack-audio-connection-kit-0.125.0-orig/jackd/engine.c	2020-02-25 04:24:34.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/jackd/engine.c	2020-07-27 00:12:41.582967840 +0000
+@@ -1028,15 +1028,19 @@
+ 	jack_driver_t *driver;
+ 	jack_driver_info_t *info;
+ 
++	jack_info("loading driver");
+ 	if ((info = jack_load_driver (engine, driver_desc)) == NULL) {
+ 		return -1;
+ 	}
+ 
++	jack_info("creating driver client");
++
+ 	if ((client = jack_create_driver_client (engine, info->client_name)
+ 	     ) == NULL) {
+ 		return -1;
+ 	}
+ 
++	jack_info("driver client initialise");
+ 	if ((driver = info->initialize (client->private_client,
+ 					driver_params)) == NULL) {
+ 		free (info);
+@@ -1048,10 +1052,12 @@
+ 	driver->internal_client = client;
+ 	free (info);
+ 
++	jack_info("jack_use_driver begin");
+ 	if (jack_use_driver (engine, driver) < 0) {
+ 		jack_remove_client (engine, client);
+ 		return -1;
+ 	}
++	jack_info("jack_use_driver end");
+ 
+ 	engine->driver_desc   = driver_desc;
+ 	engine->driver_params = driver_params;
+@@ -1435,7 +1441,7 @@
+ 	if ((r = read (client->request_fd, &req, sizeof(req)))
+ 	    < (ssize_t)sizeof(req)) {
+ 		if (r == 0) {
+-#if defined(JACK_USE_MACH_THREADS) || defined(__OpenBSD__)
++#if defined(JACK_USE_MACH_THREADS) || defined(__OpenBSD__) || defined(__sgi)
+ 			/* poll is implemented using
+ 			   select (see the macosx/fakepoll
+ 			   code). When the socket is closed
+@@ -1448,6 +1454,8 @@
+ 			   and remove the client.
+ 			 */
+ 			jack_mark_client_socket_error (engine, fd);
++#else
++			jack_error ("DH unhandled case here!");
+ #endif                  /* JACK_USE_MACH_THREADS */
+ 			return 1;
+ 		} else {
+@@ -1656,7 +1664,7 @@
+ 			} else if (engine->pfd[i].revents & POLLIN) {
+ 
+ 				if (handle_external_client_request (engine, engine->pfd[i].fd)) {
+-					jack_error ("could not handle external"
++					jack_error ("DH could not handle external"
+ 						    " client request");
+ 					jack_engine_signal_problems (engine);
+ 				}
+@@ -2553,6 +2561,8 @@
+ 
+ 	jack_stop_freewheeling (engine, 1);
+ 
++	VERBOSE (engine, "stopped freewheeling");
++
+ 	engine->control->engine_ok = 0; /* tell clients we're going away */
+ 
+ 	/* this will wake the server thread and cause it to exit */
+@@ -2564,6 +2574,8 @@
+ 	shutdown (engine->fds[0], SHUT_RDWR);
+ 	// close (engine->fds[0]);
+ 
++	VERBOSE (engine, "shutdown master socket");
++
+ 	/* now really tell them we're going away */
+ 
+ 	for (i = 0; i < engine->pfd_max; ++i)
+@@ -4244,10 +4256,12 @@
+ 	if (driver) {
+ 		engine->driver = driver;
+ 
++		jack_info("driver->attach begin");
+ 		if (driver->attach (driver, engine)) {
+ 			engine->driver = 0;
+ 			return -1;
+ 		}
++		jack_info("driver->attach done");
+ 
+ 		engine->rolling_interval =
+ 			jack_rolling_interval (driver->period_usecs);
+Only in jack-audio-connection-kit-0.125.0/jackd: engine.c.sgifixesnew
+diff -u -r jack-audio-connection-kit-0.125.0-orig/jackd/jackd.c jack-audio-connection-kit-0.125.0/jackd/jackd.c
+--- jack-audio-connection-kit-0.125.0-orig/jackd/jackd.c	2020-02-25 04:24:34.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/jackd/jackd.c	2020-07-27 00:12:36.842642960 +0000
+@@ -319,6 +319,8 @@
+ 		goto error;
+ 	}
+ 
++	jack_info ("loading driver done");
++
+ 	for (node = slave_names; node; node = jack_slist_next (node)) {
+ 		char *sl_name = node->data;
+ 		jack_driver_desc_t *sl_desc = jack_find_driver_descriptor (sl_name);
+@@ -333,7 +335,9 @@
+ 		goto error;
+ 	}
+ 
++	jack_info("jack_load_internal_clients begin");
+ 	jack_load_internal_clients (load_list);
++	jack_info("jack_load_internal_clients done");
+ 
+ 	/* install a do-nothing handler because otherwise pthreads
+ 	   behaviour is undefined when we enter sigwait.
+@@ -1011,7 +1015,9 @@
+ 	jack_cleanup_files (server_name);
+ 
+ 	/* run the server engine until it terminates */
++	jack_info ("starting jack_main");
+ 	jack_main (desc, driver_params, slave_drivers, load_list);
++	jack_info ("jack_main done");
+ 
+ 	/* clean up shared memory and files from this server instance */
+ 	if (verbose) {
+Only in jack-audio-connection-kit-0.125.0/jackd: jackd.c.sgifixesnew
+diff -u -r jack-audio-connection-kit-0.125.0-orig/libjack/client.c jack-audio-connection-kit-0.125.0/libjack/client.c
+--- jack-audio-connection-kit-0.125.0-orig/libjack/client.c	2020-02-25 04:24:34.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/client.c	2020-07-27 00:12:36.846737440 +0000
+@@ -1496,7 +1496,11 @@
+ 			snprintf (user_dir, sizeof(user_dir), "%s/jack",
+ 				  tmpdir);
+ 		} else {
++#if defined(__sgi)
++			snprintf (user_dir, sizeof(user_dir), "%s/jack-%ld",
++#else
+ 			snprintf (user_dir, sizeof(user_dir), "%s/jack-%d",
++#endif
+ 				  tmpdir, getuid ());
+ 		}
+ 	}
+Only in jack-audio-connection-kit-0.125.0/libjack: client.c.sgifixesnew
+diff -u -r jack-audio-connection-kit-0.125.0-orig/libjack/shm.c jack-audio-connection-kit-0.125.0/libjack/shm.c
+--- jack-audio-connection-kit-0.125.0-orig/libjack/shm.c	2020-02-25 04:24:35.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/shm.c	2020-07-27 00:12:36.848935280 +0000
+@@ -234,7 +234,11 @@
+ jack_set_server_prefix (const char *server_name)
+ {
+ 	snprintf (jack_shm_server_prefix, sizeof(jack_shm_server_prefix),
++#if defined(__sgi)
++		  "/jack-%ld:%s:", getuid (), server_name);
++#else
+ 		  "/jack-%d:%s:", getuid (), server_name);
++#endif
+ }
+ 
+ /* gain server addressability to shared memory registration segment
+Only in jack-audio-connection-kit-0.125.0/libjack: shm.c.sgifixesnew
+diff -u -r jack-audio-connection-kit-0.125.0-orig/libjack/thread.c jack-audio-connection-kit-0.125.0/libjack/thread.c
+--- jack-audio-connection-kit-0.125.0-orig/libjack/thread.c	2020-02-25 04:24:35.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/thread.c	2020-07-27 00:12:36.850540080 +0000
+@@ -185,7 +185,7 @@
+ 		log_result ("requesting joinable thread creation", result);
+ 		return result;
+ 	}
+-#ifdef __OpenBSD__
++#if defined(__OpenBSD__) || defined(__sgi)
+ 	result = pthread_attr_setscope (&attr, PTHREAD_SCOPE_PROCESS);
+ #else
+ 	result = pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
+Only in jack-audio-connection-kit-0.125.0/libjack: thread.c.sgifixesnew
+diff -u -r jack-audio-connection-kit-0.125.0-orig/libjack/time.c jack-audio-connection-kit-0.125.0/libjack/time.c
+--- jack-audio-connection-kit-0.125.0-orig/libjack/time.c	2020-02-25 05:26:59.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/time.c	2020-07-27 00:12:36.852016720 +0000
+@@ -67,7 +67,11 @@
+ 	jack_time_t jackTime;
+ 	struct timespec time;
+ 
++#if defined(__sgi)
++	clock_gettime (CLOCK_SGI_CYCLE, &time);
++#else
+ 	clock_gettime (CLOCK_MONOTONIC, &time);
++#endif
+ 	jackTime = (jack_time_t)time.tv_sec * 1e6 +
+ 		   (jack_time_t)time.tv_nsec / 1e3;
+ 	return jackTime;
+Only in jack-audio-connection-kit-0.125.0/libjack: time.c.sgifixesnew
+diff -u -r jack-audio-connection-kit-0.125.0-orig/libjack/unlock.c jack-audio-connection-kit-0.125.0/libjack/unlock.c
+--- jack-audio-connection-kit-0.125.0-orig/libjack/unlock.c	2020-02-25 04:24:35.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/unlock.c	2020-07-27 00:12:36.853619280 +0000
+@@ -63,7 +63,11 @@
+ 	int whoknows;
+ 	int looks_like_library;
+ 
++#if defined(__sgi)
++	snprintf (path, sizeof(path), "/proc/%ld/maps", getpid ());
++#else
+ 	snprintf (path, sizeof(path), "/proc/%d/maps", getpid ());
++#endif
+ 
+ 	if ((map = fopen (path, "r")) == NULL) {
+ 		jack_error ("can't open map file");
+Only in jack-audio-connection-kit-0.125.0/libjack: unlock.c.sgifixesnew
+diff -u -r jack-audio-connection-kit-0.125.0-orig/libjack/uuid.c jack-audio-connection-kit-0.125.0/libjack/uuid.c
+--- jack-audio-connection-kit-0.125.0-orig/libjack/uuid.c	2020-02-25 04:24:35.000000000 +0000
++++ jack-audio-connection-kit-0.125.0/libjack/uuid.c	2020-07-27 00:12:36.854981760 +0000
+@@ -82,7 +82,8 @@
+ void
+ jack_uuid_copy (jack_uuid_t* dst, jack_uuid_t src)
+ {
+-	*dst = src;
++  //	*dst = src;
++  memcpy(dst,&src,sizeof(jack_uuid_t));
+ }
+ 
+ void
+Only in jack-audio-connection-kit-0.125.0/libjack: uuid.c.sgifixesnew

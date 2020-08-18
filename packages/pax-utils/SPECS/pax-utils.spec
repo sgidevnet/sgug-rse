@@ -6,11 +6,11 @@
 Summary: ELF utils that can check files for security relevant properties
 Name: pax-utils
 Version: 1.2.4
-Release: 7%{?dist}
+Release: 8%{?dist}
 # http://packages.gentoo.org/package/app-misc/pax-utils
 URL: https://wiki.gentoo.org/wiki/Hardened/PaX_Utilities
 Source0: https://distfiles.gentoo.org/distfiles/%{name}-%{version}.tar.xz
-Patch0: paxutils.sgifixups.patch
+
 License: GPLv2
 BuildRequires:  gcc
 #BuildRequires: libcap-devel
@@ -34,7 +34,7 @@ PaX helpers for people interested in that.
 
 %prep
 %setup -q
-%patch0 -p1 -b .sgifixups
+
 sed -i -e 's|#!/usr/bin/python.*|#!%{_bindir}/python3|' lddtree.py
 
 %build
@@ -75,6 +75,9 @@ make check
 #%{_mandir}/man1/scanmacho.1*
 
 %changelog
+* Thu Jul 30 2020 Daniel Hams <daniel.hams@gmail.com> - 1.2.4-8
+- No longer need the patch as paths auto-fixed by rpm
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.2.4-7
 - Remove hard coded shell paths
 
