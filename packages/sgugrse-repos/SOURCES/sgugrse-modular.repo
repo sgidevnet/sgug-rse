@@ -1,0 +1,35 @@
+[sgugrse-modular]
+name=Sgugrse Modular $releasever - $basearch
+#baseurl=http://download.example/pub/sgugrse/linux/releases/$releasever/Modular/$basearch/os/
+metalink=https://mirrors.sgugrseproject.org/metalink?repo=sgugrse-modular-$releasever&arch=$basearch
+enabled=1
+#metadata_expire=7d
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False
+
+[sgugrse-modular-debuginfo]
+name=Sgugrse Modular $releasever - $basearch - Debug
+#baseurl=http://download.example/pub/sgugrse/linux/releases/$releasever/Modular/$basearch/debug/tree/
+metalink=https://mirrors.sgugrseproject.org/metalink?repo=sgugrse-modular-debug-$releasever&arch=$basearch
+enabled=0
+metadata_expire=7d
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False
+
+[sgugrse-modular-source]
+name=Sgugrse Modular $releasever - Source
+#baseurl=http://download.example/pub/sgugrse/linux/releases/$releasever/Modular/source/tree/
+metalink=https://mirrors.sgugrseproject.org/metalink?repo=sgugrse-modular-source-$releasever&arch=$basearch
+enabled=0
+metadata_expire=7d
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False
