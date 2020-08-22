@@ -21,7 +21,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 16
+%global rel 17
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -169,7 +169,7 @@ This package contains the RPM shared libraries for building packages.
 Summary:  Libraries for signing RPM packages
 License: GPLv2+ and LGPLv2+ with exceptions
 Requires: rpm-libs%{_isa} = %{version}-%{release}
-#Requires: %{_bindir}/gpg2
+Requires: %{_bindir}/gpg2
 
 %description sign-libs
 This package contains the RPM shared libraries for signing packages.
@@ -609,10 +609,13 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-17
+- Include dep on gpg2 now we have it.
+
 * Thu Jul 30 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-16
 - Rewrite some /usr/bin/env paths that aren''t fixed by macros (yet)
 
-* Mon Jun 18 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-15
+* Thu Jun 18 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-15
 - Depend on newer libdicl
 
 * Mon Jun 15 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-14
