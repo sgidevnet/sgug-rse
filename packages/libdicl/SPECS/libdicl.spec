@@ -1,11 +1,11 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
+# This package is NOT able to use optimised linker flags.
+#%%global build_ldflags %{sgug_optimised_ldflags}
 
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
 Version: 0.1.31
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
 Source: https://github.com/danielhams/dicl/releases/download/%{version}/libdicl-%{version}.tar.gz
@@ -31,8 +31,9 @@ to develop programs that use libdicl library.
 
 %build
 
-%{configure}
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%configure
+
 make %{?_smp_mflags}
 
 %check
@@ -56,6 +57,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 
 %changelog
+* Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.31-2
+- libdicl unhappy with optimised linker flags (test fails to build), switch to non-optimised linker flags
+
 * Sun Aug 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.31-1
 - Fix longstanding issue with rpl_select causing uknown fd_set compilation problems
 
