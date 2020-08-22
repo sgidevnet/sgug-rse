@@ -1,0 +1,61 @@
+# Some miscellaneous SGUGRSE-related macros
+
+# List files matching inclusion globs, excluding files matching exclusion blogs
+# Optional parameters:
+#  – -i "<globs>" inclusion globs
+#  – -x "<globs>" exclusion globs
+# Globs are space-separated lists of shell globs. Such lists require %{quote:}
+# use for safe rpm argument passing.
+# Alternatively, set the following rpm variables before calling the macro:
+#  – “listfiles_include” inclusion globs
+#  — “listfiles_exclude” exclusion globs
+# Arguments passed to the macro without flags will be interpreted as inclusion
+# globs.
+%listfiles(i:x:) %{expand:
+%if %{lua: print(string.len(rpm.expand("%{?-i*}%{?listfiles_include}%*")))}
+  listfiles_include=$(realpath -e --relative-base=. %{?-i*} %{?listfiles_include} %* | sort -u)
+  %if  %{lua: print(string.len(rpm.expand("%{?-x*}%{?listfiles_exclude}")))}
+    while IFS= read -r finc ; do
+      realpath -qe --relative-base=. %{?-x*} %{?listfiles_exclude} \\
+        | sort -u | grep -q "${finc}" || echo "${finc}"
+    done <<< "${listfiles_include}"
+  %else
+    echo "${listfiles_include}"
+  %endif
+%endif
+}
+
+# https://github.com/rpm-software-management/rpm/issues/581
+# Write the contents of a list of rpm variables to a macro file.
+# The target file must contain the corresponding anchors.
+# For example %writevars -f myfile foo bar will replace:
+#  @@FOO@@ with the rpm evaluation of %{foo} and
+#  @@BAR@@ with the rpm evaluation of %{bar}
+# in myfile
+%writevars(f:) %{lua:
+local    sgugrse = require "sgugrse.common"
+local macrofile = rpm.expand("%{-f*}")
+local   rpmvars = {}
+for i = 1, rpm.expand("%#") do
+  table.insert(rpmvars, rpm.expand("%" .. i))
+end
+sgugrse.writevars(macrofile,rpmvars)
+}
+
+# gpgverify verifies signed sources. There is documentation in the script.
+%gpgverify(k:s:d:) %{lua:
+local script = rpm.expand("%{_rpmconfigdir}/redhat/gpgverify ")
+local keyring = rpm.expand("%{-k*}")
+local signature = rpm.expand("%{-s*}")
+local data = rpm.expand("%{-d*}")
+print(script)
+if keyring ~= "" then
+  print(rpm.expand("--keyring='%{SOURCE" .. keyring ..  "}' "))
+end
+if signature ~= "" then
+  print(rpm.expand("--signature='%{SOURCE" .. signature ..  "}' "))
+end
+if data ~= "" then
+  print(rpm.expand("--data='%{SOURCE" .. data ..  "}' "))
+end
+}

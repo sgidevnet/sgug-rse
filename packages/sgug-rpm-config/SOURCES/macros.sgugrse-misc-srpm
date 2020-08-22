@@ -1,4 +1,4 @@
-# Some miscellaneous Fedora-related macros
+# Some miscellaneous SGUGRSE-related macros
 
 # A directory for rpm macros
 %rpmmacrodir /usr/sgug/lib/rpm/macros.d
@@ -8,15 +8,15 @@
 %_metainfodir %{_datadir}/metainfo
 
 # A directory for SWID tag files describing the installation
-%_swidtagdir %{_prefix}/lib/swidtag/fedoraproject.org
+%_swidtagdir %{_prefix}/lib/swidtag/sgugrseproject.org
 
-# A helper to apply the fedora.wordwrap filter to the content of an rpm
+# A helper to apply the sgugrse.wordwrap filter to the content of an rpm
 # variable, and print the result. Optional parameter:
 #  – -v <variable_name> (default value: _description)
 # Putting multiple lines of UTF-8 text inside a variable is usually
 # accomplished with a %%{expand: some_text}.
 %wordwrap(v:) %{lua:
-local   fedora = require "fedora.common"
+local   sgugrse = require "sgugrse.common"
 local variable = "%{" .. rpm.expand("%{-v*}%{!-v:_description}") .. "}"
-print(fedora.wordwrap(variable))
+print(sgugrse.wordwrap(variable))
 }

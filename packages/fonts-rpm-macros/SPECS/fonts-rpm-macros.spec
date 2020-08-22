@@ -17,7 +17,7 @@ Version: 2.0.3
 BuildArch: noarch
 
 Name:      fonts-rpm-macros
-Release:   2%{?dist}
+Release:   3%{?dist}
 Summary:   Build-stage rpm automation for fonts packages
 
 License:   GPLv3+
@@ -49,7 +49,7 @@ will pull it in for fonts packages only.
 
 %package -n fonts-srpm-macros
 Summary:   Source-stage rpm automation for fonts packages
-Requires:  redhat-rpm-config
+Requires:  sgug-rpm-config
 
 %description -n fonts-srpm-macros
 This package provides SRPM-stage rpm automation to simplify the creation of
@@ -96,6 +96,11 @@ done
 perl -pi -e "s|/usr/bin/python|%{_bindir}/python|g" bin/fc-weight
 perl -pi -e "s|/usr/bin/python|%{_bindir}/python|g" bin/gen-fontconf
 
+# Fix up some hardcoded distro names
+perl -pi -e "s|fedora|sgugrse|g" rpm/lua/srpm/fonts.lua
+perl -pi -e "s|fedora|sgugrse|g" rpm/lua/rpm/fonts.lua
+perl -pi -e "s|fedora|sgugrse|g" rpm/macros.d/macros.fonts-rpm
+
 %install
 install -m 0755 -d    %{buildroot}%{_fontbasedir} \
                       %{buildroot}%{_fontconfig_masterdir} \
@@ -112,12 +117,12 @@ install -m 0644 -vp   templates/fontconfig/*{conf,txt} \
 install -m 0755 -vd   %{buildroot}%{rpmmacrodir}
 install -m 0644 -vp   rpm/macros.d/macros.fonts-* \
                       %{buildroot}%{rpmmacrodir}
-install -m 0755 -vd   %{buildroot}%{_rpmluadir}/fedora/srpm
+install -m 0755 -vd   %{buildroot}%{_rpmluadir}/sgugrse/srpm
 install -m 0644 -vp   rpm/lua/srpm/*lua \
-                      %{buildroot}%{_rpmluadir}/fedora/srpm
-install -m 0755 -vd   %{buildroot}%{_rpmluadir}/fedora/rpm
+                      %{buildroot}%{_rpmluadir}/sgugrse/srpm
+install -m 0755 -vd   %{buildroot}%{_rpmluadir}/sgugrse/rpm
 install -m 0644 -vp   rpm/lua/rpm/*lua \
-                      %{buildroot}%{_rpmluadir}/fedora/rpm
+                      %{buildroot}%{_rpmluadir}/sgugrse/rpm
 
 install -m 0755 -vd   %{buildroot}%{_bindir}
 install -m 0755 -vp   bin/* %{buildroot}%{_bindir}
@@ -137,13 +142,13 @@ rm $RPM_BUILD_ROOT%{ftcgtemplatedir}/*txt
 %license LICENSE.txt
 %{_bindir}/*
 %{rpmmacrodir}/macros.fonts-rpm*
-%{_rpmluadir}/fedora/rpm/*.lua
+%{_rpmluadir}/sgugrse/rpm/*.lua
 
 %files -n fonts-srpm-macros
 %license LICENSE.txt
 %doc     *.md changelog.txt
 %{rpmmacrodir}/macros.fonts-srpm*
-%{_rpmluadir}/fedora/srpm/*.lua
+%{_rpmluadir}/sgugrse/srpm/*.lua
 
 %files -n fonts-filesystem
 %dir %{_datadir}/fontconfig
@@ -161,6 +166,9 @@ rm $RPM_BUILD_ROOT%{ftcgtemplatedir}/*txt
 #%doc %{ftcgtemplatedir}/*txt
 
 %changelog
+* Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.3-3
+- Depend on sgug-rpm-config not redhat-rpm-config, stop referring to fedora in macros
+
 * Sun Aug 16 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.3-2
 - Re-enable the rpm-macros package
 
