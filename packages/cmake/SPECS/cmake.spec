@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 # Do we add appdata-files?
 # consider conditional on whether %%_metainfodir is defined or not instead -- rex
 %if 0%{?fedora} || 0%{?rhel} > 7
@@ -302,9 +308,15 @@ export CXX=mips-sgi-irix6.5-g++
 # Yes, we don't have this
 export FC=mips-sgi-irix6.5-gcf
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+%if 0%{debug}
+export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1"
+%else
 export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CFLAGS"
-export CXXFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CXXFLAGS"
+export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 $LDFLAGS"
+%endif
 export NUM_PARALLEL=`echo -- "%{_smp_mflags}" |perl -pe "s|.*\-j(\\\\d+).*|\\\$1|g"`
 
 $SHELL $SRCDIR/bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
