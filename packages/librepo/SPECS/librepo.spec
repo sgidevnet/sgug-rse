@@ -13,7 +13,7 @@
 #%%bcond_with pythontests
 #%%else
 %bcond_without python3
-%bcond_with pythontests
+%bcond_without pythontests
 #%%endif
 
 #%%if 0%%{?rhel} > 7 || 0%%{?fedora} > 29
@@ -106,9 +106,11 @@ Summary:        Python 3 bindings for the librepo library
 BuildRequires:  python3-devel
 %if %{with pythontests}
 BuildRequires:  python3-gpg
-BuildRequires:  python3-flask
+# Yes, this is needed for some of the python tests, good luck building it .-)
+#BuildRequires:  python3-flask
 BuildRequires:  python3-nose
-BuildRequires:  python3-pyxattr
+# Yes, this is needed for some of the python tests, good luck building it .-)
+#BuildRequires:  python3-pyxattr
 BuildRequires:  python3-requests
 %endif
 BuildRequires:  python3-sphinx
