@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 %global libname solv
 
 %bcond_with    python2_bindings
@@ -160,13 +166,17 @@ perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" test/runtestcases.sh
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 
-#export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_FUNOPEN"
-
+%if 0%{debug}
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN -g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1"
+%else
 # We only use O2 - O3 causes a _very_ long compilation (perl bindings)
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN -g -O2"
 #export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN $RPM_OPT_FLAGS"
-
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN -g -O2"
 export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1 $RPM_LD_FLAGS"
+%endif
+
 %cmake . -B"%{_vpath_builddir}" -GNinja          \
   -DFEDORA=1                                     \
   -DENABLE_RPMDB=ON                              \
