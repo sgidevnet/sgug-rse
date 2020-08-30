@@ -1,11 +1,17 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 # Python 2 is dead on F31+
-%if ( 0%{?fedora} && 0%{?fedora} <= 30 ) || ( 0%{?rhel} && 0%{?rhel} <= 7)
-  %global meson_python_flags -Dwith_py2=true
-  %global build_python2 1
-%else
+#%%if ( 0%%{?fedora} && 0%%{?fedora} <= 30 ) || ( 0%%{?rhel} && 0%%{?rhel} <= 7)
+#  %%global meson_python_flags -Dwith_py2=true
+#  %%global build_python2 1
+#%%else
   %global meson_python_flags -Dwith_py2=false
   %global build_python2 0
-%endif
+#%%endif
 
 %global upstream_name libmodulemd
 
@@ -102,9 +108,40 @@ Development files for libmodulemd.
 # A place to generate the SGUG patch
 #exit 1
 
+# Rewrite some hardcoded paths
+perl -pi -e "s|/usr/bin/bash|%{_bindir}/bash|g" contrib/release-tools/release.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" modulemd/tests/test-import-headers.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" modulemd/tests/test-version.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" spec_tmpl.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" .make_packit_specfile.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" run_ci_tests.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" .travis/*.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" .travis/*/*.sh
+perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" .travis/travis-common.inc
+
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" modulemd/clang_simple_version.sh
+
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" .packit_version.sh
+perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" contrib/doc-tools/fix-xref.sh
+
+perl -pi -e "s|/usr/bin/sh|%{_bindir}/sh|g" make_rpms.sh.in
+
+perl -pi -e "s|/usr/bin/python|%{_bindir}/bin/python|g" modulemd/tests/*.py
+perl -pi -e "s|/usr/bin/python|%{_bindir}/bin/python|g" modulemd/tests/ModulemdTests/*.py
+
+perl -pi -e "s|LD_LIBRARY_PATH|LD_LIBRARYN32_PATH|g" modulemd/meson.build
+
 %build
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now"
+%else
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+%endif
 export CURWD=`pwd`
 export LD_LIBRARYN32_PATH=$CURWD/mips-sgug-irix/modulemd:$LD_LIBRARYN32_PATH
 %meson -Ddeveloper_build=false \
@@ -118,7 +155,8 @@ export LD_LIBRARYN32_PATH=$CURWD/mips-sgug-irix/modulemd:$LD_LIBRARYN32_PATH
 %check
 export CURWD=`pwd`
 export LD_LIBRARYN32_PATH=$CURWD/mips-sgug-irix/modulemd:$LD_LIBRARYN32_PATH
-export LC_CTYPE=C.utf8
+#export LC_CTYPE=C.utf8
+export LC_CTYPE=C
 
 %ifarch %{power64} s390x
 # Valgrind is broken on ppc64[le] with GCC7:
@@ -170,9 +208,9 @@ mv %{buildroot}%{_mandir}/man1/modulemd-validator.1 \
 %{_includedir}/modulemd-2.0/
 %dir %{_datadir}/gir-1.0
 %{_datadir}/gir-1.0/Modulemd-2.0.gir
-#%dir %{_datadir}/gtk-doc
-#%dir %{_datadir}/gtk-doc/html
-#%{_datadir}/gtk-doc/html/modulemd-2.0/
+#%%dir %%{_datadir}/gtk-doc
+#%%dir %%{_datadir}/gtk-doc/html
+#%%{_datadir}/gtk-doc/html/modulemd-2.0/
 
 
 %if %{build_python2}
