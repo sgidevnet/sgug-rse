@@ -1,14 +1,21 @@
 # This package is NOT able to use optimised linker flags.
-#%%global build_ldflags %{sgug_optimised_ldflags}
+#%%global build_ldflags %%{sgug_optimised_ldflags}
 
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.31
-Release: 2%{?dist}
+Version: 0.1.32
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
 Source: https://github.com/danielhams/dicl/releases/download/%{version}/libdicl-%{version}.tar.gz
+
+Patch100: libdicl.sgifixes.patch
 
 BuildRequires: gcc
 BuildRequires: automake, autoconf, libtool
@@ -29,9 +36,20 @@ to develop programs that use libdicl library.
 %prep
 %setup -q
 
+%patch100 -p1
+
+# A place to generate a patch
+#exit 1
+
+
 %build
 
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -O0"
+export CXXFLAGS="-g -O0"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
 %configure
 
 make %{?_smp_mflags}
