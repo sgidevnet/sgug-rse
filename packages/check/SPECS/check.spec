@@ -1,4 +1,8 @@
-#%%global __strip /bin/true
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
 
 Name:           check
 Version:        0.12.0
@@ -73,11 +77,21 @@ autoreconf -ivf
 
 %build
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
-#export CFLAGS="-g -O0"
-#export CXXFLAGS="$CFLAGS"
+%if 0%{debug}
+export CFLAGS="-g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1"
+%else
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
-#export LDFLAGS="-ldicl-0.1"
+%endif
+
+# Using the check mechanism for replacement snprintf is broken
+export hw_cv_func_snprintf_c99=yes
+%if 0%{debug}
+%configure
+%else
 %configure --disable-timeout-tests
+%endif
 
 # Get rid of undesirable hardcoded rpaths
 #sed -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
