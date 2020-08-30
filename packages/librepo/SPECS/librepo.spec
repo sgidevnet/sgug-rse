@@ -1,4 +1,8 @@
-#%%global __strip /bin/true
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
 
 %global libcurl_version 7.28.0
 
@@ -129,21 +133,29 @@ Python 3 bindings for the librepo library.
 
 # Rewrite some hardcoded scripts maybe needed for testing
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" tests/run_tests.sh.in
-perl -pi -e "s|/LD_LIBRARY_PATH|LD_LIBRARYN32_PATH|g" tests/run_tests.sh.in
+perl -pi -e "s|LD_LIBRARY_PATH|LD_LIBRARYN32_PATH|g" tests/run_tests.sh.in
+perl -pi -e "s|/librepo/:|/librepo/:$LD_LIBRARYN32_PATH|g" tests/run_tests.sh.in
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" utils/cleanup.sh
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" utils/make_rpm.sh
 
 mkdir build-py2
 mkdir build-py3
 
+#exit 1
+
 %build
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
-#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
+
+%if 0%{debug}
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1"
+%else
 export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
 export CXXFLAGS="$CFLAGS"
-#export LDFLAGS="-ldicl-0.1"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+%endif
 
 %if %{with python2}
 export PREV_WD=`pwd`
