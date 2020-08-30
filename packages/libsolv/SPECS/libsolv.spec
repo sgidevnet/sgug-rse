@@ -217,6 +217,9 @@ export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1 $RPM_LD_FLAGS"
 %endif
   -DHAVE_FUNOPEN=1                               \
   -DHAVE_QSORT_R=0                               \
+%if !(0%{debug})
+  -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON            \
+%endif
   %{nil}
 %ninja_build -C "%{_vpath_builddir}"
 
