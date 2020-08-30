@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 %global glib2_version 2.58.0
 
 %global __python %{__python3}
@@ -67,6 +73,15 @@ perl -pi -e "s|/bin/sh|%{_bindir}/sh|g" giscanner/dumper.py
 export LD_LIBRARYN32_PATH=%{_builddir}/gobject-introspection-1.62.0/mips-sgug-irix/girepository/:$LD_LIBRARYN32_PATH
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
+
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+%if 0%{debug}
+export CFLAGS="-g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1"
+%else
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+%endif
 
 %meson -Ddoctool=true -Dgtk_doc=false -Dpython=%{__python3}
 %meson_build
