@@ -1,7 +1,10 @@
-%global _changelog_trimtime %(date +%s -d "1 year ago")
+%global debug 0
 
-# To have an installed version with debug symbols
-#%%global __strip /bin/true
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
+%global _changelog_trimtime %(date +%s -d "1 year ago")
 
 Name: glib2
 Version: 2.62.6
@@ -101,11 +104,18 @@ rm glib/pcre/*.[ch]
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 # Meson/ninja use ORIGIN a lot, only way to do that is explicit
 # add what we need to the LD_LIBRARYN32_PATH before the build
 export GLIB2_BUILD_DIR=`pwd`/mips-sgug-irix
 export LD_LIBRARYN32_PATH=$GLIB2_BUILD_DIR/gobject:$GLIB2_BUILD_DIR/gmodule:$GLIB2_BUILD_DIR/gio:$GLIB2_BUILD_DIR/glib:$LD_LIBRARYN32_PATH
+
+%if 0%{debug}
+export CFLAGS="-g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1"
+%else
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+%endif
 %meson \
     --default-library=both \
     -Dman=true \
