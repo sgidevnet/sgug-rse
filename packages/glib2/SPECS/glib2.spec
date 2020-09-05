@@ -8,7 +8,7 @@
 
 Name: glib2
 Version: 2.62.6
-Release: 3%{?dist}
+Release: 4%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -36,6 +36,8 @@ BuildRequires: pkgconfig(libpcre)
 #BuildRequires: pkgconfig(mount)
 BuildRequires: pkgconfig(zlib)
 BuildRequires: python3-devel
+
+BuildRequires: libdicl-devel >= 0.1.34
 
 # for GIO content-type support
 Recommends: shared-mime-info
@@ -98,6 +100,9 @@ the functionality of the installed glib2 package.
 perl -pi -e "s|/usr/bin/python3|%{_bindir}/python3|g" gobject/tests/genmarshal.py
 perl -pi -e "s|/usr/bin/python3|%{_bindir}/python3|g" gobject/tests/mkenums.py
 
+# Ensure we're using c99 compliant compilation options
+perl -pi -e "s|gnu89|gnu99|g" meson.build
+
 %build
 # Bug 1324770: Also explicitly remove PCRE sources since we use --with-pcre=system
 rm glib/pcre/*.[ch]
@@ -110,7 +115,7 @@ export GLIB2_BUILD_DIR=`pwd`/mips-sgug-irix
 export LD_LIBRARYN32_PATH=$GLIB2_BUILD_DIR/gobject:$GLIB2_BUILD_DIR/gmodule:$GLIB2_BUILD_DIR/gio:$GLIB2_BUILD_DIR/glib:$LD_LIBRARYN32_PATH
 
 %if 0%{debug}
-export CFLAGS="-g -O0"
+export CFLAGS="-g -Og"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1"
 %else
@@ -256,6 +261,9 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Sat Sep 05 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-4
+- Get more tests passing fixing spawn, socket bits, some other pieces
+
 * Sun Jun 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-3
 - Correct more hardcoded paths that break mime lookups, remove more fedora multi-lib-isms
 

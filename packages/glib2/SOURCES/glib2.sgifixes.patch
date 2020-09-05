@@ -1,21 +1,12 @@
 diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
 --- glib-2.62.6-orig/gio/glocalfile.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/glocalfile.c	2020-06-21 16:19:35.749543920 +0000
-@@ -2734,7 +2734,7 @@
-   if (g_cancellable_set_error_if_cancelled (state->cancellable, error))
-     return FALSE;
- 
--#if defined (AT_FDCWD)
-+#if defined (AT_FDCWD) && !defined(__sgi)
-   if (fstatat (parent_fd, name->data, &buf, AT_SYMLINK_NOFOLLOW) != 0)
-     {
-       int errsv = errno;
++++ glib-2.62.6/gio/glocalfile.c	2020-09-05 15:36:30.281444760 +0000
 @@ -2826,7 +2826,7 @@
        if (g_cancellable_set_error_if_cancelled (state->cancellable, error))
          return FALSE;
  
 -#ifdef AT_FDCWD
-+#if defined(AT_FDCWD) && !defined(__sgi)
++#if defined(AT_FDCWD)
  #ifdef HAVE_OPEN_O_DIRECTORY
        dir_fd = openat (parent_fd, name->data, O_RDONLY|O_DIRECTORY);
  #else
@@ -24,14 +15,158 @@ diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
    GDir *dir;
  
 -#ifdef AT_FDCWD
-+#if defined(AT_FDCWD) && !defined(__sgi)
++#if defined(AT_FDCWD)
    {
      /* If this fails, we want to preserve the errno from fopendir() */
      DIR *dirp;
 diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
 --- glib-2.62.6-orig/gio/gsocket.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gsocket.c	2020-06-21 16:19:35.758346720 +0000
-@@ -4427,7 +4427,7 @@
++++ glib-2.62.6/gio/gsocket.c	2020-09-05 15:36:41.334449040 +0000
+@@ -81,6 +81,10 @@
+ #include "gwin32networking.h"
+ #endif
+ 
++#if defined(__sgi)
++extern int _xpg5_getsockname(int, struct sockaddr *, size_t *);
++#endif
++
+ /**
+  * SECTION:gsocket
+  * @short_description: Low-level socket object
+@@ -447,7 +451,12 @@
+     }
+ 
+   addrlen = sizeof address;
++#if defined(__sgi)
++  errno=0;
++  if (_xpg5_getsockname (fd, &address.sa, &addrlen) != 0)
++#else
+   if (getsockname (fd, &address.sa, &addrlen) != 0)
++#endif
+     {
+       errsv = get_socket_errno ();
+       goto err;
+@@ -4419,6 +4428,119 @@
+ 
+ /* Unfortunately these have to be macros rather than inline functions due to
+  * using alloca(). */
++
++#if defined(__sgi)
++
++// Replace the non-xpg5 macros
++#undef CMSG_FIRSTHDR
++#define CMSG_FIRSTHDR(mhdr) \
++  ((size_t)(mhdr)->msg_ctrllen >= sizeof (struct cmsghdr)		      \
++   ? (struct cmsghdr*) (mhdr)->msg_ctrl : (struct cmsghdr*)NULL)
++
++# undef CMSG_NXTHDR
++# define CMSG_NXTHDR(mhdr, cmsg)					\
++  (((caddr_t)(cmsg) + (cmsg)->cmsg_len + sizeof(struct cmsghdr) >	\
++    (caddr_t)(mhdr)->msg_ctrl + (mhdr)->msg_ctrllen) ?			\
++   (struct cmsghdr *)0L :						\
++   (struct cmsghdr *)((caddr_t)(cmsg) + _ALIGN((cmsg)->cmsg_len)))
++
++// And prototype the xpg send/recv
++extern ssize_t _xpg5_recvmsg(int, struct xpg5_msghdr *, int);
++extern ssize_t _xpg5_sendmsg(int, const struct xpg5_msghdr *, int);
++
++#define output_message_to_msghdr(message, prev_message, msg, prev_msg, error) \
++G_STMT_START { \
++  const GOutputMessage  *_message = (message); \
++  const GOutputMessage *_prev_message = (prev_message); \
++  struct xpg5_msghdr *_msg = (msg); \
++  const struct xpg5_msghdr *_prev_msg = (prev_msg); \
++  GError **_error = (error); \
++ \
++  /*_msg->msg_flags = 0;*/                      \
++ \
++  /* name */ \
++  if (_prev_message != NULL && _prev_message->address == _message->address) \
++    { \
++      _msg->msg_name = _prev_msg->msg_name; \
++      _msg->msg_namelen = _prev_msg->msg_namelen; \
++    } \
++  else if (_message->address != NULL) \
++    { \
++      _msg->msg_namelen = g_socket_address_get_native_size (_message->address); \
++      _msg->msg_name = g_alloca (_msg->msg_namelen); \
++      if (!g_socket_address_to_native (_message->address, _msg->msg_name, \
++                                       _msg->msg_namelen, _error)) \
++        break; \
++    } \
++  else \
++    { \
++      _msg->msg_name = NULL; \
++      _msg->msg_namelen = 0; \
++    } \
++ \
++  /* iov */ \
++  { \
++    /* this entire expression will be evaluated at compile time */ \
++    if (sizeof *_msg->msg_iov == sizeof *_message->vectors && \
++        sizeof _msg->msg_iov->iov_base == sizeof _message->vectors->buffer && \
++        G_STRUCT_OFFSET (struct iovec, iov_base) == \
++        G_STRUCT_OFFSET (GOutputVector, buffer) && \
++        sizeof _msg->msg_iov->iov_len == sizeof _message->vectors->size && \
++        G_STRUCT_OFFSET (struct iovec, iov_len) == \
++        G_STRUCT_OFFSET (GOutputVector, size)) \
++      /* ABI is compatible */ \
++      { \
++        _msg->msg_iov = (struct iovec *) _message->vectors; \
++        _msg->msg_iovlen = _message->num_vectors; \
++      } \
++    else \
++      /* ABI is incompatible */ \
++      { \
++        gint i; \
++ \
++        _msg->msg_iov = g_newa (struct iovec, _message->num_vectors); \
++        for (i = 0; i < _message->num_vectors; i++) \
++          { \
++            _msg->msg_iov[i].iov_base = (void *) _message->vectors[i].buffer; \
++            _msg->msg_iov[i].iov_len = _message->vectors[i].size; \
++          } \
++        _msg->msg_iovlen = _message->num_vectors; \
++      } \
++  } \
++ \
++  /* control */ \
++  { \
++    struct cmsghdr *cmsg; \
++    gint i; \
++ \
++    _msg->msg_ctrllen = 0; \
++    for (i = 0; i < _message->num_control_messages; i++) \
++      _msg->msg_ctrllen += CMSG_SPACE (g_socket_control_message_get_size (_message->control_messages[i])); \
++ \
++    if (_msg->msg_ctrllen == 0) \
++      _msg->msg_ctrl = NULL; \
++    else \
++      { \
++        _msg->msg_ctrl = g_alloca (_msg->msg_ctrllen); \
++        memset (_msg->msg_ctrl, '\0', _msg->msg_ctrllen); \
++      } \
++ \
++    cmsg = CMSG_FIRSTHDR (_msg); \
++    for (i = 0; i < _message->num_control_messages; i++) \
++      { \
++        cmsg->cmsg_level = g_socket_control_message_get_level (_message->control_messages[i]); \
++        cmsg->cmsg_type = g_socket_control_message_get_msg_type (_message->control_messages[i]); \
++        cmsg->cmsg_len = CMSG_LEN (g_socket_control_message_get_size (_message->control_messages[i])); \
++        g_socket_control_message_serialize (_message->control_messages[i], \
++                                            CMSG_DATA (cmsg)); \
++        cmsg = CMSG_NXTHDR (_msg, cmsg); \
++      } \
++    g_assert (cmsg == NULL); \
++  } \
++} G_STMT_END
++
++#else
++
+ #define output_message_to_msghdr(message, prev_message, msg, prev_msg, error) \
+ G_STMT_START { \
+   const GOutputMessage  *_message = (message); \
+@@ -4427,7 +4549,7 @@
    const struct msghdr *_prev_msg = (prev_msg); \
    GError **_error = (error); \
   \
@@ -40,7 +175,81 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
   \
    /* name */ \
    if (_prev_message != NULL && _prev_message->address == _message->address) \
-@@ -4568,7 +4568,7 @@
+@@ -4510,6 +4632,73 @@
+   } \
+ } G_STMT_END
+ 
++#endif
++
++#if defined(__sgi)
++
++#define input_message_to_msghdr(message, msg) \
++G_STMT_START { \
++  const GInputMessage  *_message = (message); \
++  struct xpg5_msghdr *_msg = (msg); \
++ \
++  /* name */ \
++  if (_message->address) \
++    { \
++      _msg->msg_namelen = sizeof (struct sockaddr_storage); \
++      _msg->msg_name = g_alloca (_msg->msg_namelen); \
++    } \
++  else \
++    { \
++      _msg->msg_name = NULL; \
++      _msg->msg_namelen = 0; \
++    } \
++ \
++  /* iov */ \
++  /* this entire expression will be evaluated at compile time */ \
++  if (sizeof *_msg->msg_iov == sizeof *_message->vectors && \
++      sizeof _msg->msg_iov->iov_base == sizeof _message->vectors->buffer && \
++      G_STRUCT_OFFSET (struct iovec, iov_base) == \
++      G_STRUCT_OFFSET (GInputVector, buffer) && \
++      sizeof _msg->msg_iov->iov_len == sizeof _message->vectors->size && \
++      G_STRUCT_OFFSET (struct iovec, iov_len) == \
++      G_STRUCT_OFFSET (GInputVector, size)) \
++    /* ABI is compatible */ \
++    { \
++      _msg->msg_iov = (struct iovec *) _message->vectors; \
++      _msg->msg_iovlen = _message->num_vectors; \
++    } \
++  else \
++    /* ABI is incompatible */ \
++    { \
++      guint i; \
++ \
++      _msg->msg_iov = g_newa (struct iovec, _message->num_vectors); \
++      for (i = 0; i < _message->num_vectors; i++) \
++        { \
++          _msg->msg_iov[i].iov_base = _message->vectors[i].buffer; \
++          _msg->msg_iov[i].iov_len = _message->vectors[i].size; \
++        } \
++      _msg->msg_iovlen = _message->num_vectors; \
++    } \
++ \
++  /* control */ \
++  if (_message->control_messages == NULL) \
++    { \
++	  _msg->msg_ctrllen = 0; \
++	  _msg->msg_ctrl = NULL; \
++    } \
++  else \
++    { \
++      _msg->msg_ctrllen = 2048; \
++      _msg->msg_ctrl = g_alloca (_msg->msg_ctrllen); \
++    } \
++ \
++  /* flags */ \
++  /*_msg->msg_flags = _message->flags;*/        \
++} G_STMT_END
++
++#else
++
+ #define input_message_to_msghdr(message, msg) \
+ G_STMT_START { \
+   const GInputMessage  *_message = (message); \
+@@ -4568,11 +4757,18 @@
      } \
   \
    /* flags */ \
@@ -48,8 +257,46 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
 +  /*_msg->msg_flags = _message->flags;*/        \
  } G_STMT_END
  
++#endif
++
  static void
-@@ -4634,7 +4634,7 @@
+-input_message_from_msghdr (const struct msghdr  *msg,
++input_message_from_msghdr (
++#if defined(__sgi)
++                           const struct xpg5_msghdr  *msg,
++#else
++                           const struct msghdr  *msg,
++#endif
+                            GInputMessage        *message,
+                            GSocket              *socket)
+ {
+@@ -4587,14 +4783,23 @@
+   {
+     GPtrArray *my_messages = NULL;
+     struct cmsghdr *cmsg;
+-
+-    if (msg->msg_controllen >= sizeof (struct cmsghdr))
++#if defined(__sgi)
++    if (msg->msg_ctrllen >= sizeof (struct cmsghdr))
++      {
++        g_assert (message->control_messages != NULL);
++        for (cmsg = CMSG_FIRSTHDR (msg);
++             cmsg != NULL;
++             cmsg = CMSG_NXTHDR ((struct xpg5_msghdr *) msg, cmsg))
++          {
++#else
++    if (msg->msg_ctrllen >= sizeof (struct cmsghdr))
+       {
+         g_assert (message->control_messages != NULL);
+         for (cmsg = CMSG_FIRSTHDR (msg);
+              cmsg != NULL;
+              cmsg = CMSG_NXTHDR ((struct msghdr *) msg, cmsg))
+           {
++#endif
+             GSocketControlMessage *control_message;
+ 
+             control_message = g_socket_control_message_deserialize (cmsg->cmsg_level,
+@@ -4634,7 +4839,7 @@
    }
  
    /* capture the flags */
@@ -58,21 +305,81 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
  }
  #endif
  
-@@ -5336,7 +5336,11 @@
+@@ -4825,7 +5030,11 @@
+ #ifndef G_OS_WIN32
+   {
+     GOutputMessage output_message;
++#if defined(__sgi)
++    struct xpg5_msghdr msg;
++#else
+     struct msghdr msg;
++#endif
+     gssize result;
+     GError *child_error = NULL;
+ 
+@@ -4846,7 +5055,11 @@
+ 
+     while (1)
+       {
++#if defined(__sgi)
++	result = _xpg5_sendmsg (socket->priv->fd, &msg, flags | G_SOCKET_DEFAULT_SEND_FLAGS);
++#else
+ 	result = sendmsg (socket->priv->fd, &msg, flags | G_SOCKET_DEFAULT_SEND_FLAGS);
++#endif
+ 	if (result < 0)
+ 	  {
+ 	    int errsv = get_socket_errno ();
+@@ -5078,7 +5291,11 @@
+     for (i = 0; i < num_messages; ++i)
+       {
+         GOutputMessage *msg = &messages[i];
++#if defined(__sgi)
++        struct xpg5_msghdr *msg_hdr = &msgvec[i].msg_hdr;
++#else
+         struct msghdr *msg_hdr = &msgvec[i].msg_hdr;
++#endif
+         GError *child_error = NULL;
+ 
+         msgvec[i].msg_len = 0;
+@@ -5312,7 +5529,11 @@
+ #ifndef G_OS_WIN32
+   {
+     GInputMessage input_message;
++#if defined(__sgi)
++    struct xpg5_msghdr msg;
++#else
+     struct msghdr msg;
++#endif
+     gssize result;
+ 
+     input_message.address = address;
+@@ -5336,7 +5557,11 @@
      /* do it */
      while (1)
        {
 +#if defined(__sgi)
-+	result = recvmsg (socket->priv->fd, &msg, 0);
++	result = _xpg5_recvmsg (socket->priv->fd, &msg, msg.msg_flags);
 +#else
  	result = recvmsg (socket->priv->fd, &msg, msg.msg_flags);
 +#endif
  #ifdef MSG_CMSG_CLOEXEC	
  	if (result < 0 && get_socket_errno () == EINVAL)
  	  {
+@@ -5597,7 +5822,11 @@
+     for (i = 0; i < num_messages; ++i)
+       {
+         GInputMessage *msg = &messages[i];
++#if defined(__sgi)
++        struct xpg5_msghdr *msg_hdr = &msgvec[i].msg_hdr;
++#else
+         struct msghdr *msg_hdr = &msgvec[i].msg_hdr;
++#endif
+ 
+         input_message_to_msghdr (msg, msg_hdr);
+         msgvec[i].msg_len = 0;
 diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
 --- glib-2.62.6-orig/gio/gtrashportal.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gtrashportal.c	2020-06-21 16:19:35.760129680 +0000
++++ glib-2.62.6/gio/gtrashportal.c	2020-09-05 15:36:30.294865400 +0000
 @@ -86,10 +86,17 @@
  
    path = g_file_get_path (file);
@@ -93,7 +400,7 @@ diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
  
 diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.c
 --- glib-2.62.6-orig/gio/gunixfdmessage.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gunixfdmessage.c	2020-06-21 16:19:35.761917360 +0000
++++ glib-2.62.6/gio/gunixfdmessage.c	2020-09-05 15:36:30.296785240 +0000
 @@ -48,6 +48,10 @@
  #include <fcntl.h>
  #include <errno.h>
@@ -107,7 +414,7 @@ diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.
  #include "gnetworking.h"
 diff -u -r glib-2.62.6-orig/gio/tests/desktop-app-info.c glib-2.62.6/gio/tests/desktop-app-info.c
 --- glib-2.62.6-orig/gio/tests/desktop-app-info.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/tests/desktop-app-info.c	2020-06-21 16:19:53.455452960 +0000
++++ glib-2.62.6/gio/tests/desktop-app-info.c	2020-09-05 15:36:30.299276440 +0000
 @@ -80,9 +80,9 @@
  
    g_object_unref (info);
@@ -120,9 +427,53 @@ diff -u -r glib-2.62.6-orig/gio/tests/desktop-app-info.c glib-2.62.6/gio/tests/d
        g_assert_nonnull (info);
       
        res = g_app_info_can_delete (info);
+diff -u -r glib-2.62.6-orig/gio/tests/file.c glib-2.62.6/gio/tests/file.c
+--- glib-2.62.6-orig/gio/tests/file.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gio/tests/file.c	2020-09-05 15:36:30.302299240 +0000
+@@ -989,6 +989,7 @@
+                                   &num_dirs,
+                                   &num_files,
+                                   &error);
++
+   g_assert (ok);
+   g_assert_no_error (error);
+ 
+diff -u -r glib-2.62.6-orig/gio/tests/socket.c glib-2.62.6/gio/tests/socket.c
+--- glib-2.62.6-orig/gio/tests/socket.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gio/tests/socket.c	2020-09-05 15:36:30.305769880 +0000
+@@ -1336,10 +1336,13 @@
+   gint fd;
+   GError *error;
+   GSocket *s;
+-
++  //errno = 0;
+   fd = socket (AF_UNIX, SOCK_STREAM, 0);
+   g_assert_cmpint (fd, !=, -1);
+ 
++  //printf("Exiting. errno=%d\n", errno);
++  //exit(1);
++
+   error = NULL;
+   s = g_socket_new_from_fd (fd, &error);
+   g_assert_no_error (error);
+@@ -1903,11 +1906,14 @@
+                        &error);
+   if (sock != NULL)
+     {
++      printf("Assuming ipv6 ok\n");
+       ipv6_supported = TRUE;
+       g_object_unref (sock);
+     }
+   else
+     {
++      printf("Assuming ipv6 not ok\n");
++      errno = 0;
+       g_assert_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED);
+       g_clear_error (&error);
+     }
 diff -u -r glib-2.62.6-orig/gio/xdgmime/xdgmime.c glib-2.62.6/gio/xdgmime/xdgmime.c
 --- glib-2.62.6-orig/gio/xdgmime/xdgmime.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/xdgmime/xdgmime.c	2020-06-21 16:20:02.287929120 +0000
++++ glib-2.62.6/gio/xdgmime/xdgmime.c	2020-09-05 15:36:30.307980760 +0000
 @@ -235,7 +235,7 @@
    xdg_data_dirs = getenv ("XDG_DATA_DIRS");
  
@@ -134,7 +485,7 @@ diff -u -r glib-2.62.6-orig/gio/xdgmime/xdgmime.c glib-2.62.6/gio/xdgmime/xdgmim
    if (xdg_data_home != NULL || home != NULL)
 diff -u -r glib-2.62.6-orig/glib/gcharset.c glib-2.62.6/glib/gcharset.c
 --- glib-2.62.6-orig/glib/gcharset.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gcharset.c	2020-06-21 16:20:41.603434800 +0000
++++ glib-2.62.6/glib/gcharset.c	2020-09-05 15:36:30.309967720 +0000
 @@ -407,7 +407,7 @@
    if (g_once_init_enter (&alias_table))
      {
@@ -146,7 +497,7 @@ diff -u -r glib-2.62.6-orig/glib/gcharset.c glib-2.62.6/glib/gcharset.c
  
 diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
 --- glib-2.62.6-orig/glib/giounix.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/giounix.c	2020-06-21 16:19:35.764079920 +0000
++++ glib-2.62.6/glib/giounix.c	2020-09-05 15:36:30.312040360 +0000
 @@ -31,7 +31,17 @@
  
  #include "config.h"
@@ -167,7 +518,7 @@ diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
  #include <sys/stat.h>
 diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.in
 --- glib-2.62.6-orig/glib/glibconfig.h.in	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/glibconfig.h.in	2020-06-21 16:19:35.765665600 +0000
++++ glib-2.62.6/glib/glibconfig.h.in	2020-09-05 15:36:30.313525000 +0000
 @@ -16,7 +16,7 @@
   * system printf functions.  This is useful to know, for example,
   * when using glibc's register_printf_function().
@@ -179,7 +530,7 @@ diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.i
  #mesondefine GOBJECT_STATIC_COMPILATION
 diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
 --- glib-2.62.6-orig/glib/gmain.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gmain.c	2020-06-21 16:19:35.772909920 +0000
++++ glib-2.62.6/glib/gmain.c	2020-09-05 15:36:30.320964600 +0000
 @@ -2844,7 +2844,11 @@
    struct timespec ts;
    gint result;
@@ -192,9 +543,26 @@ diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
  
    if G_UNLIKELY (result != 0)
      g_error ("GLib requires working CLOCK_MONOTONIC");
+diff -u -r glib-2.62.6-orig/glib/gmessages.c glib-2.62.6/glib/gmessages.c
+--- glib-2.62.6-orig/glib/gmessages.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/gmessages.c	2020-09-05 15:36:30.326074920 +0000
+@@ -1053,9 +1053,11 @@
+     }
+   else
+     {
+-      GError *err = NULL;
++      GError *err;
++      gchar *result;
++      err = NULL;
++      result = g_convert_with_fallback (string, -1, charset, "UTF-8", "?", NULL, NULL, &err);
+       
+-      gchar *result = g_convert_with_fallback (string, -1, charset, "UTF-8", "?", NULL, NULL, &err);
+       if (result)
+ 	return result;
+       else
 diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meson.build
 --- glib-2.62.6-orig/glib/gnulib/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gnulib/meson.build	2020-06-21 16:19:35.774898080 +0000
++++ glib-2.62.6/glib/gnulib/meson.build	2020-09-05 15:36:30.327827080 +0000
 @@ -323,14 +323,16 @@
                           output: 'gnulib_math.h',
                           configuration: math_h_config)
@@ -219,9 +587,29 @@ diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meso
  
  gnulib_sources += other_needed_math_sources
  
+diff -u -r glib-2.62.6-orig/glib/gspawn.c glib-2.62.6/glib/gspawn.c
+--- glib-2.62.6-orig/glib/gspawn.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/gspawn.c	2020-09-05 15:36:30.331787560 +0000
+@@ -1626,7 +1626,6 @@
+   if (!intermediate_child && working_directory == NULL && !close_descriptors &&
+       !search_path_from_envp && child_setup == NULL)
+     {
+-      g_debug ("Launching with posix_spawn");
+       status = do_posix_spawn (argv,
+                                envp,
+                                search_path,
+@@ -1662,7 +1661,7 @@
+     }
+   else
+     {
+-      g_debug ("posix_spawn avoided %s%s%s%s%s",
++      g_debug ("posix_spawn avoided %s%s%s%s%s\n",
+                !intermediate_child ? "" : "(automatic reaping requested) ",
+                working_directory == NULL ? "" : "(workdir specified) ",
+                !close_descriptors ? "" : "(fd close requested) ",
 diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.c
 --- glib-2.62.6-orig/glib/gthread-posix.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gthread-posix.c	2020-06-21 16:19:35.777685440 +0000
++++ glib-2.62.6/glib/gthread-posix.c	2020-09-05 15:36:30.334534120 +0000
 @@ -661,7 +661,7 @@
  
    pthread_condattr_init (&attr);
@@ -256,7 +644,7 @@ diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.
     * monotonic, so if we're in this branch, timedwait() will already be
 diff -u -r glib-2.62.6-orig/glib/gtimezone.c glib-2.62.6/glib/gtimezone.c
 --- glib-2.62.6-orig/glib/gtimezone.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gtimezone.c	2020-06-21 16:20:47.531480160 +0000
++++ glib-2.62.6/glib/gtimezone.c	2020-09-05 15:36:30.338008760 +0000
 @@ -416,7 +416,8 @@
  
    tzdir = getenv ("TZDIR");
@@ -269,7 +657,7 @@ diff -u -r glib-2.62.6-orig/glib/gtimezone.c glib-2.62.6/glib/gtimezone.c
       if relative, it is interpreted starting from /usr/share/zoneinfo
 diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
 --- glib-2.62.6-orig/glib/gutils.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gutils.c	2020-06-21 16:20:55.338136000 +0000
++++ glib-2.62.6/glib/gutils.c	2020-09-05 15:36:30.342256840 +0000
 @@ -992,11 +992,17 @@
        const gsize size_large = (gsize) 256 * 256;
        gchar *tmp;
@@ -298,9 +686,39 @@ diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
  
    data_dir_vector = g_strsplit (data_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
  #else
+diff -u -r glib-2.62.6-orig/glib/tests/protocol.c glib-2.62.6/glib/tests/protocol.c
+--- glib-2.62.6-orig/glib/tests/protocol.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/tests/protocol.c	2020-09-05 15:36:30.344038760 +0000
+@@ -20,6 +20,8 @@
+  * if advised of the possibility of such damage.
+  */
+ 
++#include <stdio.h>
++
+ #include <errno.h>  /* errno */
+ #include <glib.h>
+ #ifdef G_OS_UNIX
+diff -u -r glib-2.62.6-orig/gobject/tests/genmarshal.py glib-2.62.6/gobject/tests/genmarshal.py
+--- glib-2.62.6-orig/gobject/tests/genmarshal.py	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gobject/tests/genmarshal.py	2020-09-05 15:36:30.346299080 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python3
++#!/usr/sgug/bin/python3
+ # -*- coding: utf-8 -*-
+ #
+ # Copyright © 2019 Endless Mobile, Inc.
+diff -u -r glib-2.62.6-orig/gobject/tests/mkenums.py glib-2.62.6/gobject/tests/mkenums.py
+--- glib-2.62.6-orig/gobject/tests/mkenums.py	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/gobject/tests/mkenums.py	2020-09-05 15:36:30.347907880 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python3
++#!/usr/sgug/bin/python3
+ # -*- coding: utf-8 -*-
+ #
+ # Copyright © 2018 Endless Mobile, Inc.
 diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
 --- glib-2.62.6-orig/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/meson.build	2020-06-21 16:19:35.785481600 +0000
++++ glib-2.62.6/meson.build	2020-09-05 15:36:30.351515400 +0000
 @@ -449,7 +449,6 @@
    'link',
    'localtime_r',
@@ -326,7 +744,7 @@ diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
    functions += ['statvfs']
 diff -u -r glib-2.62.6-orig/tests/mapping-test.c glib-2.62.6/tests/mapping-test.c
 --- glib-2.62.6-orig/tests/mapping-test.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/tests/mapping-test.c	2020-06-21 16:19:35.786817040 +0000
++++ glib-2.62.6/tests/mapping-test.c	2020-09-05 15:36:30.352887880 +0000
 @@ -208,7 +208,11 @@
    signal (SIGUSR1, handle_usr1);
  #endif
