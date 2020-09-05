@@ -9,7 +9,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.32
+Version: 0.1.34
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -46,8 +46,8 @@ to develop programs that use libdicl library.
 
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 %if 0%{debug}
-export CFLAGS="-g -O0"
-export CXXFLAGS="-g -O0"
+export CFLAGS="-g -Og"
+export CXXFLAGS="-g -Og"
 export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
 %endif
 %configure
@@ -75,7 +75,10 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 
 %changelog
-* Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.31-2
+* Sat Sep 05 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.33-1
+- Bug to posix spawn to avoid attempting to sigaction for the IRIX internal signal 65.
+
+* Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.32-1
 - libdicl unhappy with optimised linker flags (test fails to build), switch to non-optimised linker flags
 
 * Sun Aug 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.31-1
