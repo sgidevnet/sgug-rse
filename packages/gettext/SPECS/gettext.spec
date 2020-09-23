@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 %bcond_with jar
 %bcond_with java
 
@@ -9,7 +15,7 @@
 Summary: GNU libraries and utilities for producing multi-lingual messages
 Name: gettext
 Version: %{tarversion}
-Release: 3%{?dist}
+Release: 4%{?dist}
 # The following are licensed under LGPLv2+:
 # - libintl and its headers
 # - libasprintf and its headers
@@ -38,6 +44,7 @@ BuildRequires: autoconf >= 2.62
 BuildRequires: automake
 BuildRequires: libtool
 BuildRequires: bison
+BuildRequires: libiconv >= 1.16-3
 
 BuildRequires: gcc-c++
 %if %{with java}
@@ -251,11 +258,19 @@ export CFLAGS="$RPM_OPT_FLAGS -D__SUPPORT_SNAN__"
 # Fedora's libcroco-devel has an extra "libcroco" path component, and the
 # libxml2-devel package has an extra "libxml2" path component.
 #export CPPFLAGS="-I$(ls -1d %{_includedir}/libcroco-*/libcroco) -I%{_includedir}/libxml2"
-export CPPFLAGS="-I%{_includedir}/libxml2"
+
+export CPPFLAGS="-I%{_includedir}/libxml2 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 # Side effect of unbundling libcroco and libxml2 from libtextstyle.
 #export LIBS="-lcroco-0.6 -lxml2"
 export LIBS="-lxml2"
 #export LDFLAGS="$LDFLAGS -L%{_libdir} -lgcc_s -lm"
+
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
+
 export gl_cv_cc_visibility=no
 %configure --enable-nls \
     --disable-csharp \
@@ -484,6 +499,9 @@ make check LIBUNISTRING=-lunistring
 #%{_mandir}/man1/msghack.1*
 
 %changelog
+* Sat Sep 12 2020 Daniel Hams <daniel.hams@gmail.com> - 0.19.8-4
+- Bug fix to error handling
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.19.8-3
 - Remove hard coded shell paths/bashisms
 
