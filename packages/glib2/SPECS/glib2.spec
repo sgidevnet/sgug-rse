@@ -8,7 +8,7 @@
 
 Name: glib2
 Version: 2.62.6
-Release: 4%{?dist}
+Release: 5%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -20,7 +20,7 @@ Patch1000:  glib2.sgifixes.patch
 #BuildRequires: chrpath
 BuildRequires: gcc
 BuildRequires: gcc-c++
-BuildRequires: gettext
+BuildRequires: gettext >= 0.19.8.1-4
 #BuildRequires: gtk-doc
 BuildRequires: perl-interpreter
 # for sys/inotify.h
@@ -37,7 +37,7 @@ BuildRequires: pkgconfig(libpcre)
 BuildRequires: pkgconfig(zlib)
 BuildRequires: python3-devel
 
-BuildRequires: libdicl-devel >= 0.1.34
+BuildRequires: libdicl-devel >= 0.1.35
 
 # for GIO content-type support
 Recommends: shared-mime-info
@@ -108,7 +108,7 @@ perl -pi -e "s|gnu89|gnu99|g" meson.build
 rm glib/pcre/*.[ch]
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
-export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
 # Meson/ninja use ORIGIN a lot, only way to do that is explicit
 # add what we need to the LD_LIBRARYN32_PATH before the build
 export GLIB2_BUILD_DIR=`pwd`/mips-sgug-irix
@@ -261,6 +261,9 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Sat Sep 12 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-5
+- Bug fix to error handling using newer gettext, get more tests passing
+
 * Sat Sep 05 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-4
 - Get more tests passing fixing spawn, socket bits, some other pieces
 
