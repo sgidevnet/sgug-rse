@@ -1,5 +1,13 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 # This package is able to use optimised linker flags.
+%if !(0%{debug})
 %global build_ldflags %{sgug_optimised_ldflags}
+%endif
 
 %bcond_with bootstrap
 
@@ -75,6 +83,11 @@ developing applications that use %{name}.
 %patch10 -p1 -b _irix
 
 %build
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
 %configure --disable-static
 make %{?_smp_mflags}
 
