@@ -14,7 +14,7 @@
 Summary:	Character set conversion library
 Name:		libiconv
 Version:	1.16
-Release:	2%{?dist}
+Release:	3%{?dist}
 License:	LGPL v2+
 Group:		Libraries
 Source0:	http://ftp.gnu.org/gnu/libiconv/%{name}-%{version}.tar.gz
@@ -81,9 +81,9 @@ rm -f po/stamp-po
 #%%{__autoconf}
 aclocal -I m4 -I srcm4
 autoconf
-export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CPPFLAGS"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CPPFLAGS"
 %if 0%{debug}
-export CFLAGS="-g -O0"
+export CFLAGS="-g -Og"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
 %endif
@@ -149,6 +149,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
+* Sat Sep 12 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-3
+- Bug fix to error handling
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-2
 - Cleanup of things that should be commented out.
 
