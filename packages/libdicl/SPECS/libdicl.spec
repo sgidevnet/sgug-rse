@@ -9,7 +9,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.34
+Version: 0.1.35
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -75,6 +75,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 
 %changelog
+* Wed Sep 23 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.35-1
+- Upgrade to 0.1.25 with memrchr + fopendir implementations
+
 * Sat Sep 05 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.33-1
 - Bug to posix spawn to avoid attempting to sigaction for the IRIX internal signal 65.
 
