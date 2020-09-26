@@ -34,8 +34,6 @@ to develop programs that use libdicl library.
 %prep
 %setup -q
 
-%patch100 -p1
-
 # A place to generate a patch
 #exit 1
 
