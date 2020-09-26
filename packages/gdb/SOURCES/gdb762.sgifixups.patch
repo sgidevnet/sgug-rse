@@ -1,0 +1,380 @@
+diff -u -r gdb-7.6.2-orig/bfd/elfxx-mips.c gdb-7.6.2/bfd/elfxx-mips.c
+--- gdb-7.6.2-orig/bfd/elfxx-mips.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/bfd/elfxx-mips.c	2020-09-26 14:00:19.661280000 +0000
+@@ -4256,14 +4256,19 @@
+ 	 Note that the former condition does not always imply the
+ 	 latter: symbols do not bind locally if they are completely
+ 	 undefined.  We'll report undefined symbols later if appropriate.  */
++      /*
+       if (h->root.dynindx == -1
+ 	  || (h->got_only_for_calls
+ 	      ? SYMBOL_CALLS_LOCAL (info, &h->root)
+ 	      : SYMBOL_REFERENCES_LOCAL (info, &h->root)))
++      */
++      if (h->root.forced_local || h->root.dynindx == -1)
++	{
+ 	/* The symbol belongs in the local GOT.  We no longer need this
+ 	   entry if it was only used for relocations; those relocations
+ 	   will be against the null or section symbol instead of H.  */
+ 	h->global_got_area = GGA_NONE;
++	}
+       else if (htab->is_vxworks
+ 	       && h->got_only_for_calls
+ 	       && h->root.plt.offset != MINUS_ONE)
+@@ -4795,10 +4800,12 @@
+ static bfd_boolean
+ mips_elf_local_relocation_p (bfd *input_bfd,
+ 			     const Elf_Internal_Rela *relocation,
+-			     asection **local_sections)
++			     asection **local_sections,
++			     bfd_boolean check_forced)
+ {
+   unsigned long r_symndx;
+   Elf_Internal_Shdr *symtab_hdr;
++  struct mips_elf_link_hash_entry *h;
+   size_t extsymoff;
+ 
+   r_symndx = ELF_R_SYM (input_bfd, relocation->r_info);
+@@ -4810,6 +4817,20 @@
+   if (elf_bad_symtab (input_bfd) && local_sections[r_symndx] != NULL)
+     return TRUE;
+ 
++  if (check_forced)
++    {
++      /* Look up the hash table to check whether the symbol
++ 	 was forced local.  */
++      h = (struct mips_elf_link_hash_entry *)
++	elf_sym_hashes (input_bfd) [r_symndx - extsymoff];
++      /* Find the real hash-table entry for this symbol.  */
++      while (h->root.root.type == bfd_link_hash_indirect
++ 	     || h->root.root.type == bfd_link_hash_warning)
++	h = (struct mips_elf_link_hash_entry *) h->root.root.u.i.link;
++      if (h->root.forced_local)
++	return TRUE;
++    }
++
+   return FALSE;
+ }
+ 
+@@ -5104,7 +5125,7 @@
+      used in the array of hash table entries.  */
+   symtab_hdr = &elf_tdata (input_bfd)->symtab_hdr;
+   local_p = mips_elf_local_relocation_p (input_bfd, relocation,
+-					 local_sections);
++					 local_sections, FALSE);
+   was_local_p = local_p;
+   if (! elf_bad_symtab (input_bfd))
+     extsymoff = symtab_hdr->sh_info;
+@@ -5376,9 +5397,12 @@
+ 				    || target_is_micromips_code_p))));
+ 
+   local_p = (h == NULL
+-	     || (h->got_only_for_calls
++	     ||
++	     ((h->got_only_for_calls
+ 		 ? SYMBOL_CALLS_LOCAL (info, &h->root)
+-		 : SYMBOL_REFERENCES_LOCAL (info, &h->root)));
++	       : SYMBOL_REFERENCES_LOCAL (info, &h->root)))
++	     &&
++	     mips_elf_local_relocation_p(input_bfd, relocation, local_sections, TRUE));
+ 
+   gp0 = _bfd_get_gp_value (input_bfd);
+   gp = _bfd_get_gp_value (abfd);
+@@ -9314,7 +9338,7 @@
+   Elf_Internal_Sym *sym;
+   asection *sec;
+ 
+-  if (mips_elf_local_relocation_p (input_bfd, rel, local_sections))
++  if (mips_elf_local_relocation_p (input_bfd, rel, local_sections, FALSE))
+     {
+       r_type = ELF_R_TYPE (output_bfd, rel->r_info);
+       if (gprel16_reloc_p (r_type)
+@@ -9432,7 +9456,7 @@
+ 
+       r_symndx = ELF_R_SYM (input_bfd, rel->r_info);
+       symtab_hdr = &elf_tdata (input_bfd)->symtab_hdr;
+-      if (mips_elf_local_relocation_p (input_bfd, rel, local_sections))
++      if (mips_elf_local_relocation_p (input_bfd, rel, local_sections, FALSE))
+ 	{
+ 	  sec = local_sections[r_symndx];
+ 	  h = NULL;
+@@ -9494,7 +9518,7 @@
+ 	      if (hi16_reloc_p (r_type)
+ 		  || (got16_reloc_p (r_type)
+ 		      && mips_elf_local_relocation_p (input_bfd, rel,
+-						      local_sections)))
++						      local_sections, FALSE)))
+ 		{
+ 		  if (!mips_elf_add_lo16_rel_addend (input_bfd, rel, relend,
+ 						     contents, &addend))
+Only in gdb-7.6.2/bfd: elfxx-mips.c.sgifixups
+diff -u -r gdb-7.6.2-orig/gdb/common/signals.c gdb-7.6.2/gdb/common/signals.c
+--- gdb-7.6.2-orig/gdb/common/signals.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/common/signals.c	2020-09-26 14:00:23.836203760 +0000
+@@ -66,8 +66,11 @@
+ {
+   if ((int) sig >= GDB_SIGNAL_FIRST && (int) sig <= GDB_SIGNAL_LAST)
+     return signals[sig].string;
+-  else
++  else {
++    warning("gdb_signal_to_string returning unknown for %d",
++	    sig);
+     return signals[GDB_SIGNAL_UNKNOWN].string;
++  }
+ }
+ 
+ /* Return the name for a signal.  */
+@@ -101,6 +104,8 @@
+     if (signals[sig].name != NULL
+ 	&& strcmp (name, signals[sig].name) == 0)
+       return sig;
++  warning("gdb_signal_from_name returning unknown for %s",
++	  name);
+   return GDB_SIGNAL_UNKNOWN;
+ }
+ 
+@@ -250,6 +255,36 @@
+   if (hostsig == SIGXFSZ)
+     return GDB_SIGNAL_XFSZ;
+ #endif
++  /* IRIX BITS */
++#if defined (SIGK32)
++  if (hostsig == SIGK32)
++    return GDB_SIGNAL_K32;
++#endif
++#if defined (SIGCKPT)
++  if (hostsig == SIGCKPT)
++    return GDB_SIGNAL_CKPT;
++#endif
++#if defined (SIGRESTART)
++  if (hostsig == SIGRESTART)
++    return GDB_SIGNAL_RESTART;
++#endif
++#if defined (SIGPTINTR)
++  if (hostsig == SIGPTINTR)
++    return GDB_SIGNAL_PTINTR;
++#endif
++#if defined (SIGPTRESCHED)
++  if (hostsig == SIGPTRESCHED)
++    return GDB_SIGNAL_PTRESCHED;
++#endif
++#if defined (SIGRTMIN)
++  if (hostsig == SIGRTMIN)
++    return GDB_SIGNAL_RTMIN;
++#endif
++#if defined (SIGRTMAX)
++  if (hostsig == SIGRTMAX)
++    return GDB_SIGNAL_RTMAX;
++#endif
++  /* END IRIX BITS */
+ #if defined (SIGWIND)
+   if (hostsig == SIGWIND)
+     return GDB_SIGNAL_WIND;
+@@ -352,6 +387,8 @@
+     }
+ #endif
+ 
++  /*warning("gdb_signal_from_host returning unknown for %d",
++	  hostsig);*/
+   return GDB_SIGNAL_UNKNOWN;
+ }
+ 
+@@ -507,6 +544,36 @@
+     case GDB_SIGNAL_XFSZ:
+       return SIGXFSZ;
+ #endif
++      /* IRIX BITS */
++#if defined (SIGK32)
++    case GDB_SIGNAL_K32:
++      return SIGK32;
++#endif
++#if defined (SIGCKPT)
++    case GDB_SIGNAL_CKPT:
++      return SIGCKPT;
++#endif
++#if defined (SIGRESTART)
++    case GDB_SIGNAL_RESTART:
++      return SIGRESTART;
++#endif
++#if defined (SIGPTINTR)
++    case GDB_SIGNAL_PTINTR:
++      return SIGPTINTR;
++#endif
++#if defined (SIGPTRESCHED)
++    case GDB_SIGNAL_PTRESCHED:
++      return SIGPTRESCHED;
++#endif
++#if defined (SIGRTMIN)
++    case GDB_SIGNAL_RTMIN:
++      return SIGRTMIN;
++#endif
++#if defined (SIGRTMAX)
++    case GDB_SIGNAL_RTMAX:
++      return SIGRTMAX;
++#endif
++      /* END IRIX BITS */
+ #if defined (SIGWIND)
+     case GDB_SIGNAL_WIND:
+       return SIGWIND;
+@@ -642,7 +709,8 @@
+     {
+       /* The user might be trying to do "signal SIGSAK" where this system
+          doesn't have SIGSAK.  */
+-      warning (_("Signal %s does not exist on this system."),
++      warning (_("Signal (%d) %s does not exist on this system."),
++	       oursig,
+ 	       gdb_signal_to_name (oursig));
+       return 0;
+     }
+Only in gdb-7.6.2/gdb/common: signals.c.sgifixups
+diff -u -r gdb-7.6.2-orig/gdb/defs.h gdb-7.6.2/gdb/defs.h
+--- gdb-7.6.2-orig/gdb/defs.h	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/defs.h	2020-09-26 14:00:23.838804560 +0000
+@@ -25,6 +25,10 @@
+ #  error gdbserver should not include gdb/defs.h
+ #endif
+ 
++#define _SGI_SOURCE 1
++#define _SGI_MP_SOURCE 1
++#define _SGI_REENTRANT_FUNCTIONS 1
++
+ #include "config.h"		/* Generated by configure.  */
+ #include "build-gnulib/config.h"
+ 
+Only in gdb-7.6.2/gdb: defs.h.sgifixups
+diff -u -r gdb-7.6.2-orig/gdb/infrun.c gdb-7.6.2/gdb/infrun.c
+--- gdb-7.6.2-orig/gdb/infrun.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/infrun.c	2020-09-26 14:00:32.461972360 +0000
+@@ -7303,6 +7303,13 @@
+   signal_stop[GDB_SIGNAL_CANCEL] = 0;
+   signal_print[GDB_SIGNAL_CANCEL] = 0;
+ 
++  /* IRIX BITS */
++  signal_stop[GDB_SIGNAL_PTINTR] = 0;
++  signal_print[GDB_SIGNAL_PTINTR] = 0;
++  signal_stop[GDB_SIGNAL_PTRESCHED] = 0;
++  signal_print[GDB_SIGNAL_PTRESCHED] = 0;
++  /* END IRIX BITS */
++
+   /* Update cached state.  */
+   signal_cache_update (-1);
+ 
+diff -u -r gdb-7.6.2-orig/include/gdb/signals.def gdb-7.6.2/include/gdb/signals.def
+--- gdb-7.6.2-orig/include/gdb/signals.def	2013-12-08 04:33:14.000000000 +0000
++++ gdb-7.6.2/include/gdb/signals.def	2020-09-26 14:00:23.840993840 +0000
+@@ -194,7 +194,17 @@
+ SET (TARGET_EXC_SOFTWARE, 149, "EXC_SOFTWARE", "Software generated exception")
+ SET (TARGET_EXC_BREAKPOINT, 150, "EXC_BREAKPOINT", "Breakpoint")
+ 
++/* IRIX BITS */
++SET (GDB_SIGNAL_K32, 151, "SIGK32", "Reserved for kernel usage")
++SET (GDB_SIGNAL_CKPT, 152, "SIGCKPT", "Checkpoint warning")
++SET (GDB_SIGNAL_RESTART, 153, "SIGRESTART", "Restart warning")
++SET (GDB_SIGNAL_PTINTR, 154, "SIGPRTINTR", "Pthread interrupt")
++SET (GDB_SIGNAL_PTRESCHED, 155, "SIGPTRESCHED", "Pthread reschedule")
++SET (GDB_SIGNAL_RTMIN, 156, "SIGRTMIN", "Posix rtmin")
++SET (GDB_SIGNAL_RTMAX, 157, "SIGRTMAX", "Posix rtmax")
++/* END IRIX BITS */
++
+ /* If you are adding a new signal, add it just above this comment.  */
+ 
+ /* Last and unused enum value, for sizing arrays, etc.  */
+-SET (GDB_SIGNAL_LAST, 151, NULL, "GDB_SIGNAL_MAGIC")
++SET (GDB_SIGNAL_LAST, 158, NULL, "GDB_SIGNAL_MAGIC")
+Only in gdb-7.6.2/include/gdb: signals.def.sgifixups
+diff -u -r gdb-7.6.2-orig/libiberty/mkstemps.c gdb-7.6.2/libiberty/mkstemps.c
+--- gdb-7.6.2-orig/libiberty/mkstemps.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/libiberty/mkstemps.c	2020-09-26 14:00:23.842496960 +0000
+@@ -16,6 +16,8 @@
+    write to the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
+    Boston, MA 02110-1301, USA.  */
+ 
++#include <sys/time.h>
++
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #endif
+Only in gdb-7.6.2/libiberty: mkstemps.c.sgifixups
+diff -u -r gdb-7.6.2-orig/libiberty/strsignal.c gdb-7.6.2/libiberty/strsignal.c
+--- gdb-7.6.2-orig/libiberty/strsignal.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/libiberty/strsignal.c	2020-09-26 14:00:23.844395840 +0000
+@@ -20,6 +20,7 @@
+ 
+ #include <stdio.h>
+ #include <signal.h>
++#include <sys/signal.h>
+ 
+ /*  Routines imported from standard C runtime libraries. */
+ 
+@@ -248,6 +249,8 @@
+ #else
+ #ifdef _NSIG
+ static int sys_nsig = _NSIG;
++#else
++static int sys_nsig = NUMSIGS;
+ #endif
+ #endif
+ extern const char * const sys_siglist[];
+Only in gdb-7.6.2/libiberty: strsignal.c.sgifixups
+diff -u -r gdb-7.6.2-orig/libiberty/timeval-utils.c gdb-7.6.2/libiberty/timeval-utils.c
+--- gdb-7.6.2-orig/libiberty/timeval-utils.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/libiberty/timeval-utils.c	2020-09-26 14:00:23.845843680 +0000
+@@ -17,6 +17,8 @@
+ write to the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
+ Boston, MA 02110-1301, USA.  */
+ 
++#include <sys/time.h>
++
+ #include "config.h"
+ 
+ /* On some systems (such as WindISS), you must include <sys/types.h>
+Only in gdb-7.6.2/libiberty: timeval-utils.c.sgifixups
+diff -u -r gdb-7.6.2-orig/readline/signals.c gdb-7.6.2/readline/signals.c
+--- gdb-7.6.2-orig/readline/signals.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/readline/signals.c	2020-09-26 14:00:23.847824080 +0000
+@@ -21,6 +21,8 @@
+ 
+ #define READLINE_LIBRARY
+ 
++#include <sys/signal.h>
++
+ #if defined (HAVE_CONFIG_H)
+ #  include <config.h>
+ #endif
+Only in gdb-7.6.2/readline: signals.c.sgifixups
+diff -u -r gdb-7.6.2-orig/sim/common/sim-arange.c gdb-7.6.2/sim/common/sim-arange.c
+--- gdb-7.6.2-orig/sim/common/sim-arange.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/sim/common/sim-arange.c	2020-09-26 14:00:23.849539360 +0000
+@@ -280,11 +280,8 @@
+   build_search_tree (ar);
+ }
+ 
+-#endif /* DEFINE_NON_INLINE_P */
+-
+-#if DEFINE_INLINE_P
+ 
+-SIM_ARANGE_INLINE int
++int
+ sim_addr_range_hit_p (ADDR_RANGE *ar, address_word addr)
+ {
+   ADDR_RANGE_TREE *t = ar->range_tree;
+@@ -301,4 +298,4 @@
+   return 0;
+ }
+ 
+-#endif /* DEFINE_INLINE_P */
++#endif /* DEFINE_NON_INLINE_P */
+Only in gdb-7.6.2/sim/common: sim-arange.c.sgifixups
+diff -u -r gdb-7.6.2-orig/sim/common/sim-arange.h gdb-7.6.2/sim/common/sim-arange.h
+--- gdb-7.6.2-orig/sim/common/sim-arange.h	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/sim/common/sim-arange.h	2020-09-26 14:00:23.850942480 +0000
+@@ -62,7 +62,7 @@
+ 
+ /* Return non-zero if ADDR is in range AR, traversing the entire tree.
+    If no range is specified, that is defined to mean "everything".  */
+-extern INLINE int
++extern int
+ sim_addr_range_hit_p (ADDR_RANGE * /*ar*/, address_word /*addr*/);
+ #define ADDR_RANGE_HIT_P(ar, addr) \
+   ((ar)->range_tree == NULL || sim_addr_range_hit_p ((ar), (addr)))
+Only in gdb-7.6.2/sim/common: sim-arange.h.sgifixups

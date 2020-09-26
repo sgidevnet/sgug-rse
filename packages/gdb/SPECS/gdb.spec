@@ -4,7 +4,7 @@
 Summary: The GNU Debugger
 Name: gdb
 Version: 7.6.2
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ and GPLv2+ with exceptions and GPL+ and LGPLv2+ and LGPLv3+ and BSD and Public Domain and GFDL
 URL: http://ftp.gnu.org/gnu/gdb/
 Source: http://ftp.gnu.org/gnu/gdb/gdb-%{version}.tar.gz
@@ -23,7 +23,11 @@ The gnu debugger.
 
 %prep
 %setup
+
 %patch0 -p1 -b .sgifixups
+
+# A place to generate our patch
+#exit 1
 
 %build
 %{configure} --enable-werror=no --disable-nls --disable-iconv \
@@ -72,6 +76,10 @@ rm -f $RPM_BUILD_ROOT%{_datadir}/gdb/syscalls/*
 %{_infodir}/gdb*.gz
 
 %changelog
+* Sat Sep 26 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-4
+- Teach gdb about the extra IRIX signals and the pthread ones that can be
+  safely ignored.
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-3
 - Avoid picking up python
 
