@@ -15,8 +15,6 @@ License: GPLv3+
 URL: https://github.com/danielhams/dicl
 Source: https://github.com/danielhams/dicl/releases/download/%{version}/libdicl-%{version}.tar.gz
 
-Patch100: libdicl.sgifixes.patch
-
 BuildRequires: gcc
 BuildRequires: automake, autoconf, libtool
 
