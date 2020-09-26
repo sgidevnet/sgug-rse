@@ -1,3 +1,9 @@
+%global debug 1
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 %if 0%{?fedora}
 %global with_broadway 1
 %endif
@@ -175,10 +181,16 @@ the functionality of the installed %{name} package.
 %autosetup -n gtk+-%{version} -p1
 
 %build
-export CFLAGS='-fno-strict-aliasing %optflags'
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 #export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%else
+export CFLAGS='-fno-strict-aliasing %optflags'
+%endif
+export CXXFLAGS="$CFLAGS"
 autoreconf -f -i -v
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--disable-gtk-doc; fi;
  %configure $CONFIGFLAGS \
