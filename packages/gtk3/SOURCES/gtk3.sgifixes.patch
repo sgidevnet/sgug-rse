@@ -1,0 +1,58 @@
+diff -Naur gtk+-3.24.13.orig/docs/tools/shadow.c gtk+-3.24.13/docs/tools/shadow.c
+--- gtk+-3.24.13.orig/docs/tools/shadow.c	2019-10-22 23:40:12.000000000 +0000
++++ gtk+-3.24.13/docs/tools/shadow.c	2020-09-21 15:05:15.523538707 +0000
+@@ -1,5 +1,6 @@
+ #include "shadow.h"
+ #include <math.h>
++#include <values.h>
+ 
+ #define BLUR_RADIUS 5
+ #define SHADOW_OFFSET (BLUR_RADIUS * 4 / 5)
+diff -Naur gtk+-3.24.13.orig/gtk/gtkcssimageradial.c gtk+-3.24.13/gtk/gtkcssimageradial.c
+--- gtk+-3.24.13.orig/gtk/gtkcssimageradial.c	2019-11-27 16:23:51.000000000 +0000
++++ gtk+-3.24.13/gtk/gtkcssimageradial.c	2020-09-21 15:03:49.319819145 +0000
+@@ -22,7 +22,7 @@
+ #include "gtkcssimageradialprivate.h"
+ 
+ #include <math.h>
+-
++#include <values.h>
+ #include "gtkcsscolorvalueprivate.h"
+ #include "gtkcssnumbervalueprivate.h"
+ #include "gtkcsspositionvalueprivate.h"
+diff -Naur gtk+-3.24.13.orig/gtk/gtkprintoperation-portal.c gtk+-3.24.13/gtk/gtkprintoperation-portal.c
+--- gtk+-3.24.13.orig/gtk/gtkprintoperation-portal.c	2019-11-27 16:23:51.000000000 +0000
++++ gtk+-3.24.13/gtk/gtkprintoperation-portal.c	2020-09-21 15:03:49.321447554 +0000
+@@ -39,6 +39,9 @@
+ #include "gtkwindowprivate.h"
+ #include "gtkprivate.h"
+ 
++#ifdef __sgi
++#define O_CLOEXEC        02000000        /* set close_on_exec */
++#endif
+ 
+ typedef struct {
+   GtkPrintOperation *op;
+diff -Naur gtk+-3.24.13.orig/tests/animated-resizing.c gtk+-3.24.13/tests/animated-resizing.c
+--- gtk+-3.24.13.orig/tests/animated-resizing.c	2019-11-27 16:23:51.000000000 +0000
++++ gtk+-3.24.13/tests/animated-resizing.c	2020-09-21 15:04:31.707687158 +0000
+@@ -2,7 +2,7 @@
+ 
+ #include <gtk/gtk.h>
+ #include <string.h>
+-
++#include <values.h>
+ #include "gtk/fallback-c89.c"
+ #include "frame-stats.h"
+ 
+diff -Naur gtk+-3.24.13.orig/tests/motion-compression.c gtk+-3.24.13/tests/motion-compression.c
+--- gtk+-3.24.13.orig/tests/motion-compression.c	2019-11-27 16:23:51.000000000 +0000
++++ gtk+-3.24.13/tests/motion-compression.c	2020-09-21 15:04:48.097443878 +0000
+@@ -1,6 +1,6 @@
+ #include <gtk/gtk.h>
+ #include <math.h>
+-
++#include <values.h>
+ GtkAdjustment *adjustment;
+ int cursor_x, cursor_y;
+ 
