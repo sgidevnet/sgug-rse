@@ -9,7 +9,7 @@
 Summary:       A graphics library for quick creation of PNG or JPEG images
 Name:          gd
 Version:       2.2.5
-Release:       9%{?prever}%{?short}%{?dist}
+Release:       10%{?prever}%{?short}%{?dist}
 License:       MIT
 URL:           http://libgd.github.io/
 %if 0%{?commit:1}
@@ -33,7 +33,7 @@ BuildRequires: gettext-devel
 BuildRequires: libjpeg-devel
 BuildRequires: libpng-devel
 BuildRequires: libtiff-devel
-#BuildRequires: libwebp-devel
+BuildRequires: libwebp-devel
 %if %{with_liq}
 BuildRequires: libimagequant-devel
 %endif
@@ -75,7 +75,7 @@ Requires: fontconfig-devel%{?_isa}
 Requires: libjpeg-devel%{?_isa}
 Requires: libpng-devel%{?_isa}
 Requires: libtiff-devel%{?_isa}
-#Requires: libwebp-devel#%%{?_isa}
+Requires: libwebp-devel%{?_isa}
 Requires: libX11-devel%{?_isa}
 Requires: libXpm-devel%{?_isa}
 Requires: zlib-devel%{?_isa}
@@ -96,7 +96,8 @@ files for gd, a graphics library for creating PNG and JPEG graphics.
 
 : regenerate autotool stuff
 if [ -f configure ]; then
-   libtoolize --copy --force
+# This isnt necessary - autoreconf (the version we have) will do it anyway
+#   libtoolize --copy --force
    autoreconf -vif
 else
    ./bootstrap.sh
@@ -121,6 +122,11 @@ CFLAGS="$CFLAGS -msse -mfpmath=sse"
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1359680
 export CFLAGS="$CFLAGS -ffp-contract=off"
 %endif
+
+# To be able to test this package, it needs a "mkdtemp" which can be found
+# in libdicl
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 
 %configure \
     --with-tiff=%{_prefix} \
@@ -159,6 +165,9 @@ grep %{version} $RPM_BUILD_ROOT%{_libdir}/pkgconfig/gdlib.pc
 
 
 %changelog
+* Sun Sep 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2.2.5-10
+- Include webp dep, use libdicl to enable testing of it
+
 * Mon Jun 22 2020  HAL <notes2@gmx.de> - 2.2.5-9
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
