@@ -153,6 +153,7 @@ libtool
 libunistring
 libuv
 libvorbis
+libwebp
 libxcb
 libxkbfile
 libxml2

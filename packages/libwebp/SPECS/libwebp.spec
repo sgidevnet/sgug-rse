@@ -2,7 +2,7 @@
 
 Name:          libwebp
 Version:       1.0.3
-Release:       2%{?dist}
+Release:       3%{?dist}
 URL:           http://webmproject.org/
 Summary:       Library and tools for the WebP graphics format
 # Additional IPR is licensed as well. See PATENTS file for details
@@ -73,6 +73,8 @@ export CFLAGS="%{optflags} -frename-registers"
 # Neon disabled due to resulting CFLAGS conflict resulting in
 # inlining failed in call to always_inline '[...]': target specific option mismatch
 #%%configure --disable-static
+export CFLAGS="$RPM_OPT_FLAGS -mfp64 -mload-store-pairs -fPIE"
+export LDFLAGS="$RPM_LD_FLAGS -mfp64 -pie"
 %configure --disable-static --enable-libwebpmux \
            --enable-libwebpdemux --enable-libwebpdecoder \
            --disable-neon
@@ -119,7 +121,7 @@ find "%{buildroot}/%{_libdir}" -type f -name "*.la" -delete
 %{_bindir}/img2webp
 %{_bindir}/webpinfo
 %{_bindir}/webpmux
-#%{_bindir}/vwebp
+#%%{_bindir}/vwebp
 %{_mandir}/man*/*
 
 %files -n %{name}
@@ -137,10 +139,13 @@ find "%{buildroot}/%{_libdir}" -type f -name "*.la" -delete
 
 #%%files java
 #%%doc libwebp_jni_example.java
-#%%{_libdir}/%{name}-java/
+#%%{_libdir}/%%{name}-java/
 
 
 %changelog
+* Sun Sep 27 2020  HAL <notes2@gmx.de> - 1.0.3-3
+- Tweak to possible recommended flags from the README
+
 * Sun Aug 30 2020  HAL <notes2@gmx.de> - 1.0.3-2
 - compiles on Irix 6.5 with sgug-rse gcc 9.2. I dropped Java support.
 
