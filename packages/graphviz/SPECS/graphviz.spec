@@ -61,7 +61,7 @@
 Name:			graphviz
 Summary:		Graph Visualization Tools
 Version:		2.40.1
-Release:		54%{?dist}
+Release:		55%{?dist}
 License:		EPL-1.0
 URL:			http://www.graphviz.org/
 # A bit hacking needed due to: https://gitlab.com/graphviz/graphviz/issues/1371
@@ -75,7 +75,7 @@ Patch3:			graphviz-2.40.1-dotty-menu-fix.patch
 Patch4:			graphviz-2.40.1-coverity-scan-fixes.patch
 Patch5:			graphviz-2.40.1-CVE-2019-11023.patch
 Patch6:			graphviz-2.40.1-swig4-updated-language-options.patch
-Patch100:               graphviz.sgifixes.patch
+
 BuildRequires:		zlib-devel, libpng-devel, libjpeg-devel, expat-devel, freetype-devel >= 2
 #BuildRequires:		ksh, bison, m4, flex, tk-devel, tcl-devel >= 8.3, swig, sed
 #BuildRequires:		fontconfig-devel, libtool-ltdl-devel, ruby-devel, ruby, guile-devel
@@ -85,6 +85,7 @@ BuildRequires:		python2-devel
 #BuildRequires:		python3-devel, libXaw-devel, libSM-devel, libXext-devel, java-devel
 BuildRequires:		cairo-devel >= 1.1.10, pango-devel, gmp-devel, lua-devel, gtk2-devel
 #BuildRequires:		gd-devel, perl-devel, swig >= 1.3.33, automake, autoconf, libtool, qpdf
+BuildRequires:		gd-devel, perl-devel, swig >= 1.3.33, automake, autoconf, libtool
 # Temporary workaound for perl(Carp) not pulled
 BuildRequires:		perl-Carp
 #%%if #%%{PHP}
@@ -278,12 +279,12 @@ Python 3 extension for graphviz.
 #C# extension for graphviz.
 #%%endif
 
-#%%package tcl
-#Summary:		Tcl extension & tools for graphviz
-#Requires:		#%%{name} = #%%{version}-#%%{release}, tcl >= 8.3, tk
+%package tcl
+Summary:		Tcl extension & tools for graphviz
+Requires:		%{name} = %{version}-%{release}, tcl >= 8.3, tk
 
-#%%description tcl
-#Various tcl packages (extensions) for the graphviz tools.
+%description tcl
+Various tcl packages (extensions) for the graphviz tools.
 
 %prep
 %setup -q -n graphviz-stable_release_%{version}
@@ -294,12 +295,25 @@ Python 3 extension for graphviz.
 %patch4 -p1 -b .coverity-scan-fixes
 %patch5 -p1 -b .CVE-2019-11023
 %patch6 -p1 -b .swig4-updated-language-options
-%patch100 -p1 -b .sgifixes
 
 # Attempt to fix rpmlint warnings about executable sources
 find -type f -regex '.*\.\(c\|h\)$' -exec chmod a-x {} ';'
 
 %build
+
+# Overwrite broken lua detection
+export LUA_VERSION=`pkg-config --variable=V lua`
+export LUA_INSTALL_DIR="%{_libdir}/lua/$LUA_VERSION"
+export LUA_INCLUDES="%{_includedir}"
+export LUA_LIBS=`pkg-config --libs lua`
+
+perl -pi -e "s|LUA_INSTALL_DIR\=\"/usr/lib|LUA_INSTALL_DIR\=\"%{_prefix}/lib|g" configure.ac
+
+# Ensure that configure is aware we are in lib32
+export LIBPOSTFIX=32
+
+#exit 1
+
 ./autogen.sh
 # Hack in the java includes we need
 #sed -i '/JavaVM.framework/!s/JAVA_INCLUDES=/JAVA_INCLUDES=\"_MY_JAVA_INCLUDES_\"/g' configure
@@ -309,7 +323,12 @@ find -type f -regex '.*\.\(c\|h\)$' -exec chmod a-x {} ';'
 #sed -i 's|sitearchdir|vendorarchdir|' config/config_ruby.rb
 
 # get the path to search for ruby/config.h to CPPFLAGS, so that configure can find it
-export CPPFLAGS=-I`ruby -e "puts File.join(RbConfig::CONFIG['includedir'], RbConfig::CONFIG['sitearch'])" || echo /dev/null`
+
+# We don't have ruby yet, so don't go looking for the include dir
+#export CPPFLAGS=-I`ruby -e "puts File.join(RbConfig::CONFIG['includedir'], RbConfig::CONFIG['sitearch'])" || echo /dev/null`
+# Be explicit about compilers
+export CC=mips-sgi-irix6.5-gcc
+export CXX=mips-sgi-irix6.5-g++
 %configure --with-x --disable-static --disable-dependency-tracking \
 	--without-mylibgd --with-ipsepcola --with-pangocairo \
 	--with-gdk-pixbuf --with-visio --disable-silent-rules \
@@ -338,9 +357,9 @@ export CPPFLAGS=-I`ruby -e "puts File.join(RbConfig::CONFIG['includedir'], RbCon
 	--without-qt
 %endif
 
-# drop rpath
-sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+# drop rpath (commented out for SGUG, we use RPATH)
+#sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+#sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 
 %if %{with python2}
 cp -a tclpkg/gv tclpkg/gv.python2
@@ -359,7 +378,7 @@ make %{?_smp_mflags} CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing -fno-strict-ove
   CXXFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing -fno-strict-overflow %{?FFSTORE}" \
   PYTHON_INCLUDES=-I/usr/sgug/include/python%{python2_version} PYTHON_LIBS="-lpython%{python2_version}" \
   PYTHON_INSTALL_DIR=%{python2_sitearch} libgv_python.la
-cd $PREVW
+cd $PREVWD
 #popd
 %endif
 
@@ -445,20 +464,7 @@ rmdir %{buildroot}%{_libdir}/graphviz/python
 # Ghost plugins config
 touch %{buildroot}%{_libdir}/graphviz/config%{pluginsver}
 
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/gvc.3*
-rm -f $RPM_BUILD_ROOT/usr/lib/lua/5.3/gv.so
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/c*
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/e*
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/l*
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/p*
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/x*
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/gvpr.*
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/gv.3lu*
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/gv.3perl*
 
-
-
-#rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/*                     
 #%%check
 #%%if %{PHP}
 # Minimal load test of php extension
@@ -510,7 +516,7 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/gv.3perl*
 %{_libdir}/*.so
 %{_libdir}/graphviz/*.so
 %{_libdir}/pkgconfig/*.pc
-#%%{_mandir}/man3/*.3.gz
+%{_mandir}/man3/*.3.gz
 
 #%%files doc
 #%%doc #%%{_docdir}/#%%{name}/html
@@ -531,12 +537,12 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/gv.3perl*
 %files lua
 %{_libdir}/graphviz/lua/
 %{_libdir}/lua*/*
-#%%{_mandir}/man3/gv.3lua*
+%{_mandir}/man3/gv.3lua*
 
 %files perl
 %{_libdir}/graphviz/perl/
 %{_libdir}/perl*/*
-#%%{_mandir}/man3/gv.3perl*
+%{_mandir}/man3/gv.3perl*
 
 #%%if #%%{PHP}
 #%%files php
@@ -576,14 +582,17 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/gv.3perl*
 #%%{_mandir}/man3/gv.3sharp*
 #%%endif
 
-#%%files tcl
-#%%{_libdir}/graphviz/tcl/
-#%%{_libdir}/tcl*/*
+%files tcl
+%{_libdir}/graphviz/tcl/
+%{_libdir}/tcl*/*
 # hack to include gv.3tcl only if available
 #  always includes tcldot.3tcl, gdtclft.3tcl
-#%%{_mandir}/man3/*.3tcl*
+%{_mandir}/man3/*.3tcl*
 
 %changelog
+* Sun Sep 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2.40.1-55
+- Tweak to include tcl + lua bits + man pages
+
 * Sat Jul 04 2020  HAL <notes2@gmx.de> - 2.40.1-54
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 

@@ -4,7 +4,7 @@
 # Please keep the list sorted, and only include things that are intended
 # be part of the release.
 #
-# Changes to this file should be submitted as pull requests on the 0.0.6 branch
+# Changes to this file should be submitted as pull requests on the 0.X.X branch
 # and if any doubts please ask for help in deciding if something is ok.
 #
 # If you want to add a package that depends on something that isn't listed
@@ -83,6 +83,7 @@ gmp
 gnutls
 gobject-introspection
 gperf
+graphviz
 grep
 groff
 gtk2
