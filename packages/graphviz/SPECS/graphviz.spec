@@ -553,7 +553,10 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/man/man3/gv.3perl*
 %endif
 
 %files python3
-%{python3_sitearch}/*
+#%%{python3_sitearch}/*
+%{python3_sitearch}/__pycache__/*
+%{python3_sitearch}/*.so
+%{python3_sitearch}/*.py
 %{_mandir}/man3/gv.3python*
 
 #%%if #%%{ARRRR}
