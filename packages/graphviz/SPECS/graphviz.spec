@@ -312,6 +312,10 @@ perl -pi -e "s|LUA_INSTALL_DIR\=\"/usr/lib|LUA_INSTALL_DIR\=\"%{_prefix}/lib|g" 
 # Ensure that configure is aware we are in lib32
 export LIBPOSTFIX=32
 
+# And fix up another hardcoded change of LDFLAGS that breaks linking
+perl -pi -e "s|prefix\}\/lib\"|prefix\}\/lib${LIBPOSTFIX}\"|g" configure.ac
+perl -pi -e "s|prefix\/lib\/pkgconfig|prefix\/lib${LIBPOSTFIX}\/pkgconfig|g" configure.ac
+
 #exit 1
 
 ./autogen.sh
