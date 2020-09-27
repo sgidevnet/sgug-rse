@@ -133,6 +133,7 @@ libfontenc
 libiconv
 libid3tag
 libidn2
+libimagequant
 libjpeg
 liblzf
 libmikmod

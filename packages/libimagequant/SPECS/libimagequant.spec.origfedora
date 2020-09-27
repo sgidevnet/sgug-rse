@@ -1,6 +1,6 @@
 Name:           libimagequant
 Version:        2.12.5
-Release:        2%{?dist}
+Release:        1%{?dist}
 Summary:        Palette quantization library
 
 License:        GPLv3+ and MIT
@@ -31,11 +31,8 @@ developing applications that use %{name}.
 
 
 %build
-# Current openmp in sgug gcc is buggy (crashes)
-#%%configure --with-openmp
-%configure --without-openmp --disable-sse
+%configure --with-openmp
 %make_build
-
 
 
 %install
@@ -45,7 +42,7 @@ developing applications that use %{name}.
 rm -f %{buildroot}%{_libdir}/%{name}.a
 
 
-#%%ldconfig_scriptlets
+%ldconfig_scriptlets
 
 
 %files
@@ -60,12 +57,6 @@ rm -f %{buildroot}%{_libdir}/%{name}.a
 
 
 %changelog
-* Mon May 1 2020 HAL <hal@null.not> - 2.12.5-2
-- Disable openmp for now (it crashes)
-
-* Mon May 1 2020 HAL <hal@null.not> - 2.12.5-1
-- Linux specific stuff has been commented out 
-
 * Mon Jul 29 2019 Sandro Mani <manisandro@gmail.com> - 2.12.5-1
 - Update to 2.12.5
 
