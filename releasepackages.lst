@@ -29,6 +29,7 @@ bash-completion
 binutils
 bison
 boost
+brotli
 byacc
 bzip2
 ca-certificates
