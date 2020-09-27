@@ -1,0 +1,101 @@
+diff -ur at-spi2-core-2.34.0.orig/atspi/atspi-application.h at-spi2-core-2.34.0/atspi/atspi-application.h
+--- at-spi2-core-2.34.0.orig/atspi/atspi-application.h	2019-09-09 18:20:11.000000000 +0000
++++ at-spi2-core-2.34.0/atspi/atspi-application.h	2020-09-20 21:33:10.650921600 +0000
+@@ -30,6 +30,9 @@
+ #include "atspi-types.h"
+ #include "atspi-accessible.h"
+ #include <sys/time.h>
++#ifdef __sgi
++#include <sys/resource.h>
++#endif
+ 
+ G_BEGIN_DECLS
+ 
+diff -ur at-spi2-core-2.34.0.orig/bus/at-spi-bus-launcher.c at-spi2-core-2.34.0/bus/at-spi-bus-launcher.c
+--- at-spi2-core-2.34.0.orig/bus/at-spi-bus-launcher.c	2019-09-09 18:20:11.000000000 +0000
++++ at-spi2-core-2.34.0/bus/at-spi-bus-launcher.c	2020-09-20 21:40:11.237084000 +0000
+@@ -30,6 +30,15 @@
+ #include <sys/socket.h>
+ #include <sys/un.h>
+ #endif
++#ifdef __sgi
++#include <sys/types.h>
++#include <sys/resource.h>
++#include <sys/prctl.h>
++#include <sys/socket.h>
++#include <sys/un.h>
++#include <unistd.h>
++#include <fcntl.h>
++#endif
+ #include <sys/wait.h>
+ #include <errno.h>
+ #include <stdio.h>
+@@ -371,7 +380,11 @@
+   g_free(pid_str);
+ 
+   /* Tell the bus process to exit if this process goes away */
++#ifdef __sgi
++  prctl (PR_SETEXITSIG, SIGTERM);
++#else
+   prctl (PR_SET_PDEATHSIG, SIGTERM);
++#endif
+ }
+ 
+ static gboolean
+@@ -383,8 +396,15 @@
+   GPid pid;
+   GError *error = NULL;
+ 
++#ifndef __sgi
+   if ((app->listenfd = socket (PF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0)) < 0)
+     g_error ("Failed to create listening socket: %s", strerror (errno));
++#else
++  if ((app->listenfd = socket (PF_UNIX, SOCK_STREAM, 0)) < 0)
++    g_error ("Failed to create listening socket: %s", strerror (errno));
++  if (fcntl(app->listenfd, F_SETFL, fcntl(app->listenfd, F_GETFL, 0) | O_NONBLOCK) == -1)
++    g_error ("Failed to set listening socket to non blocking");
++#endif
+ 
+   if (bind (app->listenfd, (struct sockaddr *)&addr, sizeof(sa_family_t)) < 0)
+     g_error ("Failed to bind listening socket: %s", strerror (errno));
+diff -ur at-spi2-core-2.34.0.orig/dbind/dbind.c at-spi2-core-2.34.0/dbind/dbind.c
+--- at-spi2-core-2.34.0.orig/dbind/dbind.c	2019-09-09 18:20:11.000000000 +0000
++++ at-spi2-core-2.34.0/dbind/dbind.c	2020-09-20 21:32:50.673649600 +0000
+@@ -17,6 +17,11 @@
+  * Boston, MA 02110-1301, USA.
+  */
+ 
++#ifdef __sgi
++#include <sys/time.h>
++#include <sys/resource.h>
++#endif
++
+ #include <stdio.h>
+ #include <stdarg.h>
+ #include <sys/time.h>
+diff -ur at-spi2-core-2.34.0.orig/registryd/deviceeventcontroller-x11.c at-spi2-core-2.34.0/registryd/deviceeventcontroller-x11.c
+--- at-spi2-core-2.34.0.orig/registryd/deviceeventcontroller-x11.c	2019-09-09 18:20:11.000000000 +0000
++++ at-spi2-core-2.34.0/registryd/deviceeventcontroller-x11.c	2020-09-20 21:34:31.431266400 +0000
+@@ -33,6 +33,9 @@
+ #include <ctype.h>
+ #include <stdio.h>
+ #include <sys/time.h>
++#ifdef __sgi
++#include <sys/resource.h>
++#endif
+ 
+ #include <X11/Xlib.h>
+ #include <X11/Xutil.h>
+diff -ur at-spi2-core-2.34.0.orig/registryd/deviceeventcontroller.c at-spi2-core-2.34.0/registryd/deviceeventcontroller.c
+--- at-spi2-core-2.34.0.orig/registryd/deviceeventcontroller.c	2019-09-09 18:20:11.000000000 +0000
++++ at-spi2-core-2.34.0/registryd/deviceeventcontroller.c	2020-09-20 21:38:43.246431200 +0000
+@@ -33,6 +33,9 @@
+ #include <ctype.h>
+ #include <stdio.h>
+ #include <sys/time.h>
++#ifdef __sgi
++#include <sys/resource.h>
++#endif
+ 
+ #include <glib.h>
+ 
