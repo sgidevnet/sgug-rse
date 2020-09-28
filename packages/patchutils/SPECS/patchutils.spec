@@ -7,6 +7,8 @@ URL: http://cyberelk.net/tim/patchutils/
 Source0: http://cyberelk.net/tim/data/patchutils/stable/%{name}-%{version}.tar.xz
 Patch1: patchutils-bz1226985.patch
 Patch2: patchutils-format-str.patch
+Patch100:   patchutils.irixfixes.patch
+
 Obsoletes: interdiff <= 0.0.10
 Provides: interdiff = 0.0.11
 Requires: patch
@@ -29,7 +31,7 @@ patches, and simply listing the files modified by a patch.
 
 # Don't use regerror() result as format string.
 %patch2 -p1 -b .format-str
-
+%patch100 -p1 -b patchutils.irixfixes
 autoreconf
 
 %build
@@ -51,6 +53,9 @@ make DESTDIR=%{buildroot} install
 %{_mandir}/*/*
 
 %changelog
+* Mon Sep 28 2020  HAL <notes2@gmx.de> - 0.3.4-14
+- initial commit, many tests fail (-build with --nocheck)
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.3.4-14
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

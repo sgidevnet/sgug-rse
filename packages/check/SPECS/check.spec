@@ -1,9 +1,3 @@
-%global debug 0
-
-%if 0%{debug}
-%global __strip /bin/true
-%endif
-
 Name:           check
 Version:        0.12.0
 Release:        5%{?dist}
@@ -76,27 +70,12 @@ find . -name .cvsignore -exec rm {} +
 autoreconf -ivf
 
 %build
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
-%if 0%{debug}
-export CFLAGS="-g -O0"
-export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-ldicl-0.1"
-%else
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
-%endif
-
-# Using the check mechanism for replacement snprintf is broken
-export hw_cv_func_snprintf_c99=yes
-%if 0%{debug}
-%configure
-%else
 %configure --disable-timeout-tests
-%endif
 
 # Get rid of undesirable hardcoded rpaths
-#sed -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
-#    -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
-#    -i libtool
+sed -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
+    -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
+    -i libtool
 
 make %{?_smp_mflags}
 
@@ -108,7 +87,8 @@ rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}
 
 
 %check
-export LD_LIBRARYN32_PATH=$PWD/src/.libs
+export LD_LIBRARY_PATH=$PWD/src/.libs
+export LD_LIBRARYN32_PATH=%{buildroot}%{_libdir}
 make check
 # Don't need to package the sh, log or trs files
 # when we scoop the other checkmk/test files for doc
@@ -144,6 +124,9 @@ rm -rf checkmk/test/empty_input
 %{_mandir}/man1/checkmk.1*
 
 %changelog
+* Mon Sep 28 2020  HAL <notes2@gmx.de> - 0.12.0-5
+- compiles on Irix 6.5 with sgug-rse gcc 9.2. All tests pass.
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.12.0-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
