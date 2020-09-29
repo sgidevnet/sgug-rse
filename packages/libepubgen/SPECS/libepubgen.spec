@@ -29,17 +29,17 @@ The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
 #%%package doc
-#Summary: Documentation of %{name} API
+#Summary: Documentation of #%%{name} API
 #BuildArch: noarch
 
 #%%description doc
-#The %{name}-doc package contains documentation files for %{name}.
+#The #%%{name}-doc package contains documentation files for #%%{name}.
 
 %prep
 %setup -q
 
 %build
-%configure --disable-silent-rules --disable-static
+%configure --disable-silent-rules --disable-static -without-docs
 sed -i \
     -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
     -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
@@ -53,9 +53,8 @@ rm -f %{buildroot}/%{_libdir}/*.la
 rm -rf %{buildroot}/%{_docdir}/%{name}
 
 %check
-export LD_LIBRARYN32_PATH=%{_builddir}/libepubgen-0.1.1/src/lib/.libs:$LD_LIBRARYN32_PATH
-
-#echo $LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=%{buildroot}%{_libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export LD_LIBRARYN32_PATH=%{buildroot}%{_libdir}
 make %{?_smp_mflags} check
 
 #%%ldconfig_scriptlets
@@ -76,8 +75,8 @@ make %{?_smp_mflags} check
 #%%doc docs/doxygen/html
 
 %changelog
-* Mon May 25 2020  Alexander Tafarte <notes2@gmx.de> - 0.1.1-5 
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+* Tue Sep 29 2020  HAL <notes2@gmx.de> - 0.1.1-4
+- compiles on Irix 6.5 with sgug-rse gcc 9.2 and passes the test.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.1.1-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

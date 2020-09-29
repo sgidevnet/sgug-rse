@@ -36,11 +36,11 @@ The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
 #%%package doc
-#Summary: Documentation of %{name} API
+#Summary: Documentation of #%%{name} API
 #BuildArch: noarch
 
 #%%description doc
-#The %{name}-doc package contains documentation files for %{name}.
+#The #%%{name}-doc package contains documentation files for #%%{name}.
 
 %package tools
 Summary: Tools to transform Macromedia/Adobe FreeHand documents into other formats
@@ -69,14 +69,17 @@ rm -f %{buildroot}/%{_libdir}/*.la
 rm -rf %{buildroot}/%{_docdir}/%{name}
 
 # generate and install man pages
-export LD_LIBRARY_PATH=%{buildroot}%{_libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+#export LD_LIBRARY_PATH=%{buildroot}%{_libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 #for tool in fh2raw fh2svg fh2text; do
 #    help2man -N -S '%{name} %{version}' -o ${tool}.1 %{buildroot}%{_bindir}/${tool}
 #done
 #install -m 0755 -d %{buildroot}/%{_mandir}/man1
 #install -m 0644 fh2*.1 %{buildroot}/%{_mandir}/man1
 
+#%%ldconfig_scriptlets
+
 %check
+export LD_LIBRARYN32_PATH=%{buildroot}%{_libdir}
 export LD_LIBRARY_PATH=%{buildroot}%{_libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 make %{?_smp_mflags} check
 
@@ -104,8 +107,8 @@ make %{?_smp_mflags} check
 #%%{_mandir}/man1/fh2text.1*
 
 %changelog
-* Sat May 30 2020  Alexander Tafarte <notes2@gmx.de> - 0.1.2-6
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+* Tue Sep 29 2020  HAL <notes2@gmx.de> - 0.1.2-5
+- compiles on Irix 6.5 with sgug-rse gcc 9.2 passing the tests.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.1.2-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
