@@ -120,7 +120,7 @@ rmdir $RPM_BUILD_ROOT%{_libdir}
 %doc readme.md
 %{_includedir}/%{name}
 %{_datadir}/cmake
-%{_datadir}/pkgconfig/
+%{_datadir}/pkgconfig/*
 
 %files doc
 %doc doc/manual.pdf

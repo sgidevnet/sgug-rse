@@ -98,7 +98,7 @@ rm -rf %{buildroot}/%{_docdir}/%{name}
 #%%{_mandir}/man1/abw2html.1*
 
 %changelog
-* Sun May 17 2020  Alexander Tafarte <notes2@gmx.de> - 0.1.3-2
+* Sun May 17 2020  HAL <notes2@gmx.de> - 0.1.3-2
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
 * Sat Aug 17 2019 David Tardon <dtardon@redhat.com> - 0.1.3-1
