@@ -1,7 +1,7 @@
 Name:           libxslt
 Summary:        Library providing the Gnome XSLT engine
-Version:        1.1.33
-Release:        2%{?dist}
+Version:        1.1.34
+Release:        1%{?dist}
 
 License:        MIT
 URL:            http://xmlsoft.org/XSLT
@@ -20,8 +20,6 @@ Patch0:         multilib.patch
 Patch1:         libxslt-1.1.26-utf8-docs.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=1467435
 Patch2:         multilib2.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=1709698
-Patch3:         CVE-2019-11068.patch
 
 %description
 This C library allows to transform XML files into other XML files
@@ -39,19 +37,20 @@ Requires:       libgpg-error-devel%{?_isa}
 The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
-%package -n python2-libxslt
-Summary:        Python 2 bindings for %{name}
-BuildRequires:  python2-devel
-BuildRequires:  python2-libxml2
+%if 0
+# Upstream package has not been ported to Python 3.  I have
+# converted this section so it could be used to compile the
+# Python 3 bindings one day once that has happened, but
+# commented it out.  - RWMJ 2019-09-10
+%package -n python3-libxslt
+Summary:        Python 3 bindings for %{name}
+BuildRequires:  python3-devel
+BuildRequires:  python3-libxml2
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       python2-libxml2
-%{?python_provide:%python_provide python2-libxslt}
-# Remove before F30
-Provides:       %{name}-python = %{version}-%{release}
-Provides:       %{name}-python%{?_isa} = %{version}-%{release}
-Obsoletes:      %{name}-python < %{version}-%{release}
+Requires:       python3-libxml2
+%{?python_provide:%python_provide python3-%{name}}
 
-%description -n python2-libxslt
+%description -n python3-libxslt
 The libxslt-python package contains a module that permits applications
 written in the Python programming language to use the interface
 supplied by the libxslt library to apply XSLT transformations.
@@ -60,6 +59,7 @@ This library allows to parse sytlesheets, uses the libxml2-python
 to load and save XML and HTML files. Direct access to XPath and
 the XSLT transformation context are possible to extend the XSLT language
 with XPath functions written in Python.
+%endif
 
 %prep
 %autosetup -p1
@@ -67,8 +67,9 @@ chmod 644 python/tests/*
 
 %build
 autoreconf -vfi
-export PYTHON=%{__python2}
-%configure --disable-static --disable-silent-rules --with-python
+#export PYTHON=%{__python3}
+#%configure --disable-static --disable-silent-rules --with-python
+%configure --disable-static --disable-silent-rules --with-python=no
 %make_build
 
 %install
@@ -114,15 +115,32 @@ rm -vrf %{buildroot}%{_docdir}
 %{_libdir}/pkgconfig/libexslt.pc
 %{_bindir}/xslt-config
 
-%files -n python2-libxslt
-%{python2_sitearch}/libxslt.py*
-%{python2_sitearch}/libxsltmod.so
+%if 0
+%files -n python3-libxslt
+%{python3_sitearch}/libxslt.py*
+%{python3_sitearch}/libxsltmod.so
+%{python3_sitearch}/__pycache__/nbd*.py*
 %doc python/libxsltclass.txt
 %doc python/tests/*.py
 %doc python/tests/*.xml
 %doc python/tests/*.xsl
+%endif
 
 %changelog
+* Mon Mar 09 2020 Gwyn Ciesla <gwync@protonmail.com> - 1.1.34-1
+- 1.1.34
+
+* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.33-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
+* Fri Oct 11 2019 Jakub Jelen <jjelen@redhat.com> - 1.1.33-4
+- Do not build python bindings even if the python is available
+- Fix CVE-2019-13117 (#1728547)
+- Fix CVE-2019-13118 (#1728542)
+
+* Tue Sep 10 2019 Richard W.M. Jones <rjones@redhat.com> - 1.1.33-3
+- Comment out Python bindings until upstream can convert them to Python 3.
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.33-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

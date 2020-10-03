@@ -30,11 +30,11 @@ The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
 #%%package doc
-#Summary: Documentation of %{name} API
+#Summary: Documentation of #%%{name} API
 #BuildArch: noarch
 
 #%%description doc
-#The %{name}-doc package contains documentation files for %{name}.
+#The #%%{name}-doc package contains documentation files for #%%{name}.
 
 %package tools
 Summary: Tools to transform Adobe PageMaker documents into other formats
@@ -95,7 +95,7 @@ rm -rf %{buildroot}/%{_docdir}/%{name}
 #%%{_mandir}/man1/pmd2text.1*
 
 %changelog
-* Sun May 17 2020  Alexander Tafarte <notes2@gmx.de> - 0.0.4-8
+* Sun May 17 2020  HAL <notes2@gmx.de> - 0.0.4-8
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.0.4-7
