@@ -306,6 +306,7 @@ sgug-getopt
 sgug-rpm-config
 sgug-rpm-tools
 shared-mime-info
+slang
 sqlite
 sudo
 swig
