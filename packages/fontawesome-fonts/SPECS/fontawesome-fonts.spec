@@ -3,7 +3,7 @@
 
 Name:		%{fontname}-fonts
 Version:	4.7.0
-Release:	7%{?dist}
+Release:	8%{?dist}
 
 Summary:	Iconic font set
 License:	OFL
@@ -15,6 +15,7 @@ BuildArch:	noarch
 BuildRequires:	fontpackages-devel
 BuildRequires:	ttembed
 Requires:	fontpackages-filesystem
+BuildRequires:  rpm-build >= 4.15.0-18
 
 
 %description
@@ -56,7 +57,7 @@ install -m 0755 -d %{buildroot}%{_fontconfig_templatedir} \
 install -m 0644 -p %{SOURCE1} \
 		%{buildroot}%{_fontconfig_templatedir}/%{fontconf}
 
-ln -s %{_fontconfig_templatedir}/%{fontconf} \
+ln -sf %{_fontconfig_templatedir}/%{fontconf} \
 		%{buildroot}%{_fontconfig_confdir}/%{fontconf}
 
 mkdir -p %{buildroot}%{_datadir}/font-awesome-web/
@@ -79,6 +80,9 @@ cp -a css less scss %{buildroot}%{_datadir}/font-awesome-web/
 %{_datadir}/fonts/fontawesome/fontawesome-webfont.eot
 
 %changelog
+* Sat Oct 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.7.0-8
+- Depend on RPM with necessary font macro + discovery fixes
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.7.0-7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
