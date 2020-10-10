@@ -17,7 +17,7 @@ Version: 2.0.3
 BuildArch: noarch
 
 Name:      fonts-rpm-macros
-Release:   3%{?dist}
+Release:   4%{?dist}
 Summary:   Build-stage rpm automation for fonts packages
 
 License:   GPLv3+
@@ -100,6 +100,8 @@ perl -pi -e "s|/usr/bin/python|%{_bindir}/python|g" bin/gen-fontconf
 perl -pi -e "s|fedora|sgugrse|g" rpm/lua/srpm/fonts.lua
 perl -pi -e "s|fedora|sgugrse|g" rpm/lua/rpm/fonts.lua
 perl -pi -e "s|fedora|sgugrse|g" rpm/macros.d/macros.fonts-rpm
+perl -pi -e "s|fedora|sgugrse|g" rpm/macros.d/macros.fonts-rpm.internal
+perl -pi -e "s|fedora|sgugrse|g" rpm/macros.d/macros.fonts-rpm.deprecated
 
 %install
 install -m 0755 -d    %{buildroot}%{_fontbasedir} \
@@ -166,6 +168,9 @@ rm $RPM_BUILD_ROOT%{ftcgtemplatedir}/*txt
 #%doc %{ftcgtemplatedir}/*txt
 
 %changelog
+* Sat Oct 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.3-4
+- Rewrite some missed files
+
 * Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.3-3
 - Depend on sgug-rpm-config not redhat-rpm-config, stop referring to fedora in macros
 
