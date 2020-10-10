@@ -1,10 +1,13 @@
 Name:		libssh2
 Version:	1.9.0
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A library implementing the SSH2 protocol
 License:	BSD
 URL:		http://www.libssh2.org/
 Source0:	http://libssh2.org/download/libssh2-%{version}.tar.gz
+
+# fix integer overflow in SSH_MSG_DISCONNECT logic (CVE-2019-17498)
+Patch1:     0001-libssh2-1.9.0-CVE-2019-17498.patch
 
 BuildRequires:	coreutils
 BuildRequires:	findutils
@@ -48,6 +51,7 @@ developing applications that use libssh2.
 
 %prep
 %setup -q
+%patch1 -p1
 
 # Replace hard wired port number in the test suite to avoid collisions
 # between 32-bit and 64-bit builds running on a single build-host
@@ -111,6 +115,9 @@ LC_ALL=en_US.UTF-8 make -C tests check
 %{_libdir}/pkgconfig/libssh2.pc
 
 %changelog
+* Wed Oct 30 2019 Kamil Dudka <kdudka@redhat.com> - 1.9.0-3
+- fix integer overflow in SSH_MSG_DISCONNECT logic (CVE-2019-17498)
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.9.0-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

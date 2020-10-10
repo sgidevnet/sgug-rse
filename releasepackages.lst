@@ -149,6 +149,7 @@ libsamplerate
 libsndfile
 libsodium
 libssh
+libssh2
 libtasn1
 libtiff
 libtool

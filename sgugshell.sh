@@ -27,9 +27,10 @@ unset PYTHONHOME
 
 SGUG_ROOT=/usr/sgug
 SGUG_BIN=$SGUG_ROOT/bin
+SGUG_SBIN=$SGUG_ROOT/sbin
 SGUG_LIB=$SGUG_ROOT/lib32
 
-export PATH=$SGUG_BIN:/usr/bin/X11:/usr/bin:/bin:/usr/sbin:/usr/bsd
+export PATH=$SGUG_BIN:$SGUG_SBIN:/usr/bin/X11:/usr/bin:/bin:/usr/sbin:/usr/bsd
 
 # Explicit library paths
 export LD_LIBRARYN32_PATH=$SGUG_LIB:/usr/lib32:/lib32:/usr/lib:/lib
