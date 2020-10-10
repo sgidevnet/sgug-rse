@@ -1,0 +1,101 @@
+diff -u -r mc-4.8.24-orig/lib/tty/tty-internal.c mc-4.8.24/lib/tty/tty-internal.c
+--- mc-4.8.24-orig/lib/tty/tty-internal.c	2020-01-01 15:52:34.000000000 +0000
++++ mc-4.8.24/lib/tty/tty-internal.c	2020-10-10 09:00:50.605096320 +0000
+@@ -62,43 +62,74 @@
+ void
+ tty_create_winch_pipe (void)
+ {
+-    int fd_flags;
++  int fd_flags;
++#if defined(__sgi)
++  int ce0_rv, ce1_rv;
++#endif
+ 
+-    if (pipe (sigwinch_pipe) == -1)
++  if (pipe (sigwinch_pipe) == -1)
+     {
+-        perror (_("Cannot create pipe for SIGWINCH"));
+-        exit (EXIT_FAILURE);
++      perror (_("Cannot create pipe for SIGWINCH"));
++      exit (EXIT_FAILURE);
+     }
+ 
+-    /* If we read from an empty pipe, then read(2) will block until data is available.
+-     * If we write to a full pipe, then write(2) blocks until sufficient data has been read
+-     * from the pipe to allow the write to complete..
+-     * Therefore, use nonblocking I/O.
+-     */
++  /* If we read from an empty pipe, then read(2) will block until data is available.
++   * If we write to a full pipe, then write(2) blocks until sufficient data has been read
++   * from the pipe to allow the write to complete..
++   * Therefore, use nonblocking I/O.
++   */
+ 
+-    fd_flags = fcntl (sigwinch_pipe[0], F_GETFL, NULL);
+-    if (fd_flags != -1)
++#if defined(__sgi)
++  fd_flags = fcntl (sigwinch_pipe[0], F_GETFL, NULL);
++  if (fd_flags != -1)
+     {
+-        fd_flags |= O_NONBLOCK | O_CLOEXEC;
+-        fd_flags = fcntl (sigwinch_pipe[0], F_SETFL, fd_flags);
++      fd_flags |= O_NONBLOCK;
++      fd_flags = fcntl (sigwinch_pipe[0], F_SETFL, fd_flags);
+     }
+-    if (fd_flags == -1)
++  ce0_rv = fcntl(sigwinch_pipe[0], F_SETFD, FD_CLOEXEC);
++  if (fd_flags == -1 || ce0_rv == -1)
+     {
+-        perror (_("Cannot configure write end of SIGWINCH pipe"));
+-        exit (EXIT_FAILURE);
++      perror (_("Cannot configure write end of SIGWINCH pipe"));
++      exit (EXIT_FAILURE);
+     }
+ 
+-    fd_flags = fcntl (sigwinch_pipe[1], F_GETFL, NULL);
+-    if (fd_flags != -1)
++  fd_flags = fcntl (sigwinch_pipe[1], F_GETFL, NULL);
++  if (fd_flags != -1)
+     {
+-        fd_flags |= O_NONBLOCK | O_CLOEXEC;
+-        fd_flags = fcntl (sigwinch_pipe[1], F_SETFL, fd_flags);
++      fd_flags |= O_NONBLOCK;
++      fd_flags = fcntl (sigwinch_pipe[1], F_SETFL, fd_flags);
+     }
+-    if (fd_flags == -1)
++  ce1_rv = fcntl(sigwinch_pipe[1], F_SETFD, FD_CLOEXEC);
++  if (fd_flags == -1 || ce1_rv == -1)
+     {
+-        perror (_("Cannot configure read end of SIGWINCH pipe"));
+-        exit (EXIT_FAILURE);
++      perror (_("Cannot configure read end of SIGWINCH pipe"));
++      exit (EXIT_FAILURE);
+     }
++#else
++  fd_flags = fcntl (sigwinch_pipe[0], F_GETFL, NULL);
++  if (fd_flags != -1)
++    {
++      fd_flags |= O_NONBLOCK | O_CLOEXEC;
++      fd_flags = fcntl (sigwinch_pipe[0], F_SETFL, fd_flags);
++    }
++  if (fd_flags == -1)
++    {
++      perror (_("Cannot configure write end of SIGWINCH pipe"));
++      exit (EXIT_FAILURE);
++    }
++
++  fd_flags = fcntl (sigwinch_pipe[1], F_GETFL, NULL);
++  if (fd_flags != -1)
++    {
++      fd_flags |= O_NONBLOCK | O_CLOEXEC;
++      fd_flags = fcntl (sigwinch_pipe[1], F_SETFL, fd_flags);
++    }
++  if (fd_flags == -1)
++    {
++      perror (_("Cannot configure read end of SIGWINCH pipe"));
++      exit (EXIT_FAILURE);
++    }
++#endif
+ }
+ 
+ /* --------------------------------------------------------------------------------------------- */
