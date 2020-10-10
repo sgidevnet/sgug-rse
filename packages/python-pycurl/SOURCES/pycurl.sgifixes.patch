@@ -1,0 +1,17 @@
+diff -u -r pycurl-7.43.0.2-orig/src/easycb.c pycurl-7.43.0.2/src/easycb.c
+--- pycurl-7.43.0.2-orig/src/easycb.c	2018-05-23 06:08:32.000000000 +0000
++++ pycurl-7.43.0.2/src/easycb.c	2020-10-10 14:26:05.022789520 +0000
+@@ -1,5 +1,11 @@
+-#include "pycurl.h"
++#if defined(__sgi)
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#endif
+ 
++#include "pycurl.h"
+ 
+ /* IMPORTANT NOTE: due to threading issues, we cannot call _any_ Python
+  * function without acquiring the thread state in the callback handlers.
+Only in pycurl-7.43.0.2/src: easycb.c~
