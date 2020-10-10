@@ -27,7 +27,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 17
+%global rel 18
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -135,11 +135,11 @@ BuildRequires: lmdb-devel
 # Couple of patches change makefiles so, require for now...
 BuildRequires: automake libtool
 
-#%if %{with plugins}
+#%%if %%{with plugins}
 #BuildRequires: libselinux-devel
 #BuildRequires: dbus-devel
 #BuildRequires: audit-libs-devel
-#%endif
+#%%endif
 
 %if %{with libimaevm}
 BuildRequires: ima-evm-utils-devel >= 1.0
@@ -274,12 +274,12 @@ BuildArch: noarch
 This package contains API documentation for developing applications
 that will manipulate RPM packages and databases.
 
-#%package cron
+#%%package cron
 #Summary: Create daily logs of installed packages.
 #BuildArch: noarch
-#Requires: crontabs logrotate rpm = %{version}-%{release}
+#Requires: crontabs logrotate rpm = %%{version}-%%{release}
 
-#%description cron
+#%%description cron
 #This package contains a cron job which creates daily logs of installed
 #packages on a system.
 
@@ -362,6 +362,11 @@ perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/find-lang.sh
 perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/fontconfig.prov
 perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/rpmdb_loadcvt
 perl -pi -e "s|/usr/bin/env bash|%{_prefix}/bin/bash|g" scripts/find-debuginfo.sh
+
+# Rewrite fontconfig provides
+perl -pi -e "s|/usr/bin/fc-query|%{_bindir}/fc-query|g" scripts/fontconfig.prov
+perl -pi -e "s|/usr/share/fonts|%{_datadir}/fonts|g" scripts/fontconfig.prov
+perl -pi -e "s|--format|-f|g" scripts/fontconfig.prov
 
 %if %{with int_bdb}
 ln -s db-%{bdbver} db
@@ -543,21 +548,21 @@ make check || (cat tests/rpmtests.log; exit 0)
 %files plugin-syslog
 %{_libdir}/rpm-plugins/syslog.so
 
-#%files plugin-selinux
-#%{_libdir}/rpm-plugins/selinux.so
+#%%files plugin-selinux
+#%%{_libdir}/rpm-plugins/selinux.so
 
-#%files plugin-systemd-inhibit
-#%{_libdir}/rpm-plugins/systemd_inhibit.so
-#%{_mandir}/man8/rpm-plugin-systemd-inhibit.8*
+#%%files plugin-systemd-inhibit
+#%%{_libdir}/rpm-plugins/systemd_inhibit.so
+#%%{_mandir}/man8/rpm-plugin-systemd-inhibit.8*
 
-#%files plugin-ima
-#%{_libdir}/rpm-plugins/ima.so
+#%%files plugin-ima
+#%%{_libdir}/rpm-plugins/ima.so
 
 %files plugin-prioreset
 %{_libdir}/rpm-plugins/prioreset.so
 
-#%files plugin-audit
-#%{_libdir}/rpm-plugins/audit.so
+#%%files plugin-audit
+#%%{_libdir}/rpm-plugins/audit.so
 # with plugins
 %endif
 
@@ -611,15 +616,18 @@ make check || (cat tests/rpmtests.log; exit 0)
 %{_libdir}/pkgconfig/%{name}.pc
 %{_includedir}/%{name}/
 
-#%files cron
-#%{_sysconfdir}/cron.daily/rpm
-#%config(noreplace) %{_sysconfdir}/logrotate.d/rpm
+#%%files cron
+#%%{_sysconfdir}/cron.daily/rpm
+#%%config(noreplace) %%{_sysconfdir}/logrotate.d/rpm
 
 %files apidocs
 %license COPYING
 %doc doc/librpm/html/*
 
 %changelog
+* Sat Oct 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-18
+- Fix up fontconfig discovery when building font packages
+
 * Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-17
 - Include dep on gpg2 now we have it.
 
