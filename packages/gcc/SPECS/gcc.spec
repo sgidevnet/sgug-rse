@@ -31,16 +31,16 @@
 %global build_ada 0
 %endif
 %global build_objc 0
-#%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
-#%global build_go 1
-#%else
+#%%ifarch %%{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %%{arm} aarch64 %%{mips}
+#%%global build_go 1
+#%%else
 %global build_go 0
-#%endif
-#%ifarch %{ix86} x86_64 %{arm} %{mips} s390 s390x riscv64
-#%global build_d 1
-#%else
+#%%endif
+#%%ifarch %%{ix86} x86_64 %%{arm} %%{mips} s390 s390x riscv64
+#%%global build_d 1
+#%%else
 %global build_d 0
-#%endif
+#%%endif
 %endif
 %ifarch %{ix86} x86_64 ia64 ppc64le
 %global build_libquadmath 1
@@ -67,17 +67,17 @@
 %else
 %global build_libubsan 0
 %endif
-#%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
-#%global build_libatomic 1
-#%else
-#%global build_libatomic 0
-#%endif
+#%%ifarch %%{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %%{arm} aarch64 %%{mips}
+#%%global build_libatomic 1
+#%%else
+#%%global build_libatomic 0
+#%%endif
 %global build_libatomic 1
-#%ifarch %{ix86} x86_64 %{arm} alpha ppc ppc64 ppc64le ppc64p7 s390 s390x aarch64
-#%global build_libitm 1
-#%else
+#%%ifarch %%{ix86} x86_64 %%{arm} alpha ppc ppc64 ppc64le ppc64p7 s390 s390x aarch64
+#%%global build_libitm 1
+#%%else
 %global build_libitm 0
-#%endif
+#%%endif
 %global build_isl 1
 %global build_libstdcxx_docs 0
 %ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
@@ -120,14 +120,14 @@ Source0: gcc-%{version}-%{DATE}.tar.gz
 # cd nvptx-tools
 # git archive origin/master --prefix=nvptx-tools-%%{nvptx_tools_gitrev}/ | xz -9e > ../nvptx-tools-%%{nvptx_tools_gitrev}.tar.xz
 # cd ..; rm -rf nvptx-tools
-#Source1: nvptx-tools-%{nvptx_tools_gitrev}.tar.xz
+#Source1: nvptx-tools-%%{nvptx_tools_gitrev}.tar.xz
 # The source for nvptx-newlib package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
 # git clone https://github.com/MentorEmbedded/nvptx-newlib.git
 # cd nvptx-newlib
 # git archive origin/master --prefix=nvptx-newlib-%%{nvptx_newlib_gitrev}/ | xz -9 > ../nvptx-newlib-%%{nvptx_newlib_gitrev}.tar.xz
 # cd ..; rm -rf nvptx-newlib
-#Source2: nvptx-newlib-%{nvptx_newlib_gitrev}.tar.xz
+#Source2: nvptx-newlib-%%{nvptx_newlib_gitrev}.tar.xz
 %global isl_version 0.18
 URL: http://gcc.gnu.org
 # Need binutils with -pie support >= 2.14.90.0.4-4
@@ -143,11 +143,11 @@ URL: http://gcc.gnu.org
 # Need binutils which support -plugin
 # Need binutils which support .loc view >= 2.30
 # Need binutils which support --generate-missing-build-notes=yes >= 2.31
-#%if 0%{?fedora} >= 29 || 0%{?rhel} > 7
+#%%if 0%%{?fedora} >= 29 || 0%%{?rhel} > 7
 #BuildRequires: binutils >= 2.31
-#%else
+#%%else
 #BuildRequires: binutils >= 2.24
-#%endif
+#%%endif
 # For irix:
 BuildRequires: binutils >= 2.23.2
 # While gcc doesn't include statically linked binaries, during testing
@@ -160,9 +160,9 @@ BuildRequires: zlib-devel, gettext, dejagnu, bison, flex
 BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 #BuildRequires: python2-devel, python3-devel, /usr/bin/python
 BuildRequires: gcc, gcc-c++
-#%if %{build_go}
+#%%if %%{build_go}
 #BuildRequires: hostname, procps
-#%endif
+#%%endif
 # For VTA guality testing
 #BuildRequires: gdb
 # Make sure pthread.h doesn't contain __thread tokens
@@ -195,10 +195,10 @@ Requires: libisl.so.15()(64bit)
 Requires: libisl.so.15
 %endif
 %endif
-#%if %{build_libstdcxx_docs}
+#%%if %%{build_libstdcxx_docs}
 #BuildRequires: doxygen >= 1.7.1
 #BuildRequires: graphviz, dblatex, texlive-collection-latex, docbook5-style-xsl
-#%endif
+#%%endif
 Requires: cpp = %{version}-%{release}
 # Need .eh_frame ld optimizations
 # Need proper visibility support
@@ -216,11 +216,11 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that support -plugin
 # Need binutils that support .loc view >= 2.30
 # Need binutils which support --generate-missing-build-notes=yes >= 2.31
-#%if 0%{?fedora} >= 29 || 0%{?rhel} > 7
+#%%if 0%%{?fedora} >= 29 || 0%%{?rhel} > 7
 #Requires: binutils >= 2.31
-#%else
+#%%else
 Requires: binutils >= 2.23.2
-#%endif
+#%%endif
 # Make sure gdb will understand DW_FORM_strp
 Conflicts: gdb < 5.1-2
 #Requires: glibc-devel >= 2.2.90-12
@@ -267,19 +267,19 @@ Patch2003: gcc9.sgifixlibstdcpp02.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
-#ifnarch %{arm}
-#global _gnu %{nil}
+#ifnarch %%{arm}
+#global _gnu %%{nil}
 #else
 #global _gnu -gnueabi
 #endif
 #ifarch sparcv9
-#global gcc_target_platform sparc64-%{_vendor}-%{_target_os}
+#global gcc_target_platform sparc64-%%{_vendor}-%%{_target_os}
 #endif
 #ifarch ppc ppc64p7
-#global gcc_target_platform ppc64-%{_vendor}-%{_target_os}
+#global gcc_target_platform ppc64-%%{_vendor}-%%{_target_os}
 #endif
 #ifnarch sparcv9 ppc ppc64p7
-#global gcc_target_platform %{_target_platform}
+#global gcc_target_platform %%{_target_platform}
 #endif
 %global gcc_target_platform mips-sgi-irix6.5
 
@@ -317,9 +317,9 @@ Autoreq: false
 %if !%{build_ada}
 Obsoletes: libgnat < %{version}-%{release}
 %endif
-Obsoletes: libmudflap
-Obsoletes: libmudflap-devel
-Obsoletes: libmudflap-static
+#Obsoletes: libmudflap
+#Obsoletes: libmudflap-devel
+#Obsoletes: libmudflap-static
 Obsoletes: libgcj < %{version}-%{release}
 Obsoletes: libgcj-devel < %{version}-%{release}
 Obsoletes: libgcj-src < %{version}-%{release}
@@ -383,97 +383,97 @@ Autoreq: true
 Manual, doxygen generated API information and Frequently Asked Questions
 for the GNU standard C++ library.
 
-#%package objc
+#%%package objc
 #Summary: Objective-C support for GCC
-#Requires: gcc = %{version}-%{release}
-#Requires: libobjc = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
+#Requires: libobjc = %%{version}-%%{release}
 #Autoreq: true
 #
-#%description objc
+#%%description objc
 #gcc-objc provides Objective-C support for the GCC.
 #Mainly used on systems running NeXTSTEP, Objective-C is an
 #object-oriented derivative of the C language.
 
-#%package objc++
+#%%package objc++
 #Summary: Objective-C++ support for GCC
-#Requires: gcc-c++ = %{version}-%{release}, gcc-objc = %{version}-%{release}
+#Requires: gcc-c++ = %%{version}-%%{release}, gcc-objc = %%{version}-%%{release}
 #Autoreq: true
 #
-#%description objc++
+#%%description objc++
 #gcc-objc++ package provides Objective-C++ support for the GCC.
 #
-#%package -n libobjc
+#%%package -n libobjc
 #Summary: Objective-C runtime
 #Autoreq: true
 #
-#%description -n libobjc
+#%%description -n libobjc
 #This package contains Objective-C shared library which is needed to run
 #Objective-C dynamically linked programs.
 
-#%package gfortran
+#%%package gfortran
 #Summary: Fortran support
-#Requires: gcc = %{version}-%{release}
-#Requires: libgfortran = %{version}-%{release}
-#%if %{build_libquadmath}
-#Requires: libquadmath = %{version}-%{release}
-#Requires: libquadmath-devel = %{version}-%{release}
-#%endif
-#Provides: gcc-fortran = %{version}-%{release}
-#Provides: gfortran = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
+#Requires: libgfortran = %%{version}-%%{release}
+#%%if %%{build_libquadmath}
+#Requires: libquadmath = %%{version}-%%{release}
+#Requires: libquadmath-devel = %%{version}-%%{release}
+#%%endif
+#Provides: gcc-fortran = %%{version}-%%{release}
+#Provides: gfortran = %%{version}-%%{release}
 #Autoreq: true
 #
-#%description gfortran
+#%%description gfortran
 #The gcc-gfortran package provides support for compiling Fortran
 #programs with the GNU Compiler Collection.
 #
-#%package -n libgfortran
+#%%package -n libgfortran
 #Summary: Fortran runtime
 #Autoreq: true
-#%if %{build_libquadmath}
-#Requires: libquadmath = %{version}-%{release}
-#%endif
+#%%if %%{build_libquadmath}
+#Requires: libquadmath = %%{version}-%%{release}
+#%%endif
 #
-#%description -n libgfortran
+#%%description -n libgfortran
 #This package contains Fortran shared library which is needed to run
 #Fortran dynamically linked programs.
 
-#%package -n libgfortran-static
+#%%package -n libgfortran-static
 #Summary: Static Fortran libraries
-#Requires: libgfortran = %{version}-%{release}
-#Requires: gcc = %{version}-%{release}
-#%if %{build_libquadmath}
-#Requires: libquadmath-static = %{version}-%{release}
-#%endif
+#Requires: libgfortran = %%{version}-%%{release}
+#Requires: gcc = %%{version}-%%{release}
+#%%if %%{build_libquadmath}
+#Requires: libquadmath-static = %%{version}-%%{release}
+#%%endif
 #
-#%description -n libgfortran-static
+#%%description -n libgfortran-static
 #This package contains static Fortran libraries.
 
-#%package gdc
+#%%package gdc
 #Summary: D support
-#Requires: gcc = %{version}-%{release}
-#Requires: libgphobos = %{version}-%{release}
-#Provides: gcc-d = %{version}-%{release}
-#Provides: gdc = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
+#Requires: libgphobos = %%{version}-%%{release}
+#Provides: gcc-d = %%{version}-%%{release}
+#Provides: gdc = %%{version}-%%{release}
 #Autoreq: true
 #
-#%description gdc
+#%%description gdc
 #The gcc-gdc package provides support for compiling D
 #programs with the GNU Compiler Collection.
 
-#%package -n libgphobos
+#%%package -n libgphobos
 #Summary: D runtime
 #Autoreq: true
 #
-#%description -n libgphobos
+#%%description -n libgphobos
 #This package contains D shared library which is needed to run
 #D dynamically linked programs.
 #
-#%package -n libgphobos-static
+#%%package -n libgphobos-static
 #Summary: Static D libraries
-#Requires: libgphobos = %{version}-%{release}
-#Requires: gcc-gdc = %{version}-%{release}
+#Requires: libgphobos = %%{version}-%%{release}
+#Requires: gcc-gdc = %%{version}-%%{release}
 #
-#%description -n libgphobos-static
+#%%description -n libgphobos-static
 #This package contains static D libraries.
 
 %package -n libgomp
@@ -483,86 +483,86 @@ Summary: GCC OpenMP v4.5 shared support library
 This package contains GCC shared support library which is needed
 for OpenMP v4.5 support.
 
-#%package -n libgomp-offload-nvptx
+#%%package -n libgomp-offload-nvptx
 #Summary: GCC OpenMP v4.5 plugin for offloading to NVPTX
-#Requires: libgomp = %{version}-%{release}
+#Requires: libgomp = %%{version}-%%{release}
 #
-#%description -n libgomp-offload-nvptx
+#%%description -n libgomp-offload-nvptx
 #This package contains libgomp plugin for offloading to NVidia
 #PTX.  The plugin needs libcuda.so.1 shared library that has to be
 #installed separately.
 
-#%package gdb-plugin
+#%%package gdb-plugin
 #Summary: GCC plugin for GDB
-#Requires: gcc = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
 #
-#%description gdb-plugin
+#%%description gdb-plugin
 #This package contains GCC plugin for GDB C expression evaluation.
 
-#%package -n libgccjit
+#%%package -n libgccjit
 #Summary: Library for embedding GCC inside programs and libraries
-#Requires: gcc = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
 #
-#%description -n libgccjit
+#%%description -n libgccjit
 #This package contains shared library with GCC JIT front-end.
 #
-#%package -n libgccjit-devel
+#%%package -n libgccjit-devel
 #Summary: Support for embedding GCC inside programs and libraries
-#%if 0%{?fedora} > 27 || 0%{?rhel} > 7
+#%%if 0%%{?fedora} > 27 || 0%%{?rhel} > 7
 #BuildRequires: python3-sphinx
-#%else
+#%%else
 #BuildRequires: python-sphinx
-#%endif
-#Requires: libgccjit = %{version}-%{release}
+#%%endif
+#Requires: libgccjit = %%{version}-%%{release}
 #
-#%description -n libgccjit-devel
+#%%description -n libgccjit-devel
 #This package contains header files and documentation for GCC JIT front-end.
 
-#%package -n libquadmath
+#%%package -n libquadmath
 #Summary: GCC __float128 shared support library
 #
-#%description -n libquadmath
+#%%description -n libquadmath
 #This package contains GCC shared support library which is needed
 #for __float128 math support and for Fortran REAL*16 support.
 #
-#%package -n libquadmath-devel
+#%%package -n libquadmath-devel
 #Summary: GCC __float128 support
-#Requires: libquadmath = %{version}-%{release}
-#Requires: gcc = %{version}-%{release}
+#Requires: libquadmath = %%{version}-%%{release}
+#Requires: gcc = %%{version}-%%{release}
 #
-#%description -n libquadmath-devel
+#%%description -n libquadmath-devel
 #This package contains headers for building Fortran programs using
 #REAL*16 and programs using __float128 math.
 #
-#%package -n libquadmath-static
+#%%package -n libquadmath-static
 #Summary: Static libraries for __float128 support
-#Requires: libquadmath-devel = %{version}-%{release}
+#Requires: libquadmath-devel = %%{version}-%%{release}
 #
-#%description -n libquadmath-static
+#%%description -n libquadmath-static
 #This package contains static libraries for building Fortran programs
 #using REAL*16 and programs using __float128 math.
 
-#%package -n libitm
+#%%package -n libitm
 #Summary: The GNU Transactional Memory library
 #
-#%description -n libitm
+#%%description -n libitm
 #This package contains the GNU Transactional Memory library
 #which is a GCC transactional memory support runtime library.
 #
-#%package -n libitm-devel
+#%%package -n libitm-devel
 #Summary: The GNU Transactional Memory support
-#Requires: libitm = %{version}-%{release}
-#Requires: gcc = %{version}-%{release}
+#Requires: libitm = %%{version}-%%{release}
+#Requires: gcc = %%{version}-%%{release}
 #
-#%description -n libitm-devel
+#%%description -n libitm-devel
 #This package contains headers and support files for the
 #GNU Transactional Memory library.
 #
-#%package -n libitm-static
+#%%package -n libitm-static
 #Summary: The GNU Transactional Memory static library
-#Requires: libitm-devel = %{version}-%{release}
+#Requires: libitm-devel = %%{version}-%%{release}
 #
-#%description -n libitm-static
+#%%description -n libitm-static
 #This package contains GNU Transactional Memory static libraries.
 
 %package -n libatomic
@@ -580,60 +580,60 @@ Requires: libatomic = %{version}-%{release}
 %description -n libatomic-static
 This package contains GNU Atomic static libraries.
 
-#%package -n libasan
+#%%package -n libasan
 #Summary: The Address Sanitizer runtime library
 #
-#%description -n libasan
+#%%description -n libasan
 #This package contains the Address Sanitizer library
 #which is used for -fsanitize=address instrumented programs.
 #
-#%package -n libasan-static
+#%%package -n libasan-static
 #Summary: The Address Sanitizer static library
-#Requires: libasan = %{version}-%{release}
+#Requires: libasan = %%{version}-%%{release}
 #
-#%description -n libasan-static
+#%%description -n libasan-static
 #This package contains Address Sanitizer static runtime library.
 
-#%package -n libtsan
+#%%package -n libtsan
 #Summary: The Thread Sanitizer runtime library
 #
-#%description -n libtsan
+#%%description -n libtsan
 #This package contains the Thread Sanitizer library
 #which is used for -fsanitize=thread instrumented programs.
 
-#%package -n libtsan-static
+#%%package -n libtsan-static
 #Summary: The Thread Sanitizer static library
-#Requires: libtsan = %{version}-%{release}
+#Requires: libtsan = %%{version}-%%{release}
 #
-#%description -n libtsan-static
+#%%description -n libtsan-static
 #This package contains Thread Sanitizer static runtime library.
 
-#%package -n libubsan
+#%%package -n libubsan
 #Summary: The Undefined Behavior Sanitizer runtime library
 #
-#%description -n libubsan
+#%%description -n libubsan
 #This package contains the Undefined Behavior Sanitizer library
 #which is used for -fsanitize=undefined instrumented programs.
 
-#%package -n libubsan-static
+#%%package -n libubsan-static
 #Summary: The Undefined Behavior Sanitizer static library
-#Requires: libubsan = %{version}-%{release}
+#Requires: libubsan = %%{version}-%%{release}
 #
-#%description -n libubsan-static
+#%%description -n libubsan-static
 #This package contains Undefined Behavior Sanitizer static runtime library.
 
-#%package -n liblsan
+#%%package -n liblsan
 #Summary: The Leak Sanitizer runtime library
 #
-#%description -n liblsan
+#%%description -n liblsan
 #This package contains the Leak Sanitizer library
 #which is used for -fsanitize=leak instrumented programs.
 
-#%package -n liblsan-static
+#%%package -n liblsan-static
 #Summary: The Leak Sanitizer static library
-#Requires: liblsan = %{version}-%{release}
+#Requires: liblsan = %%{version}-%%{release}
 #
-#%description -n liblsan-static
+#%%description -n liblsan-static
 #This package contains Leak Sanitizer static runtime library.
 
 %package -n cpp
@@ -665,96 +665,96 @@ compiler about where each source line originated).
 You should install this package if you are a C programmer and you use
 macros.
 
-#%package gnat
+#%%package gnat
 #Summary: Ada 83, 95, 2005 and 2012 support for GCC
-#Requires: gcc = %{version}-%{release}
-#Requires: libgnat = %{version}-%{release}, libgnat-devel = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
+#Requires: libgnat = %%{version}-%%{release}, libgnat-devel = %%{version}-%%{release}
 #Autoreq: true
 #
-#%description gnat
+#%%description gnat
 #GNAT is a GNU Ada 83, 95, 2005 and 2012 front-end to GCC. This package includes
 #development tools, the documents and Ada compiler.
 #
-#%package -n libgnat
+#%%package -n libgnat
 #Summary: GNU Ada 83, 95, 2005 and 2012 runtime shared libraries
 #Autoreq: true
 #
-#%description -n libgnat
+#%%description -n libgnat
 #GNAT is a GNU Ada 83, 95, 2005 and 2012 front-end to GCC. This package includes
 #shared libraries, which are required to run programs compiled with the GNAT.
 #
-#%package -n libgnat-devel
+#%%package -n libgnat-devel
 #Summary: GNU Ada 83, 95, 2005 and 2012 libraries
 #Autoreq: true
 #
-#%description -n libgnat-devel
+#%%description -n libgnat-devel
 #GNAT is a GNU Ada 83, 95, 2005 and 2012 front-end to GCC. This package includes
 #libraries, which are required to compile with the GNAT.
 #
-#%package -n libgnat-static
+#%%package -n libgnat-static
 #Summary: GNU Ada 83, 95, 2005 and 2012 static libraries
-#Requires: libgnat-devel = %{version}-%{release}
+#Requires: libgnat-devel = %%{version}-%%{release}
 #Autoreq: true
 #
-#%description -n libgnat-static
+#%%description -n libgnat-static
 #GNAT is a GNU Ada 83, 95, 2005 and 2012 front-end to GCC. This package includes
 #static libraries.
 
-#%package go
+#%%package go
 #Summary: Go support
-#Requires: gcc = %{version}-%{release}
-#Requires: libgo = %{version}-%{release}
-#Requires: libgo-devel = %{version}-%{release}
-#Requires(post): %{_sbindir}/update-alternatives
-#Requires(postun): %{_sbindir}/update-alternatives
-#Provides: gccgo = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
+#Requires: libgo = %%{version}-%%{release}
+#Requires: libgo-devel = %%{version}-%%{release}
+#Requires(post): %%{_sbindir}/update-alternatives
+#Requires(postun): %%{_sbindir}/update-alternatives
+#Provides: gccgo = %%{version}-%%{release}
 #Autoreq: true
 #
-#%description go
+#%%description go
 #The gcc-go package provides support for compiling Go programs
 #with the GNU Compiler Collection.
 #
-#%package -n libgo
+#%%package -n libgo
 #Summary: Go runtime
 #Autoreq: true
 #
-#%description -n libgo
+#%%description -n libgo
 #This package contains Go shared library which is needed to run
 #Go dynamically linked programs.
 #
-#%package -n libgo-devel
+#%%package -n libgo-devel
 #Summary: Go development libraries
-#Requires: libgo = %{version}-%{release}
+#Requires: libgo = %%{version}-%%{release}
 #Autoreq: true
 #
-#%description -n libgo-devel
+#%%description -n libgo-devel
 #This package includes libraries and support files for compiling
 #Go programs.
 #
-#%package -n libgo-static
+#%%package -n libgo-static
 #Summary: Static Go libraries
-#Requires: libgo = %{version}-%{release}
-#Requires: gcc = %{version}-%{release}
+#Requires: libgo = %%{version}-%%{release}
+#Requires: gcc = %%{version}-%%{release}
 #
-#%description -n libgo-static
+#%%description -n libgo-static
 #This package contains static Go libraries.
 
-#%package plugin-devel
+#%%package plugin-devel
 #Summary: Support for compiling GCC plugins
-#Requires: gcc = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
 #Requires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 #
-#%description plugin-devel
+#%%description plugin-devel
 #This package contains header files and other support files
 #for compiling GCC plugins.  The GCC plugin ABI is currently
 #not stable, so plugins must be rebuilt any time GCC is updated.
 
-#%package offload-nvptx
+#%%package offload-nvptx
 #Summary: Offloading compiler to NVPTX
-#Requires: gcc = %{version}-%{release}
-#Requires: libgomp-offload-nvptx = %{version}-%{release}
+#Requires: gcc = %%{version}-%%{release}
+#Requires: libgomp-offload-nvptx = %%{version}-%%{release}
 
-#%description offload-nvptx
+#%%description offload-nvptx
 #The gcc-offload-nvptx package provides offloading support for
 #NVidia PTX.  OpenMP and OpenACC programs linked with -fopenmp will
 #by default add PTX code into the binaries, which can be offloaded
@@ -762,13 +762,13 @@ macros.
 
 %prep
 
-#setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
+#%%setup -q -n gcc-%%{version}-%%{DATE} -a 1 -a 2
 %setup -q -n gcc-%{version}-%{DATE}
 %patch0 -p0 -b .hack~
 %patch1 -p0 -b .i386-libgomp~
 %patch2 -p0 -b .sparc-config-detection~
 %patch3 -p0 -b .libgomp-omp_h-multilib~
-#%patch4 -p0 -b .libtool-no-rpath~
+#%%patch4 -p0 -b .libtool-no-rpath~
 %if %{build_isl}
 %patch5 -p0 -b .isl-dl~
 %endif
@@ -849,7 +849,7 @@ case "$OPT_FLAGS" in
     ;;
 esac
 
-#%if %{build_offload_nvptx}
+#%%if %{build_offload_nvptx}
 #mkdir obji
 #IROOT=`pwd`/obji
 #cd nvptx-tools-%{nvptx_tools_gitrev}
@@ -882,7 +882,7 @@ esac
 #make %{?_smp_mflags}
 #cd ..
 #rm -f newlib
-#%endif
+#%%endif
 
 rm -rf obj-%{gcc_target_platform}
 mkdir obj-%{gcc_target_platform}
@@ -1020,12 +1020,12 @@ CONFIGURE_OPTS="\
 # Don't use cxa_atexit or disable libunwind
 #	--with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions \ #
 # Stop funky fp/abi selection
-#%ifarch mips mipsel
+#%%ifarch mips mipsel
 #	--with-arch=mips32r2 --with-fp-32=xx \
-#%endif
-#%ifarch mips64 mips64el
+#%%endif
+#%%ifarch mips64 mips64el
 #	--with-arch=mips64r2 --with-abi=64 \
-#%endif
+#%%endif
 
 CC="$CC" CXX="$CXX" CFLAGS="$OPT_FLAGS" \
 	CXXFLAGS="`echo " $OPT_FLAGS " | sed 's/ -Wall / /g;s/ -fexceptions / /g' \
@@ -1043,11 +1043,11 @@ CC="$CC" CXX="$CXX" CFLAGS="$OPT_FLAGS" \
 #	../configure --enable-bootstrap \ #
 #	--enable-languages=c,c++,fortran${enablelobjc}${enablelada}${enablelgo}${enableld},lto \ #
 
-#%ifarch sparc sparcv9 sparc64
+#%%ifarch sparc sparcv9 sparc64
 #make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" bootstrap
-#%else
+#%%else
 #make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" profiledbootstrap
-#%endif
+#%%endif
 make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS"
 
 CC="`%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags --build-cc`"
@@ -1971,12 +1971,12 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %post
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/install-tools/mkheaders
 
-#%post go
-#%{_sbindir}/update-alternatives --install \
+#%%post go
+#%%{_sbindir}/update-alternatives --install \
 #  %{_prefix}/bin/go go %{_prefix}/bin/go.gcc 92 \
 #  --slave %{_prefix}/bin/gofmt gofmt %{_prefix}/bin/gofmt.gcc
 
-#%preun go
+#%%preun go
 #if [ $1 = 0 ]; then
 #  %{_sbindir}/update-alternatives --remove go %{_prefix}/bin/go.gcc
 #fi
@@ -1984,7 +1984,7 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 # Because glibc Prereq's libgcc and /sbin/ldconfig
 # comes from glibc, it might not exist yet when
 # libgcc is installed
-#%post -n libgcc -p <lua>
+#%%post -n libgcc -p <lua>
 #if posix.access ("/sbin/ldconfig", "x") then
 #  local pid = posix.fork ()
 #  if pid == 0 then
@@ -1994,7 +1994,7 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 #  end
 #end
 
-#%postun -n libgcc -p <lua>
+#%%postun -n libgcc -p <lua>
 #if posix.access ("/sbin/ldconfig", "x") then
 #  local pid = posix.fork ()
 #  if pid == 0 then
@@ -2004,37 +2004,37 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 #  end
 #end
 
-#%ldconfig_scriptlets -n libstdc++
+#%%ldconfig_scriptlets -n libstdc++
 
-#%ldconfig_scriptlets -n libobjc
+#%%ldconfig_scriptlets -n libobjc
 
-#%ldconfig_scriptlets -n libgfortran
+#%%ldconfig_scriptlets -n libgfortran
 
-#%ldconfig_scriptlets -n libgphobos
+#%%ldconfig_scriptlets -n libgphobos
 
-#%ldconfig_scriptlets -n libgnat
+#%%ldconfig_scriptlets -n libgnat
 
-#%ldconfig_scriptlets -n libgomp
+#%%ldconfig_scriptlets -n libgomp
 
-#%ldconfig_scriptlets gdb-plugin
+#%%ldconfig_scriptlets gdb-plugin
 
-#%ldconfig_scriptlets -n libgccjit
+#%%ldconfig_scriptlets -n libgccjit
 
-#%ldconfig_scriptlets -n libgquadmath
+#%%ldconfig_scriptlets -n libgquadmath
 
-#%ldconfig_scriptlets -n libitm
+#%%ldconfig_scriptlets -n libitm
 
-#%ldconfig_scriptlets -n libatomic
+#%%ldconfig_scriptlets -n libatomic
 
-#%ldconfig_scriptlets -n libasan
+#%%ldconfig_scriptlets -n libasan
 
-#%ldconfig_scriptlets -n libubsan
+#%%ldconfig_scriptlets -n libubsan
 
-#%ldconfig_scriptlets -n libtsan
+#%%ldconfig_scriptlets -n libtsan
 
-#%ldconfig_scriptlets -n liblsan
+#%%ldconfig_scriptlets -n liblsan
 
-#%ldconfig_scriptlets -n libgo
+#%%ldconfig_scriptlets -n libgo
 
 %files -f %{name}.lang
 %{_prefix}/bin/cc
@@ -2396,14 +2396,14 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++.a
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++fs.a
+#%%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++fs.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libsupc++.a
 %endif
 %ifarch %{multilib_64_archs}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libstdc++.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libstdc++.a
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libstdc++fs.a
+#%%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libstdc++fs.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libsupc++.a
 %endif
 %ifarch sparcv9 ppc %{multilib_64_archs}
@@ -2411,7 +2411,7 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %endif
 %ifarch sparcv9 sparc64 ppc ppc64 ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++.a
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++fs.a
+#%%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++fs.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libsupc++.a
 %endif
 %doc rpm.doc/changelogs/gcc/cp/ChangeLog*
@@ -2424,7 +2424,7 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %dir %{_datadir}/gdb/auto-load/%{_prefix}
 %dir %{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/
 %{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/libstdc*gdb.py*
-#%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/__pycache__
+#%%{_datadir}/gdb/auto-load/%%{_prefix}/%%{_lib}/__pycache__
 %dir %{_prefix}/share/gcc-%{gcc_major}
 %dir %{_prefix}/share/gcc-%{gcc_major}/python
 %{_prefix}/share/gcc-%{gcc_major}/python/libstdcxx
@@ -2440,14 +2440,14 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32/libstdc++fs.a
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/lib32/libstdc++fs.a
 %endif
 %ifarch sparc64 ppc64 ppc64p7
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64/libstdc++fs.a
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/lib64/libstdc++fs.a
 %endif
 %ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++fs.a
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/libstdc++fs.a
 %endif
 %doc rpm.doc/changelogs/libstdc++-v3/ChangeLog* libstdc++-v3/README*
 
@@ -2512,73 +2512,73 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %{_prefix}/%{_lib}/libobjc.so.4*
 %endif
 
-#%files gfortran
-#%{_prefix}/bin/gfortran
-#%{_prefix}/bin/f95
-#%{_mandir}/man1/gfortran.1*
-#%{_infodir}/gfortran*
-#%dir %{_prefix}/lib/gcc
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
-#%dir %{_prefix}/libexec/gcc
-#%dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
-#%dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ISO_Fortran_binding.h
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/omp_lib.h
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/omp_lib.f90
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/omp_lib.mod
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/omp_lib_kinds.mod
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/openacc.f90
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/openacc.mod
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/openacc_kinds.mod
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/openacc_lib.h
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/ieee_arithmetic.mod
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/ieee_exceptions.mod
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/ieee_features.mod
-#%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/f951
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgfortran.spec
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libcaf_single.a
-#%ifarch sparcv9 sparc64 ppc ppc64 ppc64p7
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgfortran.a
-#%endif
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgfortran.so
-#%ifarch sparcv9 ppc
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libcaf_single.a
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libgfortran.a
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libgfortran.so
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/finclude
-#%endif
-#%ifarch %{multilib_64_archs}
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libcaf_single.a
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libgfortran.a
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libgfortran.so
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/finclude
-#%endif
-#%dir %{_fmoddir}
-#%doc rpm.doc/gfortran/*
+#%%files gfortran
+#%%{_prefix}/bin/gfortran
+#%%{_prefix}/bin/f95
+#%%{_mandir}/man1/gfortran.1*
+#%%{_infodir}/gfortran*
+#%%dir %%{_prefix}/lib/gcc
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}
+#%%dir %%{_prefix}/libexec/gcc
+#%%dir %%{_prefix}/libexec/gcc/%%{gcc_target_platform}
+#%%dir %%{_prefix}/libexec/gcc/%%{gcc_target_platform}/%%{gcc_major}
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/include
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/include/ISO_Fortran_binding.h
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/omp_lib.h
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/omp_lib.f90
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/omp_lib.mod
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/omp_lib_kinds.mod
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/openacc.f90
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/openacc.mod
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/openacc_kinds.mod
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/openacc_lib.h
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/ieee_arithmetic.mod
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/ieee_exceptions.mod
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/finclude/ieee_features.mod
+#%%{_prefix}/libexec/gcc/%%{gcc_target_platform}/%%{gcc_major}/f951
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/libgfortran.spec
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/libcaf_single.a
+#%%ifarch sparcv9 sparc64 ppc ppc64 ppc64p7
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/libgfortran.a
+#%%endif
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/libgfortran.so
+#%%ifarch sparcv9 ppc
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/64
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/64/libcaf_single.a
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/64/libgfortran.a
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/64/libgfortran.so
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/64/finclude
+#%%endif
+#%%ifarch %%{multilib_64_archs}
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/32
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/32/libcaf_single.a
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/32/libgfortran.a
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/32/libgfortran.so
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/32/finclude
+#%%endif
+#%%dir %%{_fmoddir}
+#%%doc rpm.doc/gfortran/*
 
-#%files -n libgfortran
-#%{_prefix}/%{_lib}/libgfortran.so.5*
+#%%files -n libgfortran
+#%%{_prefix}/%%{_lib}/libgfortran.so.5*
 
-#%files -n libgfortran-static
-#%dir %{_prefix}/lib/gcc
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
-#%ifarch sparcv9 ppc
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32/libgfortran.a
-#%endif
-#%ifarch sparc64 ppc64 ppc64p7
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64/libgfortran.a
-#%endif
-#%ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgfortran.a
-#%endif
+#%%files -n libgfortran-static
+#%%dir %%{_prefix}/lib/gcc
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}
+#%%ifarch sparcv9 ppc
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/lib32
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/lib32/libgfortran.a
+#%%endif
+#%%ifarch sparc64 ppc64 ppc64p7
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/lib64
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/lib64/libgfortran.a
+#%%endif
+#%%ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/libgfortran.a
+#%%endif
 
 %if %{build_d}
 %files gdc
@@ -2993,38 +2993,38 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %endif
 %endif
 
-#%files -n libgccjit
-#%{_prefix}/%{_lib}/libgccjit.so.*
-#%doc rpm.doc/changelogs/gcc/jit/ChangeLog*
+#%%files -n libgccjit
+#%%{_prefix}/%%{_lib}/libgccjit.so.*
+#%%doc rpm.doc/changelogs/gcc/jit/ChangeLog*
 
-#%files -n libgccjit-devel
-#%{_prefix}/%{_lib}/libgccjit.so
-#%{_prefix}/include/libgccjit*.h
-#%{_infodir}/libgccjit.info*
-#%doc rpm.doc/libgccjit-devel/*
-#%doc gcc/jit/docs/examples
+#%%files -n libgccjit-devel
+#%%{_prefix}/%%{_lib}/libgccjit.so
+#%%{_prefix}/include/libgccjit*.h
+#%%{_infodir}/libgccjit.info*
+#%%doc rpm.doc/libgccjit-devel/*
+#%%doc gcc/jit/docs/examples
 
-#%files plugin-devel
-#%dir %{_prefix}/lib/gcc
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/gtype.state
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/include
-#%dir %{_prefix}/libexec/gcc
-#%dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
-#%dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
-#%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/plugin
+#%%files plugin-devel
+#%%dir %%{_prefix}/lib/gcc
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/plugin
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/plugin/gtype.state
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/plugin/include
+#%%dir %%{_prefix}/libexec/gcc
+#%%dir %%{_prefix}/libexec/gcc/%%{gcc_target_platform}
+#%%dir %%{_prefix}/libexec/gcc/%%{gcc_target_platform}/%%{gcc_major}
+#%%{_prefix}/libexec/gcc/%%{gcc_target_platform}/%%{gcc_major}/plugin
 
-#%files gdb-plugin
-#%{_prefix}/%{_lib}/libcc1.so*
-#%dir %{_prefix}/lib/gcc
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
-#%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/libcc1plugin.so*
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/libcp1plugin.so*
-#%doc rpm.doc/changelogs/libcc1/ChangeLog*
+#%%files gdb-plugin
+#%%{_prefix}/%%{_lib}/libcc1.so*
+#%%dir %%{_prefix}/lib/gcc
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}
+#%%dir %%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/plugin
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/plugin/libcc1plugin.so*
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/plugin/libcp1plugin.so*
+#%%doc rpm.doc/changelogs/libcc1/ChangeLog*
 
 %if %{build_offload_nvptx}
 %files offload-nvptx
@@ -3055,390 +3055,3 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 
 * Tue Aug 27 2019 Jakub Jelinek <jakub@redhat.com> 9.2.1-1
 - update from 9 branch
-  - GCC 9.2 release
-  - PRs ada/80590, bootstrap/87030, c++/60223, c++/63149, c++/64372,
-	c++/81429, c++/82081, c++/85552, c++/86205, c++/87519, c++/88095,
-	c++/90098, c++/90099, c++/90101, c++/90393, c++/90473, c++/90490,
-	c++/90538, c++/90736, c++/90810, c++/90825, c++/90832, c++/90884,
-	c++/90947, c++/90950, c++/91024, c++/91125, c++/91230, c++/91378,
-	c++/91436, c++/91521, c/53633, c/90474, c/90737, c/90760, c/91149,
-	c/91192, debug/90900, debug/90914, debug/91231, driver/90684,
-	driver/91130, driver/91172, fortran/42546, fortran/68544,
-	fortran/69398, fortran/69499, fortran/77632, fortran/78719,
-	fortran/78739, fortran/82992, fortran/86587, fortran/87233,
-	fortran/87907, fortran/87991, fortran/87993, fortran/88072,
-	fortran/89344, fortran/89647, fortran/90002, fortran/90290,
-	fortran/90561, fortran/90563, fortran/90577, fortran/90578,
-	fortran/90744, fortran/90786, fortran/90813, fortran/90937,
-	fortran/91077, fortran/91296, fortran/91359, fortran/91414,
-	fortran/91422, fortran/91424, fortran/91471, fortran/91485,
-	gcov-profile/91087, ipa/90939, ipa/90982, ipa/91062, ipa/91404,
-	ipa/91438, ipa/91508, libfortran/91030, libsanitizer/87880,
-	libstdc++/51333, libstdc++/85494, libstdc++/90252, libstdc++/90281,
-	libstdc++/90361, libstdc++/90770, libstdc++/90920, libstdc++/91012,
-	libstdc++/91067, libstdc++/91308, lto/90369, lto/90924, lto/91287,
-	lto/91375, middle-end/64242, middle-end/78884, middle-end/90899,
-	middle-end/91131, middle-end/91162, middle-end/91216,
-	middle-end/91301, objc/90709, rtl-optimisation/64895,
-	rtl-optimization/90756, rtl-optimization/91136,
-	rtl-optimization/91173, rtl-optimization/91347, sanitizer/90954,
-	target/63891, target/83531, target/90698, target/90751, target/90811,
-	target/90991, target/91135, target/91150, target/91349, target/91386,
-	target/91533, testsuite/27221, testsuite/58321, testsuite/65364,
-	testsuite/67958, testsuite/78529, testsuite/91004, testsuite/91175,
-	tree-optimization/90328, tree-optimization/90402,
-	tree-optimization/90450, tree-optimization/90892,
-	tree-optimization/90930, tree-optimization/90949,
-	tree-optimization/90972, tree-optimization/90989,
-	tree-optimization/91063, tree-optimization/91091,
-	tree-optimization/91108, tree-optimization/91109,
-	tree-optimization/91126, tree-optimization/91137,
-	tree-optimization/91145, tree-optimization/91157,
-	tree-optimization/91178, tree-optimization/91200,
-	tree-optimization/91280, tree-optimization/91293,
-	tree-optimization/91445
-
-* Wed Jun  5 2019 Jakub Jelinek <jakub@redhat.com> 9.1.1-2
-- update from 9 branch
-  - PRs bootstrap/90543, c++/78010, c++/90173, c++/90265, c++/90383,
-	c++/90484, c++/90532, c++/90548, c++/90572, c++/90598, debug/90197,
-	debug/90733, fortran/54613, fortran/90093, fortran/90329,
-	fortran/90351, fortran/90352, fortran/90355, fortran/90498,
-	gcov-profile/90380, libfortran/90038, libgomp/90527, libgomp/90585,
-	libgomp/90641, libstdc++/81266, libstdc++/90299, libstdc++/90397,
-	libstdc++/90454, libstdc++/90557, libstdc++/90634, libstdc++/90686,
-	libstdc++/90700, pch/90326, sanitizer/90312, sanitizer/90570,
-	target/82920, target/89424, target/89765, target/90357, target/90379,
-	target/90530, target/90547, testsuite/81058, tree-optimization/90385,
-	tree-optimization/90416
-
-* Fri May  3 2019 Jakub Jelinek <jakub@redhat.com> 9.1.1-1
-- update from 9 branch
-  - GCC 9.1 release
-  - PR tree-optimization/90316
-- fix up devirtualization ICE with fastcall attribute (#1705081,
-  PR tree-optimization/90303)
-- move Obsoletes for lib{cilkrts,mpx}{,-static} from gcc to libgcc subpackage
-
-* Tue Apr 30 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.16
-- update from 9 branch
-  - gcc 9.1-rc2
-  - PRs middle-end/90258, target/86538, translation/90274,
-	tree-optimization/90273
-- enable D on s390{,x} and riscv64
-
-* Fri Apr 26 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.15
-- update from trunk and 9 branch
-  - gcc 9.1-rc1
-  - PRs c++/87366, c++/87554, c++/89900, c++/90108, c++/90138, c++/90171,
-	c++/90190, c++/90227, c++/90236, c/89888, d/88431, d/88654, d/89293,
-	d/89432, d/90086, d/90250, debug/90131, fortran/57284, fortran/90166,
-	ipa/85051, libstdc++/90165, libstdc++/90220, libstdc++/90239,
-	middle-end/85164, middle-end/89765, middle-end/89797,
-	middle-end/90139, middle-end/90194, middle-end/90213, other/90257,
-	rtl-optimization/84032, rtl-optimization/87871,
-	rtl-optimization/87979, target/89929, target/89952, target/90187,
-	target/90193, translation/90118, tree-optimization/88055,
-	tree-optimization/90021, tree-optimization/90037,
-	tree-optimization/90078, tree-optimization/90208,
-	tree-optimization/90211, tree-optimization/90240
-
-* Thu Apr 18 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.14
-- update from trunk
-  - PRs bootstrap/89864, c++/86953, c++/89325, c++/90047, c++/90124,
-	debug/89528, fortran/90048, fortran/90067, fortran/90114,
-	libstdc++/90105, middle-end/90095, rtl-optimization/86438,
-	rtl-optimization/90082, target/17108, target/84369, target/90096,
-	target/90125, translation/79183, tree-optimization/56049,
-	tree-optimization/90090
-- buildrequire /usr/bin/python for better dg-extract-results.sh
-
-* Mon Apr 15 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.13
-- update from trunk
-  - PRs bootstrap/89980, c++/47488, c++/56643, c++/61327, c++/62207,
-	c++/65619, c++/66548, c++/81506, c++/81866, c++/86586, c++/86946,
-	c++/86986, c++/87145, c++/87603, c++/89331, c++/89612, c++/89744,
-	c++/89833, c++/89836, c++/89852, c++/89871, c++/89876, c++/89878,
-	c++/89914, c++/89917, c++/89948, c++/89966, c++/89973, c++/89974,
-	c++/90010, c/71598, c/88383, c/89288, c/89685, c/89797, c/89798,
-	c/89872, c/89933, c/89946, c/89985, d/87799, d/88150, d/88462,
-	d/89255, d/89823, debug/89892, debug/89905, driver/89861,
-	fortran/68567, fortran/79842, fortran/83515, fortran/85448,
-	fortran/85797, fortran/87352, fortran/89375, fortran/89841,
-	fortran/89842, fortran/89843, fortran/89846, fortran/89866,
-	fortran/89904, fortran/89981, fortran/90022, gcov-profile/89959,
-	gcov-profile/89961, ipa/88936, ipa/pr89693, libstdc++/85184,
-	libstdc++/87431, libstdc++/89851, libstdc++/89986, libstdc++/90008,
-	libstdc++/90046, lto/89358, lto/89896, middle-end/89621,
-	middle-end/89911, middle-end/89934, middle-end/89957,
-	middle-end/89970, middle-end/90025, other/89394,
-	rtl-optimization/46590, rtl-optimization/81025,
-	rtl-optimization/84206, rtl-optimization/85412,
-	rtl-optimization/85876, rtl-optimization/86928,
-	rtl-optimization/87273, rtl-optimization/87485,
-	rtl-optimization/89399, rtl-optimization/89862,
-	rtl-optimization/89865, rtl-optimization/89965,
-	rtl-optimization/90026, sanitizer/89869, sanitizer/89941,
-	target/83033, target/89623, target/89848, target/89865, target/89902,
-	target/89903, target/89945, target/90015, target/90016, target/90024,
-	testsuite/89907, testsuite/89916, translation/89912,
-	translation/89936, translation/89939, translation/90011,
-	translation/90035, translation/90041, tree-optimization/46590,
-	tree-optimization/84101, tree-optimization/89725,
-	tree-optimization/89730, tree-optimization/89956,
-	tree-optimization/89998, tree-optimization/90006,
-	tree-optimization/90018, tree-optimization/90020
-- PRs rtl-optimization/89794, tree-optimization/90071, debug/90074
-
-* Thu Mar 28 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.12
-- update from trunk
-  - PRs ada/89583, bootstrap/89829, c++/60702, c++/78645, c++/82643,
-	c++/84598, c++/84661, c++/85013, c++/86429, c++/86932, c++/87327,
-	c++/87480, c++/87481, c++/87748, c++/89214, c++/89421, c++/89705,
-	c++/89767, c++/89785, c++/89796, c++/89831, c/79022, c/89812, d/89017,
-	debug/86964, fortran/29383, fortran/56408, fortran/71861,
-	fortran/78865, fortran/85537, fortran/88247, fortran/89773,
-	libgfortran/79540, libstdc++/85965, libstdc++/88066, libstdc++/89816,
-	libstdc++/89824, libstdc++/89825, lto/89692, middle-end/89725,
-	middle-end/89790, rtl-optimization/88347, rtl-optimization/88423,
-	rtl-optimization/89313, rtl-optimization/89676,
-	rtl-optimization/89826, target/85667, target/89775, target/89784,
-	target/89827, testsuite/89834, tree-optimization/81740,
-	tree-optimization/89350, tree-optimization/89463,
-	tree-optimization/89779, tree-optimization/89789,
-	tree-optimization/89802
-
-* Wed Mar 20 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.11
-- update from trunk
-  - PRs c++/63508, c++/85014, c++/85558, c++/88534, c++/88537, c++/88979,
-	c++/89512, c++/89571, c++/89630, c++/89640, c++/89660, c++/89682,
-	c++/89686, c++/89709, c++/89761, c/89734, d/87866, d/88957,
-	debug/88389, debug/89498, debug/89704, fortran/60091, fortran/66695,
-	fortran/68009, fortran/77746, fortran/79485, fortran/84394,
-	fortran/87045, fortran/87673, fortran/88008, fortran/89363,
-	fortran/89364, fortran/89601, fortran/89724, ipa/89684,
-	libstdc++/89461, lto/87809, lto/89335, middle-end/86979,
-	middle-end/88588, middle-end/88945, middle-end/89677,
-	middle-end/89698, middle-end/89737, other/89712,
-	rtl-optimization/89679, rtl-optimization/89721,
-	rtl-optimization/89753, rtl-optimization/89768, sanitizer/80953,
-	target/52726, target/85860, target/87532, target/87561, target/89378,
-	target/89411, target/89523, target/89627, target/89650, target/89711,
-	target/89719, target/89726, target/89736, target/89746, target/89752,
-	testsuite/83453, testsuite/84174, testsuite/89393, testsuite/89471,
-	testsuite/89666, tree-optimization/89546, tree-optimization/89644,
-	tree-optimization/89662, tree-optimization/89688,
-	tree-optimization/89703, tree-optimization/89710,
-	tree-optimization/89720
-- turn libgcc_s.so into a linker script on i?86, x86_64, ppc64le and also on
-  ppc and ppc64 for 64-bit multilib (#1688766)
-
-* Tue Mar 12 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.10
-- update from trunk
-  - PRs bootstrap/89656, c++/70349, c++/86521, c++/87571, c++/87750,
-	c++/89648, c/88568, contrib/82704, d/89041, fortran/66089,
-	fortran/71544, fortran/84504, fortran/87734, fortran/89639,
-	fortran/89651, inline-asm/87010, libbacktrace/89669, libstdc++/89460,
-	libstdc++/89641, middle-end/68733, middle-end/89655, middle-end/89663,
-	rtl-optimization/89588, testsuite/89472, tree-optimization/85459,
-	tree-optimization/85762, tree-optimization/87008,
-	tree-optimization/89649, tree-optimization/89664
-- fix ICE in constexpr loop handling of SAVE_EXPRs (PR c++/89652)
-- temporarily revert -Wredundant-move warning false positive
-  improvement (PR c++/89660)
-
-* Sat Mar  9 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.9
-- update from trunk
-  - PRs bootstrap/89539, bootstrap/89560, c++/22149, c++/63540, c++/71446,
-	c++/80916, c++/82075, c++/84518, c++/84605, c++/86485, c++/86969,
-	c++/87068, c++/87148, c++/87378, c++/88049, c++/88123, c++/88183,
-	c++/88820, c++/88857, c++/89381, c++/89511, c++/89513, c++/89522,
-	c++/89532, c++/89537, c++/89576, c++/89585, c++/89599, c++/89622,
-	c/85870, c/89520, c/89521, c/89525, debug/89631, fortran/71203,
-	fortran/72714, fortran/77583, fortran/89433, fortran/89516,
-	gcov-profile/89577, go/63560, go/89227, go/89406, ipa/80000,
-	ipa/88235, libgfortran/89593, libstdc++/86655, libstdc++/88996,
-	libstdc++/89562, libstdc++/89608, lto/87525, lto/88585,
-	middle-end/89497, middle-end/89503, middle-end/89541,
-	middle-end/89572, middle-end/89578, middle-end/89590,
-	middle-end/89618, other/80058, rtl-optimization/85899,
-	rtl-optimization/88845, rtl-optimization/89634, sanitizer/88684,
-	target/68924, target/78782, target/79645, target/79846, target/79926,
-	target/80003, target/80190, target/85665, target/86952, target/87558,
-	target/89222, target/89455, target/89506, target/89517, target/89587,
-	target/89602, testsuite/89441, testsuite/89551, translation/79999,
-	tree-optimization/89437, tree-optimization/89487,
-	tree-optimization/89535, tree-optimization/89536,
-	tree-optimization/89550, tree-optimization/89566,
-	tree-optimization/89570, tree-optimization/89594,
-	tree-optimization/89595
-- fix libstdc++ hashing of > 2GB strings (PR libstdc++/89629)
-
-* Wed Feb 27 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.8
-- update from trunk
-  - PRs c++/84585, c++/84676, c++/87685, c++/88294, c++/88394, c++/88419,
-	c++/88869, c++/88987, c++/89285, c++/89419, c++/89420, c++/89422,
-	c++/89481, c++/89488, c++/89507, c/77754, c/80409, c/89425, c/89495,
-	debug/88878, debug/89514, driver/69471, fortran/43210, fortran/72741,
-	fortran/78027, fortran/83057, fortran/84387, fortran/88117,
-	fortran/88326, fortran/89174, fortran/89266, fortran/89282,
-	fortran/89366, fortran/89385, fortran/89431, fortran/89492,
-	fortran/89496, go/89170, libfortran/89274, libstdc++/89446,
-	libstdc++/89466, libstdc++/89477, middle-end/85598, middle-end/87609,
-	rtl-optimization/86096, rtl-optimization/87761,
-	rtl-optimization/89445, target/87007, target/88530, target/89324,
-	target/89338, target/89339, target/89434, target/89438, target/89444,
-	target/89474, testsuite/89476, tree-optimization/87609,
-	tree-optimization/88853, tree-optimization/88993,
-	tree-optimization/89280, tree-optimization/89440,
-	tree-optimization/89489, tree-optimization/89500,
-	tree-optimization/89505
-- improve arm and aarch64 casesi (PR target/70341)
-- don't use section anchors block infrastructure for mergeable section
-  data (PR rtl-optimization/89490)
-
-* Thu Feb 21 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.7
-- update from trunk
-  - PRs c++/84536, c++/87513, c++/87921, c++/88368, c++/88380, c++/88572,
-	c++/88690, c++/89403, c++/89405, c/89410, fortran/86119,
-	fortran/89384, hsa/89302, libstdc++/89402, libstdc++/89416,
-	middle-end/89091, middle-end/89392, middle-end/89412,
-	middle-end/89415, sanitizer/89409, target/86487, target/87412,
-	target/88100
-
-* Tue Feb 19 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.6
-- update from trunk
-  - PRs c++/88680, c++/89217, c++/89315, c++/89336, c++/89356, c++/89383,
-	c++/89387, c++/89390, c++/89391, c/87924, d/88127, fortran/71066,
-	fortran/87689, fortran/88299, ipa/89306, middle-end/88074,
-	middle-end/89294, rtl-optimization/66152, target/89271, target/89361,
-	target/89372, target/89397, tree-optimization/89209,
-	tree-optimization/89296
-  - fix s390{,x} (#1677602, PR target/89369)
-
-* Fri Feb 15 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.5
-- update from trunk
-  - PRs c++/77304, c++/86379, c++/87322, c++/87996, c++/88977, c++/88986,
-	c++/89036, c++/89144, c++/89212, c++/89241, c++/89297, c/89340,
-	d/87864, fortran/67679, fortran/71723, fortran/72715, fortran/81552,
-	fortran/88248, fortran/88649, fortran/89200, go/89193, ipa/88711,
-	ipa/88755, ipa/89009, libbacktrace/81983, libstdc++/89023,
-	libstdc++/89345, lto/87957, lto/88147, lto/88677, lto/88858,
-	lto/88876, lto/89272, middle-end/89281, middle-end/89284,
-	middle-end/89303, other/69006, other/89342, rtl-optimization/88308,
-	rtl-optimization/89242, rtl-optimization/89354, target/88847,
-	target/89190, target/89233, target/89290, tree-optimization/88771,
-	tree-optimization/89253, tree-optimization/89268,
-	tree-optimization/89278, tree-optimization/89314
-
-* Sat Feb  9 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.4
-- update from trunk
-  - PRs c++/44648, c++/71302, c++/86218, c++/87770, c++/89158, c++/89187,
-	c/69661, c/88584, c/88606, c/88698, c/89211, debug/87451,
-	fortran/52789, fortran/71860, fortran/88912, fortran/89077,
-	fortran/89185, gcov-profile/89000, go/89019, ipa/88985,
-	libbacktrace/78063, libstdc++/71044, libstdc++/87106, libstdc++/89090,
-	libstdc++/89102, libstdc++/89128, libstdc++/89130, libstdc++/89194,
-	middle-end/88560, middle-end/89150, middle-end/89210,
-	middle-end/89223, middle-end/89246, rtl-optimization/11304,
-	rtl-optimization/89195, rtl-optimization/89225,
-	rtl-optimization/89234, target/88343, target/88856, target/89112,
-	target/89186, target/89188, target/89229, testsuite/89250,
-	testsuite/89258, tree-optimization/86637, tree-optimization/89182,
-	tree-optimization/89235, tree-optimization/89247
-- add gcc-g++ and g++ provides to gcc-c++, gcc-fortran and gfortran
-  provides to gcc-gfortran, gcc-d and gdc provides to gcc-gdc and gccgo
-  provides to gcc-go
-
-* Sun Feb  3 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.3
-- update from trunk
-  - PRs c++/80864, c++/86943, c++/87175, c++/88325, c++/88752, c++/88761,
-	c++/88983, c++/88988, c++/89083, c++/89105, c++/89119, c/88956,
-	c/89061, c/89122, fortran/52564, fortran/52884, fortran/57048,
-	fortran/81344, fortran/83246, fortran/88298, fortran/88393,
-	fortran/88669, fortran/88685, fortran/88980, fortran/89084, hsa/87863,
-	libbacktrace/89136, libfortran/78314, libfortran/88678,
-	libstdc++/88170, libstdc++/89117, middle-end/87887, middle-end/88597,
-	middle-end/89137, other/89106, rtl-optimization/87246,
-	rtl-optimization/88593, rtl-optimization/89115, sanitizer/89124,
-	target/89071, testsuite/87451, testsuite/88920, testsuite/89110,
-	tree-optimization/85497, tree-optimization/88107,
-	tree-optimization/88932, tree-optimization/89111,
-	tree-optimization/89135, tree-optimization/89143
-
-* Tue Jan 29 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.2
-- update from trunk
-  - PRs c++/66676, c++/88358, c++/88815, c++/88865, c++/88969, c++/88976,
-	c++/89001, c++/89024, c++/89089, c/86125, c/88886, c/89045, d/89042,
-	debug/87295, debug/89006, debug/89076, fortran/57553, fortran/70696,
-	fortran/85780, fortran/88929, gcc/87763, gcov-profile/88994,
-	ipa/88933, ipa/89104, libfortran/89020, libgcc/88931, libstdc++/68737,
-	libstdc++/88840, lto/87187, middle-end/86308, middle-end/89002,
-	middle-end/89015, middle-end/89037, preprocessor/88974,
-	rtl-optimization/88846, rtl-optimization/88948, target/85711,
-	target/87214, target/88998, target/89073, testsuite/89064,
-	tree-optimization/86865, tree-optimization/88739,
-	tree-optimization/89027, tree-optimization/89049
-- make sure ARM unwinder doesn't use VFP registers (#1670069, PR target/89093)
-
-* Wed Jan 23 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.1
-- update from trunk
-  - PRs c++/87893, c++/88293, c++/88757, c++/88984, c/44715, driver/89014,
-	fortran/88579, libstdc++/88740, lto/88422, middle-end/88968,
-	rtl-optimization/87763, sanitizer/86229, sanitizer/89010,
-	target/87835, target/88469, target/88909, target/88939, target/88941,
-	target/88954, target/88965, target/PR88946, tree-optimization/88862,
-	tree-optimization/88964, tree-optimization/89008
-  - hopefully fix arm C++ issues (#1668323)
-- fix aarch64 -march=native (#1668631)
-
-* Tue Jan 22 2019 David Abdurachmanov <david.abdurachmanov@gmail.com>
-- fix libgphobos-static requires (#1668204)
-
-* Mon Jan 21 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.4
-- update from trunk
-  - PRs c++/88949, c/88928, fortran/37835, fortran/56789, fortran/77960,
-	ipa/87615, libstdc++/86590, target/71659, target/88938,
-	tree-optimization/88934
-- fix up min/max reduction on ppc64le (PR target/87064)
-- fix up thread_jump on thumb1 (PR rtl-optimization/88904)
-- fix up doubleword unop REG_EQUAL notes with const args (PR target/88905)
-- fix up DSE on memcpy/memmove/memcmp libcalls (PR rtl-optimization/49429,
-  PR target/49454, PR rtl-optimization/86334, PR target/88906)
-
-* Sat Jan 19 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.3
-- update from trunk
-  - PRs c++/86205, c++/86740, c++/86926, c++/88699, c++/88875, c/88664,
-	fortran/88871, fortran/88898, fortran/88902, libbacktrace/88890,
-	libstdc++/87514, libstdc++/87520, libstdc++/88782, middle-end/88273,
-	middle-end/88587, target/85596, target/88799, target/88892,
-	tree-optimization/88800, tree-optimization/88903
-- fix transfer_intrinsic_3.f90 miscompilation on ppc64le and s390x
-  (PR tree-optimization/88044)
-- fix -fsanitize=pointer-{compare,subtract} in C++ templates
-  (PR sanitizer/88901)
-- add Obsoletes for libmpx and libmpx-static
-
-* Thu Jan 17 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.2
-- update from trunk
-  - PRs c++/78244, c++/86610, c++/86648, c++/87768, c++/87882, c++/88114,
-	c++/88146, c++/88312, c++/88613, c++/88692, c++/88795, c++/88825,
-	c++/88830, c++/88866, c/51628, d/87824, debug/88046, fortran/35031,
-	fortran/43136, fortran/57992, fortran/59345, fortran/61765,
-	fortran/81849, fortran/88803, gcov-profile/88263, inline-asm/52813,
-	ipa/88788, libbacktrace/82857, libfortran/88776, libfortran/88807,
-	libstdc++/83306, libstdc++/88738, libstdc++/88802, libstdc++/88811,
-	libstdc++/88881, libstdc++/88884, lto/86736, lto/88733,
-	middle-end/85956, middle-end/88703, rtl-optimization/87305,
-	rtl-optimization/88796, rtl-optimization/88870, target/80547,
-	target/85381, target/85486, target/88614, target/86891, target/87306,
-	target/88489, target/88638, target/88682, target/88777, target/88794,
-	target/88850, target/88851, target/88861, tree-optimization/86214,
-	tree-optimization/88693, tree-optimization/88775,
-	tree-optimization/88855
-- fix arm bootstrap failure (PR bootstrap/88714)
-- fix <arm_neon.h> on aarch64 and arm (PR target/88734)
-- default to -shared-libphobos for gdc
-
-* Fri Jan 11 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.1
-- new package
