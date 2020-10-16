@@ -122,6 +122,7 @@ libXpm
 libXrandr
 libXrender
 libXt
+libXtst
 libarchive
 libart_lgpl
 libatomic_ops
