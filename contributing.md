@@ -49,26 +49,26 @@ At the next point-in-time release of sgug-rse, our tooling then works through th
 
 ## Packages - Git Snapshots
 
--> On the whole we prefer that packages follow the versioning of fc31 - this makes it easier for others to build the package (install the fc31 SRPM, copy over files from "wipnonautomated", build)
--> Not always the case, meson for example is a git snapshot + fixes
--> If we _do_ want a git snapshot, the "release" section of the version in the `.spec` should indicate it is a git snapshot. See meson as an example.
+ On the whole we prefer that packages follow the versioning of fc31 - this makes it easier for others to build the package (install the fc31 SRPM, copy over files from "wipnonautomated", build)
+ Not always the case, meson for example is a git snapshot + fixes
+ If we _do_ want a git snapshot, the "release" section of the version in the `.spec` should indicate it is a git snapshot. See meson as an example.
 
 ## Packages - Original Spec File
 
--> If there is an fc31 package something is built from, we put the original fedora spec file next to the RSE one as "PACKAGENAME.spec.origfedora"
--> Let's us easily do a "diff" to see what has been changed
+ If there is an fc31 package something is built from, we put the original fedora spec file next to the RSE one as "PACKAGENAME.spec.origfedora"
+ Let's us easily do a "diff" to see what has been changed
 
 ## Packages - Preferred Patching / Change Approach
 
--> For "code" things, those are tweaked via the "PACKAGENAME.sgifixes.patch" file
--> For things that involve path fixes, it's preferred to do those rewrites in the `.spec` file - in the prep/configure stage
+ For "code" things, those are tweaked via the "PACKAGENAME.sgifixes.patch" file
+ For things that involve path fixes, it's preferred to do those rewrites in the `.spec` file - in the prep/configure stage
 e.g. `perl -pi -e s|/usr/bin/bash|%{_bindir}/bash|g" /some/file/with/hardcoded/bash`
--> Deactivation or activation of package options (to configure etc) should preferably be done from the `.spec` - so that if/when we have enough in RSE to enable the option, we can just tweak the `.spec` instead of changing the patch
+ Deactivation or activation of package options (to configure etc) should preferably be done from the `.spec` - so that if/when we have enough in RSE to enable the option, we can just tweak the `.spec` instead of changing the patch
 
 ## Packages - Things To Check For
 
 Having an RPM building is a great step - but it is recommended to perform a "sanity sweep" looking for paths/resources that might obviously trip up use of the package.
 
--> `grep -r "/bin/sh"` inside the BUILD directory, but also maybe in the BUILDROOT (staging) directory too (`rpmbuild -bi blah.spec --nocheck`)
--> Some common problems are `/bin/sh /bin/bash /bin/perl /usr/local /etc/`
--> Our preference is to do this (the rewriting) in the prep/configure stage so that when we `cd ~/rpmbuild/BUILD/package-XXX/` - the files are already corrected
+ `grep -r "/bin/sh"` inside the BUILD directory, but also maybe in the BUILDROOT (staging) directory too (`rpmbuild -bi blah.spec --nocheck`)
+ Some common problems are `/bin/sh /bin/bash /bin/perl /usr/local /etc/`
+ Our preference is to do this (the rewriting) in the prep/configure stage so that when we `cd ~/rpmbuild/BUILD/package-XXX/` - the files are already corrected
