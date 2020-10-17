@@ -29,7 +29,7 @@ At the next point-in-time release of sgug-rse, our tooling then works through th
 
 ## Packages - Adding/Porting A New Package
 
-1) You may choose to port yoru package outside of rpmbuild, it can easier to do the patching there before tackling the `.spec` build file
+1) You may choose to port your package outside of rpmbuild, it can easier to do the patching there before tackling the `.spec` build file
 
 2) Check fedora fc31 if the package exists, pull the latest source RPM
 
