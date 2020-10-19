@@ -2,24 +2,12 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 18b242db..b7694414 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -18,9 +18,9 @@
- cmake_minimum_required (VERSION 3.4)
- project (barrier C CXX)
- 
--option (BARRIER_BUILD_GUI "Build the GUI" ON)
-+option (BARRIER_BUILD_GUI "Build the GUI" OFF)
- option (BARRIER_BUILD_INSTALLER "Build the installer" ON)
--option (BARRIER_BUILD_TESTS "Build the tests" ON)
-+option (BARRIER_BUILD_TESTS "Build the tests" OFF)
- option (BARRIER_USE_EXTERNAL_GTEST "Use external installation of Google Test framework" OFF)
- 
- set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 @@ -342,7 +342,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
          )
      endif()
  
 -elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux|IRIX64")
++elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux|IRIX*")
      set (OPENSSL_LIBS ssl crypto)
  else()
      find_library (lib_ssl ssl)
@@ -28,7 +16,7 @@ index 18b242db..b7694414 100644
  # Linux installation
  #
 -if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux|IRIX64")
++if (${CMAKE_SYSTEM_NAME} MATCHES "Linux|IRIX*")
      configure_files (${CMAKE_CURRENT_SOURCE_DIR}/dist/rpm ${CMAKE_BINARY_DIR}/rpm)
      install(FILES res/barrier.svg DESTINATION share/icons/hicolor/scalable/apps)
      if("${VERSION_MAJOR}" STREQUAL "2") 

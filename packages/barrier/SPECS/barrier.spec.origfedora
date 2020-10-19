@@ -1,24 +1,23 @@
 %global icon_path %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
 Summary: Use a single keyboard and mouse to control multiple computers
 Name: barrier
-Version: v2.3.2_51_g2d2e9298
+Version: 2.3.2
 Release: 2%{?dist}
 License: GPLv2
 URL: https://github.com/debauchee/barrier/wiki
 Source0: https://github.com/debauchee/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
-Patch100: barrier.sgifixes.patch
 
-#BuildRequires: avahi-compat-libdns_sd-devel
+BuildRequires: avahi-compat-libdns_sd-devel
 BuildRequires: cmake3
 BuildRequires: desktop-file-utils
 BuildRequires: gcc-c++
 BuildRequires: libX11-devel
-#BuildRequires: libXtst-devel
+BuildRequires: libXtst-devel
 BuildRequires: libcurl-devel
 BuildRequires: openssl-devel
-#BuildRequires: qt5-qtbase-devel
+BuildRequires: qt5-qtbase-devel
 
-#Requires: hicolor-icon-theme
+Requires: hicolor-icon-theme
 
 %description
 Barrier is software that mimics the functionality of a KVM switch, which
@@ -28,20 +27,18 @@ which machine to control by moving your mouse to the edge of the screen,
 or by using a key press to switch focus to a different system.
 
 %prep
-%setup -q -n %{name}-%{version}
-%patch100 -p1 -b .sgifixes
+%setup -q
 
 %build
 mkdir build
 cd build
-%{cmake3} -DBARRIER_BUILD_GUI="OFF" -DBARRIER_BUILD_TESTS="OFF"  ..
+%{cmake3} ..
 %make_build
 cd -
 
 %install
 cd build
-# no GUI for you
-# install -D -p -m 0755 bin/barrier      %{buildroot}%{_bindir}/barrier
+install -D -p -m 0755 bin/barrier      %{buildroot}%{_bindir}/barrier
 install -D -p -m 0755 bin/barrierc     %{buildroot}%{_bindir}/barrierc
 install -D -p -m 0755 bin/barriers     %{buildroot}%{_bindir}/barriers
 cd -
@@ -91,12 +88,12 @@ cat <<END> %{buildroot}%{_datadir}/metainfo/%{name}.appdata.xml
 </component>
 END
 
-#desktop-file-install --delete-original  \
-#  --dir %{buildroot}%{_datadir}/applications            \
-#  --set-icon=%{icon_path}           \
-#  %{buildroot}%{_datadir}/applications/barrier.desktop
-#
-#desktop-file-validate %{buildroot}/%{_datadir}/applications/barrier.desktop
+desktop-file-install --delete-original  \
+  --dir %{buildroot}%{_datadir}/applications            \
+  --set-icon=%{icon_path}           \
+  %{buildroot}%{_datadir}/applications/barrier.desktop
+
+desktop-file-validate %{buildroot}/%{_datadir}/applications/barrier.desktop
 
 %files
 # None of the documentation files are actually useful here, they all point to
@@ -105,7 +102,7 @@ END
 %doc ChangeLog res/Readme.txt doc/barrier.conf.example*
 %{_bindir}/barrierc
 %{_bindir}/barriers
-#%{_bindir}/barrier
+%{_bindir}/barrier
 %{_datadir}/pixmaps/barrier.ico
 %{icon_path}
 %{_datadir}/applications/barrier.desktop
