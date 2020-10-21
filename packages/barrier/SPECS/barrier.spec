@@ -13,7 +13,7 @@ BuildRequires: cmake3
 BuildRequires: desktop-file-utils
 BuildRequires: gcc-c++
 BuildRequires: libX11-devel
-#BuildRequires: libXtst-devel
+BuildRequires: libXtst-devel
 BuildRequires: libcurl-devel
 BuildRequires: openssl-devel
 #BuildRequires: qt5-qtbase-devel
@@ -91,12 +91,12 @@ cat <<END> %{buildroot}%{_datadir}/metainfo/%{name}.appdata.xml
 </component>
 END
 
-#desktop-file-install --delete-original  \
-#  --dir %{buildroot}%{_datadir}/applications            \
-#  --set-icon=%{icon_path}           \
-#  %{buildroot}%{_datadir}/applications/barrier.desktop
-#
-#desktop-file-validate %{buildroot}/%{_datadir}/applications/barrier.desktop
+desktop-file-install --delete-original  \
+  --dir %{buildroot}%{_datadir}/applications            \
+  --set-icon=%{icon_path}           \
+  %{buildroot}%{_datadir}/applications/barrier.desktop
+
+desktop-file-validate %{buildroot}/%{_datadir}/applications/barrier.desktop
 
 %files
 # None of the documentation files are actually useful here, they all point to
