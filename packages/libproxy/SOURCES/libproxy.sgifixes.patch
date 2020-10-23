@@ -1,0 +1,25 @@
+diff -Naur libproxy-0.4.15.orig/libproxy/proxy.cpp libproxy-0.4.15/libproxy/proxy.cpp
+--- libproxy-0.4.15.orig/libproxy/proxy.cpp	2020-08-22 17:21:18.276500000 +0000
++++ libproxy-0.4.15/libproxy/proxy.cpp	2020-08-22 17:22:54.079967529 +0000
+@@ -460,6 +460,8 @@
+ 	std::vector<std::string> proxies;
+ 	char** retval;
+ 
++extern char *strdup(const char *);
++
+ 	// Call the main method
+ 	try {
+ 		proxies = self->pf.get_proxies(url);
+diff -Naur libproxy-0.4.15.orig/libproxy/test/CMakeLists.txt libproxy-0.4.15/libproxy/test/CMakeLists.txt
+--- libproxy-0.4.15.orig/libproxy/test/CMakeLists.txt	2017-05-11 02:33:33.000000000 +0000
++++ libproxy-0.4.15/libproxy/test/CMakeLists.txt	2020-08-22 17:25:41.855059266 +0000
+@@ -18,9 +18,3 @@
+ endif()
+ add_test(NAME url-encode COMMAND ${CMAKE_CURRENT_BINARY_DIR}/url-encode)
+ 
+-# Get PAC
+-if (NOT WIN32)
+-add_executable(get-pac-test ${CMAKE_CURRENT_SOURCE_DIR}/get-pac-test.cpp ${PROJECT_SOURCE_DIR}/url.cpp)
+-target_link_libraries(get-pac-test pthread)
+-add_test(NAME get-pac-test COMMAND ${CMAKE_CURRENT_BINARY_DIR}/get-pac-test)
+-endif()
