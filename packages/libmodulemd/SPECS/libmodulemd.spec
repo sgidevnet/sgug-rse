@@ -136,7 +136,7 @@ export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 %if 0%{debug}
-export CFLAGS="-g -O0"
+export CFLAGS="-g -Og"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now"
 %else
@@ -190,7 +190,6 @@ mv %{buildroot}%{_mandir}/man1/modulemd-validator.1 \
 
 
 #%%ldconfig_scriptlets
-
 
 %files
 %license COPYING
