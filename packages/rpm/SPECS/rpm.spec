@@ -377,7 +377,7 @@ ln -s db-%{bdbver} db
 export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
 export LIBS="-lgen -ldicl-0.1 -llzma -lintl"
 %if 0%{debug}
-export CFLAGS="-g -O0"
+export CFLAGS="-g -Og"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
 %endif
