@@ -1,12 +1,6 @@
-%global debug 1
-
-%if 0%{debug}
-%global __strip /bin/true
-%endif
-
 # When we are bootstrapping, we drop some dependencies.
 # Set this to 0 after bootstrapping.
-%{!?_with_bootstrap: %global bootstrap 1}
+%{!?_with_bootstrap: %global bootstrap 0}
 
 Name:           libproxy
 Version:        0.4.15
@@ -29,8 +23,6 @@ Patch3:         libproxy-0.4.15-mozjs52.patch
 Patch4:         libproxy-0.4.15-mozjs60.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=1880350
 Patch5:         libproxy-0.4.15-fix-CVE-2020-25219.patch
-
-Patch100: libproxy.sgifixes.patch
 
 BuildRequires:  cmake >= 2.6.0
 BuildRequires:  gcc-c++
@@ -154,17 +146,8 @@ developing applications that use %{name}.
 %prep
 %autosetup -p1
 
-#exit 1
 
 %build
-export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
-%if 0%{debug}
-export CFLAGS="-g -Og"
-export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-lnsl -Wl,-z,relro -Wl,-z,now -lgen"
-%else
-export LDFLAGS="-lnsl $RPM_LD_FLAGS"
-%endif
 %{cmake} \
   -DMODULE_INSTALL_DIR=%{_libdir}/%{name}/%{version}/modules \
   -DWITH_PERL=OFF \
@@ -175,8 +158,6 @@ export LDFLAGS="-lnsl $RPM_LD_FLAGS"
   -DWITH_WEBKIT3=ON \
   -DWITH_MOZJS=ON \
 %else
-  -DWITH_GNOME3=OFF \
-  -DWITH_KDE=OFF \
   -DWITH_PYTHON2=OFF \
   -DWITH_PYTHON3=OFF \
 %endif
@@ -197,7 +178,7 @@ install -Dpm 0644 %{SOURCE1} %{buildroot}/%{_mandir}/man1/proxy.1
 %check
 make test
 
-#%%ldconfig_scriptlets
+%ldconfig_scriptlets
 
 
 %files 
@@ -245,12 +226,6 @@ make test
 
 
 %changelog
-* Sun Oct 25 2020 Daniel Hams <daniel.hams@gmail.com> - 0.4.15-15
-- Upgrade to latest fc31 version, fix build issues + get all but one tests working. Currently in "bootstrap" mode.
-
-* Sun Sep 06 2020  HAL <notes2@gmx.de> - 0.4.15-14
-- compiles on Irix 6.5 with sgug-rse gcc 9.2. Very raw version, 1st commit.
-
 * Fri Sep 18 2020 David King <amigadave@amigadave.com> - 0.4.15-15
 - Fix CVE-2020-25219 (#1880350)
 
