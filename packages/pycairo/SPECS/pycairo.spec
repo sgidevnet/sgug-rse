@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 Name: pycairo
 Version: 1.18.1
 Release: 2%{?dist}
@@ -65,6 +71,11 @@ libraries so that they interoperate with py3cairo.
 %autosetup -p1
 
 %build
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
 %py2_build
 %py3_build
 
