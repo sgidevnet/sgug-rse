@@ -7,7 +7,7 @@
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -1946,6 +1946,10 @@ rm -f %{buildroot}%{mandir}/man3/ffi*
 # Help plugins find out nvra.
 echo gcc-%{version}-%{release}.%{_arch} > $FULLPATH/rpmver
 
+# Prevent stripping debug symbols from gcc shared libraries
+# which makes debugging painful.
+chmod ugo-w %{buildroot}%{_prefix}/%{_lib}/lib*.so*
+
 %check
 cd obj-%{gcc_target_platform}
 
@@ -3050,6 +3054,9 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 %endif
 
 %changelog
+* Sun Oct 11 2020 Daniel Hams <daniel.hams@gmail.com> 9.2.0-4
+- Remove write bit from lib32 shared libraries to avoid stripping (makes debugging painful)
+
 * Tue Mar 31 2020 Daniel Hams <daniel.hams@gmail.com> 9.2.0-3
 - Tweak the default spec so that static linking isn''t no-abicalls
 
