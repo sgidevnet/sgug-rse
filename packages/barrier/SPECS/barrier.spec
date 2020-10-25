@@ -5,8 +5,7 @@ Version: v2.3.2_51_g2d2e9298
 Release: 2%{?dist}
 License: GPLv2
 URL: https://github.com/debauchee/barrier/wiki
-Source0:
- https://github.com/sgidevnet/sgug-rse/releases/download/wipstarterpacks/%{name}-%{version}.tar.gz
+Source0: https://github.com/sgidevnet/sgug-rse/releases/download/wipstarterpacks/%{name}-%{version}.tar.gz
 Patch100: barrier.sgifixes.patch
 
 #BuildRequires: avahi-compat-libdns_sd-devel
