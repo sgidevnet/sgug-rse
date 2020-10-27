@@ -1,12 +1,12 @@
-diff -u -r libjpeg-turbo-2.0.2-orig/cmakescripts/GNUInstallDirs.cmake libjpeg-turbo-2.0.2/cmakescripts/GNUInstallDirs.cmake
---- libjpeg-turbo-2.0.2-orig/cmakescripts/GNUInstallDirs.cmake	2019-02-14 04:03:31.000000000 +0000
-+++ libjpeg-turbo-2.0.2/cmakescripts/GNUInstallDirs.cmake	2020-05-29 03:37:17.493301600 +0000
-@@ -233,7 +233,7 @@
-   "Directory into which machine-specific run-time-modifiable data files should be installed")
+diff -u -r libjpeg-turbo-2.0.2-orig/md5/md5.h libjpeg-turbo-2.0.2/md5/md5.h
+--- libjpeg-turbo-2.0.2-orig/md5/md5.h	2019-02-14 04:03:31.000000000 +0000
++++ libjpeg-turbo-2.0.2/md5/md5.h	2020-10-27 01:42:25.587157240 +0000
+@@ -33,6 +33,8 @@
+ #include <sys/types.h>
+ #ifdef __amigaos4__
+ #include <machine/endian.h>
++#elif defined(__sgi)
++#include <sys/endian.h>
+ #endif
  
- if(NOT DEFINED CMAKE_INSTALL_DEFAULT_LIBDIR)
--  set(CMAKE_INSTALL_DEFAULT_LIBDIR "lib")
-+  set(CMAKE_INSTALL_DEFAULT_LIBDIR "lib32")
-   # Override this default 'lib' with 'lib64' iff:
-   #  - we are on Linux system but NOT cross-compiling
-   #  - we are NOT on debian
+ /*  On machines where "long" is 64 bits, we need to declare
