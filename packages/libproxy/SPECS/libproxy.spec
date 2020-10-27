@@ -1,10 +1,16 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 # When we are bootstrapping, we drop some dependencies.
 # Set this to 0 after bootstrapping.
-%{!?_with_bootstrap: %global bootstrap 0}
+%{!?_with_bootstrap: %global bootstrap 1}
 
 Name:           libproxy
 Version:        0.4.15
-Release:        14%{?dist}
+Release:        15%{?dist}
 Summary:        A library handling all the details of proxy configuration
 
 License:        LGPLv2+
@@ -16,12 +22,15 @@ Source1:        proxy.1
 Patch0:         0001-Add-config-module-for-querying-PacRunner-d-mon.patch
 Patch1:         libproxy-0.4.11-crash.patch
 Patch2:         libproxy-0.4.15-python3738.patch
-Patch3:         libproxy.sgifixes.patch
 # https://github.com/libproxy/libproxy/pull/86
 # https://github.com/libproxy/libproxy/pull/87
-#Patch3:         libproxy-0.4.15-mozjs52.patch
+Patch3:         libproxy-0.4.15-mozjs52.patch
 # https://github.com/libproxy/libproxy/pull/95
-#Patch4:         libproxy-0.4.15-mozjs60.patch
+Patch4:         libproxy-0.4.15-mozjs60.patch
+# https://bugzilla.redhat.com/show_bug.cgi?id=1880350
+Patch5:         libproxy-0.4.15-fix-CVE-2020-25219.patch
+
+Patch100: libproxy.sgifixes.patch
 
 BuildRequires:  cmake >= 2.6.0
 BuildRequires:  gcc-c++
@@ -31,15 +40,15 @@ BuildRequires:  libmodman-devel >= 2.0.1
 # gnome
 BuildRequires:  pkgconfig(gio-2.0) >= 2.26
 # mozjs
-#BuildRequires:  pkgconfig(mozjs-60)
+BuildRequires:  pkgconfig(mozjs-60)
 # NetworkManager
-#BuildRequires:  pkgconfig(libnm)
+BuildRequires:  pkgconfig(libnm)
 # pacrunner (and NetworkManager)
-#BuildRequires:  pkgconfig(dbus-1)
+BuildRequires:  pkgconfig(dbus-1)
 # webkit (gtk3)
-#BuildRequires:  pkgconfig(javascriptcoregtk-4.0)
+BuildRequires:  pkgconfig(javascriptcoregtk-4.0)
 # kde
-#BuildRequires:  /usr/bin/kreadconfig5
+BuildRequires:  /usr/bin/kreadconfig5
 # Python
 BuildRequires:  python3-devel
 %else
@@ -72,7 +81,7 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description    bin
 The %{name}-bin package contains the proxy binary for %{name}
 
-#%%if ! 0#%%{?bootstrap}
+%if ! 0%{?bootstrap}
 %package -n     python3-%{name}
 Summary:        Binding for %{name} and python3
 Requires:       %{name} = %{version}-%{release}
@@ -82,55 +91,56 @@ BuildArch:      noarch
 %description -n python3-%{name}
 The python3 binding for %{name}
 
-#%%package        gnome
-#Summary:        Plugin for #%%{name} and gnome
-#Requires:       #%%{name}#%%{?_isa} = #%%{version}-#%%{release}
+%package        gnome
+Summary:        Plugin for %{name} and gnome
+Requires:       %{name}%{?_isa} = %{version}-%{release}
 
-#%%description    gnome
-#The #%%{name}-gnome package contains the #%%{name} plugin for gnome.
+%description    gnome
+The %{name}-gnome package contains the %{name} plugin for gnome.
 
-#%%package        kde
-#Summary:        Plugin for #%%{name} and kde
-#Requires:       #%%{name}#%%{?_isa} = #%%{version}-#%%{release}
-#Requires:       /usr/bin/kreadconfig5
+%package        kde
+Summary:        Plugin for %{name} and kde
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       /usr/bin/kreadconfig5
 
-#%%description    kde
-#The #%%{name}-kde package contains the #%%{name} plugin for kde.
+%description    kde
+The %{name}-kde package contains the %{name} plugin for kde.
 
-#%%package        mozjs
-#Summary:        Plugin for #%%{name} and mozjs
-#Requires:       #%%{name}#%%{?_isa} = #%%{version}-#%%{release}
-#Provides:       #%%{name}-pac = #%%{version}-#%%{release}
+%package        mozjs
+Summary:        Plugin for %{name} and mozjs
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Provides:       %{name}-pac = %{version}-%{release}
 
-#%%description    mozjs
-#The #%%{name}-mozjs package contains the #%%{name} plugin for mozjs.
+%description    mozjs
+The %{name}-mozjs package contains the %{name} plugin for mozjs.
 
-#%package        networkmanager
-#Summary:        Plugin for #%%{name} and networkmanager
-#Requires:       #%%{name}#%%{?_isa} = #%%{version}-#%%{release}
+%package        networkmanager
+Summary:        Plugin for %{name} and networkmanager
+Requires:       %{name}%{?_isa} = %{version}-%{release}
 
-#%%description    networkmanager
-#The #%%{name}-networkmanager package contains the #%%{name} plugin
-#for networkmanager.
+%description    networkmanager
+The %{name}-networkmanager package contains the %{name} plugin
+for networkmanager.
 
-#%%package        webkitgtk4
-#Summary:        Plugin for #%%{name} and webkitgtk3
-#Requires:       #%%{name}3%%{?_isa} = #%%{version}-#%%{release}
-#Provides:       #%%{name}-pac = #%%{version}-#%%{release}
+%package        webkitgtk4
+Summary:        Plugin for %{name} and webkitgtk3
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Provides:       %{name}-pac = %{version}-%{release}
 
-#%%description    webkitgtk4
-#%The #%%{name}-webkitgtk4 package contains the #%%{name} plugin for
-#webkitgtk3.
+%description    webkitgtk4
+The %{name}-webkitgtk4 package contains the %{name} plugin for
+webkitgtk3.
 
 %package        pacrunner
 Summary:        Plugin for %{name} and PacRunner
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Provides:       %{name}-pac = %{version}-%{release}
-#Requires:       pacrunner
+Requires:       pacrunner
 
 %description    pacrunner
 The %{name}-pacrunner package contains the %{name} plugin for
 PacRunner.
+%endif
 
 
 %package        devel
@@ -144,25 +154,33 @@ developing applications that use %{name}.
 %prep
 %autosetup -p1
 
-%build
-#export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-#export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1 -std=gnu11"
+#exit 1
 
+%build
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-lnsl -Wl,-z,relro -Wl,-z,now -lgen"
+%else
+export LDFLAGS="-lnsl $RPM_LD_FLAGS"
+%endif
 %{cmake} \
   -DMODULE_INSTALL_DIR=%{_libdir}/%{name}/%{version}/modules \
   -DWITH_PERL=OFF \
+%if ! 0%{?bootstrap}
+  -DWITH_GNOME3=ON \
   -DWITH_PYTHON2=OFF \
   -DWITH_PYTHON3=ON \
-  -DWITH_TESTS=OFF \
+  -DWITH_WEBKIT3=ON \
+  -DWITH_MOZJS=ON \
+%else
+  -DWITH_GNOME3=OFF \
   -DWITH_KDE=OFF \
-  -DWITH_GNOME3=OFF
-#  -DWITH_WEBKIT3=ON \
-#  -DWITH_MOZJS=ON \
-#%%else
-#  -DWITH_PYTHON2=OFF \
-#  -DWITH_PYTHON3=OFF \
-#%%endif
-   
+  -DWITH_PYTHON2=OFF \
+  -DWITH_PYTHON3=OFF \
+%endif
+   .
 %make_build
 
 
@@ -194,29 +212,30 @@ make test
 %{_bindir}/proxy
 %{_mandir}/man1/proxy.1*
 
-#%%if ! 0#%%{?bootstrap}
+%if ! 0%{?bootstrap}
 %files -n python3-%{name}
 %{python3_sitelib}/__pycache__/*
 %{python3_sitelib}/%{name}.*
 
-#%%files gnome
-#%%{_libdir}/#%%{name}/#%%{version}/modules/config_gnome3.so
-#%%{_libexecdir}/pxgsettings
+%files gnome
+%{_libdir}/%{name}/%{version}/modules/config_gnome3.so
+%{_libexecdir}/pxgsettings
 
-#%%files kde
-#%%{_libdir}/#%%{name}/3%%{version}/modules/config_kde.so
+%files kde
+%{_libdir}/%{name}/%{version}/modules/config_kde.so
 
-#%%files mozjs
-#%%{_libdir}/#%%{name}/#%%{version}/modules/pacrunner_mozjs.so
+%files mozjs
+%{_libdir}/%{name}/%{version}/modules/pacrunner_mozjs.so
 
-#%%files networkmanager
-#%%{_libdir}/#%%{name}/#%%{version}/modules/network_networkmanager.so
+%files networkmanager
+%{_libdir}/%{name}/%{version}/modules/network_networkmanager.so
 
-#%%files webkitgtk4
-#%%{_libdir}/#%%{name}/#%%{version}/modules/pacrunner_webkit.so
+%files webkitgtk4
+%{_libdir}/%{name}/%{version}/modules/pacrunner_webkit.so
 
 %files pacrunner
 %{_libdir}/%{name}/%{version}/modules/config_pacrunner.so
+%endif
 
 %files devel
 %{_includedir}/proxy.h
@@ -226,8 +245,14 @@ make test
 
 
 %changelog
+* Sun Oct 25 2020 Daniel Hams <daniel.hams@gmail.com> - 0.4.15-15
+- Upgrade to latest fc31 version, fix build issues + get all but one tests working. Currently in "bootstrap" mode.
+
 * Sun Sep 06 2020  HAL <notes2@gmx.de> - 0.4.15-14
 - compiles on Irix 6.5 with sgug-rse gcc 9.2. Very raw version, 1st commit.
+
+* Fri Sep 18 2020 David King <amigadave@amigadave.com> - 0.4.15-15
+- Fix CVE-2020-25219 (#1880350)
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.15-14
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

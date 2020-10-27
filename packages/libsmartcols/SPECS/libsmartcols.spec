@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 ### Header
 Summary: Formatting library for ls-like programs.
 Name: libsmartcols
@@ -55,6 +61,13 @@ part of util-linux.
 #exit 1
 
 %build
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="-g -Og"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
+
 unset LINGUAS || :
 autoreconf -fi
 %configure

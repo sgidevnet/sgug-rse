@@ -38,7 +38,7 @@ Name: ca-certificates
 # to have increasing version numbers. However, the new scheme will work, 
 # because all future versions will start with 2013 or larger.)
 
-Version: 2020.2.40
+Version: 2020.2.41
 # for Rawhide, please always use release >= 2
 # for Fedora release branches, please use release < 2 (1.0, 1.1, ...)
 Release: 1.1%{?dist}
@@ -382,8 +382,24 @@ fi
 
 
 %changelog
+* Wed Oct 14 2020 Daniel Hams <daniel.hams@gmail.com> - 2020.2.41-1.1
+- Upgrade to 2020.2.41 from fc31
+
+*Tue Jun 16 2020 Bob Relyea <rrelyea@redhat.com> - 2020.2.41-1.1
+- Fix %post script
+
 * Sat Jun 13 2020 Daniel Hams <daniel.hams@gmail.com> - 2020.2.40-1.1
 - Upgrade to 2020 ca certs bundle and enable local processing using python
+
+*Wed Jun 10 2020 Bob Relyea <rrelyea@redhat.com> - 2020.2.41-1.0
+- Update to CKBI 2.41 from NSS 3.53.0
+-    Removing:
+-     # Certificate "AddTrust Low-Value Services Root"
+-     # Certificate "AddTrust External Root"
+-     # Certificate "Staat der Nederlanden Root CA - G2"
+
+* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2019.2.32-4
+- Remove hard coded shell paths, bashisms
 
 * Tue Jan 28 2020 Daiki Ueno <dueno@redhat.com> - 2020.2.40-1.1
 - Update versioned dependency on p11-kit
@@ -398,9 +414,6 @@ fi
 -     # Certificate "Certinomis - Root CA"
 -    Adding:
 -     # Certificate "Entrust Root Certification Authority - G4"
-
-* Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2019.2.32-4
-- Remove hard coded shell paths, bashisms
 
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2019.2.32-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

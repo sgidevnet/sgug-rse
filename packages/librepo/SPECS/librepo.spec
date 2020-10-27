@@ -150,11 +150,11 @@ export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 
 %if 0%{debug}
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -Og"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1"
 %else
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %endif

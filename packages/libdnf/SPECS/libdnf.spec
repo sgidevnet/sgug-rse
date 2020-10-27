@@ -1,4 +1,8 @@
+%global debug 0
+
+%if 0%{debug}
 %global __strip /bin/true
+%endif
 
 %global libsolv_version 0.7.7
 %global libmodulemd_version 2.5.0
@@ -211,16 +215,37 @@ mkdir build-py3
 
 #exit 1
 
+# Rewrite some hardcoded paths
+perl -pi -e "s|/etc/os-release|%{_sysconfdir}/os-release|g" libdnf/utils/os-release.cpp
+perl -pi -e "s|/usr/lib/os-release|%{_prefix}/lib/os-release|g" libdnf/utils/os-release.cpp
+
+perl -pi -e "s|/var/lib/dnf|/usr/sgug/var/lib/dnf|g" libdnf/conf/Const.hpp
+perl -pi -e "s|/var/cache/dnf|/usr/sgug/var/cache/dnf|g" libdnf/conf/Const.hpp
+perl -pi -e "s|/etc/dnf/|%{_sysconfdir}/dnf/|g" libdnf/conf/Const.hpp
+perl -pi -e "s|/etc/yum/|%{_sysconfdir}/yum/|g" libdnf/conf/Const.hpp
+perl -pi -e "s|/var/lib/rpm|/usr/sgug/var/lib/rpm|g" libdnf/conf/Const.hpp
+perl -pi -e "s|/etc/dnf/|%{_sysconfdir}/dnf/|g" libdnf/module/ModulePackageContainer.cpp
+perl -pi -e "s|usr/etc/os-release|usr/sgug/etc/os-release|g" libdnf/dnf-context.cpp
+perl -pi -e "s|var/lib/rpm|usr/sgug/var/lib/rpm|g" libdnf/dnf-context.cpp
+
+perl -pi -e "s|/etc/yum.repos.d|/usr/sgug/etc/yum.repos.d|g" libdnf/conf/ConfigMain.cpp
+perl -pi -e "s|/etc/yum/repos.d|/usr/sgug/etc/yum/repos.d|g" libdnf/conf/ConfigMain.cpp
+perl -pi -e "s|/etc/yum/protected.d|/usr/sgug/etc/yum/protected.d|g" libdnf/conf/ConfigMain.cpp
+
 %build
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
-#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_FUNOPEN -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
-#export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_FUNOPEN -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+
+%if 0%{debug}
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_FUNOPEN -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -Og"
 export CXXFLAGS="$CFLAGS"
-#export LDFLAGS="-ldicl-0.1"
 export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1"
-#export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1 $RPM_LD_FLAGS"
+%else
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_FUNOPEN -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1 $RPM_LD_FLAGS"
+%endif
+
 %if %{with python2}
 export PREV_WD=`pwd`
 cd build-py2

@@ -1,4 +1,8 @@
-#%%global __strip /bin/true
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
 
 Name:    libassuan
 Summary: GnuPG IPC library
@@ -51,11 +55,14 @@ This package contains files needed to develop applications using %{name}.
 #exit 1
 
 %build
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
-#export CFLAGS="-g -O0"
-#export CXXFLAGS="$CFLAGS"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="-g -Og"
+export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now"
+%else
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
-#export LDFLAGS="-ldicl-0.1"
+%endif
 %configure \
   --includedir=%{_includedir}/libassuan2
 

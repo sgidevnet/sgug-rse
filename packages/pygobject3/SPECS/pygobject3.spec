@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 %define glib2_version                  2.48.0
 %define gobject_introspection_version  1.46.0
 %define pycairo_version                1.11.1
@@ -12,6 +18,9 @@ Summary:        Python bindings for GObject Introspection
 License:        LGPLv2+ and MIT
 URL:            https://wiki.gnome.org/Projects/PyGObject
 Source0:        https://download.gnome.org/sources/pygobject/3.34/pygobject-%{version}.tar.xz
+
+#Patch100:       pygobject.sgifixes.patch
+Patch100:       pygobject.sgifixes.patch.debug7
 
 BuildRequires:  cairo-gobject-devel
 BuildRequires:  glib2-devel >= %{glib2_version}
@@ -104,12 +113,22 @@ This package contains files required to embed PyGObject
 %prep
 %autosetup -n pygobject-%{version} -p1
 
+#exit 1
+
 rm -rf %{py3dir}
 cp -a . %{py3dir}
 
 %build
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now"
+%else
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+%endif
 %meson -Dpython=%{__python2}
 %meson_build
 

@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 %global _changelog_trimtime %(date +%s -d "1 year ago")
 
 %define glib2_base_version 2.28.0
@@ -152,10 +158,16 @@ This package contains developer documentation for the GTK+ widget toolkit.
 #exit 1
 
 %build
-export CFLAGS='-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -fno-strict-aliasing %optflags'
 export XDG_DATA_DIRS=/usr/sgug/share
 export PERL=%{_bindir}/perl
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--disable-gtk-doc; fi;
+export CFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="$CFLAGS -g -Og"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%else
+export CFLAGS="$CFLAGS -fno-strict-aliasing $RPM_OPT_FLAGS"
+%endif
  %configure $CONFIGFLAGS \
 	--enable-man		\
 	--with-xinput=xfree	\

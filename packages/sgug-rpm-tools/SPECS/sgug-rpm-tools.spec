@@ -1,3 +1,12 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%else
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+%endif
+
 Summary: SGUG RPM Tools
 Name: sgug-rpm-tools
 Version: 0.1.5
@@ -17,6 +26,11 @@ Some utility programs to help with release / dependency management.
 %setup -q
 
 %build
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
 %{configure}
 make %{?_smp_mflags}
 
