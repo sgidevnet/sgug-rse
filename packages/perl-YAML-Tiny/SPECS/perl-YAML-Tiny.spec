@@ -83,6 +83,9 @@ make test
 %{_mandir}/man3/YAML::Tiny.3*
 
 %changelog
+* Wed Oct 28 2020  HAL <notes2@gmx.de> - 1.73-7
+- compiles on Irix 6.5 with sgug-rse gcc 9.2. All tests pass.
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.73-7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
