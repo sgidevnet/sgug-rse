@@ -6,7 +6,7 @@
 Summary: Implementation of the JPEG-2000 standard, Part 1
 Name:    jasper
 Version: 2.0.14
-Release: 10%{?dist}
+Release: 11%{?dist}
 
 License: JasPer
 URL:     http://www.ece.uvic.ca/~frodo/jasper/
@@ -102,7 +102,7 @@ cd builder
   -DCMAKE_SKIP_INSTALL_RPATH:BOOL=YES \
   -DCMAKE_SKIP_RPATH:BOOL=YES \
   -DJPEG_INCLUDE_DIR:STRING=%{_includedir} \
-  -DJPEG_LIBRARY_RELEASE:STRING=%{_libdir}/libjpeg.so.9
+  -DJPEG_LIBRARY_RELEASE:STRING=%{_libdir}/libjpeg.so.62
 #popd
 cd $PREVWD
 
@@ -148,6 +148,9 @@ make test -C builder
 
 
 %changelog
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.14-11
+- Rebuild for jpegturbo
+
 * Sun Jun 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.14-10
 - Correct libjpeg discovery, get tests up and running (and all passing)
 
