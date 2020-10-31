@@ -11,7 +11,7 @@
 Summary: The GNU Debugger
 Name: gdb
 Version: 7.6.2
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ and GPLv2+ with exceptions and GPL+ and LGPLv2+ and LGPLv3+ and BSD and Public Domain and GFDL
 URL: http://ftp.gnu.org/gnu/gdb/
 Source: http://ftp.gnu.org/gnu/gdb/gdb-%{version}.tar.gz
@@ -54,7 +54,7 @@ export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
     --sysconfdir=%{_sysconfdir}				      \
     --mandir=%{_mandir}					      \
     --infodir=%{_infodir}                                     \
-    --with-python
+    --with-python=no
 
 make %{?_smp_mflags}
 
@@ -93,6 +93,9 @@ rm -f $RPM_BUILD_ROOT%{_datadir}/gdb/syscalls/*
 %{_infodir}/gdb*.gz
 
 %changelog
+* Sat Oct 31 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-8
+- Deactivate python support again, it breaks the ddd<->gdb integration
+
 * Sat Oct 24 2020 Daniel Hams <daniel.hams@gmail.com> - 7.6.2-7
 - Clean up of dynamically loaded library symbol support, fix issue on first load.
 

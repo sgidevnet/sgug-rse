@@ -137,7 +137,7 @@ libiconv
 libid3tag
 libidn2
 libimagequant
-libjpeg
+libjpeg-turbo
 liblzf
 libmikmod
 libmpc

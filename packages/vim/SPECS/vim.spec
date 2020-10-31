@@ -19,7 +19,7 @@ Summary: The VIM editor
 URL:     http://www.vim.org/
 Name: vim
 Version: %{baseversion}.%{patchlevel}
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Vim and MIT
 Source0: ftp://ftp.vim.org/pub/vim/unix/vim-%{baseversion}-%{patchlevel}.tar.bz2
 Source1: vim.sh
@@ -825,6 +825,9 @@ touch %{buildroot}/%{_datadir}/%{name}/vimfiles/doc/tags
 %{_datadir}/icons/locolor/*/apps/*
 
 %changelog
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-6
+- Rebuild for jpegturbo
+
 * Tue Jul 14 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-5
 - Ensure separate config cache for minimal-vi so python isn''t linked it
 
