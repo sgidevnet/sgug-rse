@@ -2,7 +2,7 @@
 Summary: GUI for several command-line debuggers
 Name: ddd
 Version: 3.3.12
-Release: 35%{?dist}
+Release: 36%{?dist}
 License: GPLv2+
 URL: http://www.gnu.org/software/ddd/
 #Source0: http://dl.sf.net/ddd/ddd-%%{version}.tar.gz
@@ -100,6 +100,9 @@ install -D -m 0644 %{SOURCE2} \
 %{_mandir}/man1/ddd.1*
 
 %changelog
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.12-36
+- Rebuild for jpegturbo
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 3.3.12-35
 - Move over to sgug-rse libX11 (avoid SGI motif extensions)
 
