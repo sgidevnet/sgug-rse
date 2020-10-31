@@ -4,7 +4,7 @@
 Summary:        Image loading, saving, rendering, and manipulation library
 Name:           imlib2
 Version:        1.5.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        Imlib2
 URL:            http://docs.enlightenment.org/api/imlib2/html/
 Source0:        http://downloads.sourceforge.net/enlightenment/%{name}-%{version}.tar.bz2
@@ -81,6 +81,8 @@ autoreconf -ifv
 
 # stop -L/usr/lib[64] getting added to imlib2-config
 export x_libs=" "
+# Ensure imlib2 doesn't pollute config.cache entries
+export CPPFLAGS="-DIMLIB_UNIQ_CC"
 %configure --disable-static --with-pic $asmopts
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 #sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
@@ -124,6 +126,9 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f \{\} \;
 
 
 %changelog
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1.5.1-3
+- Rebuild for jpegturbo
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.5.1-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
