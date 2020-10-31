@@ -3,7 +3,7 @@
 
 Name:           aterm
 Version:        1.0.1
-Release:        30%{?dist}
+Release:        31%{?dist}
 
 Summary:        Afterstep XVT, VT102 emulator for the X Window system
 License:        GPLv2+
@@ -63,10 +63,13 @@ make %{?_smp_mflags}
 %doc doc/README.* doc/FAQ doc/ChangeLog.rxvt doc/menu/*
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}.1.gz
-#%{_datadir}/applications/%{name}.desktop
+#%%{_datadir}/applications/%%{name}.desktop
 
 
 %changelog
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0.1-31
+- Rebuild for jpegturbo
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0.1-30
 - Remove hard coded shell paths
 
