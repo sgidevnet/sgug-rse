@@ -43,7 +43,7 @@ advantage on a machine serving many X sessions.
 %patch10 -p1 -b .sgifixes
 
 %build
-
+export CPPFLAGS="-DATERMSEPCCACHE"
 %configure --enable-fading --enable-background-image \
 --enable-next-scroll --enable-utmp --enable-wtmp \
 --enable-menubar --enable-graphics -enable-kanji \
@@ -68,7 +68,7 @@ make %{?_smp_mflags}
 
 %changelog
 * Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0.1-31
-- Rebuild for jpegturbo
+- Rebuild for jpegturbo, separate CCACHE
 
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0.1-30
 - Remove hard coded shell paths
