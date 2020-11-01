@@ -1,6 +1,6 @@
 Name:           pidgin
 Version:        2.13.0
-Release:        16%{?dist}
+Release:        17%{?dist}
 License:        BSD and GPLv2+ and GPLv2 and LGPLv2+ and MIT
 # GPLv2+ - libpurple, gnt, finch, pidgin, most prpls
 # GPLv2 - novell prpls
@@ -268,6 +268,9 @@ find %{buildroot}/%{_libdir}/purple-2 -name \*.so\* -printf '%f|' | sed -e 's/|$
 
 
 %changelog
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2.13.0.17
+- Rebuild for jpegturbo
+
 * Fri Jul 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.13.0.16
 - Fix up params passed to configure
 
@@ -276,18 +279,3 @@ find %{buildroot}/%{_libdir}/purple-2 -name \*.so\* -printf '%f|' | sed -e 's/|$
 
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.13.0-15
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
-
-* Thu Jul 04 2019 Stefan Becker <chemobejk@gmail.com> - 2.13.0-14
-- add support for NetworkManager-libnm integration (#1726938)
-
-* Fri Jun 07 2019 Debarshi Ray <rishi@fedoraproject.org> - 2.13.0-13
-- Drop AIM support
-
-* Tue Jun 04 2019 Jitka Plesnikova <jplesnik@redhat.com> - 2.13.0-12
-- Perl 5.30 re-rebuild updated packages
-
-* Tue Jun  4 2019 Jaroslav Škarvada <jskarvad@redhat.com> - 2.13.0-11
-- Fixed FTBFS with python-3.8
-  Resolves: rhbz#1716480
-- Made build more verbose (V=1)
-- De-fuzzified patches
