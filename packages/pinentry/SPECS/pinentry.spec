@@ -103,6 +103,8 @@ ln -s pinentry-gtk-2 $RPM_BUILD_ROOT%{_bindir}/pinentry-gtk
 #ln -s pinentry-qt $RPM_BUILD_ROOT%{_bindir}/pinentry-qt4
 
 install -p -m755 -D %{SOURCE10} $RPM_BUILD_ROOT%{_bindir}/pinentry
+# rewrite the /usr/bin/ entries in it
+perl -pi -e "s|/usr/bin/|%{_bindir}/|g" $RPM_BUILD_ROOT%{_bindir}/pinentry
 
 # unpackaged files
 rm -fv $RPM_BUILD_ROOT%{_infodir}/dir
