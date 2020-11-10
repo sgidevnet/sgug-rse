@@ -1,0 +1,24 @@
+diff -u -r microdnf-3.4.0-orig/dnf/dnf-main.c microdnf-3.4.0/dnf/dnf-main.c
+--- microdnf-3.4.0-orig/dnf/dnf-main.c	2020-01-15 10:03:12.000000000 +0000
++++ microdnf-3.4.0/dnf/dnf-main.c	2020-08-30 13:12:20.806330520 +0000
+@@ -221,7 +221,7 @@
+ {
+   DnfContext *ctx = dnf_context_new ();
+ 
+-#define CACHEDIR "/var/cache/yum"
++#define CACHEDIR "/usr/sgug/var/cache/yum"
+   dnf_context_set_cache_dir (ctx, CACHEDIR"/metadata");
+   dnf_context_set_solv_dir (ctx, CACHEDIR"/solv");
+   dnf_context_set_lock_dir (ctx, CACHEDIR"/lock");
+diff -u -r microdnf-3.4.0-orig/dnf/plugins/repoquery/dnf-command-repoquery.c microdnf-3.4.0/dnf/plugins/repoquery/dnf-command-repoquery.c
+--- microdnf-3.4.0-orig/dnf/plugins/repoquery/dnf-command-repoquery.c	2020-01-15 10:03:12.000000000 +0000
++++ microdnf-3.4.0/dnf/plugins/repoquery/dnf-command-repoquery.c	2020-08-30 13:07:55.417762400 +0000
+@@ -81,7 +81,7 @@
+   guint64 epoch = dnf_package_get_epoch (package);
+   if (epoch != 0)
+     {
+-      g_autofree gchar *str_epoch = g_strdup_printf ("%ld", epoch);
++      g_autofree gchar *str_epoch = g_strdup_printf ("%lld", epoch);
+       package_info_add_line (table, "Epoch", str_epoch);
+     }
+   package_info_add_line (table, "Version", dnf_package_get_version (package));
