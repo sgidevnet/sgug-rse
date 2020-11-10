@@ -5,7 +5,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://standards.iso.org/iso/19770/-2/2015/schema.xsd http://standards.iso.org/iso/19770/-2/2015-current/schema.xsd"
   xml:lang="en-US"
-  tagId="org.sgugrseproject.Sgugrse-$version"
+  tagId="org.sgugrsetest.Sgugrse-$version"
   tagVersion="1"
   name="Sgugrse"
   version="$version"
@@ -13,15 +13,15 @@
   media="(OS:linux)">
   <Entity
     name="SGUG RSE Project"
-    regid="sgugrseproject.org"
+    regid="sgugrsetest.org"
     role="tagCreator softwareCreator aggregator distributor licensor" />
   <Link
     rel="license"
-    href="https://sgugrseproject.org/wiki/Legal:Licenses/LicenseAgreement" />
+    href="https://sgugrsetest.org/wiki/Legal:Licenses/LicenseAgreement" />
   <Meta
     product="Sgugrse"
     colloquialVersion="$version"
-    summary="Silicong Graphics User Group RPM Software Environment"
+    summary="Silicon Graphics User Group RPM Software Environment"
     entitlementDataRequired="false"
     unspscCode="12345678"
     unspscVersion="00.0001" />
