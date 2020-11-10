@@ -1,6 +1,6 @@
 Summary:        Sgugrse package repositories
 Name:           sgugrse-repos
-Version:        0.0.6beta
+Version:        0.0.7alpha
 Release:        1%{?_module_build:%{?dist}}
 License:        MIT
 URL:            https://sgugrseproject.org/
@@ -15,35 +15,17 @@ BuildArch:      noarch
 Source2:        sgugrse.repo
 Source3:        sgugrse-updates.repo
 Source4:        sgugrse-updates-testing.repo
-#Source5:        sgugrse-rawhide.repo
-#Source6:        sgugrse-cisco-openh264.repo
 
-# Source10:       RPM-GPG-KEY-sgugrse-7-primary
-# ...
-# Source54:       RPM-GPG-KEY-sgugrse-34-primary
+Source10:       RPM-GPG-KEY-sgugrse-primary
 
 Source100:      sgugrse-modular.repo
 Source101:      sgugrse-updates-modular.repo
 Source102:      sgugrse-updates-testing-modular.repo
-#Source103:      sgugrse-rawhide-modular.repo
-#Source104:      RPM-GPG-KEY-sgugrse-modularity
 
-#Source150:      RPM-GPG-KEY-sgugrse-iot-2019
 Source151:      sgugrse.conf
 
 %description
 Sgugrse package repository files for yum and dnf along with gpg public keys
-
-# %package rawhide
-# Summary:        Rawhide repo definitions
-# Requires:       sgugrse-repos = %{version}-%{release}
-# Obsoletes:      sgugrse-release-rawhide <= 22-0.3
-# Obsoletes:      sgugrse-repos-rawhide-modular < 29-0.6
-# Provides:       sgugrse-repos-rawhide-modular = %{version}-%{release}
-
-# %description rawhide
-# This package provides the rawhide repo definitions.
-
 
 %package -n sgugrse-gpg-keys
 Summary:        Sgugrse RPM keys
@@ -63,8 +45,6 @@ where client''s system will pull OSTree updates.
 
 
 %prep
-echo "This package is super not finished"
-exit 1
 
 %build
 
@@ -80,16 +60,7 @@ install -m 644 %{_sourcedir}/RPM-GPG-KEY* $RPM_BUILD_ROOT/usr/sgug/etc/pki/rpm-g
 #     RPM-GPG-KEY-sgugrse-19-{i386,x86_64} will be symlinked to that key.
 export PREV_WD=`pwd`
 cd $RPM_BUILD_ROOT/usr/sgug/etc/pki/rpm-gpg/
-# Don't need this for sgugrse - we're mips only
-# for keyfile in RPM-GPG-KEY*; do
-#     key=${keyfile#RPM-GPG-KEY-} # e.g. 'sgugrse-20-primary'
-#     arches=$(sed -ne "s/^${key}://p" %{_sourcedir}/archmap) \
-#         || echo "WARNING: no archmap entry for $key"
-#     for arch in $arches; do
-#         # replace last part with $arch (sgugrse-20-primary -> sgugrse-20-$arch)
-#         ln -s $keyfile ${keyfile%%-*}-$arch # NOTE: RPM replaces %% with %
-#     done
-# done
+
 # and add symlink for compat generic location
 ln -s RPM-GPG-KEY-sgugrse-%{version}-primary RPM-GPG-KEY-%{version}-sgugrse
 cd $PREV_WD
@@ -113,11 +84,6 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 %config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-modular.repo
 %config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-testing-modular.repo
 
-#%%files rawhide
-#%%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-rawhide.repo
-#%%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-rawhide-modular.repo
-
-
 %files -n sgugrse-gpg-keys
 %dir /usr/sgug/etc/pki/rpm-gpg
 /usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-*
@@ -128,6 +94,9 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 /usr/sgug/etc/ostree/remotes.d/sgugrse.conf
 
 %changelog
+* Tue Nov 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7alpha-1
+- Use a temporary key while in testing phase
+
 * Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 1-1
 - Initial setup
 
