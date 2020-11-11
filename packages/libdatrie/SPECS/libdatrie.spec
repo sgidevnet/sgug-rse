@@ -47,6 +47,7 @@ rm -frv %{buildroot}%{_pkgdocdir}
 find %{buildroot} -name '*.*a' -delete -print
 
 %check
+export LD_LIBRARYN32_PATH=%{buildroot}%{_libdir}:%{_libdir}
 LD_LIBRARY_PATH=../datrie/.libs %make_build check
 
 #%%ldconfig_scriptlets
@@ -65,6 +66,9 @@ LD_LIBRARY_PATH=../datrie/.libs %make_build check
 #%%{_pkgdocdir}-devel/*.{html,css,png,js}
 
 %changelog
+* Tue Oct 27 2020  HAL <notes2@gmx.de> - 0.2.9-11
+- I tweaked the spec so it finds all libs and passes all tests.
+
 * Sun May 24 2020  Alexander Tafarte <notes2@gmx.de> - 0.2.9-11 
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 

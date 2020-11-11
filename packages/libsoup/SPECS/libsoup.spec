@@ -2,7 +2,7 @@
 
 Name: libsoup
 Version: 2.68.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Soup, an HTTP library implementation
 
 License: LGPLv2
@@ -50,7 +50,7 @@ you to develop applications that use the libsoup library.
 %autosetup -p1
 
 %build
-%meson -Dgtk_doc=false -Dgssapi=disabled -Dntlm=disabled -Dtests=false -Dtls_check=false
+%meson -Dgtk_doc=false -Dgssapi=disabled -Dntlm=disabled -Dtests=true -Dtls_check=true
 %meson_build
 
 %install
