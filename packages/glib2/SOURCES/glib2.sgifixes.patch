@@ -1,6 +1,6 @@
 diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
 --- glib-2.62.6-orig/gio/glocalfile.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/glocalfile.c	2020-09-12 21:25:14.237996120 +0000
++++ glib-2.62.6/gio/glocalfile.c	2020-11-07 22:48:46.067240480 +0000
 @@ -2826,7 +2826,7 @@
        if (g_cancellable_set_error_if_cancelled (state->cancellable, error))
          return FALSE;
@@ -21,32 +21,8 @@ diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
      DIR *dirp;
 diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
 --- glib-2.62.6-orig/gio/gsocket.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gsocket.c	2020-09-12 21:25:14.248743320 +0000
-@@ -81,6 +81,10 @@
- #include "gwin32networking.h"
- #endif
- 
-+#if defined(__sgi)
-+extern int _xpg5_getsockname(int, struct sockaddr *, size_t *);
-+#endif
-+
- /**
-  * SECTION:gsocket
-  * @short_description: Low-level socket object
-@@ -447,7 +451,12 @@
-     }
- 
-   addrlen = sizeof address;
-+#if defined(__sgi)
-+  errno=0;
-+  if (_xpg5_getsockname (fd, &address.sa, &addrlen) != 0)
-+#else
-   if (getsockname (fd, &address.sa, &addrlen) != 0)
-+#endif
-     {
-       errsv = get_socket_errno ();
-       goto err;
-@@ -4419,6 +4428,119 @@
++++ glib-2.62.6/gio/gsocket.c	2020-11-07 22:50:25.349170440 +0000
+@@ -4419,6 +4419,119 @@
  
  /* Unfortunately these have to be macros rather than inline functions due to
   * using alloca(). */
@@ -166,7 +142,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
  #define output_message_to_msghdr(message, prev_message, msg, prev_msg, error) \
  G_STMT_START { \
    const GOutputMessage  *_message = (message); \
-@@ -4427,7 +4549,7 @@
+@@ -4427,7 +4540,7 @@
    const struct msghdr *_prev_msg = (prev_msg); \
    GError **_error = (error); \
   \
@@ -175,7 +151,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
   \
    /* name */ \
    if (_prev_message != NULL && _prev_message->address == _message->address) \
-@@ -4510,6 +4632,73 @@
+@@ -4510,6 +4623,73 @@
    } \
  } G_STMT_END
  
@@ -249,7 +225,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
  #define input_message_to_msghdr(message, msg) \
  G_STMT_START { \
    const GInputMessage  *_message = (message); \
-@@ -4568,11 +4757,18 @@
+@@ -4568,11 +4748,18 @@
      } \
   \
    /* flags */ \
@@ -270,7 +246,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
                             GInputMessage        *message,
                             GSocket              *socket)
  {
-@@ -4587,14 +4783,23 @@
+@@ -4587,14 +4774,23 @@
    {
      GPtrArray *my_messages = NULL;
      struct cmsghdr *cmsg;
@@ -296,7 +272,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
              GSocketControlMessage *control_message;
  
              control_message = g_socket_control_message_deserialize (cmsg->cmsg_level,
-@@ -4634,7 +4839,7 @@
+@@ -4634,7 +4830,7 @@
    }
  
    /* capture the flags */
@@ -305,7 +281,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
  }
  #endif
  
-@@ -4825,7 +5030,11 @@
+@@ -4825,7 +5021,11 @@
  #ifndef G_OS_WIN32
    {
      GOutputMessage output_message;
@@ -317,7 +293,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
      gssize result;
      GError *child_error = NULL;
  
-@@ -4846,7 +5055,11 @@
+@@ -4846,7 +5046,11 @@
  
      while (1)
        {
@@ -329,7 +305,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
  	if (result < 0)
  	  {
  	    int errsv = get_socket_errno ();
-@@ -5078,7 +5291,11 @@
+@@ -5078,7 +5282,11 @@
      for (i = 0; i < num_messages; ++i)
        {
          GOutputMessage *msg = &messages[i];
@@ -341,7 +317,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
          GError *child_error = NULL;
  
          msgvec[i].msg_len = 0;
-@@ -5312,7 +5529,11 @@
+@@ -5312,7 +5520,11 @@
  #ifndef G_OS_WIN32
    {
      GInputMessage input_message;
@@ -353,7 +329,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
      gssize result;
  
      input_message.address = address;
-@@ -5336,7 +5557,11 @@
+@@ -5336,7 +5548,11 @@
      /* do it */
      while (1)
        {
@@ -365,7 +341,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
  #ifdef MSG_CMSG_CLOEXEC	
  	if (result < 0 && get_socket_errno () == EINVAL)
  	  {
-@@ -5597,7 +5822,11 @@
+@@ -5597,7 +5813,11 @@
      for (i = 0; i < num_messages; ++i)
        {
          GInputMessage *msg = &messages[i];
@@ -379,7 +355,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
          msgvec[i].msg_len = 0;
 diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
 --- glib-2.62.6-orig/gio/gtrashportal.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gtrashportal.c	2020-09-12 21:25:14.250625880 +0000
++++ glib-2.62.6/gio/gtrashportal.c	2020-11-07 22:48:46.079532800 +0000
 @@ -86,10 +86,17 @@
  
    path = g_file_get_path (file);
@@ -400,7 +376,7 @@ diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
  
 diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.c
 --- glib-2.62.6-orig/gio/gunixfdmessage.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gunixfdmessage.c	2020-09-12 21:25:14.252568200 +0000
++++ glib-2.62.6/gio/gunixfdmessage.c	2020-11-07 22:48:46.081307040 +0000
 @@ -48,6 +48,10 @@
  #include <fcntl.h>
  #include <errno.h>
@@ -414,8 +390,25 @@ diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.
  #include "gnetworking.h"
 diff -u -r glib-2.62.6-orig/gio/gunixmounts.c glib-2.62.6/gio/gunixmounts.c
 --- glib-2.62.6-orig/gio/gunixmounts.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gunixmounts.c	2020-09-12 21:25:27.381885120 +0000
-@@ -565,6 +565,51 @@
++++ glib-2.62.6/gio/gunixmounts.c	2020-11-07 22:48:46.087632000 +0000
+@@ -71,6 +71,7 @@
+ #include "gthemedicon.h"
+ #include "gcontextspecificgroup.h"
+ 
++static const char * DEVROOTPATH = "/dev/otherroot";
+ 
+ #ifdef HAVE_MNTENT_H
+ static const char *_resolve_dev_root (void);
+@@ -517,7 +518,7 @@
+       gboolean is_read_only = FALSE;
+ 
+       device_path = mnt_fs_get_source (fs);
+-      if (g_strcmp0 (device_path, "/dev/root") == 0)
++      if (g_strcmp0 (device_path, DEVROOTPATH) == 0)
+         device_path = _resolve_dev_root ();
+ 
+       mount_options = mnt_fs_strdup_options (fs);
+@@ -565,6 +566,51 @@
  G_LOCK_DEFINE_STATIC(getmntent);
  #endif
  
@@ -467,7 +460,7 @@ diff -u -r glib-2.62.6-orig/gio/gunixmounts.c glib-2.62.6/gio/gunixmounts.c
  static GList *
  _g_get_unix_mounts (void)
  {
-@@ -578,7 +623,12 @@
+@@ -578,7 +624,12 @@
    GUnixMountEntry *mount_entry;
    GHashTable *mounts_hash;
    GList *return_list;
@@ -480,7 +473,7 @@ diff -u -r glib-2.62.6-orig/gio/gunixmounts.c glib-2.62.6/gio/gunixmounts.c
    read_file = get_mtab_read_file ();
  
    file = setmntent (read_file, "r");
-@@ -591,13 +641,20 @@
+@@ -591,13 +642,20 @@
    
  #ifdef HAVE_GETMNTENT_R
    while ((mntent = getmntent_r (file, &ent, buf, sizeof (buf))) != NULL)
@@ -506,7 +499,16 @@ diff -u -r glib-2.62.6-orig/gio/gunixmounts.c glib-2.62.6/gio/gunixmounts.c
  
        /* ignore any mnt_fsname that is repeated and begins with a '/'
         *
-@@ -636,7 +693,13 @@
+@@ -614,7 +672,7 @@
+ 	  g_hash_table_lookup (mounts_hash, mntent->mnt_fsname))
+         continue;
+ 
+-      if (g_strcmp0 (mntent->mnt_fsname, "/dev/root") == 0)
++      if (g_strcmp0 (mntent->mnt_fsname, DEVROOTPATH) == 0)
+         device_path = _resolve_dev_root ();
+       else
+         device_path = mntent->mnt_fsname;
+@@ -636,7 +694,13 @@
  			   mount_entry->device_path);
  
        return_list = g_list_prepend (return_list, mount_entry);
@@ -520,9 +522,54 @@ diff -u -r glib-2.62.6-orig/gio/gunixmounts.c glib-2.62.6/gio/gunixmounts.c
    g_hash_table_destroy (mounts_hash);
    
    endmntent (file);
+@@ -1054,7 +1118,7 @@
+         }
+ 
+       device_path = mnt_fs_get_source (fs);
+-      if (g_strcmp0 (device_path, "/dev/root") == 0)
++      if (g_strcmp0 (device_path, DEVROOTPATH) == 0)
+         device_path = _resolve_dev_root ();
+ 
+       mount_point = create_unix_mount_point (device_path,
+@@ -1123,7 +1187,7 @@
+         continue;
+ #endif
+ 
+-      if (strcmp (mntent->mnt_fsname, "/dev/root") == 0)
++      if (strcmp (mntent->mnt_fsname, DEVROOTPATH) == 0)
+         device_path = _resolve_dev_root ();
+       else
+         device_path = mntent->mnt_fsname;
+@@ -3048,7 +3112,7 @@
+   /* otherwise we're going to find it right away.. */
+   have_real_dev_root = TRUE;
+   
+-  if (stat ("/dev/root", &statbuf) == 0) 
++  if (stat (DEVROOTPATH, &statbuf) == 0) 
+     {
+       if (! S_ISLNK (statbuf.st_mode)) 
+         {
+@@ -3095,7 +3159,7 @@
+        else 
+         {
+           char *resolved;
+-          resolved = _resolve_symlink ("/dev/root");
++          resolved = _resolve_symlink (DEVROOTPATH);
+           if (resolved != NULL)
+             {
+               strncpy (real_dev_root, resolved, sizeof (real_dev_root) - 1);
+@@ -3107,7 +3171,7 @@
+     }
+   
+   /* bah sucks.. */
+-  strcpy (real_dev_root, "/dev/root");
++  strcpy (real_dev_root, DEVROOTPATH);
+   
+ found:
+   return real_dev_root;
 diff -u -r glib-2.62.6-orig/gio/tests/desktop-app-info.c glib-2.62.6/gio/tests/desktop-app-info.c
 --- glib-2.62.6-orig/gio/tests/desktop-app-info.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/tests/desktop-app-info.c	2020-09-12 21:25:14.255056520 +0000
++++ glib-2.62.6/gio/tests/desktop-app-info.c	2020-11-07 22:48:46.089927680 +0000
 @@ -80,9 +80,9 @@
  
    g_object_unref (info);
@@ -537,7 +584,7 @@ diff -u -r glib-2.62.6-orig/gio/tests/desktop-app-info.c glib-2.62.6/gio/tests/d
        res = g_app_info_can_delete (info);
 diff -u -r glib-2.62.6-orig/gio/tests/file.c glib-2.62.6/gio/tests/file.c
 --- glib-2.62.6-orig/gio/tests/file.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/tests/file.c	2020-09-12 21:25:14.258251960 +0000
++++ glib-2.62.6/gio/tests/file.c	2020-11-07 22:48:46.092915280 +0000
 @@ -989,6 +989,7 @@
                                    &num_dirs,
                                    &num_files,
@@ -548,7 +595,7 @@ diff -u -r glib-2.62.6-orig/gio/tests/file.c glib-2.62.6/gio/tests/file.c
  
 diff -u -r glib-2.62.6-orig/gio/tests/socket.c glib-2.62.6/gio/tests/socket.c
 --- glib-2.62.6-orig/gio/tests/socket.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/tests/socket.c	2020-09-12 21:25:14.261736840 +0000
++++ glib-2.62.6/gio/tests/socket.c	2020-11-07 22:48:46.096380320 +0000
 @@ -1336,10 +1336,13 @@
    gint fd;
    GError *error;
@@ -581,7 +628,7 @@ diff -u -r glib-2.62.6-orig/gio/tests/socket.c glib-2.62.6/gio/tests/socket.c
      }
 diff -u -r glib-2.62.6-orig/gio/xdgmime/xdgmime.c glib-2.62.6/gio/xdgmime/xdgmime.c
 --- glib-2.62.6-orig/gio/xdgmime/xdgmime.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/xdgmime/xdgmime.c	2020-09-12 21:25:14.264207560 +0000
++++ glib-2.62.6/gio/xdgmime/xdgmime.c	2020-11-07 22:48:46.098674960 +0000
 @@ -235,7 +235,7 @@
    xdg_data_dirs = getenv ("XDG_DATA_DIRS");
  
@@ -593,7 +640,7 @@ diff -u -r glib-2.62.6-orig/gio/xdgmime/xdgmime.c glib-2.62.6/gio/xdgmime/xdgmim
    if (xdg_data_home != NULL || home != NULL)
 diff -u -r glib-2.62.6-orig/glib/gcharset.c glib-2.62.6/glib/gcharset.c
 --- glib-2.62.6-orig/glib/gcharset.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gcharset.c	2020-09-12 21:25:14.266332680 +0000
++++ glib-2.62.6/glib/gcharset.c	2020-11-07 22:48:46.100695520 +0000
 @@ -407,7 +407,7 @@
    if (g_once_init_enter (&alias_table))
      {
@@ -605,7 +652,7 @@ diff -u -r glib-2.62.6-orig/glib/gcharset.c glib-2.62.6/glib/gcharset.c
  
 diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
 --- glib-2.62.6-orig/glib/giounix.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/giounix.c	2020-09-12 21:25:14.268356360 +0000
++++ glib-2.62.6/glib/giounix.c	2020-11-07 22:48:46.102780000 +0000
 @@ -31,7 +31,17 @@
  
  #include "config.h"
@@ -626,7 +673,7 @@ diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
  #include <sys/stat.h>
 diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.in
 --- glib-2.62.6-orig/glib/glibconfig.h.in	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/glibconfig.h.in	2020-09-12 21:25:14.269872360 +0000
++++ glib-2.62.6/glib/glibconfig.h.in	2020-11-07 22:48:46.104272960 +0000
 @@ -16,7 +16,7 @@
   * system printf functions.  This is useful to know, for example,
   * when using glibc's register_printf_function().
@@ -638,7 +685,7 @@ diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.i
  #mesondefine GOBJECT_STATIC_COMPILATION
 diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
 --- glib-2.62.6-orig/glib/gmain.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gmain.c	2020-09-12 21:25:14.277134760 +0000
++++ glib-2.62.6/glib/gmain.c	2020-11-07 22:48:46.111805360 +0000
 @@ -2844,7 +2844,11 @@
    struct timespec ts;
    gint result;
@@ -653,7 +700,7 @@ diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
      g_error ("GLib requires working CLOCK_MONOTONIC");
 diff -u -r glib-2.62.6-orig/glib/gmessages.c glib-2.62.6/glib/gmessages.c
 --- glib-2.62.6-orig/glib/gmessages.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gmessages.c	2020-09-12 21:25:14.282113720 +0000
++++ glib-2.62.6/glib/gmessages.c	2020-11-07 22:48:46.116832160 +0000
 @@ -1053,9 +1053,11 @@
      }
    else
@@ -670,7 +717,7 @@ diff -u -r glib-2.62.6-orig/glib/gmessages.c glib-2.62.6/glib/gmessages.c
        else
 diff -u -r glib-2.62.6-orig/glib/gnulib/fpucw.h glib-2.62.6/glib/gnulib/fpucw.h
 --- glib-2.62.6-orig/glib/gnulib/fpucw.h	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gnulib/fpucw.h	2020-09-12 21:25:14.283856840 +0000
++++ glib-2.62.6/glib/gnulib/fpucw.h	2020-11-07 22:48:46.118491120 +0000
 @@ -88,6 +88,36 @@
  # define END_LONG_DOUBLE_ROUNDING() \
    SET_FPUCW (oldcw)
@@ -710,7 +757,7 @@ diff -u -r glib-2.62.6-orig/glib/gnulib/fpucw.h glib-2.62.6/glib/gnulib/fpucw.h
  typedef unsigned int fpucw_t;
 diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meson.build
 --- glib-2.62.6-orig/glib/gnulib/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gnulib/meson.build	2020-09-12 21:25:14.285417080 +0000
++++ glib-2.62.6/glib/gnulib/meson.build	2020-11-07 22:48:46.120003440 +0000
 @@ -323,14 +323,16 @@
                           output: 'gnulib_math.h',
                           configuration: math_h_config)
@@ -737,7 +784,7 @@ diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meso
  
 diff -u -r glib-2.62.6-orig/glib/gnulib/vasnprintf.c glib-2.62.6/glib/gnulib/vasnprintf.c
 --- glib-2.62.6-orig/glib/gnulib/vasnprintf.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gnulib/vasnprintf.c	2020-09-12 21:25:14.293684760 +0000
++++ glib-2.62.6/glib/gnulib/vasnprintf.c	2020-11-07 22:48:46.128447760 +0000
 @@ -3072,7 +3072,7 @@
                          int sign = 0;
                          DECL_LONG_DOUBLE_ROUNDING
@@ -749,7 +796,7 @@ diff -u -r glib-2.62.6-orig/glib/gnulib/vasnprintf.c glib-2.62.6/glib/gnulib/vas
                            {
 diff -u -r glib-2.62.6-orig/glib/gspawn.c glib-2.62.6/glib/gspawn.c
 --- glib-2.62.6-orig/glib/gspawn.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gspawn.c	2020-09-12 21:25:14.297871720 +0000
++++ glib-2.62.6/glib/gspawn.c	2020-11-07 22:48:46.132578320 +0000
 @@ -1626,7 +1626,6 @@
    if (!intermediate_child && working_directory == NULL && !close_descriptors &&
        !search_path_from_envp && child_setup == NULL)
@@ -769,7 +816,7 @@ diff -u -r glib-2.62.6-orig/glib/gspawn.c glib-2.62.6/glib/gspawn.c
                 !close_descriptors ? "" : "(fd close requested) ",
 diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.c
 --- glib-2.62.6-orig/glib/gthread-posix.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gthread-posix.c	2020-09-12 21:25:14.300771480 +0000
++++ glib-2.62.6/glib/gthread-posix.c	2020-11-07 22:48:46.135434640 +0000
 @@ -661,7 +661,7 @@
  
    pthread_condattr_init (&attr);
@@ -804,7 +851,7 @@ diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.
     * monotonic, so if we're in this branch, timedwait() will already be
 diff -u -r glib-2.62.6-orig/glib/gtimezone.c glib-2.62.6/glib/gtimezone.c
 --- glib-2.62.6-orig/glib/gtimezone.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gtimezone.c	2020-09-12 21:25:14.304117720 +0000
++++ glib-2.62.6/glib/gtimezone.c	2020-11-07 22:48:46.138937920 +0000
 @@ -416,7 +416,8 @@
  
    tzdir = getenv ("TZDIR");
@@ -817,7 +864,7 @@ diff -u -r glib-2.62.6-orig/glib/gtimezone.c glib-2.62.6/glib/gtimezone.c
       if relative, it is interpreted starting from /usr/share/zoneinfo
 diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
 --- glib-2.62.6-orig/glib/gutils.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gutils.c	2020-09-12 21:25:14.308332440 +0000
++++ glib-2.62.6/glib/gutils.c	2020-11-07 22:48:46.143053920 +0000
 @@ -992,11 +992,17 @@
        const gsize size_large = (gsize) 256 * 256;
        gchar *tmp;
@@ -848,7 +895,7 @@ diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
  #else
 diff -u -r glib-2.62.6-orig/glib/tests/collate.c glib-2.62.6/glib/tests/collate.c
 --- glib-2.62.6-orig/glib/tests/collate.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/collate.c	2020-09-12 21:25:14.310228920 +0000
++++ glib-2.62.6/glib/tests/collate.c	2020-11-07 22:48:46.144968000 +0000
 @@ -105,6 +105,172 @@
    do_collate (TRUE, TRUE, test);
  }
@@ -1033,7 +1080,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/collate.c glib-2.62.6/glib/tests/collate.
  {
 diff -u -r glib-2.62.6-orig/glib/tests/date.c glib-2.62.6/glib/tests/date.c
 --- glib-2.62.6-orig/glib/tests/date.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/date.c	2020-09-12 21:25:14.312188920 +0000
++++ glib-2.62.6/glib/tests/date.c	2020-11-07 22:48:46.146933600 +0000
 @@ -215,6 +215,11 @@
  
    g_test_bug ("793550");
@@ -1048,7 +1095,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/date.c glib-2.62.6/glib/tests/date.c
        g_test_skip ("pl_PL locale not available");
 diff -u -r glib-2.62.6-orig/glib/tests/gdatetime.c glib-2.62.6/glib/tests/gdatetime.c
 --- glib-2.62.6-orig/glib/tests/gdatetime.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/gdatetime.c	2020-09-12 21:25:14.316521400 +0000
++++ glib-2.62.6/glib/tests/gdatetime.c	2020-11-07 22:48:46.151140400 +0000
 @@ -1564,7 +1564,7 @@
    TEST_PRINTF ("%%", "%");
    TEST_PRINTF ("%", "");
@@ -1060,7 +1107,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/gdatetime.c glib-2.62.6/glib/tests/gdatet
    g_assert (GetDynamicTimeZoneInformation (&dtz_info) != TIME_ZONE_ID_INVALID);
 diff -u -r glib-2.62.6-orig/glib/tests/gvariant.c glib-2.62.6/glib/tests/gvariant.c
 --- glib-2.62.6-orig/glib/tests/gvariant.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/gvariant.c	2020-09-12 21:25:14.323288840 +0000
++++ glib-2.62.6/glib/tests/gvariant.c	2020-11-07 22:48:46.158026880 +0000
 @@ -15,6 +15,7 @@
  
  #include <glib/gvariant-internal.h>
@@ -1090,7 +1137,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/gvariant.c glib-2.62.6/glib/tests/gvarian
    g_free (res);
 diff -u -r glib-2.62.6-orig/glib/tests/protocol.c glib-2.62.6/glib/tests/protocol.c
 --- glib-2.62.6-orig/glib/tests/protocol.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/protocol.c	2020-09-12 21:25:14.325161480 +0000
++++ glib-2.62.6/glib/tests/protocol.c	2020-11-07 22:48:46.159560640 +0000
 @@ -20,6 +20,8 @@
   * if advised of the possibility of such damage.
   */
@@ -1102,7 +1149,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/protocol.c glib-2.62.6/glib/tests/protoco
  #ifdef G_OS_UNIX
 diff -u -r glib-2.62.6-orig/glib/tests/strfuncs.c glib-2.62.6/glib/tests/strfuncs.c
 --- glib-2.62.6-orig/glib/tests/strfuncs.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/strfuncs.c	2020-09-12 21:25:14.329192600 +0000
++++ glib-2.62.6/glib/tests/strfuncs.c	2020-11-07 22:48:46.163707280 +0000
 @@ -1105,7 +1105,11 @@
  {
    gchar *str_end = NULL;
@@ -1126,7 +1173,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/strfuncs.c glib-2.62.6/glib/tests/strfunc
    g_assert_true (d == g_ascii_strtod (g_ascii_dtostr (buffer, sizeof (buffer), d), NULL));
 diff -u -r glib-2.62.6-orig/gobject/tests/genmarshal.py glib-2.62.6/gobject/tests/genmarshal.py
 --- glib-2.62.6-orig/gobject/tests/genmarshal.py	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gobject/tests/genmarshal.py	2020-09-12 21:25:14.331396200 +0000
++++ glib-2.62.6/gobject/tests/genmarshal.py	2020-11-07 22:48:46.165882320 +0000
 @@ -1,4 +1,4 @@
 -#!/usr/bin/python3
 +#!/usr/sgug/bin/python3
@@ -1135,7 +1182,7 @@ diff -u -r glib-2.62.6-orig/gobject/tests/genmarshal.py glib-2.62.6/gobject/test
  # Copyright © 2019 Endless Mobile, Inc.
 diff -u -r glib-2.62.6-orig/gobject/tests/mkenums.py glib-2.62.6/gobject/tests/mkenums.py
 --- glib-2.62.6-orig/gobject/tests/mkenums.py	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gobject/tests/mkenums.py	2020-09-12 21:25:14.333049640 +0000
++++ glib-2.62.6/gobject/tests/mkenums.py	2020-11-07 22:48:46.167429520 +0000
 @@ -1,4 +1,4 @@
 -#!/usr/bin/python3
 +#!/usr/sgug/bin/python3
@@ -1144,7 +1191,7 @@ diff -u -r glib-2.62.6-orig/gobject/tests/mkenums.py glib-2.62.6/gobject/tests/m
  # Copyright © 2018 Endless Mobile, Inc.
 diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
 --- glib-2.62.6-orig/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/meson.build	2020-09-12 21:25:14.336908200 +0000
++++ glib-2.62.6/meson.build	2020-11-07 22:48:46.170902080 +0000
 @@ -5,7 +5,7 @@
    default_options : [
      'buildtype=debugoptimized',
@@ -1179,7 +1226,7 @@ diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
    functions += ['statvfs']
 diff -u -r glib-2.62.6-orig/tests/mapping-test.c glib-2.62.6/tests/mapping-test.c
 --- glib-2.62.6-orig/tests/mapping-test.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/tests/mapping-test.c	2020-09-12 21:25:14.338270680 +0000
++++ glib-2.62.6/tests/mapping-test.c	2020-11-07 22:48:46.172348640 +0000
 @@ -208,7 +208,11 @@
    signal (SIGUSR1, handle_usr1);
  #endif
