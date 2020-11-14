@@ -1,4 +1,4 @@
-%global debug 1
+%global debug 0
 
 %if 0%{debug}
 %global __strip /bin/true
