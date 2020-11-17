@@ -8,6 +8,7 @@ Release: 1%{?dist}
 URL: https://www.freedesktop.org/software/desktop-file-utils
 Source0: https://www.freedesktop.org/software/desktop-file-utils/releases/%{name}-%{version}.tar.xz
 Source1: desktop-entry-mode-init.el
+Source2: desktop-file-utils-wrapper-install.sh
 License: GPLv2+
 
 BuildRequires:  gcc
@@ -44,6 +45,9 @@ mkdir -p $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
 mv $RPM_BUILD_ROOT%{_emacs_sitelispdir}/*.el* $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
 install -Dpm 644 %{SOURCE1} $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.el
 touch $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.elc
+
+mv %{buildroot}/desktop-file-utils-wrapper-install.sh %{buildroot}%{_bindir}/desktop-file-install
+mv %{buildroot}%{_bindir}/desktop-file-install-bin
 
 %transfiletriggerin -- %{_datadir}/applications
 update-desktop-database &> /dev/null || :
