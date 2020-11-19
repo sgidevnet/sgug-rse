@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/sgug/bin/bash
 set -eux
 
-desktop-file-install $@
+desktop-file-install-bin $@
