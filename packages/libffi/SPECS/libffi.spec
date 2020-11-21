@@ -15,7 +15,7 @@
 
 Name:		libffi
 Version:	3.2.1
-Release:	25%{?dist}
+Release:	26%{?dist}
 Summary:	A portable foreign function interface library
 License:	MIT
 URL:		http://sourceware.org/libffi
@@ -141,6 +141,9 @@ rm -rf $RPM_BUILD_ROOT%{_libdir}/libffi-%{version}
 %{_infodir}/libffi.info.*
 
 %changelog
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 3.2.1-26
+- Get all the extensive testsuite from 3.3 passing (separate build)
+
 * Sat Nov 14 2020 Daniel Hams <daniel.hams@gmail.com> - 3.2.1-25
 - Bug fix when returning pointers/32bit values directly
 
