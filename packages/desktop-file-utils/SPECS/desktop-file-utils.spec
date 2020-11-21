@@ -8,7 +8,7 @@ Release: 2%{?dist}
 URL: https://www.freedesktop.org/software/desktop-file-utils
 Source0: https://www.freedesktop.org/software/desktop-file-utils/releases/%{name}-%{version}.tar.xz
 Source1: desktop-entry-mode-init.el
-Source2: desktop-file-utils-wrapper-install.sh
+Source2: update-desktop-database-wrapper.sh
 Source3: sgugenv.sh
 License: GPLv2+
 
@@ -30,7 +30,6 @@ http://www.freedesktop.org/standards/, and desktop-file-install
 which installs a desktop file to the standard directory, optionally
 fixing it up in the process.
 
-
 %prep
 %autosetup -p1
 #%patch0 -p1 -b sgug.
@@ -46,12 +45,12 @@ mkdir -p $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
 mkdir -p $RPM_BUILD_ROOT%{_datarootdir}/%{pkg}
 mv $RPM_BUILD_ROOT%{_emacs_sitelispdir}/*.el* $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
 install -Dpm 644 %{SOURCE1} $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.el
-install -Dpm 555 %{SOURCE2} $RPM_BUILD_ROOT/desktop-file-utils-wrapper-install.sh
+install -Dpm 555 %{SOURCE2} $RPM_BUILD_ROOT/update-desktop-database-wrapper.sh
 install -Dpm 444 %{SOURCE3} $RPM_BUILD_ROOT%{_datarootdir}/%{pkg}/sgugenv.sh
 touch $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.elc
 
-mv %{buildroot}%{_bindir}/desktop-file-install %{buildroot}%{_bindir}/desktop-file-install-bin
-mv %{buildroot}/desktop-file-utils-wrapper-install.sh %{buildroot}%{_bindir}/desktop-file-install
+mv %{buildroot}%{_bindir}/update-desktop-database %{buildroot}%{_bindir}/update-desktop-database-bin
+mv %{buildroot}/update-desktop-database-wrapper.sh %{buildroot}%{_bindir}/update-desktop-database
 
 %transfiletriggerin -- %{_datadir}/applications
 update-desktop-database &> /dev/null || :

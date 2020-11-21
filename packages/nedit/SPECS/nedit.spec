@@ -79,7 +79,6 @@ desktop-file-install \
 
 %files
 %doc README ReleaseNotes
-/usr/lib/desktop/iconcatalog/pages/C/RSE/*
 %{_mandir}/*/*
 %{_bindir}/*
 %{_prefix}/share/applications/*
