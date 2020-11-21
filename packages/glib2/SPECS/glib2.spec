@@ -8,7 +8,7 @@
 
 Name: glib2
 Version: 2.62.6
-Release: 6%{?dist}
+Release: 7%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -32,6 +32,7 @@ BuildRequires: meson
 #BuildRequires: systemtap-sdt-devel
 BuildRequires: pkgconfig(libelf)
 BuildRequires: pkgconfig(libffi)
+BuildRequires: libffi-devel >= 3.2.1-26
 BuildRequires: pkgconfig(libpcre)
 #BuildRequires: pkgconfig(mount)
 BuildRequires: pkgconfig(zlib)
@@ -266,7 +267,10 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
-* Sat Oct 07 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-6
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-7
+- Depend on bug-fixed libffi
+
+* Sat Oct 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-6
 - Avoid picking up /dev/root as a device "node" rather than just a mount, use nsl for SVR4 pipe, up testing timeout
 
 * Sat Sep 12 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-5
