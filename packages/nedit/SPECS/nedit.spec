@@ -77,6 +77,12 @@ desktop-file-install \
         --add-category "Development;" \
         %{SOURCE1}
 
+%pre
+desktop2catalog --install %{SOURCE1}
+
+%preun
+desktop2catalog --remove %{SOURCE1}
+
 %files
 %doc README ReleaseNotes
 %{_mandir}/*/*

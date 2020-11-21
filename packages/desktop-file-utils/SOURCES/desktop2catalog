@@ -1,0 +1,36 @@
+#!/usr/sgug/bin/bash
+set -eu
+
+while test -n "$1"; do
+	case "$1" in
+		--install)
+			DFI_MODE="-add"
+			shift 1 
+			;;
+		--remove)
+			DFI_MODE="-remove"
+			shift 1
+			;;
+		*)
+			DFI_DESKTOP_FILE=$1
+			break
+			;;
+    esac
+done 
+
+_get_key_from_desktop() {
+	DFI_LAST_KEY=$(cat $1 | grep "$2=" | sed "s,$2=,," | awk '{print $1}')
+}
+
+# Grab stuff out of the desktop file
+_get_key_from_desktop $DFI_DESKTOP_FILE "Name"
+DFI_DESKTOP_KEY_NAME=$DFI_LAST_KEY
+_get_key_from_desktop $DFI_DESKTOP_FILE "Exec"
+DFI_DESKTOP_KEY_EXEC=$DFI_LAST_KEY
+_get_key_from_desktop $DFI_DESKTOP_FILE "Categories"
+DFI_DESKTOP_KEY_CATEGORY=$(echo $DFI_LAST_KEY | sed 's,;,,g' | awk '{print $1}')
+
+ICE_STRING="$DFI_DESKTOP_KEY_CATEGORY:$DFI_DESKTOP_KEY_NAME:/usr/sgug/bin/$DFI_DESKTOP_KEY_EXEC"
+
+set -x
+iconcatalogedit $DFI_MODE $ICE_STRING -syspage RSE
