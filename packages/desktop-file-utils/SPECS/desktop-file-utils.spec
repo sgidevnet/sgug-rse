@@ -4,11 +4,12 @@
 Summary: Utilities for manipulating .desktop files
 Name: desktop-file-utils
 Version: 0.24
-Release: 1%{?dist}
+Release: 2%{?dist}
 URL: https://www.freedesktop.org/software/desktop-file-utils
 Source0: https://www.freedesktop.org/software/desktop-file-utils/releases/%{name}-%{version}.tar.xz
 Source1: desktop-entry-mode-init.el
-Source2: desktop2catalog
+Source2: desktop-file-utils-wrapper-install.sh
+Source3: sgugenv.sh
 License: GPLv2+
 
 BuildRequires:  gcc
@@ -42,10 +43,15 @@ V=1 make %{?_smp_mflags}
 make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 
 mkdir -p $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
+mkdir -p $RPM_BUILD_ROOT%{_datarootdir}/%{pkg}
 mv $RPM_BUILD_ROOT%{_emacs_sitelispdir}/*.el* $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
 install -Dpm 644 %{SOURCE1} $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.el
-install -Dpm 555 %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}
+install -Dpm 555 %{SOURCE2} $RPM_BUILD_ROOT/desktop-file-utils-wrapper-install.sh
+install -Dpm 444 %{SOURCE3} $RPM_BUILD_ROOT%{_datarootdir}/%{pkg}/sgugenv.sh
 touch $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.elc
+
+mv %{buildroot}%{_bindir}/desktop-file-install %{buildroot}%{_bindir}/desktop-file-install-bin
+mv %{buildroot}/desktop-file-utils-wrapper-install.sh %{buildroot}%{_bindir}/desktop-file-install
 
 %transfiletriggerin -- %{_datadir}/applications
 update-desktop-database &> /dev/null || :
@@ -57,6 +63,7 @@ update-desktop-database &> /dev/null || :
 %doc AUTHORS README NEWS
 %license COPYING
 %{_bindir}/*
+%{_datarootdir}/%{pkg}
 %{_mandir}/man1/desktop-file-install.1.gz
 %{_mandir}/man1/desktop-file-validate.1.gz
 %{_mandir}/man1/update-desktop-database.1.gz
@@ -66,6 +73,9 @@ update-desktop-database &> /dev/null || :
 %{_emacs_sitelispdir}/%{pkg}
 
 %changelog
+* Sat Nov 21 2020 David Stancu <dstancu@nyu.edu> - 0.24-2
+- IRIX wrapper script for generating RSE icon catalog launchers
+
 * Wed Aug 14 2019 Kalev Lember <klember@redhat.com> - 0.24-1
 - Update to 0.24
 

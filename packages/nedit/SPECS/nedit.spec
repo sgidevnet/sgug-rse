@@ -77,14 +77,9 @@ desktop-file-install \
         --add-category "Development;" \
         %{SOURCE1}
 
-%pre
-desktop2catalog --install %{SOURCE1}
-
-%preun
-desktop2catalog --remove %{SOURCE1}
-
 %files
 %doc README ReleaseNotes
+/usr/lib/desktop/iconcatalog/pages/C/RSE/*
 %{_mandir}/*/*
 %{_bindir}/*
 %{_prefix}/share/applications/*
