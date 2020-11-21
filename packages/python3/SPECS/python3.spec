@@ -23,7 +23,7 @@ URL: https://www.python.org/
 #global prerel ...
 %global upstream_version %{general_version}%{?prerel}
 Version: %{general_version}%{?prerel:~%{prerel}}
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 
 
@@ -163,7 +163,7 @@ BuildRequires: gdbm-devel
 #BuildRequires: gmp-devel
 #BuildRequires: gnupg2
 #BuildRequires: libappstream-glib
-BuildRequires: libffi-devel
+BuildRequires: libffi-devel >= 3.2.1-26
 #BuildRequires: libnsl2-devel
 #BuildRequires: libtirpc-devel
 #BuildRequires: libGL-devel
@@ -343,7 +343,7 @@ Provides: python%{pyshortver} = %{version}-%{release}
 # Here we assert that *any* version of the system's default interpreter is
 # preferable to an "extra" interpreter. For example, python3-3.6.1 will
 # replace python36-3.6.2.
-Obsoletes: python%{pyshortver}
+#Obsoletes: python%%{pyshortver}
 
 # https://fedoraproject.org/wiki/Changes/Move_usr_bin_python_into_separate_package
 # https://fedoraproject.org/wiki/Changes/Python_means_Python3
@@ -1583,6 +1583,9 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 3.7.7-3
+- Depend on bug-fixed libffi
+
 * Tue Sep 22 2020 Daniel Hams <daniel.hams@gmail.com> - 3.7.7-2
 - Get more tests passing
 - Allow on/off of a debug (non-stripped) build
