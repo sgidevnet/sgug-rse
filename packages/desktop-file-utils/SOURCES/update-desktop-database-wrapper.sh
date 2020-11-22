@@ -8,7 +8,7 @@ CATALOG_ROOT=/usr/lib/desktop/iconcatalog/pages/C/RSE
 
 # Grab stuff out of the desktop file
 _get_key_from_desktop() {
-	DFI_LAST_KEY=$(cat $1 | grep "$2=" | sed "s,$2=,," | awk '{print $1}')
+	DFI_LAST_KEY=$(cat $1 | grep "^$2=" | sed "s,$2=,," | awk '{print $1}')
 }
 
 mkdir -p $CATALOG_ROOT
