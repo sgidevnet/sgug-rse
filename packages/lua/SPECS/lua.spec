@@ -1,3 +1,12 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%else
+# This package is able to use optimised linker flags.
+%global build_ldflags %{sgug_optimised_ldflags}
+%endif
+
 %global major_version 5.3
 # Normally, this is the same as version, but... not always.
 # No tests yet for 5.3.5
@@ -119,6 +128,12 @@ cd ..
 
 
 %build
+
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
 
 %configure --with-readline --with-compat-module
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
