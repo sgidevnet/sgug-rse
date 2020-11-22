@@ -374,7 +374,7 @@ ln -s db-%{bdbver} db
 
 %build
 %set_build_flags
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
 export LIBS="-lgen -ldicl-0.1 -llzma -lintl"
 %if 0%{debug}
 export CFLAGS="-g -Og"
