@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 # bcond default logic is nicely backwards...
 %bcond_without tcl
 %bcond_with static
@@ -135,7 +141,13 @@ rm -f %{name}-doc-%{docver}/sqlite.css~ || :
 autoconf # Rerun with new autoconf to add support for aarm64
 
 %build
-export CFLAGS="$RPM_OPT_FLAGS -DSQLITE_ENABLE_COLUMN_METADATA=1 \
+%if 0%{debug}
+export RPM_SQLITE_CFLAGS="-g -Og"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%else
+export RPM_SQLITE_CFLAGS="$RPM_OPT_FLAGS"
+%endif
+export CFLAGS="$RPM_SQLITE_CFLAGS -DSQLITE_ENABLE_COLUMN_METADATA=1 \
                -DSQLITE_DISABLE_DIRSYNC=1 -DSQLITE_ENABLE_FTS3=3 \
                -DSQLITE_ENABLE_RTREE=1 -DSQLITE_SECURE_DELETE=1 \
                -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 -DSQLITE_ENABLE_DBSTAT_VTAB=1 \
