@@ -9,7 +9,6 @@ URL: https://www.freedesktop.org/software/desktop-file-utils
 Source0: https://www.freedesktop.org/software/desktop-file-utils/releases/%{name}-%{version}.tar.xz
 Source1: desktop-entry-mode-init.el
 Source2: update-desktop-database-wrapper.sh
-Source3: sgugenv.sh
 License: GPLv2+
 
 BuildRequires:  gcc
@@ -46,7 +45,6 @@ mkdir -p $RPM_BUILD_ROOT%{_datarootdir}/%{pkg}
 mv $RPM_BUILD_ROOT%{_emacs_sitelispdir}/*.el* $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
 install -Dpm 644 %{SOURCE1} $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.el
 install -Dpm 555 %{SOURCE2} $RPM_BUILD_ROOT/update-desktop-database-wrapper.sh
-install -Dpm 444 %{SOURCE3} $RPM_BUILD_ROOT%{_datarootdir}/%{pkg}/sgugenv.sh
 touch $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.elc
 
 mv %{buildroot}%{_bindir}/update-desktop-database %{buildroot}%{_bindir}/update-desktop-database-bin
