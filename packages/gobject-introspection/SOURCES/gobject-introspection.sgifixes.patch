@@ -1,6 +1,76 @@
-diff -Naur gobject-introspection-1.62.0.orig/giscanner/scannerlexer.l gobject-introspection-1.62.0/giscanner/scannerlexer.l
---- gobject-introspection-1.62.0.orig/giscanner/scannerlexer.l	2019-09-09 12:22:10.000000000 +0000
-+++ gobject-introspection-1.62.0/giscanner/scannerlexer.l	2020-04-25 14:33:42.467971362 +0000
+diff -u -r gobject-introspection-1.62.0-orig/girepository/gicallableinfo.c gobject-introspection-1.62.0/girepository/gicallableinfo.c
+--- gobject-introspection-1.62.0-orig/girepository/gicallableinfo.c	2019-09-09 20:22:10.000000000 +0000
++++ gobject-introspection-1.62.0/girepository/gicallableinfo.c	2020-11-22 08:20:07.718836840 +0000
+@@ -590,8 +590,9 @@
+   gboolean success = FALSE;
+   GError *local_error = NULL;
+   gpointer error_address = &local_error;
+-  GIFFIReturnValue ffi_return_value;
+-  gpointer return_value_p; /* Will point inside the union return_value */
++  ffi_arg ffi_return_value = {0};
++  //GIFFIReturnValue ffi_return_value;
++  //gpointer return_value_p; /* Will point inside the union return_value */
+ 
+   rinfo = g_callable_info_get_return_type ((GICallableInfo *)info);
+   rtype = g_type_info_get_ffi_type (rinfo);
+@@ -727,6 +728,7 @@
+ 
+   g_return_val_if_fail (return_value, FALSE);
+   /* See comment for GIFFIReturnValue above */
++  /*
+   switch (rtag)
+     {
+     case GI_TYPE_TAG_FLOAT:
+@@ -742,7 +744,8 @@
+     default:
+       return_value_p = &ffi_return_value.v_long;
+     }
+-  ffi_call (&cif, function, return_value_p, args);
++  */
++  ffi_call (&cif, function, &ffi_return_value, args);
+ 
+   if (local_error)
+     {
+@@ -751,7 +754,36 @@
+     }
+   else
+     {
++      /*
+       gi_type_info_extract_ffi_return_value (rinfo, &ffi_return_value, return_value);
++      */
++      switch (rtag)
++        {
++        case GI_TYPE_TAG_FLOAT:
++          {
++            float f = ffi_return_value;
++            return_value->v_float = f;
++            break;
++          }
++        case GI_TYPE_TAG_DOUBLE:
++          {
++            double d = ffi_return_value;
++            return_value->v_double = d;
++            break;
++          }
++        case GI_TYPE_TAG_INT64:
++        case GI_TYPE_TAG_UINT64:
++          {
++            uint64_t ll = ffi_return_value;
++            return_value->v_uint64 = ll;
++            break;
++          }
++        default:
++          {
++            uint32_t l = ffi_return_value;
++            return_value->v_long = l;
++          }
++        }
+       success = TRUE;
+     }
+  out:
+diff -u -r gobject-introspection-1.62.0-orig/giscanner/scannerlexer.l gobject-introspection-1.62.0/giscanner/scannerlexer.l
+--- gobject-introspection-1.62.0-orig/giscanner/scannerlexer.l	2019-09-09 20:22:10.000000000 +0000
++++ gobject-introspection-1.62.0/giscanner/scannerlexer.l	2020-11-22 08:20:00.445854760 +0000
 @@ -104,6 +104,7 @@
  "#else".*"\n"				{ ++lineno; return ELSE_COND; }
  "#endif".*"\n"				{ ++lineno; return ENDIF_COND; }

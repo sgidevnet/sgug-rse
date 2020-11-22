@@ -10,7 +10,7 @@
 
 Name:           gobject-introspection
 Version:        1.62.0
-Release:        10%{?dist}
+Release:        11%{?dist}
 Summary:        Introspection system for GObject-based libraries
 
 License:        GPLv2+, LGPLv2+, MIT
@@ -113,6 +113,9 @@ export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 #%%{_datadir}/gtk-doc/html/gi/
 
 %changelog
+* Sun Nov 22 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-11
+- Fix up ffi_call return processing
+
 * Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-10
 - Depend on bugfixed libffi
 
