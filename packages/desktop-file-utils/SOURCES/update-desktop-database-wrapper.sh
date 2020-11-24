@@ -32,11 +32,10 @@ for DESKTOP_FILE_PATH in $(find $SGUG_DATADIR_APPS/*.desktop -type f); do
 	if [ -f $CATALOG_ROOT/$APPNAME ]; then
 		continue
 	fi
-	cp /usr/sgug/share/desktop-file-utils/sgugenv.sh $CATALOG_ROOT/$APPNAME
 
 	chmod 755 $CATALOG_ROOT/$APPNAME
 	echo "#!/usr/sgug/bin/bash" >> $CATALOG_ROOT/$APPNAME
-	echo "export PATH=$PATH:/usr/sgug/bin" >> $CATALOG_ROOT/$APPNAME
+	echo "export PATH=/usr/sgug/bin:$PATH" >> $CATALOG_ROOT/$APPNAME
     echo "exec $DESKTOP_KEY_EXEC" >> $CATALOG_ROOT/$APPNAME 
 done
 
