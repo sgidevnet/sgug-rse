@@ -12,15 +12,14 @@
 
 Name:           pygobject3
 Version:        3.34.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Python bindings for GObject Introspection
 
 License:        LGPLv2+ and MIT
 URL:            https://wiki.gnome.org/Projects/PyGObject
 Source0:        https://download.gnome.org/sources/pygobject/3.34/pygobject-%{version}.tar.xz
 
-#Patch100:       pygobject.sgifixes.patch
-Patch100:       pygobject.sgifixes.patch.debug7
+Patch100:       pygobject.sgifixes.patch
 
 BuildRequires:  cairo-gobject-devel
 BuildRequires:  glib2-devel >= %{glib2_version}
@@ -30,6 +29,7 @@ BuildRequires:  python2-devel >= %{python2_version}
 BuildRequires:  python2-cairo-devel >= %{pycairo_version}
 BuildRequires:  python3-devel >= %{python3_version}
 BuildRequires:  python3-cairo-devel >= %{pycairo_version}
+BuildRequires:  libffi-devel >= 3.2.1-26
 
 # Don't use automatic provides in order to prefer python3-gobject-devel over
 # python2-gobject-devel. The provides are added to python3-gobject-devel
@@ -181,8 +181,11 @@ cd $PREV_WD
 %{_libdir}/pkgconfig/pygobject-3.0.pc
 
 %changelog
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 3.34.0-4
+- Depend on bugfixed libffi, hack up the handling to better conform to IRIX caller style
+
 * Wed Sep 25 2019 Kalev Lember <klember@redhat.com> - 3.34.0-3
-- Don't add pkgconfig provides to python2-gobject-devel
+- Don''t add pkgconfig provides to python2-gobject-devel
 
 * Sat Sep 21 2019 Kalev Lember <klember@redhat.com> - 3.34.0-2
 - Drop Python 3 conditionals

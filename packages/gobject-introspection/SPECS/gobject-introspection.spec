@@ -10,7 +10,7 @@
 
 Name:           gobject-introspection
 Version:        1.62.0
-Release:        9%{?dist}
+Release:        11%{?dist}
 Summary:        Introspection system for GObject-based libraries
 
 License:        GPLv2+, LGPLv2+, MIT
@@ -28,7 +28,7 @@ BuildRequires:  freetype-devel
 BuildRequires:  gettext
 BuildRequires:  glib2-devel >= %{glib2_version}
 #BuildRequires:  gtk-doc
-BuildRequires:  libffi-devel
+BuildRequires:  libffi-devel >= 3.2.1-26
 BuildRequires:  libX11-devel
 BuildRequires:  libXfixes-devel
 BuildRequires:  libXft-devel
@@ -63,6 +63,9 @@ Libraries and headers for gobject-introspection
 
 %prep
 %autosetup -p1
+
+# A place to generate patches
+#exit 1
 
 # Fix some hardcoded paths
 perl -pi -e "s|/usr/share|%{_datadir}|g" giscanner/transformer.py
@@ -110,6 +113,12 @@ export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 #%%{_datadir}/gtk-doc/html/gi/
 
 %changelog
+* Sun Nov 22 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-11
+- Fix up ffi_call return processing
+
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-10
+- Depend on bugfixed libffi
+
 * Wed Sep 23 2020 Daniel Hams <daniel.hams@gmail.com> - 1.62.0-9
 - Add extra IRIX defines to ensure thread local errno
 

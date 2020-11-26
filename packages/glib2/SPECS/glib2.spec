@@ -8,7 +8,7 @@
 
 Name: glib2
 Version: 2.62.6
-Release: 5%{?dist}
+Release: 7%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -32,6 +32,7 @@ BuildRequires: meson
 #BuildRequires: systemtap-sdt-devel
 BuildRequires: pkgconfig(libelf)
 BuildRequires: pkgconfig(libffi)
+BuildRequires: libffi-devel >= 3.2.1-26
 BuildRequires: pkgconfig(libpcre)
 #BuildRequires: pkgconfig(mount)
 BuildRequires: pkgconfig(zlib)
@@ -103,6 +104,10 @@ perl -pi -e "s|/usr/bin/python3|%{_bindir}/python3|g" gobject/tests/mkenums.py
 # Ensure we're using c99 compliant compilation options
 perl -pi -e "s|gnu89|gnu99|g" meson.build
 
+# Rewrite the test timeouts to something more reasonable for SGI machines
+perl -pi -e "s|test_timeout = 60|test_timeout = 120|g" meson.build
+perl -pi -e "s|test_timeout_slow = 180|test_timeout_slow = 360|g" meson.build
+
 %build
 # Bug 1324770: Also explicitly remove PCRE sources since we use --with-pcre=system
 rm glib/pcre/*.[ch]
@@ -114,12 +119,13 @@ export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_
 export GLIB2_BUILD_DIR=`pwd`/mips-sgug-irix
 export LD_LIBRARYN32_PATH=$GLIB2_BUILD_DIR/gobject:$GLIB2_BUILD_DIR/gmodule:$GLIB2_BUILD_DIR/gio:$GLIB2_BUILD_DIR/glib:$LD_LIBRARYN32_PATH
 
+# Note nsl library required for SVR4 pipe() functionality
 %if 0%{debug}
 export CFLAGS="-g -Og"
 export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-ldicl-0.1"
+export LDFLAGS="-ldicl-0.1 -lnsl"
 %else
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+export LDFLAGS="-ldicl-0.1 -lnsl $RPM_LD_FLAGS"
 %endif
 %meson \
     --default-library=both \
@@ -261,6 +267,12 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-7
+- Depend on bug-fixed libffi
+
+* Sat Oct 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-6
+- Avoid picking up /dev/root as a device "node" rather than just a mount, use nsl for SVR4 pipe, up testing timeout
+
 * Sat Sep 12 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-5
 - Bug fix to error handling using newer gettext, get more tests passing
 

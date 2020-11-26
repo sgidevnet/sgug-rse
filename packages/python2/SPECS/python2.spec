@@ -124,7 +124,7 @@ URL: https://www.python.org/
 #global prerel ...
 %global upstream_version %{general_version}%{?prerel}
 Version: %{general_version}%{?prerel:~%{prerel}}
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
 Provides: python(abi) = %{pybasever}
@@ -151,7 +151,7 @@ BuildRequires: bzip2-devel
 #BuildRequires: glibc-devel
 BuildRequires: gmp-devel
 BuildRequires: libdb-devel
-BuildRequires: libffi-devel
+BuildRequires: libffi-devel >= 3.2.1-26
 BuildRequires: ncurses-devel
 BuildRequires: pkgconfig
 BuildRequires: readline-devel
@@ -1976,6 +1976,9 @@ CheckPython \
 # ======================================================
 
 %changelog
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.7.18-3
+- Depend on bug-fixed libffi
+
 * Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 2.7.18-2
 - Depend on sgug-rpm-config not redhat-rpm-config
 

@@ -15,7 +15,7 @@ License:        GPLv3+
 URL:            https://github.com/rpm-software-management/microdnf
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
-Patch100:       microdnf.sgifixes.patch.new
+Patch100:       microdnf.sgifixes.patch
 
 BuildRequires:  gcc
 BuildRequires:  meson >= 0.36.0

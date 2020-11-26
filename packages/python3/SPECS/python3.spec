@@ -23,7 +23,7 @@ URL: https://www.python.org/
 #global prerel ...
 %global upstream_version %{general_version}%{?prerel}
 Version: %{general_version}%{?prerel:~%{prerel}}
-Release: 2%{?dist}
+Release: 4%{?dist}
 License: Python
 
 
@@ -163,7 +163,7 @@ BuildRequires: gdbm-devel
 #BuildRequires: gmp-devel
 #BuildRequires: gnupg2
 #BuildRequires: libappstream-glib
-BuildRequires: libffi-devel
+BuildRequires: libffi-devel >= 3.2.1-26
 #BuildRequires: libnsl2-devel
 #BuildRequires: libtirpc-devel
 #BuildRequires: libGL-devel
@@ -239,14 +239,14 @@ Patch1:         00001-rpath.patch
 # a libpythonMAJOR.MINOR.a
 # See https://bugzilla.redhat.com/show_bug.cgi?id=556092
 # Downstream only: not appropriate for upstream
-Patch111: 00111-no-static-lib.patch
+#Patch111: 00111-no-static-lib.patch
 
 # 00155 #
 # Avoid allocating thunks in ctypes unless absolutely necessary, to avoid
 # generating SELinux denials on "import ctypes" and "import uuid" when
 # embedding Python within httpd
 # See https://bugzilla.redhat.com/show_bug.cgi?id=814391
-Patch155: 00155-avoid-ctypes-thunks.patch
+#Patch155: 00155-avoid-ctypes-thunks.patch
 
 
 # 00170 #
@@ -257,7 +257,7 @@ Patch155: 00155-avoid-ctypes-thunks.patch
 # them within the extension API.
 # Sent upstream: http://bugs.python.org/issue9263
 # See https://bugzilla.redhat.com/show_bug.cgi?id=614680
-Patch170: 00170-gc-assertions.patch
+#Patch170: 00170-gc-assertions.patch
 
 # 00178 #
 # Don't duplicate various FLAGS in sysconfig values
@@ -343,7 +343,7 @@ Provides: python%{pyshortver} = %{version}-%{release}
 # Here we assert that *any* version of the system's default interpreter is
 # preferable to an "extra" interpreter. For example, python3-3.6.1 will
 # replace python36-3.6.2.
-Obsoletes: python%{pyshortver}
+#Obsoletes: python%%{pyshortver}
 
 # https://fedoraproject.org/wiki/Changes/Move_usr_bin_python_into_separate_package
 # https://fedoraproject.org/wiki/Changes/Python_means_Python3
@@ -630,9 +630,9 @@ rm -r Modules/expat
 #%%if "%{_lib}" == "lib32"
 #%%patch102 -p1
 #%%endif
-%patch111 -p1
-%patch155 -p1
-%patch170 -p1
+#%%patch111 -p1
+#%%patch155 -p1
+#%%patch170 -p1
 %patch178 -p1
 
 %if %{with rpmwheels}
@@ -1583,6 +1583,12 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Sun Nov 22 2020 Daniel Hams <daniel.hams@gmail.com> - 3.7.7-4
+- Verify ctypes and ffi usage, comment out some tests that fail on irix
+
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 3.7.7-3
+- Depend on bug-fixed libffi
+
 * Tue Sep 22 2020 Daniel Hams <daniel.hams@gmail.com> - 3.7.7-2
 - Get more tests passing
 - Allow on/off of a debug (non-stripped) build

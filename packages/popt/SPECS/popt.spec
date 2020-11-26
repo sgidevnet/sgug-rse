@@ -1,5 +1,11 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%else
 # This package is able to use optimised linker flags.
 %global build_ldflags %{sgug_optimised_ldflags}
+%endif
 
 Summary:	C library for parsing command line parameters
 Name:		popt
@@ -54,12 +60,15 @@ export LIBS="-ldicl-0.1"
 %build
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export LIBS="-ldicl-0.1"
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
 %configure
 %make_build
 
 %install
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
-export LIBS="-ldicl-0.1"
 %make_install
 
 rm -f $RPM_BUILD_ROOT/%{_libdir}/libpopt.la

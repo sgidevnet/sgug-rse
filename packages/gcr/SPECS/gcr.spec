@@ -17,7 +17,7 @@ BuildRequires:  pkgconfig(gio-unix-2.0)
 BuildRequires:  pkgconfig(gobject-introspection-1.0)
 #BuildRequires:  pkgconfig(gtk+-3.0)
 BuildRequires:  pkgconfig(p11-kit-1)
-#BuildRequires:  chrpath
+BuildRequires:  chrpath
 BuildRequires:  docbook-style-xsl
 BuildRequires:  libgcrypt-devel
 BuildRequires:  desktop-file-utils
@@ -80,10 +80,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 rm -f $RPM_BUILD_ROOT%{_libdir}/libmock-test-module.*
 %find_lang %{name}
 
-#chrpath --delete $RPM_BUILD_ROOT%%{_libdir}/lib*.so.*
-#chrpath --delete $RPM_BUILD_ROOT%%{_bindir}/gcr-viewer
-#chrpath --delete $RPM_BUILD_ROOT%%{_libexecdir}/gcr-prompter
-
+chrpath --delete $RPM_BUILD_ROOT%%{_libdir}/lib*.so.*
+chrpath --delete $RPM_BUILD_ROOT%%{_bindir}/gcr-viewer
+chrpath --delete $RPM_BUILD_ROOT%%{_libexecdir}/gcr-prompter
 
 %check
 desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/gcr-viewer.desktop

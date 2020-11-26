@@ -1,18 +1,6 @@
-diff -u -r Python-3.7.7-orig/Include/object.h Python-3.7.7/Include/object.h
---- Python-3.7.7-orig/Include/object.h	2020-09-06 16:35:14.712546680 +0000
-+++ Python-3.7.7/Include/object.h	2020-09-10 11:33:25.031009400 +0000
-@@ -1124,7 +1124,7 @@
-    ? (void)(0)                                      \
-    : _PyObject_AssertFailed((obj),                  \
-                             (msg),                  \
--                            (__STRING(expr)),       \
-+                            (Py_STRINGIFY(expr)),   \
-                             (__FILE__),             \
-                             (__LINE__),             \
-                             (__PRETTY_FUNCTION__)))
 diff -u -r Python-3.7.7-orig/Include/pyport.h Python-3.7.7/Include/pyport.h
 --- Python-3.7.7-orig/Include/pyport.h	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Include/pyport.h	2020-09-10 11:33:25.033302280 +0000
++++ Python-3.7.7/Include/pyport.h	2020-11-22 15:15:27.148107520 +0000
 @@ -5,6 +5,10 @@
  
  #include <inttypes.h>
@@ -49,9 +37,42 @@ diff -u -r Python-3.7.7-orig/Include/pyport.h Python-3.7.7/Include/pyport.h
  /* default definitions are empty */
  #ifndef HAVE_PY_SET_53BIT_PRECISION
  #define _Py_SET_53BIT_PRECISION_HEADER
+diff -u -r Python-3.7.7-orig/Lib/ctypes/test/test_callbacks.py Python-3.7.7/Lib/ctypes/test/test_callbacks.py
+--- Python-3.7.7-orig/Lib/ctypes/test/test_callbacks.py	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Lib/ctypes/test/test_callbacks.py	2020-11-22 15:15:43.976274280 +0000
+@@ -95,7 +95,7 @@
+         self.check_type(c_char_p, "abc")
+         self.check_type(c_char_p, "def")
+ 
+-    def test_pyobject(self):
++    def DONTtest_pyobject(self):
+         o = ()
+         from sys import getrefcount as grc
+         for o in (), [], object():
+@@ -176,7 +176,7 @@
+ 
+         self.assertLess(diff, 0.01, "%s not less than 0.01" % diff)
+ 
+-    def test_issue_8959_a(self):
++    def DONTtest_issue_8959_a(self):
+         from ctypes.util import find_library
+         libc_path = find_library("c")
+         if not libc_path:
+diff -u -r Python-3.7.7-orig/Lib/ctypes/test/test_libc.py Python-3.7.7/Lib/ctypes/test/test_libc.py
+--- Python-3.7.7-orig/Lib/ctypes/test/test_libc.py	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Lib/ctypes/test/test_libc.py	2020-11-22 15:15:33.645465720 +0000
+@@ -17,7 +17,7 @@
+         import math
+         self.assertEqual(lib.my_sqrt(2.0), math.sqrt(2.0))
+ 
+-    def test_qsort(self):
++    def DONTtest_qsort(self):
+         comparefunc = CFUNCTYPE(c_int, POINTER(c_char), POINTER(c_char))
+         lib.my_qsort.argtypes = c_void_p, c_size_t, c_size_t, comparefunc
+         lib.my_qsort.restype = None
 diff -u -r Python-3.7.7-orig/Lib/distutils/command/install.py Python-3.7.7/Lib/distutils/command/install.py
---- Python-3.7.7-orig/Lib/distutils/command/install.py	2020-09-06 16:35:14.747714440 +0000
-+++ Python-3.7.7/Lib/distutils/command/install.py	2020-09-10 11:33:25.035497400 +0000
+--- Python-3.7.7-orig/Lib/distutils/command/install.py	2020-11-22 08:54:55.816078000 +0000
++++ Python-3.7.7/Lib/distutils/command/install.py	2020-11-22 15:15:27.150740320 +0000
 @@ -29,15 +29,15 @@
  
  INSTALL_SCHEMES = {
@@ -73,8 +94,8 @@ diff -u -r Python-3.7.7-orig/Lib/distutils/command/install.py Python-3.7.7/Lib/d
          'scripts': '$base/bin',
          'data'   : '$base',
 diff -u -r Python-3.7.7-orig/Lib/distutils/sysconfig.py Python-3.7.7/Lib/distutils/sysconfig.py
---- Python-3.7.7-orig/Lib/distutils/sysconfig.py	2020-09-06 16:35:14.734929880 +0000
-+++ Python-3.7.7/Lib/distutils/sysconfig.py	2020-09-10 11:33:25.037392200 +0000
+--- Python-3.7.7-orig/Lib/distutils/sysconfig.py	2020-11-22 08:54:55.803474640 +0000
++++ Python-3.7.7/Lib/distutils/sysconfig.py	2020-11-22 15:15:27.152588000 +0000
 @@ -148,7 +148,7 @@
  
      if os.name == "posix":
@@ -86,7 +107,7 @@ diff -u -r Python-3.7.7-orig/Lib/distutils/sysconfig.py Python-3.7.7/Lib/distuti
          else:
 diff -u -r Python-3.7.7-orig/Lib/distutils/tests/test_install.py Python-3.7.7/Lib/distutils/tests/test_install.py
 --- Python-3.7.7-orig/Lib/distutils/tests/test_install.py	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Lib/distutils/tests/test_install.py	2020-09-10 11:33:25.039039240 +0000
++++ Python-3.7.7/Lib/distutils/tests/test_install.py	2020-11-22 15:15:27.154160080 +0000
 @@ -57,8 +57,9 @@
              self.assertEqual(got, expected)
  
@@ -99,8 +120,8 @@ diff -u -r Python-3.7.7-orig/Lib/distutils/tests/test_install.py Python-3.7.7/Li
          check_path(cmd.install_headers,
                     os.path.join(destination, "include", "python", "foopkg"))
 diff -u -r Python-3.7.7-orig/Lib/site.py Python-3.7.7/Lib/site.py
---- Python-3.7.7-orig/Lib/site.py	2020-09-06 16:35:14.749327240 +0000
-+++ Python-3.7.7/Lib/site.py	2020-09-10 11:33:25.041191720 +0000
+--- Python-3.7.7-orig/Lib/site.py	2020-11-22 08:54:56.889518080 +0000
++++ Python-3.7.7/Lib/site.py	2020-11-22 15:15:27.156152400 +0000
 @@ -268,6 +268,9 @@
      if os.name == 'nt':
          return f'{userbase}\\Python{version[0]}{version[1]}\\site-packages'
@@ -128,8 +149,8 @@ diff -u -r Python-3.7.7-orig/Lib/site.py Python-3.7.7/Lib/site.py
      return sitepackages
  
 diff -u -r Python-3.7.7-orig/Lib/sysconfig.py Python-3.7.7/Lib/sysconfig.py
---- Python-3.7.7-orig/Lib/sysconfig.py	2020-09-06 16:35:14.737136680 +0000
-+++ Python-3.7.7/Lib/sysconfig.py	2020-09-10 11:33:25.043349160 +0000
+--- Python-3.7.7-orig/Lib/sysconfig.py	2020-11-22 08:54:55.805741200 +0000
++++ Python-3.7.7/Lib/sysconfig.py	2020-11-22 15:15:27.158478320 +0000
 @@ -20,10 +20,10 @@
  
  _INSTALL_SCHEMES = {
@@ -177,7 +198,7 @@ diff -u -r Python-3.7.7-orig/Lib/sysconfig.py Python-3.7.7/Lib/sysconfig.py
          'data': '{userbase}',
 diff -u -r Python-3.7.7-orig/Lib/test/test_fileio.py Python-3.7.7/Lib/test/test_fileio.py
 --- Python-3.7.7-orig/Lib/test/test_fileio.py	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Lib/test/test_fileio.py	2020-09-10 11:33:25.045343720 +0000
++++ Python-3.7.7/Lib/test/test_fileio.py	2020-11-22 15:15:27.160437120 +0000
 @@ -384,7 +384,7 @@
                      self.assertEqual(f.writable(), True)
                      if sys.platform != "darwin" and \
@@ -189,7 +210,7 @@ diff -u -r Python-3.7.7-orig/Lib/test/test_fileio.py Python-3.7.7/Lib/test/test_
                      self.assertEqual(f.isatty(), True)
 diff -u -r Python-3.7.7-orig/Lib/test/test_io.py Python-3.7.7/Lib/test/test_io.py
 --- Python-3.7.7-orig/Lib/test/test_io.py	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Lib/test/test_io.py	2020-09-10 11:33:25.052176280 +0000
++++ Python-3.7.7/Lib/test/test_io.py	2020-11-22 15:15:27.167311200 +0000
 @@ -4145,6 +4145,7 @@
      def alarm_interrupt(self, sig, frame):
          1/0
@@ -200,7 +221,7 @@ diff -u -r Python-3.7.7-orig/Lib/test/test_io.py Python-3.7.7/Lib/test/test_io.p
          invokes the signal handler, and bubbles up the exception raised
 diff -u -r Python-3.7.7-orig/Lib/test/test_site.py Python-3.7.7/Lib/test/test_site.py
 --- Python-3.7.7-orig/Lib/test/test_site.py	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Lib/test/test_site.py	2020-09-10 11:33:25.054391800 +0000
++++ Python-3.7.7/Lib/test/test_site.py	2020-11-22 15:15:27.169593520 +0000
 @@ -269,8 +269,8 @@
          dirs = site.getsitepackages()
          if os.sep == '/':
@@ -213,8 +234,8 @@ diff -u -r Python-3.7.7-orig/Lib/test/test_site.py Python-3.7.7/Lib/test/test_si
                                    'site-packages')
              self.assertEqual(dirs[0], wanted)
 diff -u -r Python-3.7.7-orig/Makefile.pre.in Python-3.7.7/Makefile.pre.in
---- Python-3.7.7-orig/Makefile.pre.in	2020-09-06 16:35:14.691013560 +0000
-+++ Python-3.7.7/Makefile.pre.in	2020-09-10 11:33:25.057810280 +0000
+--- Python-3.7.7-orig/Makefile.pre.in	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Makefile.pre.in	2020-11-22 15:15:27.172754800 +0000
 @@ -144,7 +144,7 @@
  MANDIR=		@mandir@
  INCLUDEDIR=	@includedir@
@@ -224,9 +245,21 @@ diff -u -r Python-3.7.7-orig/Makefile.pre.in Python-3.7.7/Makefile.pre.in
  ABIFLAGS=	@ABIFLAGS@
  
  # Detailed destination directories
+diff -u -r Python-3.7.7-orig/Modules/_ctypes/callproc.c Python-3.7.7/Modules/_ctypes/callproc.c
+--- Python-3.7.7-orig/Modules/_ctypes/callproc.c	2020-03-10 06:11:12.000000000 +0000
++++ Python-3.7.7/Modules/_ctypes/callproc.c	2020-11-22 15:16:38.311872840 +0000
+@@ -826,7 +826,7 @@
+ #endif
+         delta =
+ #endif
+-                ffi_call(&cif, (void *)pProc, resmem, avalues);
++	ffi_call(&cif, (void *)pProc, resmem, avalues);
+ #ifdef MS_WIN32
+ #ifndef DONT_USE_SEH
+     }
 diff -u -r Python-3.7.7-orig/Modules/_multiprocessing/semaphore.c Python-3.7.7/Modules/_multiprocessing/semaphore.c
 --- Python-3.7.7-orig/Modules/_multiprocessing/semaphore.c	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Modules/_multiprocessing/semaphore.c	2020-09-10 11:33:25.059805160 +0000
++++ Python-3.7.7/Modules/_multiprocessing/semaphore.c	2020-11-22 15:15:27.178180000 +0000
 @@ -185,10 +185,31 @@
  
  #define SEM_CLEAR_ERROR()
@@ -277,7 +310,7 @@ diff -u -r Python-3.7.7-orig/Modules/_multiprocessing/semaphore.c Python-3.7.7/M
              return PyErr_SetFromErrno(PyExc_OSError);
 diff -u -r Python-3.7.7-orig/Modules/addrinfo.h Python-3.7.7/Modules/addrinfo.h
 --- Python-3.7.7-orig/Modules/addrinfo.h	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Modules/addrinfo.h	2020-09-10 11:33:25.061495240 +0000
++++ Python-3.7.7/Modules/addrinfo.h	2020-11-22 15:15:27.179609680 +0000
 @@ -123,7 +123,7 @@
  
  #endif /* !HAVE_GETNAMEINFO */
@@ -298,7 +331,7 @@ diff -u -r Python-3.7.7-orig/Modules/addrinfo.h Python-3.7.7/Modules/addrinfo.h
   */
 diff -u -r Python-3.7.7-orig/Modules/getpath.c Python-3.7.7/Modules/getpath.c
 --- Python-3.7.7-orig/Modules/getpath.c	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Modules/getpath.c	2020-09-10 11:33:25.063932600 +0000
++++ Python-3.7.7/Modules/getpath.c	2020-11-22 15:15:27.181944400 +0000
 @@ -535,7 +535,7 @@
                  "Could not find platform dependent libraries <exec_prefix>\n");
          }
@@ -328,7 +361,7 @@ diff -u -r Python-3.7.7-orig/Modules/getpath.c Python-3.7.7/Modules/getpath.c
      }
 diff -u -r Python-3.7.7-orig/Modules/posixmodule.c Python-3.7.7/Modules/posixmodule.c
 --- Python-3.7.7-orig/Modules/posixmodule.c	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Modules/posixmodule.c	2020-09-10 11:33:25.079385160 +0000
++++ Python-3.7.7/Modules/posixmodule.c	2020-11-22 15:15:27.196204960 +0000
 @@ -33,6 +33,15 @@
  #include "winreparse.h"
  #endif
@@ -356,7 +389,7 @@ diff -u -r Python-3.7.7-orig/Modules/posixmodule.c Python-3.7.7/Modules/posixmod
  #elif defined(__DragonFly__) || \
 diff -u -r Python-3.7.7-orig/Modules/selectmodule.c Python-3.7.7/Modules/selectmodule.c
 --- Python-3.7.7-orig/Modules/selectmodule.c	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Modules/selectmodule.c	2020-09-10 11:33:32.205715280 +0000
++++ Python-3.7.7/Modules/selectmodule.c	2020-11-22 15:15:27.200906240 +0000
 @@ -42,9 +42,10 @@
  #include <sys/poll.h>
  #endif
@@ -372,7 +405,7 @@ diff -u -r Python-3.7.7-orig/Modules/selectmodule.c Python-3.7.7/Modules/selectm
  #ifdef HAVE_SYS_TYPES_H
 diff -u -r Python-3.7.7-orig/Modules/socketmodule.c Python-3.7.7/Modules/socketmodule.c
 --- Python-3.7.7-orig/Modules/socketmodule.c	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Modules/socketmodule.c	2020-09-10 11:33:25.093196280 +0000
++++ Python-3.7.7/Modules/socketmodule.c	2020-11-22 15:15:27.210278560 +0000
 @@ -241,7 +241,7 @@
  #endif
  
@@ -422,7 +455,7 @@ diff -u -r Python-3.7.7-orig/Modules/socketmodule.c Python-3.7.7/Modules/socketm
                                           addrbuflen : msg.msg_namelen),
 diff -u -r Python-3.7.7-orig/Modules/socketmodule.h Python-3.7.7/Modules/socketmodule.h
 --- Python-3.7.7-orig/Modules/socketmodule.h	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Modules/socketmodule.h	2020-09-10 11:33:25.095097400 +0000
++++ Python-3.7.7/Modules/socketmodule.h	2020-11-22 15:15:27.212003760 +0000
 @@ -9,6 +9,9 @@
  # endif
  # include <netinet/in.h>
@@ -435,7 +468,7 @@ diff -u -r Python-3.7.7-orig/Modules/socketmodule.h Python-3.7.7/Modules/socketm
  
 diff -u -r Python-3.7.7-orig/Python/pylifecycle.c Python-3.7.7/Python/pylifecycle.c
 --- Python-3.7.7-orig/Python/pylifecycle.c	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Python/pylifecycle.c	2020-09-10 11:33:25.098838920 +0000
++++ Python-3.7.7/Python/pylifecycle.c	2020-11-22 15:15:27.215835680 +0000
 @@ -39,6 +39,24 @@
  #define PyWindowsConsoleIO_Check(op) (PyObject_TypeCheck((op), &PyWindowsConsoleIO_Type))
  #endif
@@ -463,7 +496,7 @@ diff -u -r Python-3.7.7-orig/Python/pylifecycle.c Python-3.7.7/Python/pylifecycl
  _Py_IDENTIFIER(stdin);
 diff -u -r Python-3.7.7-orig/Python/pytime.c Python-3.7.7/Python/pytime.c
 --- Python-3.7.7-orig/Python/pytime.c	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/Python/pytime.c	2020-09-10 11:33:25.101101480 +0000
++++ Python-3.7.7/Python/pytime.c	2020-11-22 15:15:27.218038240 +0000
 @@ -882,6 +882,9 @@
  #ifdef CLOCK_HIGHRES
      const clockid_t clk_id = CLOCK_HIGHRES;
@@ -475,8 +508,8 @@ diff -u -r Python-3.7.7-orig/Python/pytime.c Python-3.7.7/Python/pytime.c
      const clockid_t clk_id = CLOCK_MONOTONIC;
      const char *implementation = "clock_gettime(CLOCK_MONOTONIC)";
 diff -u -r Python-3.7.7-orig/configure.ac Python-3.7.7/configure.ac
---- Python-3.7.7-orig/configure.ac	2020-09-06 16:35:14.768275400 +0000
-+++ Python-3.7.7/configure.ac	2020-09-10 11:33:25.108439080 +0000
+--- Python-3.7.7-orig/configure.ac	2020-11-22 08:54:56.909560000 +0000
++++ Python-3.7.7/configure.ac	2020-11-22 15:15:27.225260240 +0000
 @@ -140,6 +140,11 @@
  # them.
  AC_DEFINE(_DARWIN_C_SOURCE, 1, [Define on Darwin to activate all library features])
@@ -561,7 +594,7 @@ diff -u -r Python-3.7.7-orig/configure.ac Python-3.7.7/configure.ac
  
 diff -u -r Python-3.7.7-orig/setup.py Python-3.7.7/setup.py
 --- Python-3.7.7-orig/setup.py	2020-03-10 06:11:12.000000000 +0000
-+++ Python-3.7.7/setup.py	2020-09-10 11:33:25.112752280 +0000
++++ Python-3.7.7/setup.py	2020-11-22 15:15:27.229743760 +0000
 @@ -581,12 +581,12 @@
              os.unlink(tmpfile)
  

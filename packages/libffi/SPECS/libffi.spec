@@ -15,7 +15,7 @@
 
 Name:		libffi
 Version:	3.2.1
-Release:	24%{?dist}
+Release:	26%{?dist}
 Summary:	A portable foreign function interface library
 License:	MIT
 URL:		http://sourceware.org/libffi
@@ -28,7 +28,7 @@ Patch0:		libffi-3.1-fix-include-path.patch
 Patch2:		libffi-aarch64-rhbz1174037.patch
 Patch3:		libffi-3.1-aarch64-fix-exec-stack.patch
 
-Patch10:        libffi-3.2.1_irix.patch
+Patch100:        libffi.sgifixes.patch
 
 BuildRequires: gcc
 %if %{without bootstrap}
@@ -80,7 +80,10 @@ developing applications that use %{name}.
 #%patch1 -p1 -b .execstack
 %patch2 -p1 -b .aarch64
 %patch3 -p1 -b .aarch64execstack
-%patch10 -p1 -b _irix
+
+%patch100 -p1 -b .sgifixes
+
+#exit 1
 
 %build
 %if 0%{debug}
@@ -138,6 +141,12 @@ rm -rf $RPM_BUILD_ROOT%{_libdir}/libffi-%{version}
 %{_infodir}/libffi.info.*
 
 %changelog
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 3.2.1-26
+- Get all the extensive testsuite from 3.3 passing (separate build)
+
+* Sat Nov 14 2020 Daniel Hams <daniel.hams@gmail.com> - 3.2.1-25
+- Bug fix when returning pointers/32bit values directly
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.2.1-24
 - Remove hard coded shell paths
 
