@@ -68,7 +68,7 @@ fi
 %{_mandir}/man8/intltool*.8*
 
 %changelog
-* Thu May 14 2020  Alexander Tafarte <notes2@gmx.de> - 0.51.0-16
+* Thu May 14 2020  Alexander Tafarte <notes2@gmx.de> - 0.51.0-15
 - compiles on Irix 6.5 with sgug-rse gcc 9.2 , passes the test.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.51.0-15
