@@ -9,7 +9,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.35
+Version: 0.1.36
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -71,6 +71,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 
 %changelog
+* Fri Nov 27 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.36-1
+- Upgrade to 0.1.36 with C++ stubs for strto* functions
+
 * Wed Sep 23 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.35-1
 - Upgrade to 0.1.25 with memrchr + fopendir implementations
 
