@@ -1,7 +1,7 @@
 Name:           perl-TimeDate
 Version:        2.30
 Epoch:          1
-Release:        19%{?dist}
+Release:        20%{?dist}
 Summary:        A Perl module for time and date manipulation
 License:        GPL+ or Artistic
 URL:            https://metacpan.org/release/TimeDate
@@ -12,6 +12,7 @@ BuildArch:      noarch
 BuildRequires:  coreutils
 # glibc-common for iconv tool
 #BuildRequires:  glibc-common
+BuildRequires:  libiconv-utils
 BuildRequires:  make
 BuildRequires:  perl-generators
 BuildRequires:  perl-interpreter
@@ -41,8 +42,8 @@ textual representations of points in time.
 %setup -q -n TimeDate-%{version}
 %patch0 -p1
 # ChangeLog is ISO-8859-1 encoded
-#iconv -f iso-8859-1 -t utf8 < ChangeLog > ChangeLog.utf8
-#mv ChangeLog.utf8 ChangeLog
+iconv -f iso-8859-1 -t utf-8 < ChangeLog > ChangeLog.utf8
+mv ChangeLog.utf8 ChangeLog
 # Bogus exec permissions on some language modules
 chmod -x lib/Date/Language/{Russian_cp1251,Russian_koi8r,Turkish}.pm
 
@@ -64,6 +65,9 @@ make test
 %{_mandir}/man3/*.3*
 
 %changelog
+* Fri Nov 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1:2.30-20
+- Put back iconv usage + dependency
+
 * Mon Sep 14 2020  HAL <notes2@gmx.de> - 1:2.30-19
 - compiles on Irix 6.5 with sgug-rse gcc 9.2 passing all tests
 
