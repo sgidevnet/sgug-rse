@@ -26,7 +26,7 @@ BuildRequires:  perl(File::Spec)
 BuildRequires:  perl(lib)
 BuildRequires:  perl(Test::More) >= 0.88
 # Explicit dependencies:
-#Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
+Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
 
 %description
 This is a Pod::Coverage subclass (actually, a subclass of

@@ -34,19 +34,19 @@ GIO. In particular, it contains libproxy- and GSettings-based
 GProxyResolver implementations and a gnutls-based GTlsConnection
 implementation.
 
-#%%package tests
-#Summary: Tests for the glib-networking package
-#Requires: #%%{name}#%%{?_isa} = #%%{version}-#%%{release}
+%package tests
+Summary: Tests for the glib-networking package
+Requires: %{name}%{?_isa} = %{version}-%{release}
 
-#%%description tests
-#The glib-networking-tests package contains tests that can be used to verify
-#the functionality of the installed glib-networking package.
+%description tests
+The glib-networking-tests package contains tests that can be used to verify
+the functionality of the installed glib-networking package.
 
 %prep
 %autosetup -p1
 
 %build
-%meson -Dinstalled_tests=false
+%meson -Dinstalled_tests=true
 %meson_build
 
 %install
@@ -67,9 +67,9 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/lib/systemd/user/glib-pacrunner.service
 %{_datadir}/dbus-1/services/org.gtk.GLib.PACRunner.service
 #%%{_userunitdir}/glib-pacrunner.service
 
-#%%files tests
-#%%{_libexecdir}/installed-tests/glib-networking
-#%%{_datadir}/installed-tests
+%files tests
+%{_libexecdir}/installed-tests/glib-networking
+%{_datadir}/installed-tests
 
 %changelog
 * Sat Sep 26 2020  HAL <notes2@gmx.de> - 2.62.4-1

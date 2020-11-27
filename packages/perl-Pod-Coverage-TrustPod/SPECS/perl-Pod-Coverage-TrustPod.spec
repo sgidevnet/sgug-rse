@@ -55,9 +55,6 @@ make test
 %{_mandir}/man3/Pod::Coverage::TrustPod.3*
 
 %changelog
-* Mon Sep 14 2020  HAL <notes2@gmx.de> - 0.100005-7
-- compiles on Irix 6.5 with sgug-rse gcc 9.2 passing all tests
-
 * Sat Aug 24 2019 Paul Howarth <paul@city-fan.org> - 0.100005-7
 - Use author-independent source URL
 

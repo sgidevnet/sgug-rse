@@ -87,7 +87,7 @@ License:        GPL+ or Artistic
 Epoch:          %{perl_epoch}
 Version:        %{perl_version}
 # release number must be even higher, because dual-lived modules will be broken otherwise
-Release:        453%{?dist}
+Release:        454%{?dist}
 Summary:        Practical Extraction and Report Language
 Url:            https://www.perl.org/
 Source0:        https://www.cpan.org/src/5.0/perl-%{perl_version}.tar.gz
@@ -5087,6 +5087,7 @@ cp %{_topdir}/SOURCES/perl.irix6_gcc_config.sh config.sh
 # OPTFLAGS_REGEXP="s|^optimize=.*$|optimize='%{optflags}'|g"
 # perl -pi -e "$OPTFLAGS_REGEXP" config.sh
 
+perl -pi -e "s|DIDBSINSTALLPREFIX/lib|%{_libdir}|g" config.sh
 perl -pi -e "s|DIDBSINSTALLPREFIX|%{_prefix}|g" config.sh
 
 # /usr/bin/env sh Configure -S \
@@ -5147,10 +5148,6 @@ perl -pi -e "s|/usr/bin/ln|%{_bindir}/ln|g" config.sh
 
 ## New approach replicating the steps in didbs:
 %{_bindir}/bash ./Configure -S
-
-# Rewrite installation lib directory
-LIBDIR_REGEXP="s|%{_prefix}/lib|%{_libdir}|g"
-perl -pi -e "$LIBDIR_REGEXP" config.sh || exit -1
 
 touch config.sh
 chmod u+x ./config.sh
@@ -7263,6 +7260,9 @@ cd ..
 
 # Old changelog entries are preserved in CVS.
 %changelog
+* Fri Nov 27 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-454
+- Bug to incorrect library path (was lib3232 for some vars..)
+
 * Fri Jul 17 2020 Daniel Hams <daniel.hams@gmail.com> - 4:5.30.0-453
 - Fix unnecessary double slash in cddlflags
 

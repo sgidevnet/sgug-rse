@@ -42,7 +42,7 @@ BuildRequires:  perl(PerlIO::encoding)
 BuildRequires:  perl(Test::More)
 # Testing requires Time::Local on MacOS only
 BuildRequires:  perl(Try::Tiny)
-#Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
+Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
 Requires:       perl(Compress::Raw::Zlib)
 Requires:       perl(Encode) >= 3.01
 Requires:       perl(Encode::Locale) >= 1

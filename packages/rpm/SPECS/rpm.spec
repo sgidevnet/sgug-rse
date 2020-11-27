@@ -27,7 +27,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 18
+%global rel 19
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -411,7 +411,8 @@ ac_cv_func_getline=yes ./configure \
     %{?with_zstd: --enable-zstd} \
     %{?with_lmdb: --enable-lmdb} \
     --with-crypto=openssl \
-    --disable-openmp
+    --disable-openmp \
+    --disable-inhibit-plugin
 
 #    --with-cap \ #
 #    --with-acl \ #
@@ -625,6 +626,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Fri Nov 27 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-19
+- Bug to segfault during pre/post trigger handling (null info in signal)
+
 * Sat Oct 10 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-18
 - Fix up fontconfig discovery when building font packages
 

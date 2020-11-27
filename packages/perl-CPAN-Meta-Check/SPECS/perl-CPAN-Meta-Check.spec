@@ -72,9 +72,6 @@ make test TEST_FILES="$(echo $(find xt/ -name '*.t'))"
 %{_mandir}/man3/CPAN::Meta::Check.3*
 
 %changelog
-* Mon Sep 14 2020  HAL <notes2@gmx.de> - 0.014-10
-- compiles on Irix 6.5 with sgug-rse gcc 9.2 passing all tests
-
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.014-10
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
