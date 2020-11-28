@@ -1,0 +1,78 @@
+%global srcname parameterized
+
+Name:           python-%{srcname}
+Version:        0.6.1
+Release:        7%{?dist}
+Summary:        Parameterized testing with any Python test framework
+
+License:        BSD
+URL:            https://pypi.python.org/pypi/parameterized
+Source0:        https://files.pythonhosted.org/packages/source/p/%{srcname}/%{srcname}-%{version}.tar.gz
+
+# Python 3.8
+Patch0:         https://github.com/wolever/parameterized/pull/75/commits/1842e2038ae123e16601e083a553fe931f34fbd0.patch
+
+BuildArch:      noarch
+
+%description
+%{summary}.
+
+%package -n python3-%{srcname}
+Summary:        %{summary}
+BuildRequires:  python3-devel
+BuildRequires:  python3-setuptools
+BuildRequires:  python3-nose
+BuildRequires:  python3-nose2
+BuildRequires:  python3-pytest
+BuildRequires:  python3-unittest2
+%{?python_provide:%python_provide python3-%{srcname}}
+
+%description -n python3-%{srcname}
+%{summary}.
+
+Python 3 version.
+
+%prep
+%autosetup -p1 -n %{srcname}-%{version}
+
+%build
+%py3_build
+
+%install
+%py3_install
+
+%check
+export PYTHONPATH=%{buildroot}%{python3_sitelib}
+nosetests-%{python3_version} -v
+nose2-%{python3_version} -v
+py.test-%{python3_version} -v parameterized/test.py
+%{__python3} -m unittest -v parameterized.test
+unit2-%{python3_version} -v parameterized.test
+
+%files -n python3-%{srcname}
+%license LICENSE.txt
+%doc CHANGELOG.txt README.rst
+%{python3_sitelib}/%{srcname}-*.egg-info/
+%{python3_sitelib}/%{srcname}/
+
+%changelog
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.6.1-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Sat Feb 02 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.6.1-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Sun Aug 12 2018 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 0.6.1-5
+- Drop python2 subpackage
+
+* Sat Jul 14 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.6.1-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
+* Tue Jun 19 2018 Miro Hrončok <mhroncok@redhat.com> - 0.6.1-3
+- Rebuilt for Python 3.7
+
+* Fri Feb 09 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.6.1-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Sun Nov 19 2017 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 0.6.1-1
+- Initial package
