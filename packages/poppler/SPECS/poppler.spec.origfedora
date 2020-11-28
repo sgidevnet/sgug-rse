@@ -55,7 +55,6 @@ Patch18: poppler-0.73.0-PSOutputDev-buffer-read.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1732340
 Patch19: poppler-0.73.0-JPXStream-length.patch
-Patch100:  poppler.sgifixes.patch
 
 BuildRequires: cmake
 BuildRequires: gcc-c++
@@ -71,24 +70,24 @@ BuildRequires: pkgconfig(gdk-pixbuf-2.0)
 BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(gobject-2.0)
 BuildRequires: pkgconfig(gobject-introspection-1.0) 
-#BuildRequires: pkgconfig(gtk+-3.0)
-#BuildRequires: pkgconfig(gtk-doc)
+BuildRequires: pkgconfig(gtk+-3.0)
+BuildRequires: pkgconfig(gtk-doc)
 BuildRequires: pkgconfig(lcms2)
 BuildRequires: pkgconfig(libjpeg)
 BuildRequires: pkgconfig(libopenjp2)
 BuildRequires: pkgconfig(libpng)
 BuildRequires: pkgconfig(libtiff-4)
-#BuildRequires: pkgconfig(nss)
+BuildRequires: pkgconfig(nss)
 BuildRequires: pkgconfig(poppler-data)
-#BuildRequires: pkgconfig(Qt5Core)
-#BuildRequires: pkgconfig(Qt5Gui)
-#BuildRequires: pkgconfig(Qt5Test)
-#BuildRequires: pkgconfig(Qt5Widgets)
-#BuildRequires: pkgconfig(Qt5Xml)
-#BuildRequires: pkgconfig(QtCore)
-#BuildRequires: pkgconfig(QtGui)
-#BuildRequires: pkgconfig(QtTest)
-#BuildRequires: pkgconfig(QtXml)
+BuildRequires: pkgconfig(Qt5Core)
+BuildRequires: pkgconfig(Qt5Gui)
+BuildRequires: pkgconfig(Qt5Test)
+BuildRequires: pkgconfig(Qt5Widgets)
+BuildRequires: pkgconfig(Qt5Xml)
+BuildRequires: pkgconfig(QtCore)
+BuildRequires: pkgconfig(QtGui)
+BuildRequires: pkgconfig(QtTest)
+BuildRequires: pkgconfig(QtXml)
 
 Requires: poppler-data
 
@@ -121,45 +120,45 @@ Suggests: %{name}-doc = %{version}-%{release}
 %description glib-devel
 %{summary}.
 
-#%%package glib-doc
-#Summary: Documentation for glib wrapper
-#BuildArch: noarch
+%package glib-doc
+Summary: Documentation for glib wrapper
+BuildArch: noarch
 
-#%%description glib-doc
-#%%{summary}.
+%description glib-doc
+%{summary}.
 
-#%%package qt
-#Summary: Qt4 wrapper for poppler
-#Requires: #%%{name}#%%{?_isa} = #%%{version}-#%%{release}
-#%%{?_qt4:Requires: qt4#%%{?_isa} >= #%%{_qt4_version}}
-#Obsoletes: poppler-qt4 < 0.16.0-3
-#Provides:  poppler-qt4 = #%%{version}-#%%{release}
-#%%description qt
-#%%{summary}.
+%package qt
+Summary: Qt4 wrapper for poppler
+Requires: %{name}%{?_isa} = %{version}-%{release}
+%{?_qt4:Requires: qt4%{?_isa} >= %{_qt4_version}}
+Obsoletes: poppler-qt4 < 0.16.0-3
+Provides:  poppler-qt4 = %{version}-%{release}
+%description qt
+%{summary}.
 
-#%%package qt-devel
-#Summary: Development files for Qt4 wrapper
-#Requires: #%%{name}-qt#%%{?_isa} = #%%{version}-#%%{release}
-#Requires: #%%{name}-devel#%%{?_isa} = #%%{version}-#%%{release}
-#Obsoletes: poppler-qt4-devel < 0.16.0-3
-#Provides:  poppler-qt4-devel = #%%{version}-#%%{release}
-#Requires: qt4-devel
-#%%description qt-devel
-#%%{summary}.
+%package qt-devel
+Summary: Development files for Qt4 wrapper
+Requires: %{name}-qt%{?_isa} = %{version}-%{release}
+Requires: %{name}-devel%{?_isa} = %{version}-%{release}
+Obsoletes: poppler-qt4-devel < 0.16.0-3
+Provides:  poppler-qt4-devel = %{version}-%{release}
+Requires: qt4-devel
+%description qt-devel
+%{summary}.
 
-#%%package qt5
-#Summary: Qt5 wrapper for poppler
-#Requires: #%%{name}#%%{?_isa} = #%%{version}-#%%{release}
-#%%description qt5
-#%%{summary}.
+%package qt5
+Summary: Qt5 wrapper for poppler
+Requires: %{name}%{?_isa} = %{version}-%{release}
+%description qt5
+%{summary}.
 
-#%%package qt5-devel
-#Summary: Development files for Qt5 wrapper
-#Requires: #%%{name}-qt5#%%{?_isa} = #%%{version}-#%%{release}
-#Requires: #%%{name}-devel#%%{?_isa} = #%%{version}-#%%{release}
-#Requires: qt5-qtbase-devel
-#%%description qt5-devel
-#%%{summary}.
+%package qt5-devel
+Summary: Development files for Qt5 wrapper
+Requires: %{name}-qt5%{?_isa} = %{version}-%{release}
+Requires: %{name}-devel%{?_isa} = %{version}-%{release}
+Requires: qt5-qtbase-devel
+%description qt5-devel
+%{summary}.
 
 %package cpp
 Summary: Pure C++ wrapper for poppler
@@ -176,12 +175,12 @@ Requires: %{name}-devel%{?_isa} = %{version}-%{release}
 %description cpp-devel
 %{summary}.
 
-#%%package utils
-#Summary: Command line utilities for converting PDF files
-#Requires: %{name}%{?_isa} = %{version}-%{release}
-#%%description utils
-#Command line tools for manipulating PDF files and converting them to
-#other formats.
+%package utils
+Summary: Command line utilities for converting PDF files
+Requires: %{name}%{?_isa} = %{version}-%{release}
+%description utils
+Command line tools for manipulating PDF files and converting them to
+other formats.
 
 %prep
 %autosetup -p1 -b 1
@@ -189,27 +188,16 @@ Requires: %{name}-devel%{?_isa} = %{version}-%{release}
 %build
 mkdir build
 cd build
-
-#export CC="gcc -fPIC" # hack to make the cmake call pass
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
-export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
-
+export CC="gcc -fPIC" # hack to make the cmake call pass
 %cmake \
   -DENABLE_CMS=lcms2 \
   -DENABLE_DCTDECODER=libjpeg \
-  -DENABLE_GTK_DOC=OFF \
+  -DENABLE_GTK_DOC=ON \
   -DENABLE_LIBOPENJPEG=openjpeg2 \
-  -DENABLE_UNSTABLE_API_ABI_HEADERS=OFF \
-  -DENABLE_ZLIB=ON \
-  -DENABLE_ZLIB_UNCOMPRESS=ON \
-  -DENABLE_UTILS=OFF \
-  -DENABLE_QT4=OFF \
-  -DENABLE_QT5=OFF \
-  -DBUILD_QT4_TESTS=OFF \
-  -DBUILD_QT5_TESTS=OFF \
+  -DENABLE_UNSTABLE_API_ABI_HEADERS=ON \
+  -DENABLE_ZLIB=OFF \
   ..
-#unset CC
+unset CC
 %make_build
 
 %install
@@ -224,19 +212,19 @@ test "$(pkg-config --modversion poppler)" = "%{version}"
 test "$(pkg-config --modversion poppler-cairo)" = "%{version}"
 test "$(pkg-config --modversion poppler-cpp)" = "%{version}"
 test "$(pkg-config --modversion poppler-glib)" = "%{version}"
-#test "$(pkg-config --modversion poppler-qt4)" = "%{version}"
-#test "$(pkg-config --modversion poppler-qt5)" = "%{version}"
-#test "$(pkg-config --modversion poppler-splash)" = "%{version}"
+test "$(pkg-config --modversion poppler-qt4)" = "%{version}"
+test "$(pkg-config --modversion poppler-qt5)" = "%{version}"
+test "$(pkg-config --modversion poppler-splash)" = "%{version}"
 
-#%%ldconfig_scriptlets
+%ldconfig_scriptlets
 
-#%%ldconfig_scriptlets glib
+%ldconfig_scriptlets glib
 
-#%%ldconfig_scriptlets qt
+%ldconfig_scriptlets qt
 
-#%%ldconfig_scriptlets qt5
+%ldconfig_scriptlets qt5
 
-#%%ldconfig_scriptlets cpp
+%ldconfig_scriptlets cpp
 
 %files
 %doc README
@@ -249,10 +237,10 @@ test "$(pkg-config --modversion poppler-glib)" = "%{version}"
 %{_libdir}/libpoppler.so
 %dir %{_includedir}/poppler/
 # xpdf headers
-%{_includedir}/poppler/*/*.h
-#%%{_includedir}/poppler/fofi/
-#%%{_includedir}/poppler/goo/
-#%%{_includedir}/poppler/splash/
+%{_includedir}/poppler/*.h
+%{_includedir}/poppler/fofi/
+%{_includedir}/poppler/goo/
+%{_includedir}/poppler/splash/
 
 %files glib
 %{_libdir}/libpoppler-glib.so.8*
@@ -265,25 +253,25 @@ test "$(pkg-config --modversion poppler-glib)" = "%{version}"
 %{_datadir}/gir-1.0/Poppler-0.18.gir
 %{_includedir}/poppler/glib/
 
-#%%files glib-doc
-#%%license COPYING
-#%%{_datadir}/gtk-doc/
+%files glib-doc
+%license COPYING
+%{_datadir}/gtk-doc/
 
-#%%files qt
-#%%{_libdir}/libpoppler-qt4.so.4*
+%files qt
+%{_libdir}/libpoppler-qt4.so.4*
 
-#%%files qt-devel
-#%%{_libdir}/libpoppler-qt4.so
-#%%{_libdir}/pkgconfig/poppler-qt4.pc
-#%%{_includedir}/poppler/qt4/
+%files qt-devel
+%{_libdir}/libpoppler-qt4.so
+%{_libdir}/pkgconfig/poppler-qt4.pc
+%{_includedir}/poppler/qt4/
 
-#%%files qt5
-#%%{_libdir}/libpoppler-qt5.so.1*
+%files qt5
+%{_libdir}/libpoppler-qt5.so.1*
 
-#%%files qt5-devel
-#%%{_libdir}/libpoppler-qt5.so
-#%%{_libdir}/pkgconfig/poppler-qt5.pc
-#%%{_includedir}/poppler/qt5/
+%files qt5-devel
+%{_libdir}/libpoppler-qt5.so
+%{_libdir}/pkgconfig/poppler-qt5.pc
+%{_includedir}/poppler/qt5/
 
 %files cpp
 %{_libdir}/libpoppler-cpp.so.0*
@@ -293,14 +281,11 @@ test "$(pkg-config --modversion poppler-glib)" = "%{version}"
 %{_libdir}/libpoppler-cpp.so
 %{_includedir}/poppler/cpp
 
-#%%files utils
-#%%{_bindir}/pdf*
-#%%{_mandir}/man1/*
+%files utils
+%{_bindir}/pdf*
+%{_mandir}/man1/*
 
 %changelog
-* Sat Nov 28 2020  HAL <notes2@gmx.de> - 0.73.0-14
-- compiles on Irix 6.5 with sgug-rse gcc 9.2. 
-
 * Wed Jul 24 2019 Marek Kasik <mkasik@redhat.com> - 0.73.0-14
 - Ignore dict Length if it is broken
 - Resolves: #1732342
