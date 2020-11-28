@@ -1,10 +1,12 @@
 Name: libcanberra
 Version: 0.30
-Release: 19%{?dist}
+Release: 20%{?dist}
 Summary: Portable Sound Event Library
 Source0: http://0pointer.de/lennart/projects/libcanberra/libcanberra-%{version}.tar.xz
 
 Patch0: 0001-gtk-Don-t-assume-all-GdkDisplays-are-GdkX11Displays-.patch
+
+Patch100: libcanberra.sgifixes.patch
 
 License: LGPLv2+
 Url: http://git.0pointer.de/?p=libcanberra.git;a=summary
@@ -75,7 +77,13 @@ Development Files for libcanberra Client Development
 %setup -q
 %patch0 -p1 
 
+%patch100 -p1
+
+# A place to build SGUG patch
+#exit 1
+
 %build
+autoreconf -f -v -i
 %configure --disable-static --disable-pulse --disable-alsa --enable-null --disable-oss --with-builtin=dso --disable-tdl --disable-udev
 make %{?_smp_mflags}
 
@@ -89,15 +97,15 @@ rm $RPM_BUILD_ROOT%{_docdir}/libcanberra/README
 %doc README LGPL
 %{_libdir}/libcanberra.so.*
 %dir %{_libdir}/libcanberra-%{version}
-%{_libdir}/libcanberra-%{version}/libcanberra-alsa.so
-%{_libdir}/libcanberra-%{version}/libcanberra-pulse.so
+#%%{_libdir}/libcanberra-%%{version}/libcanberra-alsa.so
+#%%{_libdir}/libcanberra-%%{version}/libcanberra-pulse.so
 %{_libdir}/libcanberra-%{version}/libcanberra-null.so
 %{_libdir}/libcanberra-%{version}/libcanberra-multi.so
-%{_libdir}/libcanberra-%{version}/libcanberra-gstreamer.so
-%{_prefix}/lib/systemd/system/canberra-system-bootup.service
-%{_prefix}/lib/systemd/system/canberra-system-shutdown-reboot.service
-%{_prefix}/lib/systemd/system/canberra-system-shutdown.service
-%{_bindir}/canberra-boot
+#%%{_libdir}/libcanberra-%%{version}/libcanberra-gstreamer.so
+#%%{_prefix}/lib/systemd/system/canberra-system-bootup.service
+#%%{_prefix}/lib/systemd/system/canberra-system-shutdown-reboot.service
+#%%{_prefix}/lib/systemd/system/canberra-system-shutdown.service
+#%%{_bindir}/canberra-boot
 
 %files gtk2
 %{_libdir}/libcanberra-gtk.so.*
@@ -121,7 +129,7 @@ rm $RPM_BUILD_ROOT%{_docdir}/libcanberra/README
 %{_libdir}/gnome-settings-daemon-3.0/gtk-modules/canberra-gtk-module.desktop
 
 %files devel
-#%%doc %{_datadir}/gtk-doc
+%doc %{_datadir}/gtk-doc
 %{_includedir}/canberra-gtk.h
 %{_includedir}/canberra.h
 %{_libdir}/libcanberra-gtk.so
@@ -137,6 +145,9 @@ rm $RPM_BUILD_ROOT%{_docdir}/libcanberra/README
 %{_datadir}/vala/vapi/libcanberra.vapi
 
 %changelog
+* Sat Nov 28 2020 Daniel Hams <daniel.hams@gmail.com> - 0.30-20
+- Tweaks to get it building + avoid linktime errors from ld
+
 * Sat Nov 28 2020  HAL <notes2@gmx.de> - 0.30-19
 - initial commit after tweaking the spec a bit.
 
