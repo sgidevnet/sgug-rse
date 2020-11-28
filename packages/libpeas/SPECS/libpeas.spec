@@ -12,7 +12,7 @@
 
 Name:           libpeas
 Version:        1.24.1
-Release:        1%{?dist}
+Release:        3%{?dist}
 Summary:        Plug-ins implementation convenience library
 
 License:        LGPLv2+
@@ -31,7 +31,7 @@ BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gmodule-2.0)
 BuildRequires:  pkgconfig(gobject-2.0)
 BuildRequires:  pkgconfig(gobject-introspection-1.0)
-#BuildRequires:  pkgconfig(gtk+-3.0)
+BuildRequires:  pkgconfig(gtk+-3.0)
 BuildRequires:  pkgconfig(pygobject-3.0)
 BuildRequires:  python3-devel
 
@@ -39,13 +39,13 @@ BuildRequires:  python3-devel
 libpeas is a convenience library making adding plug-ins support
 to glib-based applications.
 
-#%%package gtk
-#Summary:        GTK+ plug-ins support for libpeas
-#Requires:       %%{name}%%{?_isa} = %%{version}-%%{release}
-#
-#%%description gtk
-#libpeas-gtk is a convenience library making adding plug-ins support
-#to GTK+-based applications.
+%package gtk
+Summary:        GTK+ plug-ins support for libpeas
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description gtk
+libpeas-gtk is a convenience library making adding plug-ins support
+to GTK+-based applications.
 
 %package loader-python3
 Summary:        Python 3 loader for libpeas
@@ -62,7 +62,7 @@ run Python 3 plugins that use libpeas.
 %package devel
 Summary:        Development files for libpeas
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-#Requires:       %%{name}-gtk%%{?_isa} = %%{version}-%%{release}
+Requires:       %{name}-gtk%{?_isa} = %{version}-%{release}
 
 %description devel
 This package contains development libraries and header files
@@ -81,12 +81,16 @@ export BUILD_DIR=`pwd`/mips-sgug-irix
 cat << EOF >>testlibpeas_setupenv.sh
 #!%{_bindir}/bash
 export LD_LIBRARYN32_PATH=%{build_dir}/libpeas:\$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{build_dir}/libpeas-gtk:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/loaders/python3:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/tests/testing-util:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/tests/libpeas/introspection:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/tests/libpeas/testing:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/tests/libpeas/plugins/embedded:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/tests/libpeas/plugins/extension-c:\$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{build_dir}/tests/libpeas-gtk/testing:\$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{build_dir}/tests/libpeas-gtk/plugins/builtin-configurable:\$LD_LIBRARYN32_PATH
+export LD_LIBRARYN32_PATH=%{build_dir}/tests/libpeas-gtk/plugins/configurable:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/tests/plugins/builtin:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/tests/plugins/has-dep:\$LD_LIBRARYN32_PATH
 export LD_LIBRARYN32_PATH=%{build_dir}/tests/plugins/loadable:\$LD_LIBRARYN32_PATH
@@ -112,10 +116,8 @@ export CXXFLAGS="$CFLAGS"
 %meson \
   -Ddemos=false \
   -Dvapi=true \
-  -Dgtk_doc=false \
+  -Dgtk_doc=true \
   -Dintrospection=true
-
-#  -Dgtk_doc=true
 
 %meson_build
 
@@ -140,29 +142,32 @@ cd mips-sgug-irix
 %{_libdir}/girepository-1.0/Peas-%{apiver}.typelib
 %{_datadir}/icons/hicolor/*/actions/libpeas-plugin.*
 
-#%%files gtk
-#%%{_libdir}/libpeas-gtk-%%{apiver}.so.0*
-#%%{_libdir}/girepository-1.0/PeasGtk-%%{apiver}.typelib
+%files gtk
+%{_libdir}/libpeas-gtk-%{apiver}.so.0*
+%{_libdir}/girepository-1.0/PeasGtk-%{apiver}.typelib
 
 %files loader-python3
 %{_libdir}/libpeas-%{apiver}/loaders/libpython3loader.so
 
 %files devel
 %{_includedir}/libpeas-%{apiver}/
-#%%dir %%{_datadir}/gtk-doc/
-#%%dir %%{_datadir}/gtk-doc/html/
-#%%{_datadir}/gtk-doc/html/libpeas/
+%dir %{_datadir}/gtk-doc/
+%dir %{_datadir}/gtk-doc/html/
+%{_datadir}/gtk-doc/html/libpeas/
 %{_libdir}/libpeas-%{apiver}.so
-#%%{_libdir}/libpeas-gtk-%%{apiver}.so
+%{_libdir}/libpeas-gtk-%{apiver}.so
 %dir %{_datadir}/gir-1.0
 %{_datadir}/gir-1.0/Peas-%{apiver}.gir
-#%%{_datadir}/gir-1.0/PeasGtk-%%{apiver}.gir
+%{_datadir}/gir-1.0/PeasGtk-%{apiver}.gir
 %{_libdir}/pkgconfig/libpeas-%{apiver}.pc
-#%%{_libdir}/pkgconfig/libpeas-gtk-%%{apiver}.pc
+%{_libdir}/pkgconfig/libpeas-gtk-%{apiver}.pc
 #%%{_datadir}/glade/catalogs/libpeas-gtk.xml
 
 %changelog
-* Sat Nov 22 2020 Daniel Hams <klember@redhat.com> - 1.24.1-2
+* Sat Nov 28 2020 Daniel Hams <daniel.hams@gmail.com> - 1.24.1-3
+- Now we have gtk3 + gtkdoc, ensure the new files are taken into account
+
+* Sat Nov 22 2020 Daniel Hams <daniel.hams@gmail.com> - 1.24.1-2
 - Getting tests launching and some (not all) passing.
 
 * Thu Oct 31 2019 Kalev Lember <klember@redhat.com> - 1.24.1-1

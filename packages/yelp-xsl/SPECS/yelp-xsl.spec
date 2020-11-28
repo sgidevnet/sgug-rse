@@ -1,5 +1,5 @@
 Name:           yelp-xsl
-Version:        3.34.0
+Version:        3.34.2
 Release:        1%{?dist}
 Summary:        XSL stylesheets for the yelp help browser
 
@@ -9,9 +9,9 @@ Source0:        https://download.gnome.org/sources/%{name}/3.34/%{name}-%{versio
 BuildArch:      noarch
 
 BuildRequires:  python3-libxml2
-#BuildRequires:  /usr/bin/ducktype
-#BuildRequires:  /usr/bin/xmllint
-#BuildRequires:  /usr/bin/xsltproc
+BuildRequires:  %{_bindir}/ducktype
+BuildRequires:  %{_bindir}/xmllint
+BuildRequires:  %{_bindir}/xsltproc
 BuildRequires:  gcc
 BuildRequires:  itstool
 
@@ -34,7 +34,7 @@ XSL stylesheets in yelp-xsl.
 
 
 %build
-%configure --disable-doc
+%configure --enable-doc
 make %{?_smp_mflags}
 
 
@@ -53,8 +53,8 @@ make %{?_smp_mflags}
 
 
 %changelog
-* Mon May 25 2020  Alexander Tafarte <notes2@gmx.de> - 3.34.0-2
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+* Wed Nov 27 2019 Kalev Lember <klember@redhat.com> - 3.34.2-1
+- Update to 3.34.2
 
 * Mon Sep 09 2019 Kalev Lember <klember@redhat.com> - 3.34.0-1
 - Update to 3.34.0
