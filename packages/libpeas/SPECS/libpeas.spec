@@ -151,9 +151,9 @@ cd mips-sgug-irix
 
 %files devel
 %{_includedir}/libpeas-%{apiver}/
-#%%dir %%{_datadir}/gtk-doc/
-#%%dir %%{_datadir}/gtk-doc/html/
-#%%{_datadir}/gtk-doc/html/libpeas/
+%dir %{_datadir}/gtk-doc/
+%dir %{_datadir}/gtk-doc/html/
+%{_datadir}/gtk-doc/html/libpeas/
 %{_libdir}/libpeas-%{apiver}.so
 %{_libdir}/libpeas-gtk-%{apiver}.so
 %dir %{_datadir}/gir-1.0
