@@ -1,15 +1,17 @@
-%if 0%{?fedora} > 26 || 0%{?rhel} > 7
+#%%if 0%%{?fedora} > 26 || 0%%{?rhel} > 7
+#%%global defaultpython 3
+#%%else
+#%%global defaultpython 2
+#%%endif
+
+#%%if 0%%{?rhel} > 7
+#%%global with_python2 0
+#%%else
+#%%global with_python2 1
+#%%endif
+
 %global defaultpython 3
-%else
-%global defaultpython 2
-%endif
-
-%if 0%{?rhel} > 7
-%global with_python2 0
-%else
 %global with_python2 1
-%endif
-
 
 
 Name:           pyflakes
