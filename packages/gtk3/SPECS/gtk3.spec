@@ -194,7 +194,7 @@ export CXXFLAGS="$CFLAGS"
 autoreconf -f -i -v
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--disable-gtk-doc; fi;
  %configure $CONFIGFLAGS \
-        --disable-xkb \
+        --enable-xkb \
         --enable-xinerama \
         --enable-xrandr \
         --enable-print-backends=file \
