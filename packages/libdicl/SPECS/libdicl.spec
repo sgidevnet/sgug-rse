@@ -9,7 +9,7 @@
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.36
+Version: 0.1.37
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -62,6 +62,7 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 #%%license COPYING
 #%%doc README ChangeLog NEWS
 %{_libdir}/libdicl*.so.*
+%{_libexecdir}/libdicl/*
 
 %files devel
 %{_libdir}/libdicl*.a
@@ -71,6 +72,9 @@ rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 
 %changelog
+* Sat Nov 28 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.37-1
+- Upgrade to 0.1.37 with posix_openpt function
+
 * Fri Nov 27 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.36-1
 - Upgrade to 0.1.36 with C++ stubs for strto* functions
 
