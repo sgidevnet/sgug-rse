@@ -12,9 +12,9 @@ BuildRequires: pkgconfig(yelp-xsl)
 BuildRequires: itstool
 BuildRequires: libxslt
 
-#Requires: /usr/bin/itstool
-#Requires: /usr/bin/xmllint
-#Requires: /usr/bin/xsltproc
+Requires: %{_bindir}/itstool
+Requires: %{_bindir}/xmllint
+Requires: %{_bindir}/xsltproc
 Requires: mallard-rng
 Requires: yelp-xsl
 
@@ -44,9 +44,6 @@ make %{?_smp_mflags}
 %{_datadir}/aclocal/yelp.m4
 
 %changelog
-* Mon May 25 2020  Alexander Tafarte <notes2@gmx.de> - 3.32.2-4
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
-
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.32.2-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
