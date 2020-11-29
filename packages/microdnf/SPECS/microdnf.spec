@@ -8,8 +8,8 @@
 
 Name:           microdnf
 Version:        3.4.0
-Release:        1%{?dist}
-Summary:        Minimal C implementation of DNF
+Release:        2%{?dist}
+Summary:        Minimal C implementation of DNF tweaked for IRIX
 
 License:        GPLv3+
 URL:            https://github.com/rpm-software-management/microdnf
@@ -71,6 +71,9 @@ export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
 %{_bindir}/%{name}
 
 %changelog
+* Sun Nov 29 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.0-2
+- Move over to C++ and fix some variable init placement issues
+
 * Tue Nov 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.0-1
 - Porting into sgugrse
 
