@@ -1,7 +1,7 @@
 Summary: Shared MIME information database
 Name: shared-mime-info
 Version: 1.15
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv2+
 URL: http://freedesktop.org/Software/shared-mime-info
 Source0: https://gitlab.freedesktop.org/xdg/shared-mime-info/uploads/b27eb88e4155d8fccb8bb3cd12025d5b/shared-mime-info-1.15.tar.xz
@@ -27,6 +27,8 @@ BuildRequires:  libxml2-devel
 BuildRequires:  glib2-devel
 BuildRequires:  gettext
 BuildRequires:  itstool
+# For bug fixed RPM supporting triggers
+BuildRequires:  rpm-build >= 4.15.0-19
 
 # Disable pkgconfig autodep
 #%%global __requires_exclude ^/usr/sgug/bin/pkg-config$
@@ -84,11 +86,8 @@ if [[ ! -e %{_datadir}/mime/packages ]]; then
 fi
 update-mime-database -n %{_datadir}/mime &> /dev/null ||:
 
-# DH 06/06/2020
-# Bug in RPM means we can't currently use this
-# (core dumps after execution, not clear yet what is actually _causing_ it)
-#%%transfiletriggerin -- %{_datadir}/mime
-#update-mime-database -n %{_datadir}/mime &> /dev/null ||:
+%transfiletriggerin -- %{_datadir}/mime
+update-mime-database -n %{_datadir}/mime &> /dev/null ||:
 
 %transfiletriggerpostun -- %{_datadir}/mime
 update-mime-database -n %{_datadir}/mime &> /dev/null ||:
@@ -106,6 +105,9 @@ update-mime-database -n %{_datadir}/mime &> /dev/null ||:
 %{_mandir}/man*/*
 
 %changelog
+* Wed Dec 02 2020 Daniel Hams <daniel.hams@gmail.com> - 1.15-4
+- Re-enabled triggers after fixing rpm
+
 * Tue Jul 21 2020 Daniel Hams <daniel.hams@gmail.com> - 1.15-3
 - Rewrite the 'post' section to perform the initial mime lookup cache
 
