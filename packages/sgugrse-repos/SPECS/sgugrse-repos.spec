@@ -8,7 +8,6 @@ URL:            https://sgugrseproject.org/
 Provides:       sgugrse-repos(%{version})
 Requires:       system-release(%{version})
 Requires:       sgugrse-gpg-keys >= %{version}-%{release}
-Provides:       sgugrse-repos-modular = %{version}-%{release}
 BuildArch:      noarch
 
 #Source1:        archmap
@@ -17,10 +16,6 @@ Source3:        sgugrse-updates.repo
 Source4:        sgugrse-updates-testing.repo
 
 Source10:       RPM-GPG-KEY-sgugrse-primary
-
-Source100:      sgugrse-modular.repo
-Source101:      sgugrse-updates-modular.repo
-Source102:      sgugrse-updates-testing-modular.repo
 
 Source151:      sgugrse.conf
 
@@ -62,13 +57,16 @@ export PREV_WD=`pwd`
 cd $RPM_BUILD_ROOT/usr/sgug/etc/pki/rpm-gpg/
 
 # and add symlink for compat generic location
-ln -s RPM-GPG-KEY-sgugrse-%{version}-primary RPM-GPG-KEY-%{version}-sgugrse
+ln -s RPM-GPG-KEY-sgugrse-primary RPM-GPG-KEY-sgugrse-%{version}-primary
+# and symlinks for various repo needs
+ln -s RPM-GPG-KEY-sgugrse-primary RPM-GPG-KEY-sgugrse-%{version}-mips
+
 cd $PREV_WD
 
 install -d -m 755 $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
-for file in %{_sourcedir}/sgugrse*repo ; do
-  install -m 644 $file $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
-done
+install -m 644 %{_sourcedir}/sgugrse.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
+#install -m 644 %{_sourcedir}/sgugrse-updates.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
+#install -m 644 %{_sourcedir}/sgugrse-updates-testing.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
 
 # Install ostree remote config
 install -d -m 755 $RPM_BUILD_ROOT/usr/sgug/etc/ostree/remotes.d/
@@ -77,12 +75,8 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 %files
 %dir /usr/sgug/etc/yum.repos.d
 %config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse.repo
-%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-modular.repo
-%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates.repo
-%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-testing.repo
-%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-modular.repo
-%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-modular.repo
-%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-testing-modular.repo
+#%%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates.repo
+#%%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-testing.repo
 
 %files -n sgugrse-gpg-keys
 %dir /usr/sgug/etc/pki/rpm-gpg

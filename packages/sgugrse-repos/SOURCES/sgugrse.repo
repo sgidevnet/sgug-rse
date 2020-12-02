@@ -1,7 +1,7 @@
 [sgugrse]
 name=Sgugrse $releasever - $basearch
-#baseurl=http://download.example/pub/sgugrse/linux/releases/$releasever/Everything/$basearch/os/
-metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-$releasever&arch=$basearch
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/releases/$releasever/Everything/$basearch/os/
+#metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-$releasever&arch=$basearch
 enabled=1
 metadata_expire=7d
 repo_gpgcheck=0
@@ -12,8 +12,8 @@ skip_if_unavailable=False
 
 [sgugrse-debuginfo]
 name=Sgugrse $releasever - $basearch - Debug
-#baseurl=http://download.example/pub/sgugrse/linux/releases/$releasever/Everything/$basearch/debug/tree/
-metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-debug-$releasever&arch=$basearch
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/releases/$releasever/Everything/$basearch/debug/tree/
+#metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-debug-$releasever&arch=$basearch
 enabled=0
 metadata_expire=7d
 repo_gpgcheck=0
@@ -24,8 +24,8 @@ skip_if_unavailable=False
 
 [sgugrse-source]
 name=Sgugrse $releasever - Source
-#baseurl=http://download.example/pub/sgugrse/linux/releases/$releasever/Everything/source/tree/
-metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-source-$releasever&arch=$basearch
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/releases/$releasever/Everything/source/tree/
+#metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-source-$releasever&arch=$basearch
 enabled=0
 metadata_expire=7d
 repo_gpgcheck=0
