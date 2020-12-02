@@ -60,7 +60,7 @@
 
 Name:           libdnf
 Version:        %{libdnf_major_version}.%{libdnf_minor_version}.%{libdnf_micro_version}
-Release:        1%{?dist}
+Release:        3%{?dist}
 Summary:        Library providing simplified C and Python API to libsolv
 License:        LGPLv2+
 URL:            https://github.com/rpm-software-management/libdnf
@@ -78,7 +78,7 @@ BuildRequires:  pkgconfig(check)
 BuildRequires:  valgrind
 %endif
 BuildRequires:  pkgconfig(gio-unix-2.0) >= 2.46.0
-#BuildRequires:  pkgconfig(gtk-doc)
+BuildRequires:  pkgconfig(gtk-doc)
 BuildRequires:  rpm-devel >= 4.11.0
 %if %{with rhsm}
 BuildRequires:  pkgconfig(librhsm) >= 0.0.3
@@ -91,9 +91,10 @@ BuildRequires:  pkgconfig(json-c)
 BuildRequires:  pkgconfig(cppunit)
 BuildRequires:  pkgconfig(libcrypto)
 BuildRequires:  pkgconfig(modulemd-2.0) >= %{libmodulemd_version}
-#BuildRequires:  pkgconfig(smartcols)
+BuildRequires:  pkgconfig(smartcols)
 BuildRequires:  gettext
 BuildRequires:  gpgme-devel
+BuildRequires:  gnupg2 >= 2.2.20-4
 
 %if %{with sanitizers}
 BuildRequires:  libasan-static
@@ -229,11 +230,11 @@ perl -pi -e "s|usr/etc/os-release|usr/sgug/etc/os-release|g" libdnf/dnf-context.
 perl -pi -e "s|var/lib/rpm|usr/sgug/var/lib/rpm|g" libdnf/dnf-context.cpp
 
 perl -pi -e "s|/etc/yum.repos.d|/usr/sgug/etc/yum.repos.d|g" libdnf/conf/ConfigMain.cpp
-perl -pi -e "s|/etc/yum/repos.d|/usr/sgug/etc/yum/repos.d|g" libdnf/conf/ConfigMain.cpp
 perl -pi -e "s|/etc/yum/protected.d|/usr/sgug/etc/yum/protected.d|g" libdnf/conf/ConfigMain.cpp
 perl -pi -e "s|/var/cache/|/usr/sgug/var/cache/|g" libdnf/dnf-sack.cpp
 perl -pi -e "s|/var/tmp/|/usr/sgug/var/tmp/|g" libdnf/dnf-sack.cpp
 perl -pi -e "s|/etc/pki/|/usr/sgug/etc/pki/|g" libdnf/dnf-keyring.cpp
+perl -pi -e "s|/run/user/|/usr/sgug/var/run/user/|g" libdnf/repo/Repo.cpp
 
 perl -pi -e "s|/var/lib/dnf/history|%{_prefix}/var/lib/dnf/history|g" libdnf/transaction/Swdb.hpp
 
@@ -243,6 +244,8 @@ perl -pi -e "s|/var/lib/dnf/history|%{_prefix}/var/lib/dnf/history|g" libdnf/tra
 
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" data/tests/hawkey/yum/recreate
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" data/tests/modules/specs/build.sh
+
+#exit 1
 
 %build
 export CC=mips-sgi-irix6.5-gcc
@@ -369,6 +372,9 @@ cd $PREV_WD
 %endif
 
 %changelog
+* Wed Dec 02 2020 Daniel Hams <daniel.hams@gmail.com> - 0.48.0-3
+- More fixups / debugging, use new gnupg unix socket dir.
+
 * Wed Nov 11 2020 Daniel Hams <daniel.hams@gmail.com> - 0.48.0-2
 - More fixups / debugging
 

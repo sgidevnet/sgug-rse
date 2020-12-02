@@ -1,6 +1,27 @@
+diff -u -r libdnf-0.48.0-orig/libdnf/conf/ConfigMain.cpp libdnf-0.48.0/libdnf/conf/ConfigMain.cpp
+--- libdnf-0.48.0-orig/libdnf/conf/ConfigMain.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/conf/ConfigMain.cpp	2020-11-29 20:18:09.392880640 +0000
+@@ -185,7 +185,7 @@
+     OptionNumber<std::int32_t> log_size{1024 * 1024, strToBytes};
+     OptionNumber<std::int32_t> log_rotate{4, 0};
+     OptionStringList varsdir{VARS_DIRS};
+-    OptionStringList reposdir{{"/etc/yum.repos.d", "/etc/yum/repos.d", "/etc/distro.repos.d"}};
++    OptionStringList reposdir{"/etc/yum/repos.d"};
+     OptionBool debug_solver{false};
+     OptionStringList installonlypkgs{INSTALLONLYPKGS};
+     OptionStringList group_package_types{GROUP_PACKAGE_TYPES};
+@@ -257,7 +257,7 @@
+     OptionString rpmverbosity{"info"};
+     OptionBool strict{true}; // :api
+     OptionBool skip_broken{false}; // :yum-compatibility
+-    OptionBool autocheck_running_kernel{true}; // :yum-compatibility
++    OptionBool autocheck_running_kernel{false}; // :yum-compatibility
+     OptionBool clean_requirements_on_remove{true};
+ 
+     OptionEnum<std::string> history_list_view{"commands", {"single-user-commands", "users", "commands"},
 diff -u -r libdnf-0.48.0-orig/libdnf/dnf-lock.cpp libdnf-0.48.0/libdnf/dnf-lock.cpp
 --- libdnf-0.48.0-orig/libdnf/dnf-lock.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/dnf-lock.cpp	2020-11-13 12:19:18.310274600 +0000
++++ libdnf-0.48.0/libdnf/dnf-lock.cpp	2020-11-29 20:17:45.852543160 +0000
 @@ -429,7 +429,11 @@
          }
  
@@ -15,8 +36,32 @@ diff -u -r libdnf-0.48.0-orig/libdnf/dnf-lock.cpp libdnf-0.48.0/libdnf/dnf-lock.
                          DNF_ERROR,
 diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo-loader.cpp libdnf-0.48.0/libdnf/dnf-repo-loader.cpp
 --- libdnf-0.48.0-orig/libdnf/dnf-repo-loader.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/dnf-repo-loader.cpp	2020-11-13 12:19:18.312421720 +0000
-@@ -545,6 +545,7 @@
++++ libdnf-0.48.0/libdnf/dnf-repo-loader.cpp	2020-11-29 20:17:45.854946280 +0000
+@@ -181,6 +181,7 @@
+         return FALSE;
+ 
+     g_debug("added repo %s", dnf_repo_get_id(repo));
++    //    abort();
+     g_ptr_array_add(priv->repos, repo);
+     return TRUE;
+ }
+@@ -352,6 +353,7 @@
+         return FALSE;
+ 
+     g_debug("added repo %s\t%s", filename, id);
++    //    abort();
+     g_ptr_array_add(priv->repos, g_object_ref(repo));
+     return TRUE;
+ }
+@@ -429,6 +431,7 @@
+         /* find all the .repo files */
+         while (auto file = g_dir_read_name(dir)) {
+             g_autofree gchar *path_tmp = NULL;
++            g_debug("DH Checking %s", file);
+             if (!g_str_has_suffix(file, ".repo"))
+                 continue;
+             path_tmp = g_build_filename(repo_path, file, NULL);
+@@ -545,6 +548,7 @@
  static void
  dnf_repo_loader_setup_monitor(DnfRepoLoader *self, const char * path, bool is_dir)
  {
@@ -24,7 +69,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo-loader.cpp libdnf-0.48.0/libdnf/dn
      DnfRepoLoaderPrivate *priv = GET_PRIVATE(self);
      g_autoptr(GFile) file_path = g_file_new_for_path(path);
      g_autoptr(GError) error = NULL;
-@@ -555,10 +556,12 @@
+@@ -555,10 +559,12 @@
          monitor = g_file_monitor_file(file_path, G_FILE_MONITOR_NONE, NULL, &error);
      }
      if (monitor) {
@@ -39,7 +84,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo-loader.cpp libdnf-0.48.0/libdnf/dn
      }
 diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo.cpp libdnf-0.48.0/libdnf/dnf-repo.cpp
 --- libdnf-0.48.0-orig/libdnf/dnf-repo.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/dnf-repo.cpp	2020-11-13 12:19:18.316377560 +0000
++++ libdnf-0.48.0/libdnf/dnf-repo.cpp	2020-11-29 20:17:45.859068600 +0000
 @@ -2402,7 +2402,7 @@
  
      try {
@@ -51,7 +96,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo.cpp libdnf-0.48.0/libdnf/dnf-repo.
          auto data = g_malloc(fcontent.length());
 diff -u -r libdnf-0.48.0-orig/libdnf/dnf-transaction.cpp libdnf-0.48.0/libdnf/dnf-transaction.cpp
 --- libdnf-0.48.0-orig/libdnf/dnf-transaction.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/dnf-transaction.cpp	2020-11-13 12:19:18.319590680 +0000
++++ libdnf-0.48.0/libdnf/dnf-transaction.cpp	2020-11-29 20:17:45.862223720 +0000
 @@ -1553,6 +1553,7 @@
      } else {
          dbPath = ":memory:";
@@ -62,7 +107,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/dnf-transaction.cpp libdnf-0.48.0/libdnf/dn
      g_object_add_weak_pointer(G_OBJECT(priv->context), (void **)&priv->context);
 diff -u -r libdnf-0.48.0-orig/libdnf/dnf-utils.cpp libdnf-0.48.0/libdnf/dnf-utils.cpp
 --- libdnf-0.48.0-orig/libdnf/dnf-utils.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/dnf-utils.cpp	2020-11-13 12:19:27.687162280 +0000
++++ libdnf-0.48.0/libdnf/dnf-utils.cpp	2020-11-29 20:17:45.863914920 +0000
 @@ -70,13 +70,19 @@
  {
      gchar *real = NULL;
@@ -85,7 +130,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/dnf-utils.cpp libdnf-0.48.0/libdnf/dnf-util
      real = g_strdup(temp);
 diff -u -r libdnf-0.48.0-orig/libdnf/hy-iutil.cpp libdnf-0.48.0/libdnf/hy-iutil.cpp
 --- libdnf-0.48.0-orig/libdnf/hy-iutil.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/hy-iutil.cpp	2020-11-13 12:19:18.321715320 +0000
++++ libdnf-0.48.0/libdnf/hy-iutil.cpp	2020-11-29 20:17:45.865914840 +0000
 @@ -22,7 +22,9 @@
  #include <errno.h>
  #include <dirent.h>
@@ -98,7 +143,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/hy-iutil.cpp libdnf-0.48.0/libdnf/hy-iutil.
  #include <stdio.h>
 diff -u -r libdnf-0.48.0-orig/libdnf/hy-util.cpp libdnf-0.48.0/libdnf/hy-util.cpp
 --- libdnf-0.48.0-orig/libdnf/hy-util.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/hy-util.cpp	2020-11-13 12:19:18.323417800 +0000
++++ libdnf-0.48.0/libdnf/hy-util.cpp	2020-11-29 20:17:45.867552600 +0000
 @@ -24,7 +24,9 @@
  #include <ctype.h>
  #include <sys/utsname.h>
@@ -117,10 +162,13 @@ diff -u -r libdnf-0.48.0-orig/libdnf/hy-util.cpp libdnf-0.48.0/libdnf/hy-util.cp
      if (!strncmp(un.machine, "armv", 4)) {
          /* un.machine is armvXE, where X is version number and E is
           * endianness (b or l); we need to add modifiers such as
-@@ -118,6 +121,8 @@
+@@ -118,6 +121,11 @@
          *modifier++ = endian;
          *modifier = 0;
      }
++#else
++    // SGUG RSE is always mipbe n32 == mips
++    strcpy(un.machine, "mips");
 +#endif
 +
  #ifdef __MIPSEL__
@@ -128,7 +176,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/hy-util.cpp libdnf-0.48.0/libdnf/hy-util.cp
          strcpy(un.machine, "mipsel");
 diff -u -r libdnf-0.48.0-orig/libdnf/module/ModulePackage.cpp libdnf-0.48.0/libdnf/module/ModulePackage.cpp
 --- libdnf-0.48.0-orig/libdnf/module/ModulePackage.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/module/ModulePackage.cpp	2020-11-13 12:19:18.325642920 +0000
++++ libdnf-0.48.0/libdnf/module/ModulePackage.cpp	2020-11-29 20:17:45.869714920 +0000
 @@ -405,7 +405,7 @@
  static std::pair<std::string, std::string> getPlatformStream(const std::string &osReleasePath)
  {
@@ -140,7 +188,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/module/ModulePackage.cpp libdnf-0.48.0/libd
          if (line.find("PLATFORM_ID") != std::string::npos) {
 diff -u -r libdnf-0.48.0-orig/libdnf/module/ModulePackageContainer.cpp libdnf-0.48.0/libdnf/module/ModulePackageContainer.cpp
 --- libdnf-0.48.0-orig/libdnf/module/ModulePackageContainer.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/module/ModulePackageContainer.cpp	2020-11-13 12:19:18.330065400 +0000
++++ libdnf-0.48.0/libdnf/module/ModulePackageContainer.cpp	2020-11-29 20:17:45.884212120 +0000
 @@ -103,7 +103,7 @@
  {
      auto yaml = File::newFile(filePath);
@@ -152,7 +200,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/module/ModulePackageContainer.cpp libdnf-0.
  
 diff -u -r libdnf-0.48.0-orig/libdnf/plugin/plugin.cpp libdnf-0.48.0/libdnf/plugin/plugin.cpp
 --- libdnf-0.48.0-orig/libdnf/plugin/plugin.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/plugin/plugin.cpp	2020-11-13 12:19:18.331682600 +0000
++++ libdnf-0.48.0/libdnf/plugin/plugin.cpp	2020-11-29 20:17:45.886238520 +0000
 @@ -98,7 +98,11 @@
          dirPath.push_back('/');
      struct dirent **namelist;
@@ -167,7 +215,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/plugin/plugin.cpp libdnf-0.48.0/libdnf/plug
          int errnum = errno;
 diff -u -r libdnf-0.48.0-orig/libdnf/repo/Repo.cpp libdnf-0.48.0/libdnf/repo/Repo.cpp
 --- libdnf-0.48.0-orig/libdnf/repo/Repo.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/repo/Repo.cpp	2020-11-13 12:19:18.335440440 +0000
++++ libdnf-0.48.0/libdnf/repo/Repo.cpp	2020-11-29 20:17:46.070472760 +0000
 @@ -420,7 +420,7 @@
      if (path.empty()) return "";
  
@@ -179,7 +227,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/repo/Repo.cpp libdnf-0.48.0/libdnf/repo/Rep
      return content;
 diff -u -r libdnf-0.48.0-orig/libdnf/transaction/Swdb.cpp libdnf-0.48.0/libdnf/transaction/Swdb.cpp
 --- libdnf-0.48.0-orig/libdnf/transaction/Swdb.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/transaction/Swdb.cpp	2020-11-13 12:19:18.337648040 +0000
++++ libdnf-0.48.0/libdnf/transaction/Swdb.cpp	2020-11-29 20:17:46.072855000 +0000
 @@ -58,6 +58,15 @@
    : conn(nullptr)
    , autoClose(true)
@@ -215,7 +263,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/transaction/Swdb.cpp libdnf-0.48.0/libdnf/t
          }
 diff -u -r libdnf-0.48.0-orig/libdnf/utils/CompressedFile.cpp libdnf-0.48.0/libdnf/utils/CompressedFile.cpp
 --- libdnf-0.48.0-orig/libdnf/utils/CompressedFile.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/utils/CompressedFile.cpp	2020-11-13 12:19:18.339154440 +0000
++++ libdnf-0.48.0/libdnf/utils/CompressedFile.cpp	2020-11-29 20:17:46.074185880 +0000
 @@ -16,7 +16,7 @@
  
  CompressedFile::~CompressedFile() = default;
@@ -227,7 +275,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/utils/CompressedFile.cpp libdnf-0.48.0/libd
      // In this case errno value is random, so we set a default value.
 diff -u -r libdnf-0.48.0-orig/libdnf/utils/CompressedFile.hpp libdnf-0.48.0/libdnf/utils/CompressedFile.hpp
 --- libdnf-0.48.0-orig/libdnf/utils/CompressedFile.hpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/utils/CompressedFile.hpp	2020-11-13 12:19:18.340276040 +0000
++++ libdnf-0.48.0/libdnf/utils/CompressedFile.hpp	2020-11-29 20:17:46.075327080 +0000
 @@ -11,7 +11,7 @@
      explicit CompressedFile(const std::string &filePath);
      ~CompressedFile() override;
@@ -239,7 +287,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/utils/CompressedFile.hpp libdnf-0.48.0/libd
  };
 diff -u -r libdnf-0.48.0-orig/libdnf/utils/File.cpp libdnf-0.48.0/libdnf/utils/File.cpp
 --- libdnf-0.48.0-orig/libdnf/utils/File.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/utils/File.cpp	2020-11-13 12:19:18.341546120 +0000
++++ libdnf-0.48.0/libdnf/utils/File.cpp	2020-11-29 20:17:46.076605640 +0000
 @@ -40,7 +40,7 @@
      } catch (IOError &) {}
  }
@@ -266,7 +314,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/utils/File.cpp libdnf-0.48.0/libdnf/utils/F
      char *buffer = nullptr;
 diff -u -r libdnf-0.48.0-orig/libdnf/utils/File.hpp libdnf-0.48.0/libdnf/utils/File.hpp
 --- libdnf-0.48.0-orig/libdnf/utils/File.hpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/utils/File.hpp	2020-11-13 12:19:18.342776440 +0000
++++ libdnf-0.48.0/libdnf/utils/File.hpp	2020-11-29 20:17:46.077744040 +0000
 @@ -47,7 +47,7 @@
      File & operator=(const File&) = delete;
      virtual ~File();
@@ -278,7 +326,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/utils/File.hpp libdnf-0.48.0/libdnf/utils/F
      size_t read(char *buffer, size_t count);
 diff -u -r libdnf-0.48.0-orig/libdnf/utils/os-release.cpp libdnf-0.48.0/libdnf/utils/os-release.cpp
 --- libdnf-0.48.0-orig/libdnf/utils/os-release.cpp	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/libdnf/utils/os-release.cpp	2020-11-13 12:19:18.344090840 +0000
++++ libdnf-0.48.0/libdnf/utils/os-release.cpp	2020-11-29 20:17:46.079003480 +0000
 @@ -50,7 +50,7 @@
      std::string path = *it;
  
@@ -290,7 +338,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/utils/os-release.cpp libdnf-0.48.0/libdnf/u
          // remove trailing spaces and newline
 diff -u -r libdnf-0.48.0-orig/tests/CMakeLists.txt libdnf-0.48.0/tests/CMakeLists.txt
 --- libdnf-0.48.0-orig/tests/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/tests/CMakeLists.txt	2020-11-13 12:19:18.345231080 +0000
++++ libdnf-0.48.0/tests/CMakeLists.txt	2020-11-29 20:17:46.080125880 +0000
 @@ -18,4 +18,4 @@
  target_link_libraries(run_tests libdnf cppunit)
  
@@ -299,7 +347,7 @@ diff -u -r libdnf-0.48.0-orig/tests/CMakeLists.txt libdnf-0.48.0/tests/CMakeList
 +set_property(TEST test_cpp PROPERTY ENVIRONMENT "LD_LIBRARYN32_PATH=${CMAKE_BINARY_DIR}/libdnf:$ENV{LD_LIBRARYN32_PATH}")
 diff -u -r libdnf-0.48.0-orig/tests/hawkey/CMakeLists.txt libdnf-0.48.0/tests/hawkey/CMakeLists.txt
 --- libdnf-0.48.0-orig/tests/hawkey/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/tests/hawkey/CMakeLists.txt	2020-11-13 12:19:18.346426760 +0000
++++ libdnf-0.48.0/tests/hawkey/CMakeLists.txt	2020-11-29 20:17:46.081410760 +0000
 @@ -34,4 +34,4 @@
      ${RPMDB_LIBRARY}
  )
@@ -308,7 +356,7 @@ diff -u -r libdnf-0.48.0-orig/tests/hawkey/CMakeLists.txt libdnf-0.48.0/tests/ha
 +set_property(TEST test_hawkey_main PROPERTY ENVIRONMENT "LD_LIBRARYN32_PATH=${CMAKE_BINARY_DIR}/libdnf:$ENV{LD_LIBRARYN32_PATH}")
 diff -u -r libdnf-0.48.0-orig/tests/libdnf/CMakeLists.txt libdnf-0.48.0/tests/libdnf/CMakeLists.txt
 --- libdnf-0.48.0-orig/tests/libdnf/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
-+++ libdnf-0.48.0/tests/libdnf/CMakeLists.txt	2020-11-13 12:19:18.347561160 +0000
++++ libdnf-0.48.0/tests/libdnf/CMakeLists.txt	2020-11-29 20:17:46.082610280 +0000
 @@ -15,4 +15,4 @@
  )
  
