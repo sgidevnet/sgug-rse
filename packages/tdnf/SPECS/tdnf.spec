@@ -37,6 +37,8 @@ Source0:        %{name}-%{version}-beta.tar.gz
 %define sha1    tdnf=ccde34eb3c75afcd1d672fae05a0dd2aae7feaa1
 Patch0:         fix-coverity-issues.patch
 Patch100:		cmakelist-paths.sgifixes.patch
+Patch101:		client-defines.sgifixes.patch
+Patch102: 		tdnf-conf.sgifixes.patch
 
 %description
 tdnf is a yum/dnf equivalent which uses libsolv and libcurl
