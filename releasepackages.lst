@@ -22,6 +22,7 @@ adwaita-icon-theme
 alternatives
 asciidoc
 at-spi2-atk
+at-spi2-core
 aterm
 atk
 audiofile
@@ -172,8 +173,9 @@ libimagequant
 libjpeg-turbo
 libksba
 liblzf
-libmikmod
 libmetalink
+libmikmod
+libmodman
 libmodulemd
 libmpc
 libogg
@@ -257,6 +259,7 @@ perl-Data-Dump
 perl-Devel-Leak
 perl-Devel-StackTrace
 perl-Devel-Symdump
+perl-Digest-HMAC
 perl-Encode-Locale
 perl-EV
 perl-Event
@@ -269,11 +272,13 @@ perl-File-Remove
 perl-File-Which
 perl-Guard
 perl-HTML-Parser
+perl-HTML-Tagset
 perl-HTTP-Cookies
 perl-HTTP-Daemon
 perl-HTTP-Date
 perl-HTTP-Message
 perl-HTTP-Negotiate
+perl-IO-HTML
 perl-IO-Socket-SSL
 perl-IO-Tty
 perl-IPC-Run
@@ -303,6 +308,7 @@ perl-Test-Pod-Coverage
 perl-Test-Requires
 perl-Test-Warn
 perl-Tie-IxHash
+perl-TimeDate
 perl-Try-Tiny
 perl-Types-Serialiser
 perl-URI
@@ -377,6 +383,7 @@ python-scandir
 python-setuptools
 python-setuptools_scm
 python-six
+python-snowballstemmer
 python-sphinx
 python-sphinx-theme-alabaster
 python-sphinxcontrib-applehelp
