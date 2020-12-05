@@ -340,7 +340,8 @@ python-atomicwrites
 python-attrs
 python-backports
 python-backports-ssl_match_hostname
-python-boto
+python-boto3
+python-botocore
 python-chardet
 python-cov-core
 python-coverage
