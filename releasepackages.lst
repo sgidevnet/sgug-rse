@@ -355,6 +355,7 @@ python-imagesize
 python-importlib-metadata
 python-ipaddress
 python-jinja2
+python-jmespath
 python-lxml
 python-mako
 python-markdown
@@ -380,6 +381,7 @@ python-rpm-generators
 python-rpm-macros
 python-ruamel-yaml
 python-ruamel-yaml-clib
+python-s3transfer
 python-scandir
 python-setuptools
 python-setuptools_scm
