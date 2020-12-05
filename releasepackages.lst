@@ -345,6 +345,7 @@ python-botocore
 python-chardet
 python-cov-core
 python-coverage
+python-dateutil
 python-decorator
 python-docutils
 python-enum34
