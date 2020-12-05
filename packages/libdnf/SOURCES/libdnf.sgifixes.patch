@@ -57,7 +57,7 @@ diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo-loader.cpp libdnf-0.48.0/libdnf/dn
          /* find all the .repo files */
          while (auto file = g_dir_read_name(dir)) {
              g_autofree gchar *path_tmp = NULL;
-+            g_debug("DH Checking %s", file);
++            //g_debug("DH Checking %s", file);
              if (!g_str_has_suffix(file, ".repo"))
                  continue;
              path_tmp = g_build_filename(repo_path, file, NULL);
