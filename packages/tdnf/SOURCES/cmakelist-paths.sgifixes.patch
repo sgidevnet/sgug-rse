@@ -1,0 +1,18 @@
+--- tdnf-3.0.0-beta-orig/CMakeLists.txt	2020-12-03 17:02:43.241228240 +0000
++++ tdnf-3.0.0-beta/CMakeLists.txt	2020-12-03 17:03:26.043551840 +0000
+@@ -29,11 +29,11 @@
+ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+ 
+ # Ensure that we don't accidentally install into /usr/etc
+-set(CMAKE_INSTALL_FULL_SYSCONDIR "/etc")
+-set(SYSCONFDIR /etc)
++set(CMAKE_INSTALL_FULL_SYSCONDIR "/usr/sgug/etc")
++set(SYSCONFDIR /usr/sgug/etc)
+ 
+-set(MOTGEN_DIR /etc/motdgen.d)
+-set(SYSTEMD_DIR /lib/systemd/system)
++set(MOTGEN_DIR /usr/sgug/etc/motdgen.d)
++set(SYSTEMD_DIR /usr/sgug/lib/systemd/system)
+ 
+ ##
+ ## C Flags
