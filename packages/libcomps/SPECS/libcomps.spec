@@ -4,14 +4,14 @@
 %endif
 
 # Do not build python3 bindings for RHEL <= 7
-#%%if 0%{?rhel} && 0%{?rhel} <= 7
+#%%if 0%%{?rhel} && 0%%{?rhel} <= 7
 #%%bcond_with python3
 #%%else
 %bcond_without python3
 #%%endif
 
 # Do not build python2 bindings for RHEL > 7 and Fedora > 29
-#%%if 0%{?rhel} > 7 || 0%{?fedora} > 29
+#%%if 0%%{?rhel} > 7 || 0%%{?fedora} > 29
 %bcond_with python2
 #%%else
 #%%bcond_without python2
@@ -19,7 +19,7 @@
 
 Name:           libcomps
 Version:        0.1.15
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Comps XML file manipulation library
 
 License:        GPLv2+
@@ -112,11 +112,11 @@ export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 
 %if 0%{debug}
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -g -Og"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -Og"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1"
 %else
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %endif
@@ -211,6 +211,9 @@ cd $TOP_WD
 %endif
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.15-2
+- Correct _SGI_SOURCES to be _SGI_SOURCE
+
 * Wed Apr 01 2020 Ales Matej <amatej@redhat.com> - 0.1.15-1
 - Update to 0.1.15
 - Do not skip type=mandatory in xml output (RhBug:1771224)
