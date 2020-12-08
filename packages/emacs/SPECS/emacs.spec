@@ -5,7 +5,7 @@ Summary:       GNU Emacs text editor
 Name:          emacs
 Epoch:         1
 Version:       23.3
-Release:       3%{?dist}
+Release:       4%{?dist}
 License:       GPLv3+ and CC0-1.0
 URL:           http://www.gnu.org/software/emacs/
 Source0:       https://ftp.gnu.org/gnu/emacs/emacs-%{version}b.tar.gz
@@ -243,7 +243,7 @@ export LIBS="-lfreetype -lfontconfig -ltinfo"
 #           --with-tiff --with-xft --with-xpm --with-x-toolkit=gtk3 --with-gpm=no \
 #           --with-xwidgets --with-modules
 
-%configure --with-gif --with-jpeg --with-png \
+%configure --without-dbus --with-gif --with-jpeg --with-png \
            --with-tiff --with-xpm --with-x-toolkit=motif --with-gpm=no \
            --with-xwidgets
 
@@ -495,6 +495,9 @@ rm %{buildroot}%{_prefix}/var/games/emacs/tetris-scores
 #%{_includedir}/emacs-module.h
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 1:23.3-4
+- Disable dbus discovery
+
 * Mon Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1:23.3-3
 - jpegturbo build
 
