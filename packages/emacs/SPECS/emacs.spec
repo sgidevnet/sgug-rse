@@ -258,7 +258,7 @@ ln -s ../configure .
 #configure --with-dbus --with-gif --with-jpeg --with-png --with-rsvg \
 #           --with-tiff --with-xft --with-xpm --with-x-toolkit=lucid --with-gpm=no \
 #           --with-modules
-%configure --with-gif --with-jpeg --with-png \
+%configure --without-dbus --with-gif --with-jpeg --with-png \
            --with-tiff --with-xpm --with-x-toolkit=lucid --with-gpm=no
 #make %{?_smp_mflags} bootstrap
 %{setarch} make %{?_smp_mflags}
@@ -268,7 +268,7 @@ cd ..
 mkdir build-nox && cd build-nox
 ln -s ../configure .
 export LIBS="-ltinfo"
-%configure --with-x=no
+%configure --without-dbus --with-x=no
 %{setarch} make %{?_smp_mflags}
 cd ..
 
