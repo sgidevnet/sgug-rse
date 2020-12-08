@@ -10,7 +10,7 @@
 
 Name:           libproxy
 Version:        0.4.15
-Release:        15%{?dist}
+Release:        16%{?dist}
 Summary:        A library handling all the details of proxy configuration
 
 License:        LGPLv2+
@@ -130,6 +130,7 @@ Provides:       %{name}-pac = %{version}-%{release}
 %description    webkitgtk4
 The %{name}-webkitgtk4 package contains the %{name} plugin for
 webkitgtk3.
+%endif
 
 %package        pacrunner
 Summary:        Plugin for %{name} and PacRunner
@@ -140,8 +141,6 @@ Requires:       pacrunner
 %description    pacrunner
 The %{name}-pacrunner package contains the %{name} plugin for
 PacRunner.
-%endif
-
 
 %package        devel
 Summary:        Development files for %{name}
@@ -232,10 +231,10 @@ make test
 
 %files webkitgtk4
 %{_libdir}/%{name}/%{version}/modules/pacrunner_webkit.so
+%endif
 
 %files pacrunner
 %{_libdir}/%{name}/%{version}/modules/config_pacrunner.so
-%endif
 
 %files devel
 %{_includedir}/proxy.h
@@ -245,6 +244,9 @@ make test
 
 
 %changelog
+* Mon Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 0.4.15-16
+- With dbus we now have the pacrunner plugin being created
+
 * Sun Oct 25 2020 Daniel Hams <daniel.hams@gmail.com> - 0.4.15-15
 - Upgrade to latest fc31 version, fix build issues + get all but one tests working. Currently in "bootstrap" mode.
 
