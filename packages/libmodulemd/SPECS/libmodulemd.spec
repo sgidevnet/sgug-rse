@@ -21,7 +21,7 @@
 
 Name:           %{upstream_name}%{?v2_suffix}
 Version:        2.9.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Module metadata manipulation library
 
 License:        MIT
@@ -134,7 +134,7 @@ perl -pi -e "s|LD_LIBRARY_PATH|LD_LIBRARYN32_PATH|g" modulemd/meson.build
 %build
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 %if 0%{debug}
 export CFLAGS="-g -Og"
 export CXXFLAGS="$CFLAGS"
@@ -223,6 +223,9 @@ mv %{buildroot}%{_mandir}/man1/modulemd-validator.1 \
 
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 2.9.3-2
+- Correct _SGI_SOURCES (no plural)
+
 * Wed Apr 08 2020 Stephen Gallagher <sgallagh@redhat.com> - 2.9.3-1
 - new upstream release: 2.9.3
 
