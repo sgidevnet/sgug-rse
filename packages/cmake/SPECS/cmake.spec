@@ -74,7 +74,7 @@
 
 Name:           %{orig_name}%{?name_suffix}
 Version:        %{major_version}.%{minor_version}.2
-Release:        6%{?relsuf}%{?dist}
+Release:        7%{?relsuf}%{?dist}
 Summary:        Cross-platform make system
 
 # most sources are BSD
@@ -538,6 +538,9 @@ mv -f Modules/FindLibArchive.disabled Modules/FindLibArchive.cmake
 
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-7
+- Revert msg_ctrl patch changes causing socket build failures
+
 * Wed Jun 17 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-6
 - Update FindZLIB module to hunt first for sgug libz
 

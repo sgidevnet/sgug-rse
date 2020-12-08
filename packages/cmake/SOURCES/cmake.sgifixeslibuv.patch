@@ -292,7 +292,7 @@ diff -u -r -N cmake-3.17.2-orig/Utilities/cmlibuv/src/unix/core.c cmake-3.17.2/U
    if (rc == -1)
      return UV__ERR(errno);
 +#if defined(__sgi)
-+  if (msg->msg_ctrllen == 0)
++/*  if (msg->msg_ctrllen == 0)*/
 +#else
    if (msg->msg_controllen == 0)
 +#endif
@@ -444,8 +444,8 @@ diff -u -r -N cmake-3.17.2-orig/Utilities/cmlibuv/src/unix/stream.c cmake-3.17.2
 +#endif
  
 +#if defined(__sgi)
-+    msg.msg_ctrl = &scratch.alias;
-+    msg.msg_ctrllen = CMSG_SPACE(sizeof(fd_to_send));
++/*    msg.msg_ctrl = &scratch.alias;
++    msg.msg_ctrllen = CMSG_SPACE(sizeof(fd_to_send));*/
 +#else
      msg.msg_control = &scratch.alias;
      msg.msg_controllen = CMSG_SPACE(sizeof(fd_to_send));
@@ -502,8 +502,8 @@ diff -u -r -N cmake-3.17.2-orig/Utilities/cmlibuv/src/unix/stream.c cmake-3.17.2
        msg.msg_namelen = 0;
        /* Set up to receive a descriptor even if one isn't in the message */
 +#if defined(__sgi)
-+      msg.msg_ctrllen = sizeof(cmsg_space);
-+      msg.msg_ctrl = cmsg_space;
++/*      msg.msg_ctrllen = sizeof(cmsg_space);
++      msg.msg_ctrl = cmsg_space;*/
 +#else
        msg.msg_controllen = sizeof(cmsg_space);
        msg.msg_control = cmsg_space;
