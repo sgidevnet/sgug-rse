@@ -9,7 +9,7 @@
 Summary: Utility for secure communication and data storage
 Name:    gnupg2
 Version: 2.2.20
-Release: 3%{?dist}
+Release: 4%{?dist}
 
 License: GPLv3+
 Source0: ftp://ftp.gnupg.org/gcrypt/%{?pre:alpha/}gnupg/gnupg-%{version}%{?pre}.tar.bz2
@@ -119,6 +119,9 @@ to the base GnuPG package
 
 # A place to generate the SGUG patch
 #exit 1
+
+# Rewrite some hardcoded paths
+perl -pi -e "s|/var/run|%{_prefix}/var/run|g" common/homedir.c
 
 # pcsc-lite library major: 0 in 1.2.0, 1 in 1.2.9+ (dlopen()'d in pcsc-wrapper)
 # Note: this is just the name of the default shared lib to load in scdaemon,
@@ -235,6 +238,9 @@ make -k check
 
 
 %changelog
+* Sun Dec 02 2020 Daniel Hams <daniel.hams@gmail.com> - 2.2.20-4
+- Fix up the /var/run unix socket to live in /usr/sgug/var/run
+
 * Sun Nov 08 2020 Daniel Hams <daniel.hams@gmail.com> - 2.2.20-3
 - Updated now we have pinentry (but leave weak to avoid pulling in gtk)
 

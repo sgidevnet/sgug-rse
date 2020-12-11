@@ -8,8 +8,8 @@
 
 Name:           microdnf
 Version:        3.4.0
-Release:        1%{?dist}
-Summary:        Minimal C implementation of DNF
+Release:        2%{?dist}
+Summary:        Minimal C implementation of DNF tweaked for IRIX
 
 License:        GPLv3+
 URL:            https://github.com/rpm-software-management/microdnf
@@ -48,12 +48,15 @@ capabilities are intentionally not implemented in Micro DNF.
 #exit 1
 
 %build
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
 %if 0%{debug}
 export CFLAGS="-g -Og"
 export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now"
+%else
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %endif
 %meson
 %meson_build
@@ -71,6 +74,9 @@ export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
 %{_bindir}/%{name}
 
 %changelog
+* Sun Nov 29 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.0-2
+- Move over to C++ and fix some variable init placement issues
+
 * Tue Nov 10 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.0-1
 - Porting into sgugrse
 

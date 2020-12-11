@@ -33,7 +33,7 @@
 
 Name:           librepo
 Version:        1.12.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Repodata downloading library
 
 License:        LGPLv2+
@@ -48,6 +48,8 @@ BuildRequires:  gcc
 #BuildRequires:  doxygen
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  gpgme-devel
+# To have gnupg2 place the unix socket in the same directory (/usr/sgug/var/run)
+BuildRequires:  gnupg2 >= 2.2.20-4
 #BuildRequires:  libattr-devel
 BuildRequires:  libcurl-devel >= %{libcurl_version}
 BuildRequires:  pkgconfig(libxml-2.0)
@@ -140,6 +142,8 @@ perl -pi -e "s|/librepo/:|/librepo/:$LD_LIBRARYN32_PATH|g" tests/run_tests.sh.in
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" utils/cleanup.sh
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" utils/make_rpm.sh
 
+perl -pi -e "s|/run/user|%{_prefix}/var/run/user|g" librepo/gpg.c
+
 mkdir build-py2
 mkdir build-py3
 
@@ -231,6 +235,9 @@ cd $PREV_WD
 %endif
 
 %changelog
+* Sun Nov 29 2020 Daniel Hams <daniel.hams@gmail.com> - 1.12.0-2
+- Fix up a SGUG specific run dir where the gpg socket lives
+
 * Tue Jun 02 2020 Nicola Sella <nsella@redhat.com> - 1.12.0-1
 - Update to 1.12.0
 - Decode package URL when using for local filename (RhBug:1817130)
