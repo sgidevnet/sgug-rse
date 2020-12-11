@@ -98,10 +98,10 @@ rm -f ${RPM_BUILD_ROOT}%{_infodir}/dir
 %{_libdir}/lib*.so.*
 %{_libdir}/aspell-0.60/*
 %{_infodir}/aspell.*
-%{_mandir}/man1/aspell.1.*
+%{_mandir}/man1/aspell.1
 %{_mandir}/man1/run-with-aspell.1*
 %{_mandir}/man1/word-list-compress.1*
-%{_mandir}/man1/prezip-bin.1.*
+%{_mandir}/man1/prezip-bin.1
 
 %files devel
 %dir %{_includedir}/pspell
