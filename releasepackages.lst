@@ -407,9 +407,11 @@ python-six
 python-snowballstemmer
 python-sphinx
 python-sphinx-theme-alabaster
+python-sphinx_rtd_theme
 python-sphinxcontrib-applehelp
 python-sphinxcontrib-devhelp
 python-sphinxcontrib-htmlhelp
+python-sphinxcontrib-httpdomain
 python-sphinxcontrib-jsmath
 python-sphinxcontrib-qthelp
 python-sphinxcontrib-serializinghtml
