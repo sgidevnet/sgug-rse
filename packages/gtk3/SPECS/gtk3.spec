@@ -79,7 +79,7 @@ BuildRequires: pkgconfig(sysprof-capture-3)
 %endif
 
 # standard icons
-#Requires: adwaita-icon-theme
+Requires: adwaita-icon-theme
 # required for icon theme apis to work
 Requires: hicolor-icon-theme
 # split out in a subpackage

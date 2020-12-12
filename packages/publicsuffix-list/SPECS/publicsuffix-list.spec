@@ -13,8 +13,6 @@ Source2:        https://github.com/publicsuffix/list/raw/master/tests/test_psl.t
 
 BuildArch:      noarch
 
-#IRIX Note: Build this with `--without dafsa`
-
 %if %{with dafsa}
 BuildRequires:  psl-make-dafsa
 %endif

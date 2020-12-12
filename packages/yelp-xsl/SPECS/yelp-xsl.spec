@@ -9,7 +9,7 @@ Source0:        https://download.gnome.org/sources/%{name}/3.34/%{name}-%{versio
 BuildArch:      noarch
 
 BuildRequires:  python3-libxml2
-#BuildRequires:  %{_bindir}/ducktype
+BuildRequires:  %{_bindir}/ducktype
 BuildRequires:  %{_bindir}/xmllint
 BuildRequires:  %{_bindir}/xsltproc
 BuildRequires:  gcc
