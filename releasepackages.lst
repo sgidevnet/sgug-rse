@@ -216,8 +216,8 @@ lz4
 lzip
 lzo
 m4
-make
 mailcap
+make
 mallard-rng
 man-db
 mc
@@ -254,10 +254,10 @@ perl
 perl-AnyEvent
 perl-App-FatPacker
 perl-BDB
+perl-CPAN-Meta-Check
 perl-Canary-Stability
 perl-Capture-Tiny
 perl-Convert-Bencode
-perl-CPAN-Meta-Check
 perl-Data-Dump
 perl-Data-OptList
 perl-Devel-CheckLib
@@ -266,8 +266,8 @@ perl-Devel-StackTrace
 perl-Devel-Symdump
 perl-Digest-HMAC
 perl-Digest-SHA1
-perl-Encode-Locale
 perl-EV
+perl-Encode-Locale
 perl-Event
 perl-Expect
 perl-ExtUtils-PkgConfig
@@ -427,8 +427,8 @@ python3
 python3-mallard-ducktype
 pytz
 re2c
-rest
 readline
+rest
 rhash
 rpm
 rsync
@@ -440,6 +440,7 @@ sgug-rpm-config
 sgug-rpm-tools
 sgugrse-release
 sgugrse-repos
+sgugshell
 shared-mime-info
 slang
 sound-theme-freedesktop
