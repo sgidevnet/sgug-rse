@@ -60,7 +60,7 @@
 
 Name:           libdnf
 Version:        %{libdnf_major_version}.%{libdnf_minor_version}.%{libdnf_micro_version}
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Library providing simplified C and Python API to libsolv
 License:        LGPLv2+
 URL:            https://github.com/rpm-software-management/libdnf
@@ -372,6 +372,10 @@ cd $PREV_WD
 %endif
 
 %changelog
+* Sat Dec 12 2020 Daniel Hams <daniel.hams@gmail.com> - 0.48.0-4
+- Fix up missing O_CLOEXEC on IRIX now that fcntl.h in libdicl doesnt expose
+  it.
+
 * Wed Dec 02 2020 Daniel Hams <daniel.hams@gmail.com> - 0.48.0-3
 - More fixups / debugging, use new gnupg unix socket dir.
 
