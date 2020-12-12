@@ -10,7 +10,7 @@ BuildRequires:  gcc-c++
 BuildRequires: glib2-devel >= 2.6.0
 BuildRequires: aspell-devel
 BuildRequires: hunspell-devel
-BuildRequires: libvoikko-devel
+#BuildRequires: libvoikko-devel
 BuildRequires: automake, libtool
 
 %description
@@ -23,12 +23,12 @@ Requires: enchant = %{epoch}:%{version}-%{release}
 %description aspell
 Libraries necessary to integrate applications using libenchant with aspell.
 
-%package voikko
-Summary: Integration with voikko for libenchant
-Requires: enchant = %{epoch}:%{version}-%{release}
-
-%description voikko
-Libraries necessary to integrate applications using libenchant with voikko.
+#%package voikko
+#Summary: Integration with voikko for libenchant
+#Requires: enchant = %{epoch}:%{version}-%{release}
+#
+#%description voikko
+#Libraries necessary to integrate applications using libenchant with voikko.
 
 
 %package devel
@@ -58,14 +58,14 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/enchant/*.la
 %{_libdir}/lib*.so.*
 %dir %{_libdir}/enchant
 %{_libdir}/enchant/lib*myspell.so*
-%{_mandir}/man1/enchant.1.gz
+%{_mandir}/man1/enchant.1
 %{_datadir}/enchant
 
 %files aspell
 %{_libdir}/enchant/lib*aspell.so*
 
-%files voikko
-%{_libdir}/enchant/lib*_voikko.so*
+#%files voikko
+#%{_libdir}/enchant/lib*_voikko.so*
 
 %files devel
 %{_libdir}/*.so

@@ -88,14 +88,16 @@ mkdir $RPM_BUILD_ROOT/%{_datadir}/myspell
 %find_lang %{name}
 
 #%%ldconfig_scriptlets
+rm -f $RPM_BUILD_ROOT/%{_mandir}/man1/hunspell.1.gz
+rm -f $RPM_BUILD_ROOT/%{_mandir}/hu/man1/hunspell.1.gz
 
 %files -f %{name}.lang
 %doc README COPYING COPYING.LESSER COPYING.MPL AUTHORS license.hunspell license.myspell THANKS
 %{_libdir}/*.so.*
 %{_datadir}/myspell
 %{_bindir}/hunspell
-%{_mandir}/man1/hunspell.1.gz
-%lang(hu) %{_mandir}/hu/man1/hunspell.1.gz
+%{_mandir}/man1/hunspell.1*
+%lang(hu) %{_mandir}/hu/man1/hunspell.1*
 
 %files devel
 %{_includedir}/%{name}
@@ -112,10 +114,10 @@ mkdir $RPM_BUILD_ROOT/%{_datadir}/myspell
 %{_bindir}/wordlist2hunspell
 %{_bindir}/wordforms
 %{_libdir}/pkgconfig/hunspell.pc
-%{_mandir}/man1/hunzip.1.gz
-%{_mandir}/man1/hzip.1.gz
-%{_mandir}/man3/hunspell.3.gz
-%{_mandir}/man5/hunspell.5.gz
+%{_mandir}/man1/hunzip.1*
+%{_mandir}/man1/hzip.1*
+%{_mandir}/man3/hunspell.3*
+%{_mandir}/man5/hunspell.5*
 
 %changelog
 * Thu Jun 18 2020  HAL <notes2@gmx.de> - 1.7.0-3
