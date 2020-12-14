@@ -8,7 +8,7 @@
 Summary: Formatting library for ls-like programs.
 Name: libsmartcols
 Version: 2.34
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: LGPLv2+
 URL: http://en.wikipedia.org/wiki/Util-linux
 
@@ -33,6 +33,8 @@ BuildRequires: ncurses-devel
 BuildRequires: zlib-devel
 BuildRequires: popt-devel
 BuildRequires: gcc
+
+BuildRequries: libdicl-devel
 
 ### Sources
 Source0: ftp://ftp.kernel.org/pub/linux/utils/util-linux/v%{upstream_major}/util-linux-%{upstream_version}.tar.xz
@@ -61,11 +63,13 @@ part of util-linux.
 #exit 1
 
 %build
-export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 %if 0%{debug}
 export CFLAGS="-g -Og"
 export CXXFLAGS="-g -Og"
-export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now"
+%else
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %endif
 
 unset LINGUAS || :
@@ -110,5 +114,8 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/locale
 %{_libdir}/pkgconfig/smartcols.pc
 
 %changelog
+* Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 2.34-5
+- Include dep on libdicl, add debuggable flag
+
 * Sun Aug 16 2020 Daniel Hams <daniel.hams@gmail.com> - 2.34-4
 - Extract libsmartcols from util-linux

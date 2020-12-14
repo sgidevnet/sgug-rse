@@ -2,7 +2,7 @@ Summary: Bootstrap vpkg for sgug
 Name: initial-sgug
 Epoch: 1
 Version: 0.2.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 
 Provides: /bin/sh
@@ -41,6 +41,9 @@ Provides: libXmu.so
 # Audio
 Provides: libaudio.so
 
+# mipspro C++ library - some irix libs depend on this (notably libfam)
+Provides: libC.so.2
+
 # Hacks while working on getting everything rebuilt
 #Provides: libgcc_s.so.1
 
@@ -62,6 +65,9 @@ mkdir -p $RPM_BUILD_ROOT
 # no files in a virtual package
 
 %changelog
+* Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.0-4
+- Include provides of IRIX mipspro C++ lib used by libfam
+
 * Mon Jul 13 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.0-3
 - Make sure we touch the output directory so that rpm macros don''t fail.
 
