@@ -27,7 +27,7 @@
 
 Name:           lib%{libname}
 Version:        0.7.14
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Package dependency solver
 
 License:        BSD
@@ -158,6 +158,16 @@ Python 3 version.
 
 # A place to generate the sgug patch
 #exit 1
+
+# Rewrite hardcoded paths to the rpmdb
+perl -pi -e "s|/var/lib/rpm|%{_prefix}/var/lib/rpm|g" examples/p5solv
+perl -pi -e "s|/var/lib/rpm|%{_prefix}/var/lib/rpm|g" examples/pysolv
+perl -pi -e "s|/var/lib/rpm|%{_prefix}/var/lib/rpm|g" examples/rbsolv
+perl -pi -e "s|/var/lib/rpm|%{_prefix}/var/lib/rpm|g" examples/solv/repoinfo_system_rpm.c
+perl -pi -e "s|/var/lib/rpm|%{_prefix}/var/lib/rpm|g" examples/tclsolv
+
+perl -pi -e "s|/var/lib/rpm|%{_prefix}/var/lib/rpm|g" ext/repo_rpmdb_bdb.h
+perl -pi -e "s|/var/lib/rpm|%{_prefix}/var/lib/rpm|g" ext/repo_rpmdb_librpm.h
 
 # Rewrite hardcoded path in the testsuite
 perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" test/runtestcases.sh
@@ -313,6 +323,9 @@ export LD_LIBRARYN32_PATH=$TEST_LIB_ROOT/src:$TEST_LIB_ROOT/ext:$TEST_LIB_ROOT/b
 %endif
 
 %changelog
+* Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 0.7.14-3
+- Rewrite some hardcoded paths to rpm db
+
 * Sat Aug 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.7.14-2
 - Get tests passing on RSE
 
