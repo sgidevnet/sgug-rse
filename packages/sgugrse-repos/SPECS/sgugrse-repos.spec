@@ -1,7 +1,7 @@
 Summary:        Sgugrse package repositories
 Name:           sgugrse-repos
 Version:        0.0.7alpha
-Release:        1%{?_module_build:%{?dist}}
+Release:        2%{?_module_build:%{?dist}}
 License:        MIT
 URL:            https://sgugrseproject.org/
 
@@ -88,6 +88,9 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 /usr/sgug/etc/ostree/remotes.d/sgugrse.conf
 
 %changelog
+* Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7alpha-2
+- Enable a single repository while we are testing, disable gpg checking for now.
+
 * Tue Nov 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7alpha-1
 - Use a temporary key while in testing phase
 
