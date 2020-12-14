@@ -8,7 +8,7 @@
 
 Name:           microdnf
 Version:        3.4.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Minimal C implementation of DNF tweaked for IRIX
 
 License:        GPLv3+
@@ -25,6 +25,10 @@ BuildRequires:  pkgconfig(libpeas-1.0) >= 1.20.0
 BuildRequires:  pkgconfig(libdnf) >= %{libdnf_version}
 BuildRequires:  pkgconfig(smartcols)
 BuildRequires:  help2man
+
+BuildRequires:  libsmartcols-devel >= 2.34-5
+BuildRequires:  libsolv-devel >= 0.7.14-3
+BuildRequires:  glib2 >= 2.62.6-8
 
 Requires:       libdnf%{?_isa} >= %{libdnf_version}
 
@@ -74,6 +78,9 @@ export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %{_bindir}/%{name}
 
 %changelog
+* Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.0-3
+- Depend on necessary smartcols, libsolv, glib2 versions
+
 * Sun Nov 29 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.0-2
 - Move over to C++ and fix some variable init placement issues
 
