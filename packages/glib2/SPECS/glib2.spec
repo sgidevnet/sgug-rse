@@ -8,7 +8,7 @@
 
 Name: glib2
 Version: 2.62.6
-Release: 9%{?dist}
+Release: 10%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -269,6 +269,9 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Tue Dec 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-10
+- More hardcoded UTF fixes (options in help)
+
 * Tue Dec 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-9
 - Change hardcoded use of UTF non-breaking spaces in sizing formats
 

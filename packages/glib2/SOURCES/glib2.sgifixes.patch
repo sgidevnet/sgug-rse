@@ -1,6 +1,6 @@
 diff -u -r glib-2.62.6-orig/gio/fam/meson.build glib-2.62.6/gio/fam/meson.build
 --- glib-2.62.6-orig/gio/fam/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/fam/meson.build	2020-12-15 14:38:34.692710920 +0000
++++ glib-2.62.6/gio/fam/meson.build	2020-12-15 17:22:06.467833960 +0000
 @@ -7,9 +7,13 @@
  if cc.has_function('FAMNoExists', dependencies : fam_dep)
    fam_c_args += '-DHAVE_FAM_NO_EXISTS=1'
@@ -17,7 +17,7 @@ diff -u -r glib-2.62.6-orig/gio/fam/meson.build glib-2.62.6/gio/fam/meson.build
    libgio_dep,
 diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
 --- glib-2.62.6-orig/gio/glocalfile.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/glocalfile.c	2020-12-15 14:38:34.697460120 +0000
++++ glib-2.62.6/gio/glocalfile.c	2020-12-15 17:22:06.473139640 +0000
 @@ -2826,7 +2826,7 @@
        if (g_cancellable_set_error_if_cancelled (state->cancellable, error))
          return FALSE;
@@ -38,7 +38,7 @@ diff -u -r glib-2.62.6-orig/gio/glocalfile.c glib-2.62.6/gio/glocalfile.c
      DIR *dirp;
 diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
 --- glib-2.62.6-orig/gio/gsocket.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gsocket.c	2020-12-15 14:38:34.708580040 +0000
++++ glib-2.62.6/gio/gsocket.c	2020-12-15 17:22:06.483543480 +0000
 @@ -4419,6 +4419,119 @@
  
  /* Unfortunately these have to be macros rather than inline functions due to
@@ -372,7 +372,7 @@ diff -u -r glib-2.62.6-orig/gio/gsocket.c glib-2.62.6/gio/gsocket.c
          msgvec[i].msg_len = 0;
 diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
 --- glib-2.62.6-orig/gio/gtrashportal.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gtrashportal.c	2020-12-15 14:38:34.710367000 +0000
++++ glib-2.62.6/gio/gtrashportal.c	2020-12-15 17:22:06.485299160 +0000
 @@ -86,10 +86,17 @@
  
    path = g_file_get_path (file);
@@ -393,7 +393,7 @@ diff -u -r glib-2.62.6-orig/gio/gtrashportal.c glib-2.62.6/gio/gtrashportal.c
  
 diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.c
 --- glib-2.62.6-orig/gio/gunixfdmessage.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gunixfdmessage.c	2020-12-15 14:38:34.711973240 +0000
++++ glib-2.62.6/gio/gunixfdmessage.c	2020-12-15 17:22:06.487075560 +0000
 @@ -48,6 +48,10 @@
  #include <fcntl.h>
  #include <errno.h>
@@ -407,7 +407,7 @@ diff -u -r glib-2.62.6-orig/gio/gunixfdmessage.c glib-2.62.6/gio/gunixfdmessage.
  #include "gnetworking.h"
 diff -u -r glib-2.62.6-orig/gio/gunixmounts.c glib-2.62.6/gio/gunixmounts.c
 --- glib-2.62.6-orig/gio/gunixmounts.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/gunixmounts.c	2020-12-15 14:38:34.717698120 +0000
++++ glib-2.62.6/gio/gunixmounts.c	2020-12-15 17:22:06.492802200 +0000
 @@ -71,6 +71,7 @@
  #include "gthemedicon.h"
  #include "gcontextspecificgroup.h"
@@ -586,7 +586,7 @@ diff -u -r glib-2.62.6-orig/gio/gunixmounts.c glib-2.62.6/gio/gunixmounts.c
    return real_dev_root;
 diff -u -r glib-2.62.6-orig/gio/tests/desktop-app-info.c glib-2.62.6/gio/tests/desktop-app-info.c
 --- glib-2.62.6-orig/gio/tests/desktop-app-info.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/tests/desktop-app-info.c	2020-12-15 14:38:34.720094040 +0000
++++ glib-2.62.6/gio/tests/desktop-app-info.c	2020-12-15 17:22:06.495193640 +0000
 @@ -80,9 +80,9 @@
  
    g_object_unref (info);
@@ -601,7 +601,7 @@ diff -u -r glib-2.62.6-orig/gio/tests/desktop-app-info.c glib-2.62.6/gio/tests/d
        res = g_app_info_can_delete (info);
 diff -u -r glib-2.62.6-orig/gio/tests/file.c glib-2.62.6/gio/tests/file.c
 --- glib-2.62.6-orig/gio/tests/file.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/tests/file.c	2020-12-15 14:38:34.723096920 +0000
++++ glib-2.62.6/gio/tests/file.c	2020-12-15 17:22:06.498233640 +0000
 @@ -989,6 +989,7 @@
                                    &num_dirs,
                                    &num_files,
@@ -612,7 +612,7 @@ diff -u -r glib-2.62.6-orig/gio/tests/file.c glib-2.62.6/gio/tests/file.c
  
 diff -u -r glib-2.62.6-orig/gio/tests/socket.c glib-2.62.6/gio/tests/socket.c
 --- glib-2.62.6-orig/gio/tests/socket.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/tests/socket.c	2020-12-15 14:38:34.726406040 +0000
++++ glib-2.62.6/gio/tests/socket.c	2020-12-15 17:22:06.501721080 +0000
 @@ -1336,10 +1336,13 @@
    gint fd;
    GError *error;
@@ -645,7 +645,7 @@ diff -u -r glib-2.62.6-orig/gio/tests/socket.c glib-2.62.6/gio/tests/socket.c
      }
 diff -u -r glib-2.62.6-orig/gio/xdgmime/xdgmime.c glib-2.62.6/gio/xdgmime/xdgmime.c
 --- glib-2.62.6-orig/gio/xdgmime/xdgmime.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gio/xdgmime/xdgmime.c	2020-12-15 14:38:34.728651720 +0000
++++ glib-2.62.6/gio/xdgmime/xdgmime.c	2020-12-15 17:22:06.503995880 +0000
 @@ -235,7 +235,7 @@
    xdg_data_dirs = getenv ("XDG_DATA_DIRS");
  
@@ -657,7 +657,7 @@ diff -u -r glib-2.62.6-orig/gio/xdgmime/xdgmime.c glib-2.62.6/gio/xdgmime/xdgmim
    if (xdg_data_home != NULL || home != NULL)
 diff -u -r glib-2.62.6-orig/glib/gcharset.c glib-2.62.6/glib/gcharset.c
 --- glib-2.62.6-orig/glib/gcharset.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gcharset.c	2020-12-15 14:38:34.730709800 +0000
++++ glib-2.62.6/glib/gcharset.c	2020-12-15 17:22:06.506063240 +0000
 @@ -407,7 +407,7 @@
    if (g_once_init_enter (&alias_table))
      {
@@ -669,7 +669,7 @@ diff -u -r glib-2.62.6-orig/glib/gcharset.c glib-2.62.6/glib/gcharset.c
  
 diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
 --- glib-2.62.6-orig/glib/giounix.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/giounix.c	2020-12-15 14:38:34.732593640 +0000
++++ glib-2.62.6/glib/giounix.c	2020-12-15 17:22:06.508005320 +0000
 @@ -31,7 +31,17 @@
  
  #include "config.h"
@@ -690,7 +690,7 @@ diff -u -r glib-2.62.6-orig/glib/giounix.c glib-2.62.6/glib/giounix.c
  #include <sys/stat.h>
 diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.in
 --- glib-2.62.6-orig/glib/glibconfig.h.in	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/glibconfig.h.in	2020-12-15 14:38:34.734064520 +0000
++++ glib-2.62.6/glib/glibconfig.h.in	2020-12-15 17:22:06.509469560 +0000
 @@ -16,7 +16,7 @@
   * system printf functions.  This is useful to know, for example,
   * when using glibc's register_printf_function().
@@ -702,7 +702,7 @@ diff -u -r glib-2.62.6-orig/glib/glibconfig.h.in glib-2.62.6/glib/glibconfig.h.i
  #mesondefine GOBJECT_STATIC_COMPILATION
 diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
 --- glib-2.62.6-orig/glib/gmain.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gmain.c	2020-12-15 14:38:34.741945400 +0000
++++ glib-2.62.6/glib/gmain.c	2020-12-15 17:22:06.516661560 +0000
 @@ -2844,7 +2844,11 @@
    struct timespec ts;
    gint result;
@@ -717,7 +717,7 @@ diff -u -r glib-2.62.6-orig/glib/gmain.c glib-2.62.6/glib/gmain.c
      g_error ("GLib requires working CLOCK_MONOTONIC");
 diff -u -r glib-2.62.6-orig/glib/gmessages.c glib-2.62.6/glib/gmessages.c
 --- glib-2.62.6-orig/glib/gmessages.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gmessages.c	2020-12-15 14:38:34.749067240 +0000
++++ glib-2.62.6/glib/gmessages.c	2020-12-15 17:22:06.521531320 +0000
 @@ -1053,9 +1053,11 @@
      }
    else
@@ -734,7 +734,7 @@ diff -u -r glib-2.62.6-orig/glib/gmessages.c glib-2.62.6/glib/gmessages.c
        else
 diff -u -r glib-2.62.6-orig/glib/gnulib/fpucw.h glib-2.62.6/glib/gnulib/fpucw.h
 --- glib-2.62.6-orig/glib/gnulib/fpucw.h	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gnulib/fpucw.h	2020-12-15 14:38:34.751458600 +0000
++++ glib-2.62.6/glib/gnulib/fpucw.h	2020-12-15 17:22:06.523251080 +0000
 @@ -88,6 +88,36 @@
  # define END_LONG_DOUBLE_ROUNDING() \
    SET_FPUCW (oldcw)
@@ -774,7 +774,7 @@ diff -u -r glib-2.62.6-orig/glib/gnulib/fpucw.h glib-2.62.6/glib/gnulib/fpucw.h
  typedef unsigned int fpucw_t;
 diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meson.build
 --- glib-2.62.6-orig/glib/gnulib/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gnulib/meson.build	2020-12-15 14:38:34.753090920 +0000
++++ glib-2.62.6/glib/gnulib/meson.build	2020-12-15 17:22:06.524822760 +0000
 @@ -323,14 +323,16 @@
                           output: 'gnulib_math.h',
                           configuration: math_h_config)
@@ -801,7 +801,7 @@ diff -u -r glib-2.62.6-orig/glib/gnulib/meson.build glib-2.62.6/glib/gnulib/meso
  
 diff -u -r glib-2.62.6-orig/glib/gnulib/vasnprintf.c glib-2.62.6/glib/gnulib/vasnprintf.c
 --- glib-2.62.6-orig/glib/gnulib/vasnprintf.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gnulib/vasnprintf.c	2020-12-15 14:38:34.762530440 +0000
++++ glib-2.62.6/glib/gnulib/vasnprintf.c	2020-12-15 17:22:06.533635320 +0000
 @@ -3072,7 +3072,7 @@
                          int sign = 0;
                          DECL_LONG_DOUBLE_ROUNDING
@@ -811,9 +811,24 @@ diff -u -r glib-2.62.6-orig/glib/gnulib/vasnprintf.c glib-2.62.6/glib/gnulib/vas
  
                          if (signbit (arg)) /* arg < 0.0L or negative zero */
                            {
+diff -u -r glib-2.62.6-orig/glib/goption.c glib-2.62.6/glib/goption.c
+--- glib-2.62.6-orig/glib/goption.c	2020-03-18 13:16:11.000000000 +0000
++++ glib-2.62.6/glib/goption.c	2020-12-15 17:22:28.804163640 +0000
+@@ -865,7 +865,11 @@
+   if (context->help_enabled ||
+       (context->main_group && context->main_group->n_entries > 0) ||
+       context->groups != NULL)
++#if defined(__sgi)
++    g_string_append_printf (string, " %s", _("[OPTION.]"));
++#else
+     g_string_append_printf (string, " %s", _("[OPTION…]"));
++#endif
+ 
+   if (rest_description)
+     {
 diff -u -r glib-2.62.6-orig/glib/gspawn.c glib-2.62.6/glib/gspawn.c
 --- glib-2.62.6-orig/glib/gspawn.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gspawn.c	2020-12-15 14:38:34.766807320 +0000
++++ glib-2.62.6/glib/gspawn.c	2020-12-15 17:22:06.537967720 +0000
 @@ -1626,7 +1626,6 @@
    if (!intermediate_child && working_directory == NULL && !close_descriptors &&
        !search_path_from_envp && child_setup == NULL)
@@ -833,7 +848,7 @@ diff -u -r glib-2.62.6-orig/glib/gspawn.c glib-2.62.6/glib/gspawn.c
                 !close_descriptors ? "" : "(fd close requested) ",
 diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.c
 --- glib-2.62.6-orig/glib/gthread-posix.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gthread-posix.c	2020-12-15 14:38:34.769662520 +0000
++++ glib-2.62.6/glib/gthread-posix.c	2020-12-15 17:22:06.540826360 +0000
 @@ -661,7 +661,7 @@
  
    pthread_condattr_init (&attr);
@@ -868,7 +883,7 @@ diff -u -r glib-2.62.6-orig/glib/gthread-posix.c glib-2.62.6/glib/gthread-posix.
     * monotonic, so if we're in this branch, timedwait() will already be
 diff -u -r glib-2.62.6-orig/glib/gtimezone.c glib-2.62.6/glib/gtimezone.c
 --- glib-2.62.6-orig/glib/gtimezone.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gtimezone.c	2020-12-15 14:38:34.772992680 +0000
++++ glib-2.62.6/glib/gtimezone.c	2020-12-15 17:22:06.544204520 +0000
 @@ -416,7 +416,8 @@
  
    tzdir = getenv ("TZDIR");
@@ -881,7 +896,7 @@ diff -u -r glib-2.62.6-orig/glib/gtimezone.c glib-2.62.6/glib/gtimezone.c
       if relative, it is interpreted starting from /usr/share/zoneinfo
 diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
 --- glib-2.62.6-orig/glib/gutils.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/gutils.c	2020-12-15 14:41:29.216190280 +0000
++++ glib-2.62.6/glib/gutils.c	2020-12-15 17:22:06.548662520 +0000
 @@ -992,11 +992,17 @@
        const gsize size_large = (gsize) 256 * 256;
        gchar *tmp;
@@ -996,7 +1011,7 @@ diff -u -r glib-2.62.6-orig/glib/gutils.c glib-2.62.6/glib/gutils.c
  
 diff -u -r glib-2.62.6-orig/glib/tests/collate.c glib-2.62.6/glib/tests/collate.c
 --- glib-2.62.6-orig/glib/tests/collate.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/collate.c	2020-12-15 14:38:34.779046120 +0000
++++ glib-2.62.6/glib/tests/collate.c	2020-12-15 17:22:06.550652920 +0000
 @@ -105,6 +105,172 @@
    do_collate (TRUE, TRUE, test);
  }
@@ -1181,7 +1196,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/collate.c glib-2.62.6/glib/tests/collate.
  {
 diff -u -r glib-2.62.6-orig/glib/tests/date.c glib-2.62.6/glib/tests/date.c
 --- glib-2.62.6-orig/glib/tests/date.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/date.c	2020-12-15 14:38:34.781038200 +0000
++++ glib-2.62.6/glib/tests/date.c	2020-12-15 17:22:06.552928920 +0000
 @@ -215,6 +215,11 @@
  
    g_test_bug ("793550");
@@ -1196,7 +1211,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/date.c glib-2.62.6/glib/tests/date.c
        g_test_skip ("pl_PL locale not available");
 diff -u -r glib-2.62.6-orig/glib/tests/gdatetime.c glib-2.62.6/glib/tests/gdatetime.c
 --- glib-2.62.6-orig/glib/tests/gdatetime.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/gdatetime.c	2020-12-15 14:38:34.785399080 +0000
++++ glib-2.62.6/glib/tests/gdatetime.c	2020-12-15 17:22:06.557253800 +0000
 @@ -1564,7 +1564,7 @@
    TEST_PRINTF ("%%", "%");
    TEST_PRINTF ("%", "");
@@ -1208,7 +1223,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/gdatetime.c glib-2.62.6/glib/tests/gdatet
    g_assert (GetDynamicTimeZoneInformation (&dtz_info) != TIME_ZONE_ID_INVALID);
 diff -u -r glib-2.62.6-orig/glib/tests/gvariant.c glib-2.62.6/glib/tests/gvariant.c
 --- glib-2.62.6-orig/glib/tests/gvariant.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/gvariant.c	2020-12-15 14:38:34.792377960 +0000
++++ glib-2.62.6/glib/tests/gvariant.c	2020-12-15 17:22:06.565275880 +0000
 @@ -15,6 +15,7 @@
  
  #include <glib/gvariant-internal.h>
@@ -1238,7 +1253,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/gvariant.c glib-2.62.6/glib/tests/gvarian
    g_free (res);
 diff -u -r glib-2.62.6-orig/glib/tests/protocol.c glib-2.62.6/glib/tests/protocol.c
 --- glib-2.62.6-orig/glib/tests/protocol.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/protocol.c	2020-12-15 14:38:34.793940360 +0000
++++ glib-2.62.6/glib/tests/protocol.c	2020-12-15 17:22:06.567002920 +0000
 @@ -20,6 +20,8 @@
   * if advised of the possibility of such damage.
   */
@@ -1250,7 +1265,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/protocol.c glib-2.62.6/glib/tests/protoco
  #ifdef G_OS_UNIX
 diff -u -r glib-2.62.6-orig/glib/tests/strfuncs.c glib-2.62.6/glib/tests/strfuncs.c
 --- glib-2.62.6-orig/glib/tests/strfuncs.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/glib/tests/strfuncs.c	2020-12-15 14:38:34.798027880 +0000
++++ glib-2.62.6/glib/tests/strfuncs.c	2020-12-15 17:22:06.571116360 +0000
 @@ -1105,7 +1105,11 @@
  {
    gchar *str_end = NULL;
@@ -1274,7 +1289,7 @@ diff -u -r glib-2.62.6-orig/glib/tests/strfuncs.c glib-2.62.6/glib/tests/strfunc
    g_assert_true (d == g_ascii_strtod (g_ascii_dtostr (buffer, sizeof (buffer), d), NULL));
 diff -u -r glib-2.62.6-orig/gobject/tests/genmarshal.py glib-2.62.6/gobject/tests/genmarshal.py
 --- glib-2.62.6-orig/gobject/tests/genmarshal.py	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gobject/tests/genmarshal.py	2020-12-15 14:38:34.800412200 +0000
++++ glib-2.62.6/gobject/tests/genmarshal.py	2020-12-15 17:22:06.573360520 +0000
 @@ -1,4 +1,4 @@
 -#!/usr/bin/python3
 +#!/usr/sgug/bin/python3
@@ -1283,7 +1298,7 @@ diff -u -r glib-2.62.6-orig/gobject/tests/genmarshal.py glib-2.62.6/gobject/test
  # Copyright © 2019 Endless Mobile, Inc.
 diff -u -r glib-2.62.6-orig/gobject/tests/mkenums.py glib-2.62.6/gobject/tests/mkenums.py
 --- glib-2.62.6-orig/gobject/tests/mkenums.py	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/gobject/tests/mkenums.py	2020-12-15 14:38:34.802031080 +0000
++++ glib-2.62.6/gobject/tests/mkenums.py	2020-12-15 17:22:06.574941320 +0000
 @@ -1,4 +1,4 @@
 -#!/usr/bin/python3
 +#!/usr/sgug/bin/python3
@@ -1292,7 +1307,7 @@ diff -u -r glib-2.62.6-orig/gobject/tests/mkenums.py glib-2.62.6/gobject/tests/m
  # Copyright © 2018 Endless Mobile, Inc.
 diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
 --- glib-2.62.6-orig/meson.build	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/meson.build	2020-12-15 14:38:34.805518440 +0000
++++ glib-2.62.6/meson.build	2020-12-15 17:22:06.578558200 +0000
 @@ -5,7 +5,7 @@
    default_options : [
      'buildtype=debugoptimized',
@@ -1327,7 +1342,7 @@ diff -u -r glib-2.62.6-orig/meson.build glib-2.62.6/meson.build
    functions += ['statvfs']
 diff -u -r glib-2.62.6-orig/tests/mapping-test.c glib-2.62.6/tests/mapping-test.c
 --- glib-2.62.6-orig/tests/mapping-test.c	2020-03-18 13:16:11.000000000 +0000
-+++ glib-2.62.6/tests/mapping-test.c	2020-12-15 14:38:34.806831160 +0000
++++ glib-2.62.6/tests/mapping-test.c	2020-12-15 17:22:06.579865240 +0000
 @@ -208,7 +208,11 @@
    signal (SIGUSR1, handle_usr1);
  #endif
