@@ -34,7 +34,7 @@ BuildRequires: zlib-devel
 BuildRequires: popt-devel
 BuildRequires: gcc
 
-BuildRequries: libdicl-devel
+BuildRequires: libdicl-devel
 
 ### Sources
 Source0: ftp://ftp.kernel.org/pub/linux/utils/util-linux/v%{upstream_major}/util-linux-%{upstream_version}.tar.xz
