@@ -27,7 +27,7 @@
 
 Name:           lib%{libname}
 Version:        0.7.14
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Package dependency solver
 
 License:        BSD
@@ -181,9 +181,8 @@ export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SG
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1"
 %else
-# We only use O2 - O3 causes a _very_ long compilation (perl bindings)
-#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN $RPM_OPT_FLAGS"
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN -g -O2"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN $RPM_OPT_FLAGS"
+export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 -ldiclfunopen-0.1 $RPM_LD_FLAGS"
 %endif
 
@@ -323,6 +322,9 @@ export LD_LIBRARYN32_PATH=$TEST_LIB_ROOT/src:$TEST_LIB_ROOT/ext:$TEST_LIB_ROOT/b
 %endif
 
 %changelog
+* Wed Dec 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.7.14-4
+- Enable O3 by passing -fno-var-tracking to disable gcc var tracking
+
 * Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 0.7.14-3
 - Rewrite some hardcoded paths to rpm db
 
