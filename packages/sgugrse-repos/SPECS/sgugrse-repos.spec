@@ -1,7 +1,7 @@
 Summary:        Sgugrse package repositories
 Name:           sgugrse-repos
-Version:        0.0.7alpha
-Release:        2%{?_module_build:%{?dist}}
+Version:        0.0.7beta
+Release:        1%{?_module_build:%{?dist}}
 License:        MIT
 URL:            https://sgugrseproject.org/
 
@@ -65,8 +65,8 @@ cd $PREV_WD
 
 install -d -m 755 $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
 install -m 644 %{_sourcedir}/sgugrse.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
-#install -m 644 %{_sourcedir}/sgugrse-updates.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
-#install -m 644 %{_sourcedir}/sgugrse-updates-testing.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
+install -m 644 %{_sourcedir}/sgugrse-updates.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
+install -m 644 %{_sourcedir}/sgugrse-updates-testing.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
 
 # Install ostree remote config
 install -d -m 755 $RPM_BUILD_ROOT/usr/sgug/etc/ostree/remotes.d/
@@ -75,8 +75,8 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 %files
 %dir /usr/sgug/etc/yum.repos.d
 %config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse.repo
-#%%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates.repo
-#%%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-testing.repo
+%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates.repo
+%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-testing.repo
 
 %files -n sgugrse-gpg-keys
 %dir /usr/sgug/etc/pki/rpm-gpg
@@ -88,6 +88,9 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 /usr/sgug/etc/ostree/remotes.d/sgugrse.conf
 
 %changelog
+* Wed Dec 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7beta-1
+- Enable update and test update repos
+
 * Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7alpha-2
 - Enable a single repository while we are testing, disable gpg checking for now.
 

@@ -1,16 +1,16 @@
-%define release_name Double O Seven
-%define dist_version 0.0.7alpha
-%define bug_version 0.0.7alpha
+%define release_name Miss Moneypenny
+%define dist_version 0.0.7beta
+%define bug_version 0.0.7beta
 
 # Change this when branching to fNN
-%define doc_version 0.0.7alpha
+%define doc_version 0.0.7beta
 
 # The package can only be built by a very small number of people
 # if you are not sure you can build it do not attempt to
 
 Summary:        SGUG RSE release files
 Name:           sgugrse-release
-Version:        0.0.7alpha
+Version:        0.0.7beta
 Release:        1
 License:        MIT
 URL:            https://sgi.sh/
@@ -62,7 +62,7 @@ Obsoletes:  sgug-release < 0.0.6beta
 Provides:   sgug-release
 Obsoletes:  sgugrse-release < 0.0.6beta
 
-Requires:   sgugrse-repos(%{version}) >= 0.0.6beta
+Requires:   sgugrse-repos(%{version}) >= 0.0.7beta
 
 %description common
 Release files common to all Editions and Spins of SGUG RSE
@@ -71,8 +71,6 @@ Release files common to all Editions and Spins of SGUG RSE
 #sed -i 's|@@VERSION@@|%{dist_version}|g' %{SOURCE2}
 
 %build
-
-perl -pi -e "s|||g" blah
 
 %install
 rm -rf %{buildroot}/*
@@ -206,6 +204,9 @@ ln -s %{_swidtagdir} %{buildroot}%{_sysconfdir}/swid/swidtags.d/sgugrseproject.o
 %{_prefix}/lib/os-release
 
 %changelog
+* Wed Dec 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7beta-1
+- Setting correct release version
+
 * Tue Nov 10 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7alpha-1
 - Building up the support infra for microdnf
 
