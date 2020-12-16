@@ -8,7 +8,7 @@
 
 Name:           microdnf
 Version:        3.4.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Minimal C implementation of DNF tweaked for IRIX
 
 License:        GPLv3+
@@ -31,6 +31,8 @@ BuildRequires:  libsolv-devel >= 0.7.14-3
 BuildRequires:  glib2 >= 2.62.6-8
 
 Requires:       libdnf%{?_isa} >= %{libdnf_version}
+
+Requires:       glib2-fam
 
 %description
 Micro DNF is a very minimal C implementation of DNFs install, upgrade,
@@ -78,6 +80,9 @@ export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %{_bindir}/%{name}
 
 %changelog
+* Tue Dec 15 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.0-4
+- Include dependency on glib2-fam for file/dir monitoring
+
 * Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 3.4.0-3
 - Depend on necessary smartcols, libsolv, glib2 versions
 

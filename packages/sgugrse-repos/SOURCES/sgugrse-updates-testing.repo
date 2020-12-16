@@ -2,7 +2,7 @@
 name=Sgugrse $releasever - $basearch - Test Updates
 baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/updates/testing/$releasever/Everything/$basearch/
 #metalink=https://mirrors.sgugrsetest.org/metalink?repo=updates-testing-f$releasever&arch=$basearch
-enabled=0
+enabled=1
 repo_gpgcheck=0
 type=rpm
 gpgcheck=0

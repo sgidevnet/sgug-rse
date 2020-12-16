@@ -24,7 +24,7 @@ skip_if_unavailable=False
 
 [sgugrse-source]
 name=Sgugrse $releasever - Source
-baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/releases/$releasever/Everything/source/tree/
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/releases/$releasever/Everything/SRPMS/
 #metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-source-$releasever&arch=$basearch
 enabled=0
 metadata_expire=7d
