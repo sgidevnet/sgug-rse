@@ -4,7 +4,7 @@
 Summary: Utilities for manipulating .desktop files
 Name: desktop-file-utils
 Version: 0.24
-Release: 2%{?dist}
+Release: 3%{?dist}
 URL: https://www.freedesktop.org/software/desktop-file-utils
 Source0: https://www.freedesktop.org/software/desktop-file-utils/releases/%{name}-%{version}.tar.xz
 Source1: desktop-entry-mode-init.el
@@ -70,6 +70,9 @@ update-desktop-database &> /dev/null || :
 %{_emacs_sitelispdir}/%{pkg}
 
 %changelog
+* Thu Dec 17 2020 Daniel Hams <daniel.hams@gmail.com> - 0.24-3
+- Generate a log, handle apps that need a terminal, set python env var, use basename of executable
+
 * Sat Nov 21 2020 David Stancu <dstancu@nyu.edu> - 0.24-2
 - IRIX wrapper script for generating RSE icon catalog launchers
 
