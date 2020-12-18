@@ -1,8 +1,7 @@
 [updates-testing]
 name=Sgugrse $releasever - $basearch - Test Updates
-baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/updates/testing/$releasever/Everything/$basearch/
-#metalink=https://mirrors.sgugrsetest.org/metalink?repo=updates-testing-f$releasever&arch=$basearch
-enabled=1
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/rse-archive/sgugrse/irix/updates/testing/$releasever/Everything/
+enabled=0
 repo_gpgcheck=0
 type=rpm
 gpgcheck=0
@@ -12,8 +11,7 @@ skip_if_unavailable=False
 
 [updates-testing-debuginfo]
 name=Sgugrse $releasever - $basearch - Test Updates Debug
-baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/updates/testing/$releasever/Everything/$basearch/debug/
-#metalink=https://mirrors.sgugrsetest.org/metalink?repo=updates-testing-debug-f$releasever&arch=$basearch
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/rse-archive/sgugrse/irix/updates/testing/$releasever/Everything/debug/
 enabled=0
 repo_gpgcheck=0
 type=rpm
@@ -24,8 +22,7 @@ skip_if_unavailable=False
 
 [updates-testing-source]
 name=Sgugrse $releasever - Test Updates Source
-baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/updates/testing/$releasever/Everything/SRPMS/
-#metalink=https://mirrors.sgugrsetest.org/metalink?repo=updates-testing-source-f$releasever&arch=$basearch
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/rse-archive/sgugrse/irix/updates/testing/$releasever/Everything/srpms/
 enabled=0
 repo_gpgcheck=0
 type=rpm

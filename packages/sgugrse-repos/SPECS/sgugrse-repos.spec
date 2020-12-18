@@ -1,7 +1,7 @@
 Summary:        Sgugrse package repositories
 Name:           sgugrse-repos
 Version:        0.0.7beta
-Release:        1%{?_module_build:%{?dist}}
+Release:        3%{?_module_build:%{?dist}}
 License:        MIT
 URL:            https://sgugrseproject.org/
 
@@ -11,9 +11,10 @@ Requires:       sgugrse-gpg-keys >= %{version}-%{release}
 BuildArch:      noarch
 
 #Source1:        archmap
-Source2:        sgugrse.repo
-Source3:        sgugrse-updates.repo
-Source4:        sgugrse-updates-testing.repo
+Source2:        sgugrselocal.repo
+Source3:        sgugrse.repo
+Source4:        sgugrse-updates.repo
+Source5:        sgugrse-updates-testing.repo
 
 Source10:       RPM-GPG-KEY-sgugrse-primary
 
@@ -64,6 +65,7 @@ ln -s RPM-GPG-KEY-sgugrse-primary RPM-GPG-KEY-sgugrse-%{version}-mips
 cd $PREV_WD
 
 install -d -m 755 $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
+install -m 644 %{_sourcedir}/sgugrselocal.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
 install -m 644 %{_sourcedir}/sgugrse.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
 install -m 644 %{_sourcedir}/sgugrse-updates.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
 install -m 644 %{_sourcedir}/sgugrse-updates-testing.repo $RPM_BUILD_ROOT/usr/sgug/etc/yum.repos.d
@@ -74,6 +76,7 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 
 %files
 %dir /usr/sgug/etc/yum.repos.d
+%config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrselocal.repo
 %config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse.repo
 %config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates.repo
 %config(noreplace) /usr/sgug/etc/yum.repos.d/sgugrse-updates-testing.repo
@@ -88,6 +91,12 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 /usr/sgug/etc/ostree/remotes.d/sgugrse.conf
 
 %changelog
+* Fri Dec 18 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7beta-3
+- Update with real test amazon aws repo but leave disabled
+
+* Thu Dec 17 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7beta-2
+- Disable test repos, enable local repo for microdnf installs
+
 * Wed Dec 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7beta-1
 - Enable update and test update repos
 
