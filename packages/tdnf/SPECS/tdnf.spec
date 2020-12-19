@@ -39,6 +39,8 @@ Patch0:         fix-coverity-issues.patch
 Patch100:		cmakelist-paths.sgifixes.patch
 Patch101:		client-defines.sgifixes.patch
 Patch102: 		tdnf-conf.sgifixes.patch
+Patch103:		tdnf-pool.sgifixes.patch
+Patch104:		tdnf-client.sgifixes.patch
 
 %description
 tdnf is a yum/dnf equivalent which uses libsolv and libcurl
