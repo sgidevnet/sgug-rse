@@ -1,0 +1,11 @@
+[sgugrselocal]
+name=Sgugrse Local $releasever - $basearch
+baseurl=file:///usr/sguglocalrepo
+#metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-$releasever&arch=$basearch
+enabled=1
+metadata_expire=7d
+repo_gpgcheck=0
+type=rpm
+gpgcheck=0
+gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False
