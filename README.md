@@ -12,13 +12,17 @@ Unless otherwise stated, those `.spec` files remain under their original license
 
 The modifications from the original fedora `.spec` files fall under the license of the sgug-rse project, namely GPL3.
 
+## Contributing
+
+Want to help? Please see our [contribution guide](contributing.md).
+
 ## How to get this working
 
 NOTE: While we are not yet out of beta, it is recommended to remove any previous sgug-rse installation before extracting this new one. We don't yet support in-place upgrades using RPMs.
 
 (1) Add your user account to the irix `sys` group - this will allow you to use the sgug `sudo` out of the box with your user password - then you can follow the steps below without additional hoop jumping.
 
-(2) Ensure your system can cope with long command line buffers (this value or higher):
+(2) Ensure your system can cope with long command line buffers:
 
 ```
 # As root
@@ -44,11 +48,11 @@ rm -rf /usr/sgug/*
 You'll find three main archives - and there might be "update" archives too that need to be extracted:
 
 ```
-sgug-rse-selfhoster-0.0.6beta.tar.gz
-sgug-rse-srpms-0.0.6beta.tar.gz
-sgug-rse-rpms-0.0.6beta.tar.gz
+sgug-rse-selfhoster-0.0.7beta.tar.gz
+sgug-rse-srpms-0.0.7beta.tar.gz
+sgug-rse-rpms-0.0.7beta.tar.gz
 
-sgug-rse-rpms-0.0.6betaupdateNUM.tar.gz
+sgug-rse-rpms-0.0.7betaupdateNUM.tar.gz
 ```
 
 (5) Extract the selfhoster archive under /usr as root (important, sgug-rse _installation_ files are root owned and managed):
@@ -56,7 +60,7 @@ sgug-rse-rpms-0.0.6betaupdateNUM.tar.gz
 ```
 su - (enter root password)
 cd /usr
-gunzip -dc /path/to/sgug-rse-selfhoster-0.0.6beta.tar.gz |tar xf -
+gunzip -dc /path/to/sgug-rse-selfhoster-0.0.7beta.tar.gz |tar xf -
 (log out of root)
 ```
 
@@ -73,12 +77,12 @@ mkdir -p ~/rpmbuild/RPMS
 
 ```
 cd ~/rpmbuild
-gunzip -dc /path/to/sgug-rse-srpms-0.0.6beta.tar.gz | tar xf -
-gunzip -dc /path/to/sgug-rse-rpms-0.0.6beta.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-srpms-0.0.7beta.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-rpms-0.0.7beta.tar.gz | tar xf -
 # Optional
 mkdir ~/rpmupdates
 cd ~/rpmupdates
-gunzip -dc /path/to/sgug-rse-rpms-0.0.6betaupdateNUM.tar.gz | tar xf -
+gunzip -dc /path/to/sgug-rse-rpms-0.0.7betaupdateNUM.tar.gz | tar xf -
 ```
 
 (8) You'll need to clone this repo (sgug-rse) -
@@ -94,8 +98,7 @@ Adjust that path as appropriate for where you wish the repo to live.
 (9) Now you can install all packages (you can pick and choose if that's your thing):
 
 ```
-cd ~/sgug-rse.git
-./sgugshell.sh
+/usr/sgug/bin/sgugshell
 cd ~/rpmbuild/RPMS
 sudo rpm --reinstall -ivh noarch/*.rpm mips/*.rpm
 ```
@@ -105,8 +108,7 @@ and for any upgrades/updates:
 * CARE: You must use the "upgrade" flag for any upgraded packages to avoid double-installs
 
 ```
-cd ~/sgug-rse.git
-./sgugshell.sh
+/usr/sgug/bin/sgugshell
 cd ~/rpmupdates/RPMS
 sudo rpm -Uvh noarch/*.rpm mips/*.rpm
 ```
@@ -114,8 +116,7 @@ sudo rpm -Uvh noarch/*.rpm mips/*.rpm
 (10) Now you can rebuild one of the out-of-the-box packages with:
 
 ```
-cd ~/sgug-rse.git
-./sgugshell.sh
+/usr/sgug/bin/sgugshell
 cd ~/rpmbuild/SPECS
 rpm -ivh ../SRPMS/m4-1.4.18-11.sgugbeta.src.rpm
 cp -r ~/sgug-rse.git/packages/m4/* ~/rpmbuild/
@@ -125,8 +126,7 @@ rpmbuild -ba m4.spec --nocheck
 (11) Installing RPMs must be done as root (add `--reinstall` to refresh an already installed package):
 
 ```
-cd ~user/sgug-rse.git
-./sgugshell.sh
+/usr/sgug/bin/sgugshell
 sudo rpm -ivh ~/rpmbuild/RPMS/mips/m4*.rpm
 ```
 

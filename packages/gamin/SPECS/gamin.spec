@@ -53,6 +53,9 @@ monitor mechanism compatible with FAM but not dependent on a system wide
 daemon.
 
 %prep
+echo "This package is broken on IRIX and glib2 is able to take advantage"
+echo "of the native IRIX file alteration monitor. We don't want it!"
+exit 1
 %setup -q
 %patch1 -p1 -b .gnueabi
 %patch2 -p1 -b .manape

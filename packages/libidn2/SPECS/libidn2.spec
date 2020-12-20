@@ -1,7 +1,7 @@
 Summary:          Library to support IDNA2008 internationalized domain names
 Name:             libidn2
 Version:          2.3.0
-Release:          2%{?dist}
+Release:          3%{?dist}
 License:          (GPLv2+ or LGPLv3+) and GPLv3+
 URL:              https://www.gnu.org/software/libidn/#libidn2
 
@@ -64,7 +64,7 @@ rm -f examples/Makefile*
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 
 # Some file cleanups
-rm -f $RPM_BUILD_ROOT%{_datadir}/info/dir
+rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 
 %find_lang %{name}
 
@@ -102,6 +102,9 @@ fi
 %{_infodir}/%{name}.info*
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> 2.3.0-3
+- Remove unpackaged %{_infodir}/dir
+
 * Mon Jun 01 2020 Daniel Hams <daniel.hams@gmail.com> 2.3.0-2
 - Upgrade to latest fc31 version, get pre/post included.
 

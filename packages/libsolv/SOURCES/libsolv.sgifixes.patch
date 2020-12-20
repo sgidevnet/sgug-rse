@@ -1,6 +1,18 @@
+diff -u -r libsolv-0.7.14-orig/bindings/perl/CMakeLists.txt libsolv-0.7.14/bindings/perl/CMakeLists.txt
+--- libsolv-0.7.14-orig/bindings/perl/CMakeLists.txt	2020-05-27 10:55:11.000000000 +0000
++++ libsolv-0.7.14/bindings/perl/CMakeLists.txt	2020-12-16 21:22:24.267071440 +0000
+@@ -24,7 +24,7 @@
+     VERBATIM
+ )
+ 
+-ADD_DEFINITIONS(${PERL_CCFLAGS} -Wno-unused -Wno-nonnull)
++ADD_DEFINITIONS(${PERL_CCFLAGS} -Wno-unused -Wno-nonnull -fno-var-tracking)
+ LINK_DIRECTORIES (${PERL_CORE_DIR})
+ INCLUDE_DIRECTORIES (${PERL_INCLUDE_PATH} ${PERL_CORE_DIR})
+ 
 diff -u -r libsolv-0.7.14-orig/bindings/solv.i libsolv-0.7.14/bindings/solv.i
 --- libsolv-0.7.14-orig/bindings/solv.i	2020-05-27 10:55:11.000000000 +0000
-+++ libsolv-0.7.14/bindings/solv.i	2020-08-30 11:17:29.803347760 +0000
++++ libsolv-0.7.14/bindings/solv.i	2020-12-16 21:22:09.024838040 +0000
 @@ -4,6 +4,15 @@
   * on the generated c code
   */
@@ -19,7 +31,7 @@ diff -u -r libsolv-0.7.14-orig/bindings/solv.i libsolv-0.7.14/bindings/solv.i
  #ifdef SWIGRUBY
 diff -u -r libsolv-0.7.14-orig/ext/repo_products.c libsolv-0.7.14/ext/repo_products.c
 --- libsolv-0.7.14-orig/ext/repo_products.c	2020-05-27 10:55:11.000000000 +0000
-+++ libsolv-0.7.14/ext/repo_products.c	2020-08-30 11:17:29.805366080 +0000
++++ libsolv-0.7.14/ext/repo_products.c	2020-12-16 21:22:09.026788200 +0000
 @@ -11,6 +11,13 @@
   * for further information
   */
@@ -36,7 +48,7 @@ diff -u -r libsolv-0.7.14-orig/ext/repo_products.c libsolv-0.7.14/ext/repo_produ
  #include <time.h>
 diff -u -r libsolv-0.7.14-orig/ext/repo_rpmdb.c libsolv-0.7.14/ext/repo_rpmdb.c
 --- libsolv-0.7.14-orig/ext/repo_rpmdb.c	2020-05-27 10:55:11.000000000 +0000
-+++ libsolv-0.7.14/ext/repo_rpmdb.c	2020-08-30 11:29:22.603499880 +0000
++++ libsolv-0.7.14/ext/repo_rpmdb.c	2020-12-16 21:22:09.030191960 +0000
 @@ -1874,7 +1874,9 @@
    struct rpmdbstate state;
    char *payloadformat;
@@ -50,7 +62,7 @@ diff -u -r libsolv-0.7.14-orig/ext/repo_rpmdb.c libsolv-0.7.14/ext/repo_rpmdb.c
    Repodata *data;
 diff -u -r libsolv-0.7.14-orig/src/repopage.c libsolv-0.7.14/src/repopage.c
 --- libsolv-0.7.14-orig/src/repopage.c	2020-05-27 10:55:11.000000000 +0000
-+++ libsolv-0.7.14/src/repopage.c	2020-08-30 11:17:29.807726480 +0000
++++ libsolv-0.7.14/src/repopage.c	2020-12-16 21:22:09.032614040 +0000
 @@ -18,6 +18,13 @@
   * pages automatically get dropped.
   */

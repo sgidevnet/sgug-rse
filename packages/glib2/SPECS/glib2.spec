@@ -8,7 +8,7 @@
 
 Name: glib2
 Version: 2.62.6
-Release: 7%{?dist}
+Release: 10%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -40,6 +40,8 @@ BuildRequires: python3-devel
 
 BuildRequires: libdicl-devel >= 0.1.35
 
+BuildRequires: initial-sgug >= 0.2.0-4
+
 # for GIO content-type support
 Recommends: shared-mime-info
 
@@ -68,13 +70,13 @@ The glib2-devel package includes the header files for the GLib library.
 #%%description doc
 #The glib2-doc package includes documentation for the GLib library.
 
-#%package fam
-#Summary: FAM monitoring module for GIO
-#Requires: #{name}#{?_isa} = #{version}-#{release}
+%package fam
+Summary: FAM monitoring module for GIO
+Requires: %{name}%{?_isa} = %{version}-%{release}
 #BuildRequires: gamin-devel
-#
-#%description fam
-#The glib2-fam package contains the FAM (File Alteration Monitor) module for GIO.
+
+%description fam
+The glib2-fam package contains the FAM (File Alteration Monitor) module for GIO.
 
 %package static
 Summary: glib static
@@ -133,7 +135,7 @@ export LDFLAGS="-ldicl-0.1 -lnsl $RPM_LD_FLAGS"
     -Ddtrace=false \
     -Dsystemtap=false \
     -Dgtk_doc=false \
-    -Dfam=false \
+    -Dfam=true \
     -Dxattr=false \
     -Dinstalled_tests=true
 
@@ -252,8 +254,8 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 #%%files doc
 #%%doc %%{_datadir}/gtk-doc/html/*
 
-#%%files fam
-#%%{_libdir}/gio/modules/libgiofam.so
+%files fam
+%{_libdir}/gio/modules/libgiofam.so
 
 %files static
 %{_libdir}/libgio-2.0.a
@@ -267,6 +269,15 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Tue Dec 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-10
+- More hardcoded UTF fixes (options in help)
+
+* Tue Dec 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-9
+- Change hardcoded use of UTF non-breaking spaces in sizing formats
+
+* Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-8
+- Fix up use of the IRIX file alteration monitor, enable fam module
+
 * Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-7
 - Depend on bug-fixed libffi
 

@@ -9,7 +9,7 @@
 #%%global rcversion RC1
 Name:       pcre2
 Version:    10.35
-Release:    %{?rcversion:0.}8%{?rcversion:.%rcversion}%{?dist}
+Release:    %{?rcversion:0.}9%{?rcversion:.%rcversion}%{?dist}
 %global     myversion %{version}%{?rcversion:-%rcversion}
 Summary:    Perl-compatible regular expression library
 # the library:                          BSD with exceptions
@@ -187,6 +187,7 @@ libtoolize --copy --force
 autoreconf -vif
 
 %build
+export LIBS="-ltinfo"
 # There is a strict-aliasing problem on PPC64, bug #881232
 %ifarch ppc64
 %global optflags %{optflags} -fno-strict-aliasing
@@ -295,6 +296,9 @@ make %{?_smp_mflags} check VERBOSE=yes
 %{_mandir}/man1/pcre2test.*
 
 %changelog
+* Sat Dec 12 2020 Daniel hams <daniel.hams@gmail.com> - 10.35-9
+- Add link library of tinfo needed by readline symbols
+
 * Tue Oct 27 2020 Petr Pisar <ppisar@redhat.com> - 10.35-8
 - Fix a partial matching for a word boundary in JIT mode (upstream bug #2663)
 

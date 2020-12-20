@@ -6,7 +6,7 @@ Summary:        Command-line Sudoku solver and generator
 License:        GPLv2+
 URL:            http://qqwing.com/
 Source0:        http://qqwing.com/qqwing-%{version}.tar.gz
-Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
+#Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
 
 BuildRequires:  gcc-c++
 %description
@@ -46,7 +46,7 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 %files
 %doc README
 %{_bindir}/qqwing
-%{_mandir}/man1/qqwing.1.*
+%{_mandir}/man1/qqwing.1*
 
 %files libs
 %doc AUTHORS COPYING
