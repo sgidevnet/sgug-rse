@@ -5,7 +5,7 @@
 Summary:        dnf/yum equivalent using C libs
 Name:           tdnf
 Version:        3.0.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Vendor:         VMware, Inc.
 Distribution:   Photon
 License:        LGPLv2.1,GPLv2
@@ -41,6 +41,8 @@ Patch101:		client-defines.sgifixes.patch
 Patch102: 		tdnf-conf.sgifixes.patch
 Patch103:		tdnf-pool.sgifixes.patch
 Patch104:		tdnf-client.sgifixes.patch
+Patch105:		tdnf-common-utils.sgifixes.patch
+Patch106:		tdnf-client-rpmtrans.sgifixes.patch
 
 %description
 tdnf is a yum/dnf equivalent which uses libsolv and libcurl
@@ -232,6 +234,9 @@ sed -i 's,#!/usr,#!/usr/sgug,g' %{buildroot}%{_bindir}/tdnf-cache-updateinfo
     %config(noreplace) %{_sysconfdir}/%{name}/automatic.conf
 
 %changelog
+*	Sat Dec 19 2020 David Stancu <dstancu@nyu.edu> 3.0.0-4
+-	Make TDNFNormalizePath a no-op (since it is only used with the cache dir, which is already normalized)
+-   Expand $releasever and $basearch in GPG urls
 *   Thu Dec 03 2020 David Stancu <dstancu@nyu.edu> 3.0.0-3
 -	Built for sgug-rse!
 *   Thu Oct 29 2020 Keerthana K <keerthanak@vmware.com> 3.0.0-2
