@@ -48,6 +48,7 @@ cmake
 cmocka
 coreutils
 cppunit
+createrepo_c
 curl
 dbus
 dbus-glib

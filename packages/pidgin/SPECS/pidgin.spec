@@ -1,6 +1,6 @@
 Name:           pidgin
 Version:        2.13.0
-Release:        17%{?dist}
+Release:        18%{?dist}
 License:        BSD and GPLv2+ and GPLv2 and LGPLv2+ and MIT
 # GPLv2+ - libpurple, gnt, finch, pidgin, most prpls
 # GPLv2 - novell prpls
@@ -34,6 +34,10 @@ Summary:        A Gtk+ based multiprotocol instant messaging client
 # bogus value wont make it into a real package
 %global glib_ver %([ -a %{_libdir}/pkgconfig/glib-2.0.pc ] && pkg-config --modversion glib-2.0 | cut -d. -f 1,2 || echo -n "999")
 
+BuildRequires:  gtk2-devel
+BuildRequires:  desktop-file-utils
+BuildRequires:  ncurses-devel
+
 %description
 Pidgin allows you to talk to anyone using a variety of messaging
 protocols including AIM, MSN, Yahoo!, Jabber, Bonjour, Gadu-Gadu,
@@ -63,12 +67,12 @@ The pidgin-devel package contains the header files, developer
 documentation, and libraries required for development of Pidgin scripts
 and plugins.
 
-#%package perl
+#%%package perl
 #Summary:    Perl scripting support for Pidgin
-#Requires:   libpurple = %{version}-%{release}
-#Requires:   libpurple-perl = %{version}-%{release}
+#Requires:   libpurple = %%{version}-%%{release}
+#Requires:   libpurple-perl = %%{version}-%%{release}
 
-#%description perl
+#%%description perl
 #Perl plugin loader for Pidgin. This package will allow you to write or
 #use Pidgin plugins written in the Perl programming language.
 
@@ -95,12 +99,12 @@ The libpurple-devel package contains the header files, developer
 documentation, and libraries required for development of libpurple based
 instant messaging clients or plugins for any libpurple based client.
 
-#%package -n libpurple-perl
+#$%package -n libpurple-perl
 #Summary:    Perl scripting support for libpurple
-#Requires:   libpurple = %{version}-%{release}
-#Requires:   perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+#Requires:   libpurple = %%{version}-%%{release}
+#Requires:   perl(:MODULE_COMPAT_%%(eval "`%%{__perl} -V:version`"; echo $version))
 
-#%description -n libpurple-perl
+#%%description -n libpurple-perl
 #Perl plugin loader for libpurple. This package will allow you to write or
 #use libpurple plugins written in the Perl programming language.
 
@@ -154,21 +158,19 @@ cp %{SOURCE1} prefs.xml
 #done
 
 # Bug #1141477
-#%if 0%{?has_valgrind}
+#%%if 0%%{?has_valgrind}
 #rm -f libpurple/valgrind.h
 #sed -ie 's/include "valgrind.h"/include <valgrind\/valgrind.h>/' libpurple/plugin.c
-#%endif
+#%%endif
 
 %build
 
 # remove after irc-sasl patch has been merged upstream
-#autoreconf --force --install
-autoconf
+autoreconf --force --install
 
 # gnutls is buggy so use mozilla-nss on all distributions
 %configure --enable-tcl --enable-tk \
            --disable-schemas-install \
-            --disable-nls \
             --disable-missing-dependencies \
             --disable-screensaver \
             --disable-sm \
@@ -193,6 +195,8 @@ autoconf
             --with-gnutls-includes=%{_prefix} \
             --with-gnutls-libs=%{_prefix}
 
+#            --disable-nls \
+#
 
 make %{?_smp_mflags} V=1 LIBTOOL=/usr/sgug/bin/libtool
 
@@ -207,6 +211,10 @@ make DESTDIR=$RPM_BUILD_ROOT install LIBTOOL=/usr/sgug/bin/libtool
 
 install -m 0755 libpurple/plugins/one_time_password.so $RPM_BUILD_ROOT%{_libdir}/purple-2/
 
+desktop-file-install --vendor pidgin --delete-original              \
+                     --add-category X-Red-Hat-Base                  \
+                     --dir $RPM_BUILD_ROOT%{_datadir}/applications  \
+                     $RPM_BUILD_ROOT%{_datadir}/applications/pidgin.desktop
 
 # remove libtool libraries and static libraries
 find $RPM_BUILD_ROOT \( -name "*.la" -o -name "*.a" \) -exec rm -f {} ';'
@@ -231,8 +239,7 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/purple-2/libymsg.so
 # so that they are properly stripped
 chmod -R u+w $RPM_BUILD_ROOT/*
 
-#%find_lang pidgin
-
+%find_lang pidgin
 
 # Create list of plugins for __requires_exclude
 find %{buildroot}/%{_libdir}/purple-2 -name \*.so\* -printf '%f|' | sed -e 's/|$//' > plugins.list
@@ -243,14 +250,16 @@ find %{buildroot}/%{_libdir}/purple-2 -name \*.so\* -printf '%f|' | sed -e 's/|$
 %{_libdir}/pidgin/
 %{_mandir}/man1/pidgin.*
 %{_mandir}/man3/
+%{_datadir}/applications/pidgin.desktop
 %{_datadir}/pixmaps/pidgin/
 %{_datadir}/icons/hicolor/*/apps/pidgin.*
+%{_datadir}/appdata/pidgin.appdata.xml
 
 %files devel
 %{_includedir}/pidgin/
 %{_libdir}/pkgconfig/pidgin.pc
 
-%files -n libpurple
+%files -f pidgin.lang -n libpurple
 %{_libdir}/purple-2/
 %{_libdir}/libpurple.so.*
 %{_datadir}/sounds/purple/
@@ -268,6 +277,9 @@ find %{buildroot}/%{_libdir}/purple-2 -name \*.so\* -printf '%f|' | sed -e 's/|$
 
 
 %changelog
+* Fri Dec 18 2020 Daniel Hams <daniel.hams@gmail.com> - 2.13.0.18
+- Enable desktop file generation so we appear in icon catalog
+
 * Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2.13.0.17
 - Rebuild for jpegturbo
 

@@ -1,35 +1,21 @@
 [sgugrse]
 name=Sgugrse $releasever - $basearch
-baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/releases/$releasever/Everything/$basearch/os/
-#metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-$releasever&arch=$basearch
-enabled=1
-metadata_expire=7d
-repo_gpgcheck=0
-type=rpm
-gpgcheck=0
-gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
-skip_if_unavailable=False
-
-[sgugrse-debuginfo]
-name=Sgugrse $releasever - $basearch - Debug
-baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/releases/$releasever/Everything/$basearch/debug/tree/
-#metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-debug-$releasever&arch=$basearch
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/rse-archive/sgugrse/irix/releases/$releasever/Everything
 enabled=0
 metadata_expire=7d
 repo_gpgcheck=0
 type=rpm
-gpgcheck=0
+gpgcheck=1
 gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
 skip_if_unavailable=False
 
 [sgugrse-source]
 name=Sgugrse $releasever - Source
-baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/pub/sgugrse/irix/releases/$releasever/Everything/SRPMS/
-#metalink=https://mirrors.sgugrsetest.org/metalink?repo=sgugrse-source-$releasever&arch=$basearch
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/rse-archive/sgugrse/irix/releases/$releasever/Everything/srpms/
 enabled=0
 metadata_expire=7d
 repo_gpgcheck=0
 type=rpm
-gpgcheck=0
+gpgcheck=1
 gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
 skip_if_unavailable=False

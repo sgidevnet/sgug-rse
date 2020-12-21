@@ -5,7 +5,7 @@
 Summary:        dnf/yum equivalent using C libs
 Name:           tdnf
 Version:        3.0.0
-Release:        3%{?dist}
+Release:        5%{?dist}
 Vendor:         VMware, Inc.
 Distribution:   Photon
 License:        LGPLv2.1,GPLv2
@@ -31,7 +31,7 @@ BuildRequires:  python3-devel
 #BuildRequires:  glib
 #BuildRequires:  libxml2
 #%endif
-Obsoletes:      yum
+#Obsoletes:      yum
 Provides:       yum
 Source0:        %{name}-%{version}-beta.tar.gz
 %define sha1    tdnf=ccde34eb3c75afcd1d672fae05a0dd2aae7feaa1
@@ -39,6 +39,11 @@ Patch0:         fix-coverity-issues.patch
 Patch100:		cmakelist-paths.sgifixes.patch
 Patch101:		client-defines.sgifixes.patch
 Patch102: 		tdnf-conf.sgifixes.patch
+Patch103:		tdnf-pool.sgifixes.patch
+Patch104:		tdnf-client.sgifixes.patch
+Patch105:		tdnf-common-utils.sgifixes.patch
+Patch106:		tdnf-client-rpmtrans.sgifixes.patch
+Patch107:		tdnf-printfprecision.sgifixes.patch
 
 %description
 tdnf is a yum/dnf equivalent which uses libsolv and libcurl
@@ -88,19 +93,33 @@ Systemd units that can periodically download package upgrades and apply them.
 %prep
 %autosetup -n %{name}-%{version}-beta -p1
 
+# Rewrite some hardcoded paths (just in case used in tests etc)
+perl -pi -e "s|/var/cache/tdnf|%{_prefix}/var/cache/tdnf|g" etc/motdgen.d/02-tdnf-updateinfo.sh
+
+perl -pi -e "s|/etc/tdnf/|%{_prefix}/etc/tdnf/|g" bin/tdnf-automatic.in
+perl -pi -e "s|/usr/bin/env bash|%{_bindir}/bash|g" bin/tdnf-automatic.in
+
+perl -pi -e "s|/usr/bin/env bash|%{_bindir}/bash|g" bin/tdnf-cache-updateinfo.in
+perl -pi -e "s|/var/cache/tdnf|%{_prefix}/var/cache/tdnf|g" bin/tdnf-cache-updateinfo.in
+
+# Remove openssl finder that doesn't work for RSE
+rm cmake/FindOpenSSL.cmake
+
 %build
 mkdir build && cd build
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT"
-export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT $RPM_OPT_FLAGS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 cmake \
--DCMAKE_BUILD_TYPE=Debug \
 -DCMAKE_INSTALL_PREFIX=%{_prefix} \
--DCMAKE_INSTALL_LIBDIR:PATH=lib \
 -DCMAKE_INSTALL_FULL_SYSCONDIR=%{_sysconfdir} \
+-DCMAKE_BUILD_TYPE=Release \
+-DCMAKE_C_FLAGS_RELEASE="$CFLAGS" \
 -DMOTGEN_DIR=%{_sysconfdir}/motdgen.d \
+-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
 -DSYSTEMD_DIR=%{_prefix}/lib/systemd/system \
 ..
-make %{?_smp_mflags} && make python
+
+VERBOSE=1 make %{?_smp_mflags} && make python
 
 %check
 cd build && make %{?_smp_mflags} check
@@ -119,9 +138,6 @@ python3 setup.py install --skip-build --prefix=%{_prefix} --root=%{buildroot}
 cd ..
 find %{buildroot} -name '*.pyc' -delete
 rm -rf %{buildroot}%{_prefix}/lib/systemd
-
-sed -i 's,#!/usr,#!/usr/sgug,g' %{buildroot}%{_bindir}/tdnf-automatic
-sed -i 's,#!/usr,#!/usr/sgug,g' %{buildroot}%{_bindir}/tdnf-cache-updateinfo
 
 ## Pre-install
 #%pre
@@ -230,6 +246,11 @@ sed -i 's,#!/usr,#!/usr/sgug,g' %{buildroot}%{_bindir}/tdnf-cache-updateinfo
     %config(noreplace) %{_sysconfdir}/%{name}/automatic.conf
 
 %changelog
+* Sun Dec 20 2020 Daniel Hams <daniel.hams@gmail.com> 3.0.0-5
+- Little cleanups (paths, RPATH, printf precision, bad SSL discovery, use RSE OPT flags)
+*	Sat Dec 19 2020 David Stancu <dstancu@nyu.edu> 3.0.0-4
+-	Make TDNFNormalizePath a no-op (since it is only used with the cache dir, which is already normalized)
+-   Expand $releasever and $basearch in GPG urls
 *   Thu Dec 03 2020 David Stancu <dstancu@nyu.edu> 3.0.0-3
 -	Built for sgug-rse!
 *   Thu Oct 29 2020 Keerthana K <keerthanak@vmware.com> 3.0.0-2

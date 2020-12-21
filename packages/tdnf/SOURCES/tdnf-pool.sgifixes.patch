@@ -1,0 +1,11 @@
+--- tdnf-3.0.0-beta-orig/solv/tdnfpool.c	2020-12-19 12:49:56.116102320 +0000
++++ tdnf-3.0.0-beta/solv/tdnfpool.c	2020-12-19 12:51:31.920646560 +0000
+@@ -106,7 +106,7 @@
+         BAIL_ON_TDNF_LIBSOLV_ERROR(dwError);
+     }
+ 
+-    pool_setarch(pPool, systemInfo.machine);
++    pool_setarch(pPool, strdup("mips"));
+     pool_set_flag(pPool, POOL_FLAG_ADDFILEPROVIDESFILTERED, 1);
+ 
+     dwError = SolvReadInstalledRpms(pPool, &pRepo, pszCacheDir);

@@ -2,7 +2,7 @@
 Summary: Use a single keyboard and mouse to control multiple computers
 Name: barrier
 Version: v2.3.2_51_g2d2e9298
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv2
 URL: https://github.com/debauchee/barrier/wiki
 Source0: https://github.com/sgidevnet/sgug-rse/releases/download/wipstarterpacks/%{name}-%{version}.tar.gz
@@ -50,7 +50,7 @@ cd build
 install -D -p -m 0755 bin/barrierc     %{buildroot}%{_bindir}/barrierc
 install -D -p -m 0755 bin/barriers     %{buildroot}%{_bindir}/barriers
 cd -
-install -D -p -m 0644 res/barrier.desktop %{buildroot}%{_datadir}/applications/barrier.desktop
+#install -D -p -m 0644 res/barrier.desktop %%{buildroot}%%{_datadir}/applications/barrier.desktop
 install -D -p -m 0644 doc/barrierc.1 %{buildroot}%{_mandir}/man1/barrierc.1
 install -D -p -m 0644 doc/barriers.1 %{buildroot}%{_mandir}/man1/barriers.1
 install -D -p -m 0644 res/barrier.ico  %{buildroot}%{_datadir}/pixmaps/barrier.ico
@@ -96,12 +96,12 @@ cat <<END> %{buildroot}%{_datadir}/metainfo/%{name}.appdata.xml
 </component>
 END
 
-desktop-file-install --delete-original  \
-  --dir %{buildroot}%{_datadir}/applications            \
-  --set-icon=%{icon_path}           \
-  %{buildroot}%{_datadir}/applications/barrier.desktop
+#desktop-file-install --delete-original  \
+#  --dir %%{buildroot}%%{_datadir}/applications            \
+#  --set-icon=%%{icon_path}           \
+#  %%{buildroot}%%{_datadir}/applications/barrier.desktop
 
-desktop-file-validate %{buildroot}/%{_datadir}/applications/barrier.desktop
+#desktop-file-validate %%{buildroot}/%%{_datadir}/applications/barrier.desktop
 
 %files
 # None of the documentation files are actually useful here, they all point to
@@ -110,15 +110,18 @@ desktop-file-validate %{buildroot}/%{_datadir}/applications/barrier.desktop
 %doc ChangeLog res/Readme.txt doc/barrier.conf.example*
 %{_bindir}/barrierc
 %{_bindir}/barriers
-#%{_bindir}/barrier
+#%%{_bindir}/barrier
 %{_datadir}/pixmaps/barrier.ico
 %{icon_path}
-%{_datadir}/applications/barrier.desktop
+#%%{_datadir}/applications/barrier.desktop
 %{_datadir}/metainfo/%{name}.appdata.xml
 %{_mandir}/man1/barrierc.1*
 %{_mandir}/man1/barriers.1*
 
 %changelog
+* Thu Dec 17 2020 Daniel Hams <daniel.hams@gmail.com> -  2.3.2_51_g2d2e9298-3
+- Dont install desktop file for QT app we dont build yet
+
 * Thu Jul 02 2020 Ding-Yi Chen <dchen@redhat.com> -  2.3.2-2
 - Address review comments:
   + Use better URL

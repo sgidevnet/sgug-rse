@@ -4,10 +4,11 @@
 Summary: Utilities for manipulating .desktop files
 Name: desktop-file-utils
 Version: 0.24
-Release: 1%{?dist}
+Release: 3%{?dist}
 URL: https://www.freedesktop.org/software/desktop-file-utils
 Source0: https://www.freedesktop.org/software/desktop-file-utils/releases/%{name}-%{version}.tar.xz
 Source1: desktop-entry-mode-init.el
+Source2: update-desktop-database-wrapper.sh
 License: GPLv2+
 
 BuildRequires:  gcc
@@ -28,7 +29,6 @@ http://www.freedesktop.org/standards/, and desktop-file-install
 which installs a desktop file to the standard directory, optionally
 fixing it up in the process.
 
-
 %prep
 %autosetup -p1
 #%patch0 -p1 -b sgug.
@@ -41,9 +41,14 @@ V=1 make %{?_smp_mflags}
 make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 
 mkdir -p $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
+mkdir -p $RPM_BUILD_ROOT%{_datarootdir}/%{pkg}
 mv $RPM_BUILD_ROOT%{_emacs_sitelispdir}/*.el* $RPM_BUILD_ROOT%{_emacs_sitelispdir}/%{pkg}
 install -Dpm 644 %{SOURCE1} $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.el
+install -Dpm 555 %{SOURCE2} $RPM_BUILD_ROOT/update-desktop-database-wrapper.sh
 touch $RPM_BUILD_ROOT%{_emacs_sitestartdir}/desktop-entry-mode-init.elc
+
+mv %{buildroot}%{_bindir}/update-desktop-database %{buildroot}%{_bindir}/update-desktop-database-bin
+mv %{buildroot}/update-desktop-database-wrapper.sh %{buildroot}%{_bindir}/update-desktop-database
 
 %transfiletriggerin -- %{_datadir}/applications
 update-desktop-database &> /dev/null || :
@@ -55,6 +60,7 @@ update-desktop-database &> /dev/null || :
 %doc AUTHORS README NEWS
 %license COPYING
 %{_bindir}/*
+%{_datarootdir}/%{pkg}
 %{_mandir}/man1/desktop-file-install.1.gz
 %{_mandir}/man1/desktop-file-validate.1.gz
 %{_mandir}/man1/update-desktop-database.1.gz
@@ -64,6 +70,12 @@ update-desktop-database &> /dev/null || :
 %{_emacs_sitelispdir}/%{pkg}
 
 %changelog
+* Thu Dec 17 2020 Daniel Hams <daniel.hams@gmail.com> - 0.24-3
+- Generate a log, handle apps that need a terminal, set python env var, use basename of executable
+
+* Sat Nov 21 2020 David Stancu <dstancu@nyu.edu> - 0.24-2
+- IRIX wrapper script for generating RSE icon catalog launchers
+
 * Wed Aug 14 2019 Kalev Lember <klember@redhat.com> - 0.24-1
 - Update to 0.24
 

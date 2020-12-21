@@ -2,19 +2,19 @@
 %global build_ldflags %{sgug_optimised_ldflags}
 
 Summary: A lightweight multi-tabbed terminal emulator for X
-Name: mrxvt 
+Name: mrxvt
 Version: 0.5.4
-Release: 27%{?dist} 
+Release: 28%{?dist}
 URL: http://materm.sourceforge.net/wiki/Main/HomePage
 License: GPLv2+
 BuildRequires:  gcc
-#BuildRequires: imake pkgconfig ncurses-devel libXft-devel libXaw-devel libXext-devel desktop-file-utils 
-BuildRequires: pkgconfig ncurses-devel
-#BuildRequires: libpng-devel libjpeg-devel libutempter-devel 
+#BuildRequires: imake pkgconfig ncurses-devel libXft-devel libXaw-devel libXext-devel desktop-file-utils
+BuildRequires: pkgconfig ncurses-devel libXft-devel libXaw-devel libXext-devel desktop-file-utils
+#BuildRequires: libpng-devel libjpeg-devel libutempter-devel
 BuildRequires: libpng-devel libjpeg-devel
 
 Source0: http://downloads.sourceforge.net/materm/%{name}-%{version}.tar.gz
-#Source1: http://littlehat.homelinux.org:8000/FEDORA/mrxvt/current/0.5.3/%{name}.desktop
+Source1: http://littlehat.homelinux.org:8000/FEDORA/mrxvt/current/0.5.3/%{name}.desktop
 
 #Patch1: http://downloads.sourceforge.net/materm/no-scroll-with-buffer-mrxvt-0.5.3.patch
 Patch2: mrxvt.sgifixes.patch
@@ -24,7 +24,7 @@ Mrxvt (previously materm) is based on 2.7.11 CVS of rxvt and aterm.
 
 %prep
 
-%setup -q 
+%setup -q
 #%patch1 -p0 -b .no-scroll-with-buffer-mrxvt-0.5.3
 %patch2 -p1
 sed -i 's|\r||' share/scripts/mrxvt.vbs
@@ -47,12 +47,9 @@ make %{?_smp_mflags}
 rm -rf $RPM_BUILD_ROOT
 make DESTDIR=$RPM_BUILD_ROOT INSTALL="%{__install} -p" install 
 
-#desktop-file-install \
-#%if 0%{?fedora} && 0%{?fedora} < 19
-#        --vendor=fedora \
-#%endif
-#        --dir=$RPM_BUILD_ROOT%{_datadir}/applications \
-#        %{SOURCE1}
+desktop-file-install \
+        --dir=$RPM_BUILD_ROOT%{_datadir}/applications \
+        %{SOURCE1}
 
 rm -rf $RPM_BUILD_ROOT%{_datadir}/doc
 
@@ -67,14 +64,13 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/doc
 %config(noreplace) %{_sysconfdir}/mrxvt/mrxvtrc
 %config(noreplace) %{_sysconfdir}/mrxvt/mrxvtrc.sample
 %config(noreplace) %{_sysconfdir}/mrxvt/submenus.menu
-#%if 0%{?fedora} && 0%{?fedora} < 19
-#%{_datadir}/applications/fedora-mrxvt.desktop
-#%else
-#%{_datadir}/applications/mrxvt.desktop
-#%endif
+%{_datadir}/applications/mrxvt.desktop
 %{_datadir}/pixmaps/%{name}*
 
 %changelog
+* Fri Dec 18 2020 Daniel Hams <daniel.hams@gmail.com> - 0.5.4-28
+- Include desktop file
+
 * Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 0.5.4-27
 - Rebuild for jpegturbo
 
