@@ -45,22 +45,21 @@ rm -rf /usr/sgug/*
 
 (4) Download the artifacts for the latest version from the github releases tab (assuming they aren't too big).
 
-You'll find three main archives - and there might be "update" archives too that need to be extracted:
+You'll find three main archives:
 
 ```
 sgug-rse-selfhoster-0.0.7beta.tar.gz
+sgug-rse-localrepo-0.0.7beta.tar.gz
 sgug-rse-srpms-0.0.7beta.tar.gz
-sgug-rse-rpms-0.0.7beta.tar.gz
-
-sgug-rse-rpms-0.0.7betaupdateNUM.tar.gz
 ```
 
-(5) Extract the selfhoster archive under /usr as root (important, sgug-rse _installation_ files are root owned and managed):
+(5) Extract the selfhoster and local repo archives under /usr as root (important, sgug-rse _installation_ files are root owned and managed):
 
 ```
 su - (enter root password)
 cd /usr
 gunzip -dc /path/to/sgug-rse-selfhoster-0.0.7beta.tar.gz |tar xf -
+gunzip -dc /path/to/sgug-rse-localrepo-0.0.7beta.tar.gz |tar xf -
 (log out of root)
 ```
 
@@ -73,47 +72,40 @@ mkdir -p ~/rpmbuild/SRPMS
 mkdir -p ~/rpmbuild/RPMS
 ```
 
-(7) As your user extract the SRPMs and RPMs in an appropriate place.
+(7) As your user extract the SRPMs in an appropriate place (if you wish for source)
 
 ```
 cd ~/rpmbuild
 gunzip -dc /path/to/sgug-rse-srpms-0.0.7beta.tar.gz | tar xf -
-gunzip -dc /path/to/sgug-rse-rpms-0.0.7beta.tar.gz | tar xf -
-# Optional
-mkdir ~/rpmupdates
-cd ~/rpmupdates
-gunzip -dc /path/to/sgug-rse-rpms-0.0.7betaupdateNUM.tar.gz | tar xf -
 ```
 
-(8) You'll need to clone this repo (sgug-rse) -
+(8) Now you can install packages - you have two options (8a) or (8b)
 
-```
-cd ~
-/usr/sgug/bin/git clone https://github.com/sgidevnet/sgug-rse.git sgug-rse.git
-```
-Adjust that path as appropriate for where you wish the repo to live.
-
-(Of course you can fork the repo and clone from your own copy!)
-
-(9) Now you can install all packages (you can pick and choose if that's your thing):
+(8a) Install everything (Just under 3GB total in 0.0.7beta)
 
 ```
 /usr/sgug/bin/sgugshell
-cd ~/rpmbuild/RPMS
+cd /usr/sguglocalrepo/RPMS
 sudo rpm --reinstall -ivh noarch/*.rpm mips/*.rpm
 ```
 
-and for any upgrades/updates:
+or
 
-* CARE: You must use the "upgrade" flag for any upgraded packages to avoid double-installs
+(8b) Install chosen packages (and their dependencies)
 
 ```
 /usr/sgug/bin/sgugshell
-cd ~/rpmupdates/RPMS
-sudo rpm -Uvh noarch/*.rpm mips/*.rpm
+sudo tdnf install git
 ```
 
-(10) Now you can rebuild one of the out-of-the-box packages with:
+You can search for packages with
+
+```
+/usr/sgug/bin/sgugshell
+sudo tdnf search boost
+```
+
+(9) If you installed the source, you can rebuild one of the out-of-the-box packages with:
 
 ```
 /usr/sgug/bin/sgugshell
@@ -123,7 +115,7 @@ cp -r ~/sgug-rse.git/packages/m4/* ~/rpmbuild/
 rpmbuild -ba m4.spec --nocheck
 ```
 
-(11) Installing RPMs must be done as root (add `--reinstall` to refresh an already installed package):
+(10) After building, install of fresh RPMs must be done as root (add `--reinstall` to refresh an already installed package):
 
 ```
 /usr/sgug/bin/sgugshell
