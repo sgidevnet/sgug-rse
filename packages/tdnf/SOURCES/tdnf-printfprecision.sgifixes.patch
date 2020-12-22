@@ -1,0 +1,36 @@
+diff -u -r tdnf-3.0.0-beta-orig/client/remoterepo.c tdnf-3.0.0-beta/client/remoterepo.c
+--- tdnf-3.0.0-beta-orig/client/remoterepo.c	2020-12-20 11:23:23.505081200 +0000
++++ tdnf-3.0.0-beta/client/remoterepo.c	2020-12-20 11:23:45.657104800 +0000
+@@ -52,9 +52,17 @@
+ 
+     dPercent = ((double)dlNow / (double)dlTotal) * 100.0;
+     if (!isatty(STDOUT_FILENO)) {
++#if defined(__sgi)
++        printf("%s %3.0f%% %lld\n", (char *)pUserData, dPercent, dlNow);
++#else
+         printf("%s %3.0f%% %ld\n", (char *)pUserData, dPercent, dlNow);
++#endif
+     } else {
++#if defined(__sgi)
++        printf("%-35s %10lld %5.0f%%\r", (char *)pUserData, dlNow, dPercent);
++#else
+         printf("%-35s %10ld %5.0f%%\r", (char *)pUserData, dlNow, dPercent);
++#endif
+     }
+ 
+     fflush(stdout);
+diff -u -r tdnf-3.0.0-beta-orig/tools/cli/lib/api.c tdnf-3.0.0-beta/tools/cli/lib/api.c
+--- tdnf-3.0.0-beta-orig/tools/cli/lib/api.c	2020-10-27 05:14:06.000000000 +0000
++++ tdnf-3.0.0-beta/tools/cli/lib/api.c	2020-12-20 11:23:38.648530360 +0000
+@@ -273,7 +273,11 @@
+ 
+     if(dwCount > 0)
+     {
++#if defined(__sgi)
++        printf("\nTotal Size: %s (%llu)\n", pszFormattedSize, dwTotalSize);
++#else
+         printf("\nTotal Size: %s (%lu)\n", pszFormattedSize, dwTotalSize);
++#endif
+     }
+ 
+ cleanup:

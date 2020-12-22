@@ -1,7 +1,7 @@
 Summary:        Sgugrse package repositories
 Name:           sgugrse-repos
 Version:        0.0.7beta
-Release:        3%{?_module_build:%{?dist}}
+Release:        4%{?_module_build:%{?dist}}
 License:        MIT
 URL:            https://sgugrseproject.org/
 
@@ -91,6 +91,9 @@ install -m 644 %{_sourcedir}/sgugrse.conf $RPM_BUILD_ROOT/usr/sgug/etc/ostree/re
 /usr/sgug/etc/ostree/remotes.d/sgugrse.conf
 
 %changelog
+* Sun Dec 20 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7beta-4
+- Last little repo tweaks to turn on gpg sigs, remove debug-info repos
+
 * Fri Dec 18 2020 Daniel Hams <daniel.hams@gmail.com> - 0.0.7beta-3
 - Update with real test amazon aws repo but leave disabled
 
