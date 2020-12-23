@@ -1,3 +1,4 @@
+%global __strip /bin/true
 Name:           netsurf
 Version:        3.9
 Release:        2%{?dist}
@@ -8,9 +9,10 @@ Summary:        Compact graphical web browser
 License:        GPLv2
 URL:            https://www.netsurf-browser.org/
 Source0:        https://download.netsurf-browser.org/netsurf/releases/source-full/netsurf-all-%{version}.tar.gz
-Patch100:       netsurf1.irixfixes.patch
-Patch101:       netsurf2.irixfixes.patch
-Patch102:       netsurf.irixfixes.patch
+#Patch100:       netsurf1.irixfixes.patch
+#Patch101:       netsurf2.irixfixes.patch
+#Patch102:       netsurf.irixfixes.patch
+Patch100:	netsurf3.irixfixes.patch
 
 BuildRequires:  gcc
 BuildRequires:  make
@@ -96,8 +98,12 @@ want to use.
  
 
 %build
-export CFLAGS='%{optflags}'
-export CXXFLAGS='%{optflags}'
+#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN -DLIBDICL_NEED_GETOPT=1 -g -Og"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now $RPM_LD_FLAGS"
+#export CFLAGS='%{optflags}'
+#export CXXFLAGS='%{optflags}'
 #%make %{?_smp_mflags} %{fb_make_opts}
 make %{?_smp_mflags} %{gtk_make_opts}
 

@@ -1,0 +1,3058 @@
+diff -Naur netsurf-all-3.9.orig/Makefile netsurf-all-3.9/Makefile
+--- netsurf-all-3.9.orig/Makefile	2019-07-17 11:36:40.000000000 +0000
++++ netsurf-all-3.9/Makefile	2020-12-21 10:45:35.518836200 +0000
+@@ -25,7 +25,7 @@
+ NETSURF_TARG := netsurf
+ 
+ # nsgenbind host tool
+-NSGENBIND_TARG := nsgenbind
++#NSGENBIND_TARG := nsgenbind
+ 
+ # Library targets
+ NSLIB_ALL_TARG := buildsystem libnslog libwapcaplet libparserutils libcss libhubbub libdom libnsbmp libnsgif librosprite libnsutils libutf8proc libnspsl
+diff -Naur netsurf-all-3.9.orig/Makefile.orig netsurf-all-3.9/Makefile.orig
+--- netsurf-all-3.9.orig/Makefile.orig	1969-12-31 19:00:00.000000000 +0000
++++ netsurf-all-3.9/Makefile.orig	2019-07-17 11:36:40.000000000 +0000
+@@ -0,0 +1,163 @@
++#!/bin/make
++#
++# NetSurf Source makefile for libraries and browser
++#
++# The TARGET variable changes what toolkit is built for valid values are:
++#  gtk (default if unset)
++#  riscos
++#  framebuffer
++#  amiga
++#  cocoa
++#  atari
++#
++# The HOST variable controls the targetted ABI and not all toolkits build with
++#  all ABI e.g TARGET=riscos must be paired with HOST=arm-unknown-riscos 
++# The default is to use the BUILD variable contents which in turn defaults to
++#  the current cc default ABI target
++
++# Component settings
++COMPONENT := netsurf-all
++COMPONENT_VERSION := 3.9
++
++# Targets
++
++# Netsurf target
++NETSURF_TARG := netsurf
++
++# nsgenbind host tool
++NSGENBIND_TARG := nsgenbind
++
++# Library targets
++NSLIB_ALL_TARG := buildsystem libnslog libwapcaplet libparserutils libcss libhubbub libdom libnsbmp libnsgif librosprite libnsutils libutf8proc libnspsl
++
++NSLIB_SVGTINY_TARG := libsvgtiny
++
++NSLIB_FB_TARG := libnsfb
++
++NSLIB_RO_TARG := librufl libpencil
++
++
++# Build Environment
++export TARGET ?= gtk
++TMP_PREFIX := $(CURDIR)/inst-$(TARGET)
++export PKG_CONFIG_PATH := $(TMP_PREFIX)/lib/pkgconfig:$(PKG_CONFIG_PATH)
++export PATH := $(PATH):$(TMP_PREFIX)/bin/
++TMP_NSSHARED := $(CURDIR)/buildsystem
++
++# The system actually doing the build
++BUILD ?= $(shell $(CC) -dumpmachine)
++# The host we are targetting
++HOST ?= $(BUILD)
++
++# build verbosity. 
++# NetSurf uses the kernel style quiet Q variable but we also need to cope with thr GNU V=1 style
++ifeq ($(V),1)
++  Q:=
++else
++  Q=@
++endif
++
++
++# only build what we require for the target
++ifeq ($(TARGET),riscos)
++  NSLIB_TARG := $(NSLIB_ALL_TARG) $(NSLIB_SVGTINY_TARG) $(NSLIB_RO_TARG)
++  NSBUILD_TARG := $(NSGENBIND_TARG)
++else
++  ifeq ($(TARGET),framebuffer)
++    NSLIB_TARG := $(NSLIB_ALL_TARG) $(NSLIB_SVGTINY_TARG)  $(NSLIB_FB_TARG)
++    NSBUILD_TARG := $(NSGENBIND_TARG)
++  else
++    ifeq ($(TARGET),amiga)
++      NSLIB_TARG := $(NSLIB_ALL_TARG) $(NSLIB_SVGTINY_TARG)
++      NSBUILD_TARG := $(NSGENBIND_TARG)
++    else
++      ifeq ($(TARGET),cocoa)
++        NSLIB_TARG := $(NSLIB_ALL_TARG) $(NSLIB_SVGTINY_TARG) 
++        NSBUILD_TARG := $(NSGENBIND_TARG)
++      else
++        ifeq ($(TARGET),atari)
++          NSLIB_TARG := $(NSLIB_ALL_TARG)
++          NSBUILD_TARG := $(NSGENBIND_TARG)
++        else
++          NSLIB_TARG := $(NSLIB_ALL_TARG) $(NSLIB_SVGTINY_TARG) 
++          NSBUILD_TARG := $(NSGENBIND_TARG)
++        endif
++      endif
++    endif
++  endif
++endif
++
++.PHONY: build install clean checkout-release checkout-head dist dist-head
++
++# clean macro for each sub target
++define do_clean
++	$(MAKE) distclean --directory=$1 HOST=$(HOST) NSSHARED=$(TMP_NSSHARED) Q=$(Q)
++
++endef
++
++# clean macro for each host sub target
++define do_build_clean
++	$(MAKE) distclean --directory=$1 HOST=$(HOST) NSSHARED=$(TMP_NSSHARED) Q=$(Q)
++
++endef
++
++# prefixed install macro for each sub target
++define do_prefix_install
++	$(MAKE) install --directory=$1 HOST=$(HOST) PREFIX=$(TMP_PREFIX) Q=$(Q) WARNFLAGS='-Wall -W -Wno-error' DESTDIR=
++
++endef
++
++# prefixed install macro for each host sub target
++define do_build_prefix_install
++	$(MAKE) install --directory=$1 HOST=$(BUILD) PREFIX=$(TMP_PREFIX) Q=$(Q) DESTDIR=
++
++endef
++
++build: $(TMP_PREFIX)/build-stamp
++
++$(TMP_PREFIX)/build-stamp:
++	mkdir -p $(TMP_PREFIX)/include
++	mkdir -p $(TMP_PREFIX)/lib
++	mkdir -p $(TMP_PREFIX)/bin
++	$(foreach L,$(NSLIB_TARG),$(call do_prefix_install,$(L)))
++	$(foreach L,$(NSBUILD_TARG),$(call do_build_prefix_install,$(L)))
++	$(MAKE) --directory=$(NETSURF_TARG) PREFIX=$(PREFIX) TARGET=$(TARGET) $(NETSURF_CONFIG)
++	touch $@
++
++package: $(TMP_PREFIX)/build-stamp
++	$(MAKE) --directory=$(NETSURF_TARG) PREFIX=$(PREFIX) TARGET=$(TARGET) package $(NETSURF_CONFIG)
++
++install: $(TMP_PREFIX)/build-stamp
++	$(MAKE) install --directory=$(NETSURF_TARG) TARGET=$(TARGET) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) $(NETSURF_CONFIG)
++
++clean:
++	$(RM) -r $(TMP_PREFIX)
++	$(foreach L,$(NSLIB_TARG),$(call do_clean,$(L)))
++	$(foreach L,$(NSBUILD_TARG),$(call do_build_clean,$(L)))
++	$(MAKE) clean --directory=$(NETSURF_TARG) TARGET=$(TARGET)
++
++# check out last release tag on each submodule
++checkout-release: $(NSLIB_TARG) $(NETSURF_TARG) $(NSGENBIND_TARG) $(NSLIB_FB_TARG) $(NSLIB_SVGTINY_TARG) $(NSLIB_RO_TARG)
++	git fetch --recurse-submodules
++	for x in $^; do cd $$x; (git checkout origin/HEAD && git checkout $$(git describe --abbrev=0 --match="release/*" )); cd ..; done
++
++# check out head on each submodule
++checkout-head: $(NSLIB_TARG) $(NETSURF_TARG) $(NSGENBIND_TARG) $(NSLIB_FB_TARG) $(NSLIB_SVGTINY_TARG) $(NSLIB_RO_TARG)
++	git submodule init
++	git submodule update
++	git fetch --recurse-submodules
++	for x in $^; do cd $$x; git checkout origin/HEAD ; cd ..; done
++
++# Generate a dist tarball from the head of all submodules
++dist-head: checkout-head
++	$(eval DIST_FILE := $(COMPONENT)-${COMPONENT_VERSION}~$$$${BUILD_NUMBER:-1})
++	$(Q)git-archive-all --prefix=$(DIST_FILE)/ $(DIST_FILE).tgz
++	$(Q)mv $(DIST_FILE).tgz $(DIST_FILE).tar.gz
++
++dist:
++	$(eval GIT_TAG := $(shell git describe --abbrev=0 --match "release/*"))
++	$(eval GIT_VER := $(shell x="$(GIT_TAG)"; echo "$${x#release/}"))
++	$(if $(subst $(GIT_VER),,$(COMPONENT_VERSION)), $(error Component Version "$(COMPONENT_VERSION)" and GIT tag version "$(GIT_VER)" do not match))
++	$(eval DIST_FILE := $(COMPONENT)-${GIT_VER})
++	$(Q)git-archive-all --force-submodules --prefix=$(DIST_FILE)/ $(DIST_FILE).tgz
++	$(Q)mv $(DIST_FILE).tgz $(DIST_FILE).tar.gz
+diff -Naur netsurf-all-3.9.orig/libnsfb/src/plot.h netsurf-all-3.9/libnsfb/src/plot.h
+--- netsurf-all-3.9.orig/libnsfb/src/plot.h	2019-07-17 11:36:59.000000000 +0000
++++ netsurf-all-3.9/libnsfb/src/plot.h	2020-12-21 10:45:35.808735400 +0000
+@@ -46,7 +46,6 @@
+         #error "Endian determination failed"
+     #endif
+ #else
+-    #include <endian.h>
+     #if defined(__BYTE_ORDER__)
+         #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+             #define NSFB_BE_BYTE_ORDER
+diff -Naur netsurf-all-3.9.orig/libnslog/Makefile netsurf-all-3.9/libnslog/Makefile
+--- netsurf-all-3.9.orig/libnslog/Makefile	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/libnslog/Makefile	2020-12-21 10:45:35.536325000 +0000
+@@ -32,7 +32,7 @@
+   # __inline__ is a GCCism
+   CFLAGS := $(CFLAGS) -Dinline="__inline__"
+ endif
+-CFLAGS := $(CFLAGS) -D_POSIX_C_SOURCE=200809L -g
++CFLAGS := $(CFLAGS) -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g
+ 
+ REQUIRED_LIBS := nslog
+ 
+diff -Naur netsurf-all-3.9.orig/libnspsl/Makefile netsurf-all-3.9/libnspsl/Makefile
+--- netsurf-all-3.9.orig/libnspsl/Makefile	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/libnspsl/Makefile	2020-12-21 10:45:35.571325800 +0000
+@@ -32,7 +32,7 @@
+   # __inline__ is a GCCism
+   CFLAGS := $(CFLAGS) -Dinline="__inline__"
+ endif
+-CFLAGS := $(CFLAGS) -D_POSIX_C_SOURCE=200809L
++CFLAGS := $(CFLAGS) -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS
+ 
+ REQUIRED_LIBS := nspsl
+ 
+diff -Naur netsurf-all-3.9.orig/libnsutils/Makefile netsurf-all-3.9/libnsutils/Makefile
+--- netsurf-all-3.9.orig/libnsutils/Makefile	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/libnsutils/Makefile	2020-12-21 10:45:35.588005000 +0000
+@@ -31,7 +31,7 @@
+   # __inline__ is a GCCism
+   CFLAGS := $(CFLAGS) -Dinline="__inline__"
+ endif
+-CFLAGS := $(CFLAGS) -D_POSIX_C_SOURCE=200809L
++CFLAGS := $(CFLAGS) -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS
+ 
+ REQUIRED_LIBS := nsutils
+ 
+diff -Naur netsurf-all-3.9.orig/libnsutils/src/time.c netsurf-all-3.9/libnsutils/src/time.c
+--- netsurf-all-3.9.orig/libnsutils/src/time.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/libnsutils/src/time.c	2020-12-21 10:45:35.616327400 +0000
+@@ -15,6 +15,9 @@
+ #include <stdint.h>
+ #include <stdlib.h>
+ #include <unistd.h>
++#define _BSD_TYPES
++#include <sys/time.h>
++
+ 
+ #if (defined(_POSIX_TIMERS) && (_POSIX_TIMERS > 0) && (defined _POSIX_MONOTONIC_CLOCK)) || defined(__OpenBSD__)
+ #include <time.h>
+@@ -32,7 +35,7 @@
+ #include <proto/timer.h>
+ #else
+ #include <sys/time.h>
+-#endif
++#endif 
+ #include "nsutils/time.h"
+ 
+ /* exported interface documented in nsutils/time.h */
+@@ -41,12 +44,12 @@
+     uint64_t current;
+     static uint64_t prev = 0; /* previous time so we never go backwards */
+ 
+-#if (defined(_POSIX_TIMERS) && (_POSIX_TIMERS > 0) && (defined _POSIX_MONOTONIC_CLOCK)) || defined(__OpenBSD__)
++#if (defined(_POSIX_TIMERS) && (_POSIX_TIMERS > 0) && (defined _POSIX_MONOTONIC_CLOCK)) || defined(__OpenBSD__) || defined(__BSD_TYPES)
+     struct timespec tp;
+ 
+     clock_gettime(CLOCK_MONOTONIC, &tp);
+     current = (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000);
+-#elif defined(__riscos)
++ #elif defined(__riscos)
+     os_t time;
+ 
+     time = os_read_monotonic_time();
+@@ -63,7 +66,7 @@
+ #elif defined(__amiga)
+     struct EClockVal eclockval;
+     ULONG freq = 0;
+-    uint64_t eclock;
++    uint64_t eclock; 
+ 
+     /* NB: The calling task must already have opened timer.device
+      * and obtained the interface.
+@@ -71,20 +74,22 @@
+     assert(TimerBase != NULL);
+ #ifdef __amigaos4__
+     assert(ITimer != NULL);
+-#endif
++#endif 
+ 
+     freq = ReadEClock(&eclockval) / 1000;
+     eclock = ((uint64_t)eclockval.ev_hi << 32) | (eclockval.ev_lo);
+     current = eclock / freq;
++
+ #else
+-#warning "Using dodgy gettimeofday() fallback"
++#warning "Using dodgy gettimeofday() fallback" 
+     /** \todo Implement this properly! */
++
+     struct timeval tv;
+ 
+     gettimeofday(&tv, NULL);
+ 
+     current = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+-#endif
++#endif 
+ 
+     /* ensure time never goes backwards */
+     if (current >= prev) {
+diff -Naur netsurf-all-3.9.orig/libparserutils/Makefile.config netsurf-all-3.9/libparserutils/Makefile.config
+--- netsurf-all-3.9.orig/libparserutils/Makefile.config	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/libparserutils/Makefile.config	2020-12-21 10:45:35.657159400 +0000
+@@ -1,7 +1,7 @@
+ # Configuration Makefile fragment
+ 
+ # Disable use of iconv in the input filter
+-# CFLAGS := $(CFLAGS) -DWITHOUT_ICONV_FILTER
++CFLAGS := $(CFLAGS) -DWITHOUT_ICONV_FILTER
+ 
+ # Cater for local configuration changes
+ -include Makefile.config.override
+diff -Naur netsurf-all-3.9.orig/netsurf/Makefile.config netsurf-all-3.9/netsurf/Makefile.config
+--- netsurf-all-3.9.orig/netsurf/Makefile.config	1969-12-31 19:00:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/Makefile.config	2020-12-21 10:45:35.662198600 +0000
+@@ -0,0 +1,51 @@
++#
++# NetSurf build configuration example
++#
++#
++# To configure NetSurf's build options create a Makefile.config file. This is
++# an example Makefile.config.
++#
++# To see the available config options, look at Makefile.defaults, but make any
++# alterations in your Makefile.config
++
++### To enable/disable PNG support, uncomment the appropriate line below.
++# override NETSURF_USE_PNG := YES
++# override NETSURF_USE_PNG := NO
++
++### To enable/disable SVGTiny support, uncomment the appropriate line below.
++# override NETSURF_USE_NSSVG := YES
++# override NETSURF_USE_NSSVG := NO
++
++### To enable/disable RSVG support, uncomment the appropriate line below.
++# override NETSURF_USE_RSVG := YES
++# override NETSURF_USE_RSVG := NO
++
++### To enable/disable BMP support, uncomment the appropriate line below.
++# override NETSURF_USE_BMP := YES
++# override NETSURF_USE_BMP := NO
++
++### To make the framebuffer front end use freetype for text, uncomment the
++### following line
++# override NETSURF_FB_FONTLIB := freetype
++
++### To disable JavaScript support, uncomment the appropriate line below.
++override NETSURF_USE_DUKTAPE := NO
++
++### To change flags to javascript binding generator
++# GBFLAGS:=-g
++
++### To enable ASAN and UBSAN support in builds regardless of target
++# override NETSURF_USE_SANITIZER := YES
++
++### If you're using the sanitizers and you want it to stop on failure...
++# override NETSURF_RECOVER_SANITIZERS := NO
++
++### To change the compiled in log level, alter this.
++# Valid options are: DEEPDEBUG, DEBUG, VERBOSE, INFO, WARNING, ERROR, CRITICAL
++# override NETSURF_LOG_LEVEL := DEBUG
++
++### To change the compiled in default log, change this
++# override NETSURF_BUILTIN_LOG_FILTER := "(level:WARNING || cat:jserrors)"
++
++### To change the compiled in *verbose* log, change this
++# override NETSURF_BUILTIN_VERBOSE_FILTER := "(level:VERBOSE || cat:jserrors)"
+diff -Naur netsurf-all-3.9.orig/netsurf/content/urldb.c netsurf-all-3.9/netsurf/content/urldb.c
+--- netsurf-all-3.9.orig/netsurf/content/urldb.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/content/urldb.c	2020-12-21 10:45:11.047209800 +0000
+@@ -656,11 +656,6 @@
+ 	size_t host_len = strlen(host);
+ 	const char *sane_host;
+ 	const char *slash;
+-#ifndef NO_IPV6
+-	struct in6_addr ipv6;
+-	char ipv6_addr[64];
+-	unsigned int ipv6_addr_len;
+-#endif
+ 	/**
+ 	 * @todo FIXME Some parts of urldb.c make confusions between hosts
+ 	 * and "prefixes", we can sometimes be erroneously passed more than
+@@ -714,23 +709,6 @@
+ 			goto out_false;
+ 	}
+ 
+-#ifndef NO_IPV6
+-	if ((host_len < 6) ||
+-	    (sane_host[0] != '[') ||
+-	    (sane_host[host_len - 1] != ']')) {
+-		goto out_false;
+-	}
+-
+-	ipv6_addr_len = host_len - 2;
+-	if (ipv6_addr_len >= sizeof(ipv6_addr)) {
+-		ipv6_addr_len = sizeof(ipv6_addr) - 1;
+-	}
+-	strncpy(ipv6_addr, sane_host + 1, ipv6_addr_len);
+-	ipv6_addr[ipv6_addr_len] = '\0';
+-
+-	if (inet_pton(AF_INET6, ipv6_addr, &ipv6) == 1)
+-		goto out_true;
+-#endif
+ 
+ out_false:
+ 	if (slash != NULL) free((void *)sane_host);
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/Makefile netsurf-all-3.9/netsurf/frontends/gtk/Makefile
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/Makefile	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/Makefile	2020-12-21 16:55:18.408126600 +0000
+@@ -38,7 +38,8 @@
+ 		-D_BSD_SOURCE \
+ 		-D_DEFAULT_SOURCE \
+ 		-D_XOPEN_SOURCE=700 \
+-		-D_POSIX_C_SOURCE=200809L \
++       -D_SGI_SOURCE \
++       -D_SGI_REENTRANT_FUNCTIONS \
+ 		-D_NETBSD_SOURCE \
+ 		-DGTK_RESPATH=\"$(NETSURF_GTK_RES_PATH)\"
+ 
+@@ -109,7 +110,7 @@
+ CFLAGS += -DWITH_GRESOURCE
+ 
+ NETSURF_GRESOURCE_XML := $(NSGTK_RESOURCES_DIR)/netsurf.gresource.xml
+-MESSAGES_GRESOURCE_XML := $(NSGTK_RESOURCES_DIR)/messages.gresource.xml
++ MESSAGES_GRESOURCE_XML := $(NSGTK_RESOURCES_DIR)/messages.gresource.xml
+ 
+ # generate the netsurf gresource source files
+ $(OBJROOT)/netsurf_gresource.c: $(NETSURF_GRESOURCE_XML) $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir $(NSGTK_RESOURCES_DIR) --generate-dependencies $(NETSURF_GRESOURCE_XML))
+@@ -129,36 +130,35 @@
+ endif
+ endif
+ 
+-# Build pixbufs as inlines if enabled
+-ifneq (,$(filter $(NETSURF_USE_INLINE_PIXBUF),AUTO YES))
+-ifneq ($(NETSURF_FEATURE_GRESOURCE_ENABLED),yes)
+-
+-CFLAGS += -DWITH_BUILTIN_PIXBUF
+-
+-GTK_IMAGE_favicon := favicon.png
+-GTK_IMAGE_netsurf := netsurf.xpm
+-GTK_IMAGE_menu_cursor := menu_cursor.png
+-
+-# 1: input file
+-# 2: output file
+-# 3: bitmap name
+-define convert_image
+-
+-# add converted pixbuf to builtin resource sources
+-S_RESOURCE += $(2)
+-
+-$(2): $(1)
+-	$(VQ)echo "  INLINE: ${3}"
+-	$(Q)echo "#include <gdk-pixbuf/gdk-pixdata.h>" > $(2)
+-	$(Q)gdk-pixbuf-csource --extern --raw --name=$(3) $(1) >> $(2) || \
+-	( rm -f $(2) && false )
+-
+-endef
+-
++ # Build pixbufs as inlines if enabled
++ ifneq (,$(filter $(NETSURF_USE_INLINE_PIXBUF),AUTO YES))
++ ifneq ($(NETSURF_FEATURE_GRESOURCE_ENABLED),yes)
++ 
++ CFLAGS += -DWITH_BUILTIN_PIXBUF
++ 
++ GTK_IMAGE_favicon := favicon.png
++ GTK_IMAGE_netsurf := netsurf.xpm
++ GTK_IMAGE_menu_cursor := menu_cursor.png
++ 
++ # 1: input file
++ # 2: output file
++ # 3: bitmap name
++ define convert_image
++ 
++ # add converted pixbuf to builtin resource sources
++ S_RESOURCE += $(2)
++ 
++ $(2): $(1)
++ 	$(VQ)echo "  INLINE: ${3}"
++ 	$(Q)echo "#include <gdk-pixbuf/gdk-pixdata.h>" > $(2)
++ 	$(Q)gdk-pixbuf-csource --extern --raw --name=$(3) $(1) >> $(2) 
++ 
++ endef
++ 
+ $(eval $(foreach V,$(filter GTK_IMAGE_%,$(.VARIABLES)),$(call convert_image,$(addprefix $(NSGTK_RESOURCES_DIR)/,$($(V))),$(OBJROOT)/$(patsubst GTK_IMAGE_%,%,$(V)).c,$(patsubst GTK_IMAGE_%,%,$(V))_pixdata)))
+ endif
+ endif
+-
++#   
+ # ----------------------------------------------------------------------------
+ # Source file setup
+ # ----------------------------------------------------------------------------
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/Makefile.orig netsurf-all-3.9/netsurf/frontends/gtk/Makefile.orig
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/Makefile.orig	1969-12-31 19:00:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/Makefile.orig	2019-07-17 11:37:00.000000000 +0000
+@@ -0,0 +1,214 @@
++#
++# Makefile for NetSurf GTK target
++#
++# This file is part of NetSurf 
++#
++# ----------------------------------------------------------------------------
++# GTK flag setup (using pkg-config)
++# ----------------------------------------------------------------------------
++
++# define additional CFLAGS and LDFLAGS requirements for pkg-configed libs here
++NETSURF_FEATURE_RSVG_CFLAGS := -DWITH_RSVG
++NETSURF_FEATURE_VIDEO_CFLAGS := -DWITH_VIDEO
++
++$(eval $(call pkg_config_find_and_add_enabled,RSVG,librsvg-2.0,SVG))
++$(eval $(call pkg_config_find_and_add_enabled,VIDEO,gstreamer-0.10,Video))
++
++# GTK and GLIB flags to disable depricated usage
++GTKDEPFLAGS := -DG_DISABLE_SINGLE_INCLUDES \
++		-DG_DISABLE_DEPRECATED \
++	       	-DGTK_DISABLE_SINGLE_INCLUDES \
++		-DGTK_MULTIHEAD_SAFE \
++		-DPANGO_DISABLE_DEPRECATED
++
++# later editions of gtk 2 deprecate interfaces we rely upon for cursors
++# -DGDK_PIXBUF_DISABLE_DEPRECATED
++
++# libsexy currently means we cannot enable this
++#		-DGDK_DISABLE_DEPRECATED 
++
++# gtk3 is depricating interfaces we use a lot
++ifeq ($(NETSURF_GTK_MAJOR),2)
++GTKDEPFLAGS += -DGTK_DISABLE_DEPRECATED
++endif
++
++
++GTKCFLAGS := -std=c99 -Dgtk -Dnsgtk -g \
++		$(GTKDEPFLAGS) \
++		-D_BSD_SOURCE \
++		-D_DEFAULT_SOURCE \
++		-D_XOPEN_SOURCE=700 \
++		-D_POSIX_C_SOURCE=200809L \
++		-D_NETBSD_SOURCE \
++		-DGTK_RESPATH=\"$(NETSURF_GTK_RES_PATH)\"
++
++# non optional pkg-configed libs
++$(eval $(call pkg_config_find_and_add,gtk+-$(NETSURF_GTK_MAJOR).0,GTK-$(NETSURF_GTK_MAJOR)))
++$(eval $(call pkg_config_find_and_add,gthread-2.0,GThread2))
++$(eval $(call pkg_config_find_and_add,gmodule-2.0,GModule2))
++
++
++CFLAGS += $(GTKCFLAGS)
++LDFLAGS += -lm
++
++# ---------------------------------------------------------------------------
++# Target setup
++# ---------------------------------------------------------------------------
++
++# Path to GTK resources
++NSGTK_RESOURCES_DIR := $(FRONTEND_RESOURCES_DIR)
++
++# The gtk binary target.
++ifeq ($(NETSURF_GTK_MAJOR),2)
++    # gtk2 builds have no major suffix
++    EXETARGET := nsgtk
++else
++    # gtk3 and later builds use the major version suffix
++    EXETARGET := nsgtk$(NETSURF_GTK_MAJOR)
++endif
++
++# The filter and target for split messages
++MESSAGES_FILTER=gtk
++MESSAGES_TARGET=$(NSGTK_RESOURCES_DIR)
++
++# ---------------------------------------------------------------------------
++# Windows flag setup
++# ---------------------------------------------------------------------------
++
++ifeq ($(HOST),Windows_NT)
++    CFLAGS += -U__STRICT_ANSI__
++endif
++
++# ----------------------------------------------------------------------------
++# Builtin resource handling
++# ----------------------------------------------------------------------------
++
++# builtin resource sources
++S_RESOURCE :=
++
++# Glib prior to 2.32 does not have GResource handling.
++#
++# This uses pkg-config to check for the minimum required version for
++#  this feature in a way similar to the pkg_config_find_and_add_enabled
++#  macro. Note we check for gmodule-2.0 which is a specific part of
++#  glib we require.
++#
++# It would be nice if we could check for this functionality rather
++#  than "knowing" the version but there does not appear to be a simple
++#  way to implement that.
++#
++NETSURF_FEATURE_GRESOURCE_AVAILABLE := $(shell $(PKG_CONFIG) --atleast-version=2.32 gmodule-2.0 && echo yes)
++ifneq (,$(filter $(NETSURF_USE_GRESOURCE),AUTO YES))
++ifeq ($(NETSURF_FEATURE_GRESOURCE_AVAILABLE),yes)
++
++# Gresource use has been enabled
++NETSURF_FEATURE_GRESOURCE_ENABLED := yes
++
++#resource compiler tool
++GLIB_COMPILE_RESOURCES := glib-compile-resources
++CFLAGS += -DWITH_GRESOURCE
++
++NETSURF_GRESOURCE_XML := $(NSGTK_RESOURCES_DIR)/netsurf.gresource.xml
++MESSAGES_GRESOURCE_XML := $(NSGTK_RESOURCES_DIR)/messages.gresource.xml
++
++# generate the netsurf gresource source files
++$(OBJROOT)/netsurf_gresource.c: $(NETSURF_GRESOURCE_XML) $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir $(NSGTK_RESOURCES_DIR) --generate-dependencies $(NETSURF_GRESOURCE_XML))
++	$(VQ)echo "GRESORCE: $<"
++	$(Q)$(GLIB_COMPILE_RESOURCES) --generate-source --sourcedir $(NSGTK_RESOURCES_DIR) --target=$@ $<
++
++S_RESOURCE += $(OBJROOT)/netsurf_gresource.c
++
++# generate the messages gresource source file
++$(OBJROOT)/messages_gresource.c: $(MESSAGES_GRESOURCE_XML) $(addsuffix /Messages,$(addprefix $(MESSAGES_TARGET)/,$(MESSAGES_LANGUAGES)))
++	$(VQ)echo "GRESORCE: $<"
++	$(Q)$(GLIB_COMPILE_RESOURCES) --generate-source --sourcedir $(NSGTK_RESOURCES_DIR) --target=$@ $<
++
++S_RESOURCE += $(OBJROOT)/messages_gresource.c
++
++
++endif
++endif
++
++# Build pixbufs as inlines if enabled
++ifneq (,$(filter $(NETSURF_USE_INLINE_PIXBUF),AUTO YES))
++ifneq ($(NETSURF_FEATURE_GRESOURCE_ENABLED),yes)
++
++CFLAGS += -DWITH_BUILTIN_PIXBUF
++
++GTK_IMAGE_favicon := favicon.png
++GTK_IMAGE_netsurf := netsurf.xpm
++GTK_IMAGE_menu_cursor := menu_cursor.png
++
++# 1: input file
++# 2: output file
++# 3: bitmap name
++define convert_image
++
++# add converted pixbuf to builtin resource sources
++S_RESOURCE += $(2)
++
++$(2): $(1)
++	$(VQ)echo "  INLINE: ${3}"
++	$(Q)echo "#include <gdk-pixbuf/gdk-pixdata.h>" > $(2)
++	$(Q)gdk-pixbuf-csource --extern --raw --name=$(3) $(1) >> $(2) || \
++	( rm -f $(2) && false )
++
++endef
++
++$(eval $(foreach V,$(filter GTK_IMAGE_%,$(.VARIABLES)),$(call convert_image,$(addprefix $(NSGTK_RESOURCES_DIR)/,$($(V))),$(OBJROOT)/$(patsubst GTK_IMAGE_%,%,$(V)).c,$(patsubst GTK_IMAGE_%,%,$(V))_pixdata)))
++endif
++endif
++
++# ----------------------------------------------------------------------------
++# Source file setup
++# ----------------------------------------------------------------------------
++
++# S_FRONTEND are sources purely for the GTK frontend
++S_FRONTEND := gui.c schedule.c layout_pango.c bitmap.c plotters.c	\
++	scaffolding.c gdk.c completion.c login.c throbber.c accelerator.c \
++	selection.c window.c fetch.c download.c menu.c print.c		\
++	search.c tabs.c toolbar.c gettext.c compat.c viewdata.c		\
++	viewsource.c preferences.c about.c resources.c corewindow.c	\
++	local_history.c global_history.c cookies.c hotlist.c ssl_cert.c
++
++# This is the final source build list
++# Note this is deliberately *not* expanded here as common and image
++#   are not yet available
++SOURCES = $(S_COMMON) $(S_IMAGE) $(S_BROWSER) $(S_RESOURCE) $(S_FRONTEND)
++
++# ----------------------------------------------------------------------------
++# Install target
++# ----------------------------------------------------------------------------
++
++GTK_RESOURCES_LIST := \
++	languages SearchEngines ca-bundle.txt \
++	default.css adblock.css quirks.css internal.css \
++	credits.html licence.html welcome.html maps.html Messages \
++	default.ico favicon.png netsurf.png netsurf.xpm netsurf-16x16.xpm \
++	arrow_down_8x32.png
++
++GTK_RESOURCES_LIST := \
++	$(addprefix $(NSGTK_RESOURCES_DIR)/, $(GTK_RESOURCES_LIST)) \
++	$(wildcard $(NSGTK_RESOURCES_DIR)/*.gtk$(NETSURF_GTK_MAJOR).ui)
++
++# translations with more than just Messages files
++GTK_TRANSLATIONS_HTML := de en fr it ja nl
++
++# destination for installed resources is the first entry in the gtk resource path
++NSGTK_RESOURCES_DESTDIR := $(DESTDIR)$(word 1,$(subst :, ,$(NETSURF_GTK_RES_PATH)))
++
++install-gtk:
++	$(Q)$(MKDIR) -p $(DESTDIR)$(NETSURF_GTK_BIN)
++	$(Q)install $(EXETARGET) $(DESTDIR)$(NETSURF_GTK_BIN)netsurf-gtk$(SUBTARGET)
++	$(Q)$(MKDIR) -p $(NSGTK_RESOURCES_DESTDIR)/icons
++	$(Q)install -m 0644 $(NSGTK_RESOURCES_DIR)/icons/*.png $(NSGTK_RESOURCES_DESTDIR)/icons
++	$(Q)$(MKDIR) -p $(NSGTK_RESOURCES_DESTDIR)/throbber
++	$(Q)install -m 0644 $(NSGTK_RESOURCES_DIR)/throbber/*.png $(NSGTK_RESOURCES_DESTDIR)/throbber
++	$(Q)tar -c -h -C $(NSGTK_RESOURCES_DIR) -f - $(GTK_TRANSLATIONS_HTML) | tar -xv -C $(NSGTK_RESOURCES_DESTDIR) -f -
++	$(Q)install -m 0644 $(GTK_RESOURCES_LIST) $(NSGTK_RESOURCES_DESTDIR)
++
++# ----------------------------------------------------------------------------
++# Package target
++# ----------------------------------------------------------------------------
++
++package-gtk:
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/corewindow.c netsurf-all-3.9/netsurf/frontends/gtk/corewindow.c
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/corewindow.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/corewindow.c	2020-12-21 10:47:00.299676200 +0000
+@@ -62,9 +62,10 @@
+ 
+ 	if (event->type == GDK_2BUTTON_PRESS) {
+ 		ms = BROWSER_MOUSE_DOUBLE_CLICK;
+-	} else {
+-		ms = BROWSER_MOUSE_HOVER;
+ 	}
++        /*	else {
++		ms = BROWSER_MOUSE_HOVER;
++	} */
+ 
+ 	/* button state */
+ 	switch (event->button) {
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/fetch.c netsurf-all-3.9/netsurf/frontends/gtk/fetch.c
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/fetch.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/fetch.c	2020-12-21 10:45:35.665796200 +0000
+@@ -250,6 +250,9 @@
+ 	return type;
+ }
+ 
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
+ 
+ static nsurl *nsgtk_get_resource_url(const char *path)
+ {
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/fetch.c.orig netsurf-all-3.9/netsurf/frontends/gtk/fetch.c.orig
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/fetch.c.orig	1969-12-31 19:00:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/fetch.c.orig	2019-07-17 11:37:00.000000000 +0000
+@@ -0,0 +1,276 @@
++/*
++ * Copyright 2007, 2014 Vincent Sanders <vince@netsurf-browser.org>
++ * Copyright 2007 Rob Kendrick <rjek@netsurf-browser.org>
++ *
++ * This file is part of NetSurf, http://www.netsurf-browser.org/
++ *
++ * NetSurf is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * NetSurf is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/**
++ * \file
++ * file extension to mimetype mapping for the GTK frontend
++ *
++ * allows GTK frontend to map file extension to mime types using a
++ * default builtin list and /etc/mime.types file if present.
++ *
++ * mime type and content type handling is derived from the BNF in
++ * RFC822 section 3.3, RFC2045 section 5.1 and RFC6838 section
++ * 4.2. Upshot is their charset and parsing is all a strict subset of
++ * ASCII hence not using locale dependant ctype functions for parsing.
++ */
++
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
++#include <string.h>
++#include <strings.h>
++#include <gtk/gtk.h>
++
++#include "utils/log.h"
++#include "utils/hashtable.h"
++#include "utils/filepath.h"
++#include "utils/file.h"
++#include "utils/nsurl.h"
++#include "utils/ascii.h"
++#include "netsurf/fetch.h"
++
++#include "gtk/gui.h"
++#include "gtk/resources.h"
++#include "gtk/fetch.h"
++
++#define HASH_SIZE 117
++#define MAX_LINE_LEN 256
++
++static struct hash_table *mime_hash = NULL;
++
++void gtk_fetch_filetype_init(const char *mimefile)
++{
++	struct stat statbuf;
++	FILE *fh = NULL;
++
++	mime_hash = hash_create(HASH_SIZE);
++
++	/* Some OSes (mentioning no Solarises) have a worthlessly tiny
++	 * /etc/mime.types that don't include essential things, so we
++	 * pre-seed our hash with the essentials.  These will get
++	 * over-ridden if they are mentioned in the mime.types file.
++	 */
++
++	hash_add(mime_hash, "css", "text/css");
++	hash_add(mime_hash, "htm", "text/html");
++	hash_add(mime_hash, "html", "text/html");
++	hash_add(mime_hash, "jpg", "image/jpeg");
++	hash_add(mime_hash, "jpeg", "image/jpeg");
++	hash_add(mime_hash, "gif", "image/gif");
++	hash_add(mime_hash, "png", "image/png");
++	hash_add(mime_hash, "jng", "image/jng");
++	hash_add(mime_hash, "mng", "image/mng");
++	hash_add(mime_hash, "webp", "image/webp");
++	hash_add(mime_hash, "spr", "image/x-riscos-sprite");
++	hash_add(mime_hash, "bmp", "image/bmp");
++
++	/* first, check to see if /etc/mime.types in preference */
++	if ((stat("/etc/mime.types", &statbuf) == 0) &&
++	    S_ISREG(statbuf.st_mode)) {
++		mimefile = "/etc/mime.types";
++	}
++
++	fh = fopen(mimefile, "r");
++	if (fh == NULL) {
++		NSLOG(netsurf, INFO,
++		      "Unable to open a mime.types file, so using a minimal one for you.");
++		return;
++	}
++
++	while (feof(fh) == 0) {
++		char line[MAX_LINE_LEN], *ptr, *type, *ext;
++
++		if (fgets(line, sizeof(line), fh) == NULL)
++			break;
++
++		if ((feof(fh) == 0) && line[0] != '#') {
++			ptr = line;
++
++			/* search for the first non-whitespace character */
++			while (ascii_is_space(*ptr)) {
++				ptr++;
++			}
++
++			/* is this line empty other than leading whitespace? */
++			if (*ptr == '\n' || *ptr == '\0') {
++				continue;
++			}
++
++			type = ptr;
++
++			/* search for the first non-whitespace char or NUL or
++			 * NL */
++			while (*ptr &&
++			       (!ascii_is_space(*ptr)) &&
++			       *ptr != '\n') {
++				ptr++;
++			}
++
++			if (*ptr == '\0' || *ptr == '\n') {
++				/* this mimetype has no extensions - read next
++				 * line.
++				 */
++				continue;
++			}
++
++			*ptr++ = '\0';
++
++			/* search for the first non-whitespace character which
++			 * will be the first filename extenion */
++			while (ascii_is_space(*ptr)) {
++				ptr++;
++			}
++
++			while (true) {
++				ext = ptr;
++
++				/* search for the first whitespace char or
++				 * NUL or NL which is the end of the ext.
++				 */
++				while (*ptr &&
++				       (!ascii_is_space(*ptr)) &&
++				       *ptr != '\n') {
++					ptr++;
++				}
++
++				if (*ptr == '\0' || *ptr == '\n') {
++					/* special case for last extension on
++					 * the line
++					 */
++					*ptr = '\0';
++					hash_add(mime_hash, ext, type);
++					break;
++				}
++
++				*ptr++ = '\0';
++				hash_add(mime_hash, ext, type);
++
++				/* search for the first non-whitespace char or
++				 * NUL or NL, to find start of next ext.
++				 */
++				while (*ptr &&
++				       (ascii_is_space(*ptr)) &&
++				       *ptr != '\n') {
++					ptr++;
++				}
++			}
++		}
++	}
++
++	fclose(fh);
++}
++
++void gtk_fetch_filetype_fin(void)
++{
++	hash_destroy(mime_hash);
++}
++
++const char *fetch_filetype(const char *unix_path)
++{
++	struct stat statbuf;
++	char *ext;
++	const char *ptr;
++	char *lowerchar;
++	const char *type;
++	int l;
++
++	/* stat the path to attempt to determine if the file is special */
++	if (stat(unix_path, &statbuf) == 0) {
++		/* stat suceeded so can check for directory */
++
++		if (S_ISDIR(statbuf.st_mode)) {
++			return "application/x-netsurf-directory";
++		}
++	}
++
++	l = strlen(unix_path);
++
++	/* Hacky RISC OS compatibility */
++	if ((3 < l) && (strcasecmp(unix_path + l - 4, ",f79") == 0)) {
++		return "text/css";
++	} else if ((3 < l) && (strcasecmp(unix_path + l - 4, ",faf") == 0)) {
++		return "text/html";
++	} else if ((3 < l) && (strcasecmp(unix_path + l - 4, ",b60") == 0)) {
++		return "image/png";
++	} else if ((3 < l) && (strcasecmp(unix_path + l - 4, ",ff9") == 0)) {
++		return "image/x-riscos-sprite";
++	}
++
++	if (strchr(unix_path, '.') == NULL) {
++		/* no extension anywhere! */
++		return "text/plain";
++	}
++
++	ptr = unix_path + strlen(unix_path);
++	while (*ptr != '.' && *ptr != '/') {
++		ptr--;
++	}
++
++	if (*ptr != '.') {
++		return "text/plain";
++	}
++
++	ext = strdup(ptr + 1);	/* skip the . */
++
++	/* the hash table only contains lower-case versions - make sure this
++	 * copy is lower case too.
++	 */
++	lowerchar = ext;
++	while (*lowerchar) {
++		*lowerchar = ascii_to_lower(*lowerchar);
++		lowerchar++;
++	}
++
++	type = hash_get(mime_hash, ext);
++	free(ext);
++
++	if (type == NULL) {
++		type = "text/plain";
++	}
++
++	return type;
++}
++
++
++static nsurl *nsgtk_get_resource_url(const char *path)
++{
++	char buf[PATH_MAX];
++	nsurl *url = NULL;
++
++	/* favicon.ico -> favicon.png */
++	if (strcmp(path, "favicon.ico") == 0) {
++		nsurl_create("resource:favicon.png", &url);
++	} else {
++		netsurf_path_to_nsurl(filepath_sfind(respaths, buf, path), &url);
++	}
++
++	return url;
++}
++
++static struct gui_fetch_table fetch_table = {
++	.filetype = fetch_filetype,
++
++	.get_resource_url = nsgtk_get_resource_url,
++	.get_resource_data = nsgtk_data_from_resname,
++};
++
++struct gui_fetch_table *nsgtk_fetch_table = &fetch_table;
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/gui.c netsurf-all-3.9/netsurf/frontends/gtk/gui.c
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/gui.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/gui.c	2020-12-21 16:56:59.879262600 +0000
+@@ -120,6 +120,7 @@
+ 					     "%s:${NETSURFRES}:%s",
+ 					     config_home,
+ 					     GTK_RESPATH);
++        resource_path_len = strlen(config_home)+strlen(GTK_RESPATH)+32;
+ 		resource_path = malloc(resource_path_len + 1);
+ 		if (resource_path == NULL) {
+ 			return NULL;
+@@ -131,7 +132,8 @@
+ 	} else {
+ 		resource_path_len = snprintf(NULL, 0,
+ 					     "${NETSURFRES}:%s",
+-					     GTK_RESPATH);
++					     GTK_RESPATH); 
++        resource_path_len = strlen("${NETSURFRES}:%s") + strlen(GTK_RESPATH);
+ 		resource_path = malloc(resource_path_len + 1);
+ 		if (resource_path == NULL) {
+ 			return NULL;
+@@ -201,7 +203,7 @@
+ 	}
+ 
+ 	/* default path to certificates */
+-	nsoption_setnull_charp(ca_path, strdup("/etc/ssl/certs"));
++	nsoption_setnull_charp(ca_path, strdup("/usr/sgug/etc/ssl/certs"));
+ 
+ 	if ((nsoption_charp(cookie_file) == NULL) ||
+ 	    (nsoption_charp(cookie_jar) == NULL) ||
+@@ -224,7 +226,9 @@
+ 	return NSERROR_OK;
+ }
+ 
+-
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
+ 
+ 
+ /**
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/gui.c.orig netsurf-all-3.9/netsurf/frontends/gtk/gui.c.orig
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/gui.c.orig	1969-12-31 19:00:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/gui.c.orig	2020-12-21 10:45:20.099863400 +0000
+@@ -0,0 +1,1221 @@
++/*
++ * Copyright 2004-2010 James Bursa <bursa@users.sourceforge.net>
++ * Copyright 2010-2016 Vincent Sanders <vince@netsurf-browser.org>
++ * Copyright 2004-2009 John-Mark Bell <jmb@netsurf-browser.org>
++ * Copyright 2009 Paul Blokus <paul_pl@users.sourceforge.net>
++ * Copyright 2006-2009 Daniel Silverstone <dsilvers@netsurf-browser.org>
++ * Copyright 2006-2008 Rob Kendrick <rjek@netsurf-browser.org>
++ * Copyright 2008 John Tytgat <joty@netsurf-browser.org>
++ * Copyright 2008 Adam Blokus <adamblokus@gmail.com>
++ *
++ * This file is part of NetSurf, http://www.netsurf-browser.org/
++ *
++ * NetSurf is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * NetSurf is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <assert.h>
++#include <stdbool.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <gtk/gtk.h>
++
++#include "utils/filepath.h"
++#include "utils/log.h"
++#include "utils/messages.h"
++#include "utils/utils.h"
++#include "utils/file.h"
++#include "utils/nsoption.h"
++#include "netsurf/keypress.h"
++#include "netsurf/url_db.h"
++#include "netsurf/cookie_db.h"
++#include "netsurf/browser_window.h"
++#include "netsurf/misc.h"
++#include "netsurf/netsurf.h"
++#include "content/fetch.h"
++#include "content/backing_store.h"
++#include "desktop/save_complete.h"
++#include "desktop/save_pdf.h"
++#include "desktop/searchweb.h"
++#include "desktop/hotlist.h"
++
++#include "gtk/compat.h"
++#include "gtk/warn.h"
++#include "gtk/completion.h"
++#include "gtk/cookies.h"
++#include "gtk/download.h"
++#include "gtk/fetch.h"
++#include "gtk/gui.h"
++#include "gtk/local_history.h"
++#include "gtk/global_history.h"
++#include "gtk/hotlist.h"
++#include "gtk/throbber.h"
++#include "gtk/scaffolding.h"
++#include "gtk/window.h"
++#include "gtk/schedule.h"
++#include "gtk/selection.h"
++#include "gtk/search.h"
++#include "gtk/ssl_cert.h"
++#include "gtk/bitmap.h"
++#include "gtk/resources.h"
++#include "gtk/login.h"
++#include "gtk/layout_pango.h"
++#include "gtk/accelerator.h"
++
++bool nsgtk_complete = false;
++
++char *nsgtk_config_home; /* exported global defined in gtk/gui.h */
++
++GdkPixbuf *favicon_pixbuf; /** favicon default pixbuf */
++GdkPixbuf *win_default_icon_pixbuf; /** default window icon pixbuf */
++GdkPixbuf *arrow_down_pixbuf; /** arrow down pixbuf */
++
++GtkBuilder *warning_builder;
++
++char **respaths; /** resource search path vector */
++
++/**
++ * Cause an abnormal program termination.
++ *
++ * \note This never returns and is intended to terminate without any cleanup.
++ *
++ * \param error The message to display to the user.
++ */
++static void die(const char * const error)
++{
++	fprintf(stderr, "%s", error);
++	exit(EXIT_FAILURE);
++}
++
++/**
++ * Create an array of valid paths to search for resources.
++ *
++ * The idea is that all the complex path computation to find resources
++ * is performed here, once, rather than every time a resource is
++ * searched for.
++ */
++static char **
++nsgtk_init_resource_path(const char *config_home)
++{
++	char *resource_path;
++	int resource_path_len;
++	const gchar * const *langv;
++	char **pathv; /* resource path string vector */
++	char **respath; /* resource paths vector */
++
++	if (config_home != NULL) {
++		resource_path_len = snprintf(NULL, 0,
++					     "%s:${NETSURFRES}:%s",
++					     config_home,
++					     GTK_RESPATH);
++		resource_path = malloc(resource_path_len + 1);
++		if (resource_path == NULL) {
++			return NULL;
++		}
++		snprintf(resource_path, resource_path_len + 1,
++			 "%s:${NETSURFRES}:%s",
++			 config_home,
++			 GTK_RESPATH);
++	} else {
++		resource_path_len = snprintf(NULL, 0,
++					     "${NETSURFRES}:%s",
++					     GTK_RESPATH);
++		resource_path = malloc(resource_path_len + 1);
++		if (resource_path == NULL) {
++			return NULL;
++		}
++		snprintf(resource_path,
++			 resource_path_len + 1,
++			 "${NETSURFRES}:%s",
++			 GTK_RESPATH);
++	}
++
++	pathv = filepath_path_to_strvec(resource_path);
++
++	langv = g_get_language_names();
++
++	respath = filepath_generate(pathv, langv);
++
++	filepath_free_strvec(pathv);
++
++	free(resource_path);
++
++	return respath;
++}
++
++
++/**
++ * Set option defaults for gtk frontend.
++ *
++ * @param defaults The option table to update.
++ * @return error status.
++ */
++static nserror set_defaults(struct nsoption_s *defaults)
++{
++	char *fname;
++
++	/* cookie file default */
++	fname = NULL;
++	netsurf_mkpath(&fname, NULL, 2, nsgtk_config_home, "Cookies");
++	if (fname != NULL) {
++		nsoption_setnull_charp(cookie_file, fname);
++	}
++
++	/* cookie jar default */
++	fname = NULL;
++	netsurf_mkpath(&fname, NULL, 2, nsgtk_config_home, "Cookies");
++	if (fname != NULL) {
++		nsoption_setnull_charp(cookie_jar, fname);
++	}
++
++	/* url database default */
++	fname = NULL;
++	netsurf_mkpath(&fname, NULL, 2, nsgtk_config_home, "URLs");
++	if (fname != NULL) {
++		nsoption_setnull_charp(url_file, fname);
++	}
++
++	/* bookmark database default */
++	fname = NULL;
++	netsurf_mkpath(&fname, NULL, 2, nsgtk_config_home, "Hotlist");
++	if (fname != NULL) {
++		nsoption_setnull_charp(hotlist_path, fname);
++	}
++
++	/* download directory default */
++	fname = getenv("HOME");
++	if (fname != NULL) {
++		nsoption_setnull_charp(downloads_directory, strdup(fname));
++	}
++
++	/* default path to certificates */
++	nsoption_setnull_charp(ca_path, strdup("/usr/sgug/etc/ssl/certs"));
++
++	if ((nsoption_charp(cookie_file) == NULL) ||
++	    (nsoption_charp(cookie_jar) == NULL) ||
++	    (nsoption_charp(url_file) == NULL) ||
++	    (nsoption_charp(hotlist_path) == NULL) ||
++	    (nsoption_charp(downloads_directory) == NULL) ||
++	    (nsoption_charp(ca_path) == NULL)) {
++		NSLOG(netsurf, INFO,
++		      "Failed initialising default resource paths");
++		return NSERROR_BAD_PARAMETER;
++	}
++
++	/* set default font names */
++	nsoption_set_charp(font_sans, strdup("Sans"));
++	nsoption_set_charp(font_serif, strdup("Serif"));
++	nsoption_set_charp(font_mono, strdup("Monospace"));
++	nsoption_set_charp(font_cursive, strdup("Serif"));
++	nsoption_set_charp(font_fantasy, strdup("Serif"));
++
++	return NSERROR_OK;
++}
++
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
++
++
++/**
++ * Initialize GTK specific parts of the browser.
++ *
++ * \param argc The number of arguments on the command line
++ * \param argv A string vector of command line arguments.
++ * \respath A string vector of the path elements of resources 
++ */
++static nserror nsgtk_init(int argc, char** argv, char **respath)
++{
++	char buf[PATH_MAX];
++	char *resource_filename;
++	char *addr = NULL;
++	nsurl *url;
++	nserror res;
++
++	/* Initialise gtk accelerator table */
++	res = nsgtk_accelerator_init(respaths);
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO,
++		      "Unable to load gtk accelerator configuration");
++		/* not fatal if this does not load */
++	}
++
++	/* initialise warning dialog */
++	res = nsgtk_builder_new_from_resname("warning", &warning_builder);
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Unable to initialise warning dialog");
++		return res;
++	}
++
++	gtk_builder_connect_signals(warning_builder, NULL);
++
++	/* set default icon if its available */
++	res = nsgdk_pixbuf_new_from_resname("netsurf.xpm",
++					    &win_default_icon_pixbuf);
++	if (res == NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Seting default window icon");
++		gtk_window_set_default_icon(win_default_icon_pixbuf);
++	}
++
++	/* Search engine sources */
++	resource_filename = filepath_find(respath, "SearchEngines");
++	search_web_init(resource_filename);
++	if (resource_filename != NULL) {
++		NSLOG(netsurf, INFO, "Using '%s' as Search Engines file",
++		      resource_filename);
++		free(resource_filename);
++	}
++
++	/* Default favicon */
++	res = nsgdk_pixbuf_new_from_resname("favicon.png", &favicon_pixbuf);
++	if (res != NSERROR_OK) {
++		favicon_pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
++						false, 8, 16, 16);
++	}
++
++	/* arrow down icon */
++	res = nsgdk_pixbuf_new_from_resname("arrow_down_8x32.png",
++					    &arrow_down_pixbuf);
++	if (res != NSERROR_OK) {
++		arrow_down_pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
++						   false, 8, 8, 32);
++	}
++
++	/* initialise throbber */
++	res = nsgtk_throbber_init();
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Unable to initialise throbber.");
++		return res;
++	}
++
++	/* Initialise completions - cannot fail */
++	nsgtk_completion_init();
++
++	/* The tree view system needs to know the screen's DPI, so we
++	 * find that out here, rather than when we create a first browser
++	 * window.
++	 */
++	browser_set_dpi(gdk_screen_get_resolution(gdk_screen_get_default()));
++	NSLOG(netsurf, INFO, "Set CSS DPI to %d", browser_get_dpi());
++
++	filepath_sfinddef(respath, buf, "mime.types", "/etc/");
++	gtk_fetch_filetype_init(buf);
++
++	save_complete_init();
++
++	urldb_load(nsoption_charp(url_file));
++	urldb_load_cookies(nsoption_charp(cookie_file));
++	hotlist_init(nsoption_charp(hotlist_path),
++		     nsoption_charp(hotlist_path));
++
++	/* Initialise top level UI elements */
++	res = nsgtk_download_init();
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Unable to initialise download window.");
++		return res;
++	}
++
++	/* If there is a url specified on the command line use it */
++	if (argc > 1) {
++		struct stat fs;
++		if (stat(argv[1], &fs) == 0) {
++			size_t addrlen;
++			char *rp = realpath(argv[1], NULL);
++			assert(rp != NULL);
++
++			/* calculate file url length including terminator */
++			addrlen = SLEN("file://") + strlen(rp) + 1;
++			addr = malloc(addrlen);
++			assert(addr != NULL);
++			snprintf(addr, addrlen, "file://%s", rp);
++			free(rp);
++		} else {
++			addr = strdup(argv[1]);
++		}
++	}
++	if (addr != NULL) {
++		/* managed to set up based on local launch */
++	} else if (nsoption_charp(homepage_url) != NULL) {
++		addr = strdup(nsoption_charp(homepage_url));
++	} else {
++		addr = strdup(NETSURF_HOMEPAGE);
++	}
++
++	/* create an initial browser window */
++	res = nsurl_create(addr, &url);
++	if (res == NSERROR_OK) {
++		res = browser_window_create(BW_CREATE_HISTORY,
++					    url,
++					    NULL,
++					    NULL,
++					    NULL);
++		nsurl_unref(url);
++	}
++
++	free(addr);
++
++	return res;
++}
++
++
++
++/**
++ * Ensures output logging stream is correctly configured
++ */
++static bool nslog_stream_configure(FILE *fptr)
++{
++	/* set log stream to be non-buffering */
++	setbuf(fptr, NULL);
++
++	return true;
++}
++
++
++/**
++ * Run the gtk event loop.
++ *
++ * The same as the standard gtk_main loop except this ensures active
++ * FD are added to the gtk poll event set.
++ */
++static void nsgtk_main(void)
++{
++	fd_set read_fd_set, write_fd_set, exc_fd_set;
++	int max_fd;
++	GPollFD *fd_list[1000];
++	unsigned int fd_count;
++
++	while (!nsgtk_complete) {
++		max_fd = -1;
++		fd_count = 0;
++		FD_ZERO(&read_fd_set);
++		FD_ZERO(&write_fd_set);
++		FD_ZERO(&exc_fd_set);
++
++		fetch_fdset(&read_fd_set, &write_fd_set, &exc_fd_set, &max_fd);
++		for (int i = 0; i <= max_fd; i++) {
++			if (FD_ISSET(i, &read_fd_set)) {
++				GPollFD *fd = malloc(sizeof *fd);
++				fd->fd = i;
++				fd->events = G_IO_IN | G_IO_HUP | G_IO_ERR;
++				g_main_context_add_poll(0, fd, 0);
++				fd_list[fd_count++] = fd;
++			}
++			if (FD_ISSET(i, &write_fd_set)) {
++				GPollFD *fd = malloc(sizeof *fd);
++				fd->fd = i;
++				fd->events = G_IO_OUT | G_IO_ERR;
++				g_main_context_add_poll(0, fd, 0);
++				fd_list[fd_count++] = fd;
++			}
++			if (FD_ISSET(i, &exc_fd_set)) {
++				GPollFD *fd = malloc(sizeof *fd);
++				fd->fd = i;
++				fd->events = G_IO_ERR;
++				g_main_context_add_poll(0, fd, 0);
++				fd_list[fd_count++] = fd;
++			}
++		}
++
++		schedule_run();
++
++		gtk_main_iteration();
++
++		for (unsigned int i = 0; i != fd_count; i++) {
++			g_main_context_remove_poll(0, fd_list[i]);
++			free(fd_list[i]);
++		}
++	}
++}
++
++
++static void gui_quit(void)
++{
++	nserror res;
++
++	NSLOG(netsurf, INFO, "Quitting GUI");
++
++	/* Ensure all scaffoldings are destroyed before we go into exit */
++	nsgtk_download_destroy();
++	urldb_save_cookies(nsoption_charp(cookie_jar));
++	urldb_save(nsoption_charp(url_file));
++
++	res = nsgtk_cookies_destroy();
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Error finalising cookie viewer: %s",
++		      messages_get_errorcode(res));
++	}
++
++	res = nsgtk_local_history_destroy();
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO,
++		      "Error finalising local history viewer: %s",
++		      messages_get_errorcode(res));
++	}
++
++	res = nsgtk_global_history_destroy();
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO,
++		      "Error finalising global history viewer: %s",
++		      messages_get_errorcode(res));
++	}
++
++	res = nsgtk_hotlist_destroy();
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Error finalising hotlist viewer: %s",
++		      messages_get_errorcode(res));
++	}
++
++	res = hotlist_fini();
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Error finalising hotlist: %s",
++		      messages_get_errorcode(res));
++	}
++
++	free(nsgtk_config_home);
++
++	gtk_fetch_filetype_fin();
++}
++
++static nserror gui_launch_url(struct nsurl *url)
++{
++	gboolean ok;
++	GError *error = NULL;
++
++	ok = nsgtk_show_uri(NULL, nsurl_access(url), GDK_CURRENT_TIME, &error);
++	if (ok == TRUE) {
++		return NSERROR_OK;
++	}
++
++	if (error) {
++		nsgtk_warning(messages_get("URIOpenError"), error->message);
++		g_error_free(error);
++	}
++	return NSERROR_NO_FETCH_HANDLER;
++}
++
++/* exported function documented in gtk/warn.h */
++nserror nsgtk_warning(const char *warning, const char *detail)
++{
++	char buf[300];	/* 300 is the size the RISC OS GUI uses */
++	static GtkWindow *nsgtk_warning_window;
++	GtkLabel *WarningLabel;
++
++	NSLOG(netsurf, INFO, "%s %s", warning, detail ? detail : "");
++	fflush(stdout);
++
++	nsgtk_warning_window = GTK_WINDOW(gtk_builder_get_object(warning_builder, "wndWarning"));
++	WarningLabel = GTK_LABEL(gtk_builder_get_object(warning_builder,
++							"labelWarning"));
++
++	snprintf(buf, sizeof(buf), "%s %s", messages_get(warning),
++			detail ? detail : "");
++	buf[sizeof(buf) - 1] = 0;
++
++	gtk_label_set_text(WarningLabel, buf);
++
++	gtk_widget_show_all(GTK_WIDGET(nsgtk_warning_window));
++
++	return NSERROR_OK;
++}
++
++
++static void nsgtk_PDF_set_pass(GtkButton *w, gpointer data)
++{
++	char **owner_pass = ((void **)data)[0];
++	char **user_pass = ((void **)data)[1];
++	GtkWindow *wnd = ((void **)data)[2];
++	GtkBuilder *password_builder = ((void **)data)[3];
++	char *path = ((void **)data)[4];
++
++	char *op, *op1;
++	char *up, *up1;
++
++	op = strdup(gtk_entry_get_text(
++			GTK_ENTRY(gtk_builder_get_object(password_builder,
++					"entryPDFOwnerPassword"))));
++	op1 = strdup(gtk_entry_get_text(
++			GTK_ENTRY(gtk_builder_get_object(password_builder,
++					"entryPDFOwnerPassword1"))));
++	up = strdup(gtk_entry_get_text(
++			GTK_ENTRY(gtk_builder_get_object(password_builder,
++					"entryPDFUserPassword"))));
++	up1 = strdup(gtk_entry_get_text(
++			GTK_ENTRY(gtk_builder_get_object(password_builder,
++					"entryPDFUserPassword1"))));
++
++
++	if (op[0] == '\0') {
++		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(password_builder,
++				"labelInfo")),
++				"Owner password must be at least 1 character long:");
++		free(op);
++		free(up);
++	} else if (!strcmp(op, up)) {
++		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(password_builder,
++				"labelInfo")),
++				"User and owner passwords must be different:");
++		free(op);
++		free(up);
++	} else if (!strcmp(op, op1) && !strcmp(up, up1)) {
++
++		*owner_pass = op;
++		if (up[0] == '\0')
++			free(up);
++		else
++			*user_pass = up;
++
++		free(data);
++		gtk_widget_destroy(GTK_WIDGET(wnd));
++		g_object_unref(G_OBJECT(password_builder));
++
++		save_pdf(path);
++
++		free(path);
++	} else {
++		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(password_builder,
++				"labelInfo")), "Passwords not confirmed:");
++		free(op);
++		free(up);
++	}
++
++	free(op1);
++	free(up1);
++}
++
++static void nsgtk_PDF_no_pass(GtkButton *w, gpointer data)
++{
++	GtkWindow *wnd = ((void **)data)[2];
++	GtkBuilder *password_builder = ((void **)data)[3];
++	char *path = ((void **)data)[4];
++
++	free(data);
++
++	gtk_widget_destroy(GTK_WIDGET(wnd));
++	g_object_unref(G_OBJECT(password_builder));
++
++	save_pdf(path);
++
++	free(path);
++}
++
++static void nsgtk_pdf_password(char **owner_pass, char **user_pass, char *path)
++{
++	GtkButton *ok, *no;
++	GtkWindow *wnd;
++	void **data;
++	GtkBuilder *password_builder;
++	nserror res;
++
++	res = nsgtk_builder_new_from_resname("password", &password_builder);
++	if (res != NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Password UI builder init failed");
++		return;
++	}
++
++	gtk_builder_connect_signals(password_builder, NULL);
++
++	wnd = GTK_WINDOW(gtk_builder_get_object(password_builder,
++						"wndPDFPassword"));
++
++	data = malloc(5 * sizeof(void *));
++
++	*owner_pass = NULL;
++	*user_pass = NULL;
++
++	data[0] = owner_pass;
++	data[1] = user_pass;
++	data[2] = wnd;
++	data[3] = password_builder;
++	data[4] = path;
++
++	ok = GTK_BUTTON(gtk_builder_get_object(password_builder,
++					       "buttonPDFSetPassword"));
++	no = GTK_BUTTON(gtk_builder_get_object(password_builder,
++					       "buttonPDFNoPassword"));
++
++	g_signal_connect(G_OBJECT(ok), "clicked",
++			 G_CALLBACK(nsgtk_PDF_set_pass), (gpointer)data);
++	g_signal_connect(G_OBJECT(no), "clicked",
++			 G_CALLBACK(nsgtk_PDF_no_pass), (gpointer)data);
++
++	gtk_widget_show(GTK_WIDGET(wnd));
++}
++
++
++uint32_t gtk_gui_gdkkey_to_nskey(GdkEventKey *key)
++{
++	/* this function will need to become much more complex to support
++	 * everything that the RISC OS version does.  But this will do for
++	 * now.  I hope.
++	 */
++	switch (key->keyval) {
++
++	case GDK_KEY(Tab):
++		return NS_KEY_TAB;
++
++	case GDK_KEY(BackSpace):
++		if (key->state & GDK_SHIFT_MASK)
++			return NS_KEY_DELETE_LINE_START;
++		else
++			return NS_KEY_DELETE_LEFT;
++
++	case GDK_KEY(Delete):
++		if (key->state & GDK_SHIFT_MASK)
++			return NS_KEY_DELETE_LINE_END;
++		else
++			return NS_KEY_DELETE_RIGHT;
++
++	case GDK_KEY(Linefeed):
++		return 13;
++
++	case GDK_KEY(Return):
++		return 10;
++
++	case GDK_KEY(Left):
++	case GDK_KEY(KP_Left):
++		return NS_KEY_LEFT;
++
++	case GDK_KEY(Right):
++	case GDK_KEY(KP_Right):
++		return NS_KEY_RIGHT;
++
++	case GDK_KEY(Up):
++	case GDK_KEY(KP_Up):
++		return NS_KEY_UP;
++
++	case GDK_KEY(Down):
++	case GDK_KEY(KP_Down):
++		return NS_KEY_DOWN;
++
++	case GDK_KEY(Home):
++	case GDK_KEY(KP_Home):
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_LINE_START;
++		else
++			return NS_KEY_TEXT_START;
++
++	case GDK_KEY(End):
++	case GDK_KEY(KP_End):
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_LINE_END;
++		else
++			return NS_KEY_TEXT_END;
++
++	case GDK_KEY(Page_Up):
++	case GDK_KEY(KP_Page_Up):
++		return NS_KEY_PAGE_UP;
++
++	case GDK_KEY(Page_Down):
++	case GDK_KEY(KP_Page_Down):
++		return NS_KEY_PAGE_DOWN;
++
++	case 'a':
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_SELECT_ALL;
++		return gdk_keyval_to_unicode(key->keyval);
++
++	case 'u':
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_DELETE_LINE;
++		return gdk_keyval_to_unicode(key->keyval);
++
++	case 'c':
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_COPY_SELECTION;
++		return gdk_keyval_to_unicode(key->keyval);
++
++	case 'v':
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_PASTE;
++		return gdk_keyval_to_unicode(key->keyval);
++
++	case 'x':
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_CUT_SELECTION;
++		return gdk_keyval_to_unicode(key->keyval);
++
++	case 'Z':
++	case 'y':
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_REDO;
++		return gdk_keyval_to_unicode(key->keyval);
++
++	case 'z':
++		if (key->state & GDK_CONTROL_MASK)
++			return NS_KEY_UNDO;
++		return gdk_keyval_to_unicode(key->keyval);
++
++	case GDK_KEY(Escape):
++		return NS_KEY_ESCAPE;
++
++		/* Modifiers - do nothing for now */
++	case GDK_KEY(Shift_L):
++	case GDK_KEY(Shift_R):
++	case GDK_KEY(Control_L):
++	case GDK_KEY(Control_R):
++	case GDK_KEY(Caps_Lock):
++	case GDK_KEY(Shift_Lock):
++	case GDK_KEY(Meta_L):
++	case GDK_KEY(Meta_R):
++	case GDK_KEY(Alt_L):
++	case GDK_KEY(Alt_R):
++	case GDK_KEY(Super_L):
++	case GDK_KEY(Super_R):
++	case GDK_KEY(Hyper_L):
++	case GDK_KEY(Hyper_R):
++		return 0;
++
++	}
++	return gdk_keyval_to_unicode(key->keyval);
++}
++
++
++/**
++ * create directory name and check it is acessible and a directory.
++ */
++static nserror
++check_dirname(const char *path, const char *leaf, char **dirname_out)
++{
++	nserror ret;
++	char *dirname = NULL;
++	struct stat dirname_stat;
++
++	ret = netsurf_mkpath(&dirname, NULL, 2, path, leaf);
++	if (ret != NSERROR_OK) {
++		return ret;
++	}
++
++	/* ensure access is possible and the entry is actualy
++	 * a directory.
++	 */
++	if (stat(dirname, &dirname_stat) == 0) {
++		if (S_ISDIR(dirname_stat.st_mode)) {
++			if (access(dirname, R_OK | W_OK) == 0) {
++				*dirname_out = dirname;
++				return NSERROR_OK;
++			} else {
++				ret = NSERROR_PERMISSION;
++			}
++		} else {
++			ret = NSERROR_NOT_DIRECTORY;
++		}
++	} else {
++		ret = NSERROR_NOT_FOUND;
++	}
++
++	free(dirname);
++
++	return ret;
++}
++
++/**
++ * Get the path to the config directory.
++ *
++ * @param config_home_out Path to configuration directory.
++ * @return NSERROR_OK on sucess and \a config_home_out updated else error code.
++ */
++static nserror get_config_home(char **config_home_out)
++{
++	nserror ret;
++	char *home_dir;
++	char *xdg_config_dir;
++	char *config_home;
++
++	home_dir = getenv("HOME");
++
++	/* The old $HOME/.netsurf/ directory should be used if it
++	 * exists and is accessible.
++	 */
++	if (home_dir != NULL) {
++		ret = check_dirname(home_dir, ".netsurf", &config_home);
++		if (ret == NSERROR_OK) {
++			NSLOG(netsurf, INFO, "\"%s\"", config_home);
++			*config_home_out = config_home;
++			return ret;
++		}
++	}
++
++	/* $XDG_CONFIG_HOME defines the base directory
++	 * relative to which user specific configuration files
++	 * should be stored.
++	 */
++	xdg_config_dir = getenv("XDG_CONFIG_HOME");
++
++	if ((xdg_config_dir == NULL) || (*xdg_config_dir == 0)) {
++		/* If $XDG_CONFIG_HOME is either not set or empty, a
++		 * default equal to $HOME/.config should be used.
++		 */
++
++		/** @todo the meaning of empty is never defined so I
++		 * am assuming it is a zero length string but is it
++		 * supposed to mean "whitespace" and if so what counts
++		 * as whitespace? (are tabs etc. counted or should
++		 * isspace() be used)
++		 */
++
++		/* the HOME envvar is required */
++		if (home_dir == NULL) {
++			return NSERROR_NOT_DIRECTORY;
++		}
++
++		ret = check_dirname(home_dir, ".config/netsurf", &config_home);
++		if (ret != NSERROR_OK) {
++			return ret;
++		}
++	} else {
++		ret = check_dirname(xdg_config_dir, "netsurf", &config_home);
++		if (ret != NSERROR_OK) {
++			return ret;
++		}
++	}
++
++	NSLOG(netsurf, INFO, "\"%s\"", config_home);
++
++	*config_home_out = config_home;
++	return NSERROR_OK;
++}
++
++static nserror create_config_home(char **config_home_out)
++{
++	char *config_home = NULL;
++	char *home_dir;
++	char *xdg_config_dir;
++	nserror ret;
++
++	NSLOG(netsurf, INFO, "Attempting to create configuration directory");
++
++	/* $XDG_CONFIG_HOME defines the base directory
++	 * relative to which user specific configuration files
++	 * should be stored.
++	 */
++	xdg_config_dir = getenv("XDG_CONFIG_HOME");
++
++	if ((xdg_config_dir == NULL) || (*xdg_config_dir == 0)) {
++		home_dir = getenv("HOME");
++
++		if ((home_dir == NULL) || (*home_dir == 0)) {
++			return NSERROR_NOT_DIRECTORY;
++		}
++
++		ret = netsurf_mkpath(&config_home, NULL, 4, home_dir, ".config","netsurf", "/");
++		if (ret != NSERROR_OK) {
++			return ret;
++		}
++	} else {
++		ret = netsurf_mkpath(&config_home, NULL, 3, xdg_config_dir, "netsurf", "/");
++		if (ret != NSERROR_OK) {
++			return ret;
++		}
++	}
++
++	/* ensure all elements of path exist (the trailing / is required) */
++	ret = netsurf_mkdir_all(config_home);
++	if (ret != NSERROR_OK) {
++		free(config_home);
++		return ret;
++	}
++
++	/* strip the trailing separator */
++	config_home[strlen(config_home) - 1] = 0;
++
++	NSLOG(netsurf, INFO, "\"%s\"", config_home);
++
++	*config_home_out = config_home;
++
++	return NSERROR_OK;
++}
++
++/**
++ * Get the path to the cache directory.
++ *
++ * @param cache_home_out Path to cache directory.
++ * @return NSERROR_OK on sucess and \a cache_home_out updated else error code.
++ */
++static nserror get_cache_home(char **cache_home_out)
++{
++	nserror ret;
++	char *xdg_cache_dir;
++	char *cache_home;
++	char *home_dir;
++
++	/* $XDG_CACHE_HOME defines the base directory relative to
++	 * which user specific non-essential data files should be
++	 * stored.
++	 */
++	xdg_cache_dir = getenv("XDG_CACHE_HOME");
++
++	if ((xdg_cache_dir == NULL) || (*xdg_cache_dir == 0)) {
++		/* If $XDG_CACHE_HOME is either not set or empty, a
++		 * default equal to $HOME/.cache should be used.
++		 */
++
++		home_dir = getenv("HOME");
++
++		/* the HOME envvar is required */
++		if (home_dir == NULL) {
++			return NSERROR_NOT_DIRECTORY;
++		}
++
++		ret = check_dirname(home_dir, ".cache/netsurf", &cache_home);
++		if (ret != NSERROR_OK) {
++			return ret;
++		}
++	} else {
++		ret = check_dirname(xdg_cache_dir, "netsurf", &cache_home);
++		if (ret != NSERROR_OK) {
++			return ret;
++		}
++	}
++
++	NSLOG(netsurf, INFO, "\"%s\"", cache_home);
++
++	*cache_home_out = cache_home;
++	return NSERROR_OK;
++}
++
++static nserror create_cache_home(char **cache_home_out)
++{
++	char *cache_home = NULL;
++	char *home_dir;
++	char *xdg_cache_dir;
++	nserror ret;
++
++	NSLOG(netsurf, INFO, "Attempting to create configuration directory");
++
++	/* $XDG_CACHE_HOME defines the base directory
++	 * relative to which user specific cache files
++	 * should be stored.
++	 */
++	xdg_cache_dir = getenv("XDG_CACHE_HOME");
++
++	if ((xdg_cache_dir == NULL) || (*xdg_cache_dir == 0)) {
++		home_dir = getenv("HOME");
++
++		if ((home_dir == NULL) || (*home_dir == 0)) {
++			return NSERROR_NOT_DIRECTORY;
++		}
++
++		ret = netsurf_mkpath(&cache_home, NULL, 4, home_dir, ".cache", "netsurf", "/");
++		if (ret != NSERROR_OK) {
++			return ret;
++		}
++	} else {
++		ret = netsurf_mkpath(&cache_home, NULL, 3, xdg_cache_dir, "netsurf", "/");
++		if (ret != NSERROR_OK) {
++			return ret;
++		}
++	}
++
++	/* ensure all elements of path exist (the trailing / is required) */
++	ret = netsurf_mkdir_all(cache_home);
++	if (ret != NSERROR_OK) {
++		free(cache_home);
++		return ret;
++	}
++
++	/* strip the trailing separator */
++	cache_home[strlen(cache_home) - 1] = 0;
++
++	NSLOG(netsurf, INFO, "\"%s\"", cache_home);
++
++	*cache_home_out = cache_home;
++
++	return NSERROR_OK;
++}
++
++static nserror nsgtk_option_init(int *pargc, char** argv)
++{
++	nserror ret;
++	char *choices = NULL;
++
++	/* user options setup */
++	ret = nsoption_init(set_defaults, &nsoptions, &nsoptions_default);
++	if (ret != NSERROR_OK) {
++		return ret;
++	}
++
++	/* Attempt to load the user choices */
++	ret = netsurf_mkpath(&choices, NULL, 2, nsgtk_config_home, "Choices");
++	if (ret == NSERROR_OK) {
++		nsoption_read(choices, nsoptions);
++		free(choices);
++	}
++
++	/* overide loaded options with those from commandline */
++	nsoption_commandline(pargc, argv, nsoptions);
++
++	/* ensure all options fall within sensible bounds */
++
++	/* Attempt to handle nonsense status bar widths.  These may exist
++	 * in people's Choices as the GTK front end used to abuse the
++	 * status bar width option by using it for an absolute value in px.
++	 * The GTK front end now correctly uses it as a proportion of window
++	 * width.  Here we assume that a value of less than 15% is wrong
++	 * and set to the default two thirds. */
++	if (nsoption_int(toolbar_status_size) < 1500) {
++		nsoption_set_int(toolbar_status_size, 6667);
++	}
++
++	return NSERROR_OK;
++}
++
++static struct gui_misc_table nsgtk_misc_table = {
++	.schedule = nsgtk_schedule,
++	.warning = nsgtk_warning,
++
++	.quit = gui_quit,
++	.launch_url = gui_launch_url,
++	.cert_verify = gtk_cert_verify,
++	.login = gui_401login_open,
++	.pdf_password = nsgtk_pdf_password,
++};
++
++
++static nserror nsgtk_messages_init(char **respaths)
++{
++	const char *messages;
++	nserror ret;
++	const uint8_t *data;
++	size_t data_size;
++
++	ret = nsgtk_data_from_resname("Messages", &data, &data_size);
++	if (ret == NSERROR_OK) {
++		ret = messages_add_from_inline(data, data_size);
++	} else {
++		/* Obtain path to messages */
++		ret = nsgtk_path_from_resname("Messages", &messages);
++		if (ret == NSERROR_OK) {
++			ret = messages_add_from_file(messages);
++		}
++	}
++	return ret;
++}
++
++/**
++ * Main entry point from OS.
++ */
++int main(int argc, char** argv)
++{
++	char *cache_home = NULL;
++	nserror ret;
++	struct netsurf_table nsgtk_table = {
++		.misc = &nsgtk_misc_table,
++		.window = nsgtk_window_table,
++		.clipboard = nsgtk_clipboard_table,
++		.download = nsgtk_download_table,
++		.fetch = nsgtk_fetch_table,
++		.llcache = filesystem_llcache_table,
++		.search = nsgtk_search_table,
++		.search_web = nsgtk_search_web_table,
++		.bitmap = nsgtk_bitmap_table,
++		.layout = nsgtk_layout_table,
++	};
++
++	ret = netsurf_register(&nsgtk_table);
++	if (ret != NSERROR_OK) {
++		die("NetSurf operation table failed registration\n");
++	}
++
++	/* Locate the correct user configuration directory path */
++	ret = get_config_home(&nsgtk_config_home);
++	if (ret == NSERROR_NOT_FOUND) {
++		/* no config directory exists yet so try to create one */
++		ret = create_config_home(&nsgtk_config_home);
++	}
++	if (ret != NSERROR_OK) {
++		NSLOG(netsurf, INFO,
++		      "Unable to locate a configuration directory.");
++		nsgtk_config_home = NULL;
++	}
++
++	/* Initialise gtk */
++	gtk_init(&argc, &argv);
++
++	/* initialise logging. Not fatal if it fails but not much we
++	 * can do about it either.
++	 */
++	nslog_init(nslog_stream_configure, &argc, argv);
++
++	/* build the common resource path list */
++	respaths = nsgtk_init_resource_path(nsgtk_config_home);
++	if (respaths == NULL) {
++		fprintf(stderr, "Unable to locate resources\n");
++		return 1;
++	}
++
++	/* initialise the gtk resource handling */
++	ret = nsgtk_init_resources(respaths);
++	if (ret != NSERROR_OK) {
++		fprintf(stderr, "GTK resources failed to initialise (%s)\n",
++			messages_get_errorcode(ret));
++		return 1;
++	}
++
++	/* Initialise user options */
++	ret = nsgtk_option_init(&argc, argv);
++	if (ret != NSERROR_OK) {
++		fprintf(stderr, "Options failed to initialise (%s)\n",
++			messages_get_errorcode(ret));
++		return 1;
++	}
++
++	/* Initialise translated messages */
++	ret = nsgtk_messages_init(respaths);
++	if (ret != NSERROR_OK) {
++		fprintf(stderr, "Unable to load translated messages (%s)\n",
++			messages_get_errorcode(ret));
++		NSLOG(netsurf, INFO, "Unable to load translated messages");
++		/** \todo decide if message load faliure should be fatal */
++	}
++	
++	/* Locate the correct user cache directory path */
++	ret = get_cache_home(&cache_home);
++	if (ret == NSERROR_NOT_FOUND) {
++		/* no cache directory exists yet so try to create one */
++		ret = create_cache_home(&cache_home);
++	}
++	if (ret != NSERROR_OK) {
++		NSLOG(netsurf, INFO, "Unable to locate a cache directory.");
++	}
++
++	/* core initialisation */
++	ret = netsurf_init(cache_home);
++	free(cache_home);
++	if (ret != NSERROR_OK) {
++		fprintf(stderr, "NetSurf core failed to initialise (%s)\n",
++			messages_get_errorcode(ret));
++		return 1;
++	}
++
++	/* gtk specific initalisation and main run loop */
++	ret = nsgtk_init(argc, argv, respaths);
++	if (ret != NSERROR_OK) {
++		fprintf(stderr, "NetSurf gtk initialise failed (%s)\n",
++			messages_get_errorcode(ret));
++	} else {
++		nsgtk_main();
++	}
++
++	/* common finalisation */
++	netsurf_exit();
++
++	/* finalise options */
++	nsoption_finalise(nsoptions, nsoptions_default);
++
++	/* finalise logging */
++	nslog_finalise();
++
++	return 0;
++}
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/resources.c netsurf-all-3.9/netsurf/frontends/gtk/resources.c
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/resources.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/resources.c	2020-12-21 16:59:13.506427400 +0000
+@@ -185,6 +185,7 @@
+ 		resnamelen = snprintf(NULL, 0,
+ 				      "/org/netsurf/%s/%s",
+ 				      langv[langc], resource->name);
++        resnamelen = strlen("/org/netsurf/%s/%s") + strlen(langv[langc]) + strlen(resource->name);
+ 		resname = malloc(resnamelen + 1);
+ 		if (resname == NULL) {
+ 			return NSERROR_NOMEM;
+@@ -213,7 +214,8 @@
+ 	}
+ 
+ 	/* allocate and fill a full resource name path buffer with no language*/
+-	resnamelen = snprintf(NULL, 0, "/org/netsurf/%s", resource->name);
++	//resnamelen = snprintf(NULL, 0, "/org/netsurf/%s", resource->name);
++    resnamelen = strlen("/org/netsurf/%s") + strlen(resource->name);
+ 	resname = malloc(resnamelen + 1);
+ 	if (resname == NULL) {
+ 		return NSERROR_NOMEM;
+@@ -395,6 +397,7 @@
+ 	char **reslist;
+ 	char **cur;
+ 	GError* gerror = NULL;
++    printf("Trying to load resource %s\n", resname);
+ 	reslist = g_resources_enumerate_children(nspath,
+ 						 G_RESOURCE_LOOKUP_FLAGS_NONE,
+ 						 &gerror);
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/resources.c.orig netsurf-all-3.9/netsurf/frontends/gtk/resources.c.orig
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/resources.c.orig	1969-12-31 19:00:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/resources.c.orig	2019-07-17 11:37:00.000000000 +0000
+@@ -0,0 +1,622 @@
++/*
++ * Copyright 2015 Vincent Sanders <vince@netsurf-browser.org>
++ *
++ * This file is part of NetSurf, http://www.netsurf-browser.org/
++ *
++ * NetSurf is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * NetSurf is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/**
++ * \file
++ * Implementation of gtk builtin resource handling.
++ *
++ * This presents a unified interface to the rest of the codebase to
++ * obtain resources. Note this is not anything to do with the resource
++ * scheme handling beyond possibly providing the underlying data.
++ *
++ */
++
++#include <stdlib.h>
++#include <string.h>
++#include <gtk/gtk.h>
++
++#include "utils/log.h"
++#include "utils/filepath.h"
++
++#include "gtk/compat.h"
++#include "gtk/resources.h"
++
++/** log contents of gresource /org/netsource */
++#ifdef WITH_GRESOURCE
++#define SHOW_GRESOURCE
++#undef SHOW_GRESOURCE
++#endif
++
++#ifdef WITH_BUILTIN_PIXBUF
++#ifdef __GNUC__
++extern const guint8 menu_cursor_pixdata[] __attribute__ ((__aligned__ (4)));
++extern const guint8 favicon_pixdata[] __attribute__ ((__aligned__ (4)));
++extern const guint8 netsurf_pixdata[] __attribute__ ((__aligned__ (4)));
++#else
++extern const guint8 menu_cursor_pixdata[];
++extern const guint8 favicon_pixdata[];
++extern const guint8 netsurf_pixdata[];
++#endif
++#endif
++
++/** type of resource entry */
++enum nsgtk_resource_type_e {
++	NSGTK_RESOURCE_FILE, /**< entry is a file on disc */
++	NSGTK_RESOURCE_GLIB, /**< entry is a gresource accessed by path */
++	NSGTK_RESOURCE_DIRECT, /**< entry is a gresource accesed by gbytes */
++	NSGTK_RESOURCE_INLINE, /**< entry is compiled in accessed by pointer */
++};
++
++/** resource entry */
++struct nsgtk_resource_s {
++	const char *name;
++	unsigned int len;
++	enum nsgtk_resource_type_e type;
++	char *path;
++};
++
++#define RES_ENTRY(name) { name, sizeof((name)) - 1, NSGTK_RESOURCE_FILE, NULL }
++
++/** resources that are used for gtk builder */
++static struct nsgtk_resource_s ui_resource[] = {
++	RES_ENTRY("netsurf"),
++	RES_ENTRY("tabcontents"),
++	RES_ENTRY("password"),
++	RES_ENTRY("login"),
++	RES_ENTRY("ssl"),
++	RES_ENTRY("toolbar"),
++	RES_ENTRY("downloads"),
++	RES_ENTRY("globalhistory"),
++	RES_ENTRY("localhistory"),
++	RES_ENTRY("options"),
++	RES_ENTRY("hotlist"),
++	RES_ENTRY("cookies"),
++	RES_ENTRY("viewdata"),
++	RES_ENTRY("warning"),
++	{ NULL, 0, NSGTK_RESOURCE_FILE, NULL },
++};
++
++/** resources that are used as pixbufs */
++static struct nsgtk_resource_s pixbuf_resource[] = {
++	RES_ENTRY("favicon.png"),
++	RES_ENTRY("netsurf.xpm"),
++	RES_ENTRY("menu_cursor.png"),
++	RES_ENTRY("arrow_down_8x32.png"),
++	RES_ENTRY("throbber/throbber0.png"),
++	RES_ENTRY("throbber/throbber1.png"),
++	RES_ENTRY("throbber/throbber2.png"),
++	RES_ENTRY("throbber/throbber3.png"),
++	RES_ENTRY("throbber/throbber4.png"),
++	RES_ENTRY("throbber/throbber5.png"),
++	RES_ENTRY("throbber/throbber6.png"),
++	RES_ENTRY("throbber/throbber7.png"),
++	RES_ENTRY("throbber/throbber8.png"),
++	{ NULL, 0, NSGTK_RESOURCE_FILE, NULL },
++};
++
++/** resources that are used for direct data access */
++static struct nsgtk_resource_s direct_resource[] = {
++	RES_ENTRY("welcome.html"),
++	RES_ENTRY("credits.html"),
++	RES_ENTRY("licence.html"),
++	RES_ENTRY("maps.html"),
++	RES_ENTRY("default.css"),
++	RES_ENTRY("adblock.css"),
++	RES_ENTRY("internal.css"),
++	RES_ENTRY("quirks.css"),
++	RES_ENTRY("netsurf.png"),
++	RES_ENTRY("default.ico"),
++	RES_ENTRY("icons/arrow-l.png"),
++	RES_ENTRY("icons/content.png"),
++	RES_ENTRY("icons/directory2.png"),
++	RES_ENTRY("icons/directory.png"),
++	RES_ENTRY("icons/hotlist-add.png"),
++	RES_ENTRY("icons/hotlist-rmv.png"),
++	RES_ENTRY("icons/search.png"),
++	RES_ENTRY("languages"),
++	RES_ENTRY("accelerators"),
++	RES_ENTRY("Messages"),
++	{ NULL, 0, NSGTK_RESOURCE_FILE, NULL },
++};
++
++
++/* exported interface documented in gtk/resources.h */
++GdkCursor *nsgtk_create_menu_cursor(void)
++{
++	GdkCursor *cursor = NULL;
++	GdkPixbuf *pixbuf;
++	nserror res;
++
++	res = nsgdk_pixbuf_new_from_resname("menu_cursor.png", &pixbuf);
++	if (res == NSERROR_OK) {
++		cursor = gdk_cursor_new_from_pixbuf(gdk_display_get_default(),
++						    pixbuf, 0, 3);
++		g_object_unref(pixbuf);
++	}
++
++	return cursor;
++}
++
++
++/**
++ * locate a resource
++ *
++ * The way GTK accesses resource files has changed greatly between
++ * releases. This initilises the interface that hides all the
++ * implementation details from the rest of the code.
++ *
++ * If the GResource is not enabled or the item cannot be found in the
++ * compiled in resources the files will be loaded directly from disc
++ * instead.
++ *
++ * \param respath A string vector containing the valid resource search paths
++ * \param resource A resource entry to initialise
++ */
++static nserror
++init_resource(char **respath, struct nsgtk_resource_s *resource)
++{
++	char *resname;
++#ifdef WITH_GRESOURCE
++	int resnamelen;
++	gboolean present;
++	const gchar * const *langv;
++	int langc = 0;
++
++	langv = g_get_language_names();
++
++	/* look for resource under per language paths */
++	while (langv[langc] != NULL) {
++		/* allocate and fill a full resource name path buffer */
++		resnamelen = snprintf(NULL, 0,
++				      "/org/netsurf/%s/%s",
++				      langv[langc], resource->name);
++		resname = malloc(resnamelen + 1);
++		if (resname == NULL) {
++			return NSERROR_NOMEM;
++		}
++		snprintf(resname, resnamelen + 1,
++			 "/org/netsurf/%s/%s",
++			 langv[langc], resource->name);
++
++		/* check if resource is present */
++		present = g_resources_get_info(resname,
++					       G_RESOURCE_LOOKUP_FLAGS_NONE,
++					       NULL, NULL, NULL);
++		if (present == TRUE) {
++			/* found an entry in the resources */
++			resource->path = resname;
++			resource->type = NSGTK_RESOURCE_GLIB;
++			NSLOG(netsurf, INFO, "Found gresource path %s",
++			      resource->path);
++			return NSERROR_OK;
++		}
++		NSLOG(netsurf, DEEPDEBUG,
++		      "gresource \"%s\" not found", resname);
++		free(resname);
++
++		langc++;
++	}
++
++	/* allocate and fill a full resource name path buffer with no language*/
++	resnamelen = snprintf(NULL, 0, "/org/netsurf/%s", resource->name);
++	resname = malloc(resnamelen + 1);
++	if (resname == NULL) {
++		return NSERROR_NOMEM;
++	}
++	snprintf(resname, resnamelen + 1, "/org/netsurf/%s", resource->name);
++
++	present = g_resources_get_info(resname,
++				       G_RESOURCE_LOOKUP_FLAGS_NONE,
++				       NULL, NULL, NULL);
++	if (present == TRUE) {
++		/* found an entry in the resources */
++		resource->path = resname;
++		resource->type = NSGTK_RESOURCE_GLIB;
++		NSLOG(netsurf, INFO, "Found gresource path %s",
++		      resource->path);
++		return NSERROR_OK;
++	}
++	NSLOG(netsurf, DEEPDEBUG, "gresource \"%s\" not found", resname);
++	free(resname);
++
++#endif
++
++	/* look for file on disc */
++	resname = filepath_find(respath, resource->name);
++	if (resname != NULL) {
++		/* found an entry on the path */
++		resource->path = resname;
++		resource->type = NSGTK_RESOURCE_FILE;
++
++		NSLOG(netsurf, INFO,
++		      "Found file resource path %s", resource->path);
++		return NSERROR_OK;
++	}
++
++	NSLOG(netsurf, INFO, "Unable to find resource %s on resource path",
++	      resource->name);
++
++	return NSERROR_NOT_FOUND;
++}
++
++/**
++ * locate and setup a direct resource
++ *
++ * Direct resources have general type of NSGTK_RESOURCE_GLIB but have
++ *  g_resources_lookup_data() applied and the result stored so the data
++ *  can be directly accessed without additional processing.
++ *
++ * \param respath A string vector containing the valid resource search paths
++ * \param resource A resource entry to initialise
++ */
++static nserror
++init_direct_resource(char **respath, struct nsgtk_resource_s *resource)
++{
++	nserror res;
++
++	res = init_resource(respath, resource);
++
++#ifdef WITH_GRESOURCE
++	if ((res == NSERROR_OK) &&
++	    (resource->type == NSGTK_RESOURCE_GLIB)) {
++		/* found gresource we can convert */
++		GBytes *data;
++
++		data = g_resources_lookup_data(resource->path,
++					       G_RESOURCE_LOOKUP_FLAGS_NONE,
++					       NULL);
++		if (data != NULL) {
++			resource->type = NSGTK_RESOURCE_DIRECT;
++			resource->path = (char *)data;
++		}
++	}
++#endif
++
++	return res;
++}
++
++/**
++ * locate a pixbuf resource
++ *
++ * Pixbuf resources can be compiled inline
++ *
++ * \param respath A string vector containing the valid resource search paths
++ * \param resource A resource entry to initialise
++ */
++static nserror
++init_pixbuf_resource(char **respath, struct nsgtk_resource_s *resource)
++{
++#ifdef WITH_BUILTIN_PIXBUF
++	if (strncmp(resource->name, "menu_cursor.png", resource->len) == 0) {
++		resource->path = (char *)&menu_cursor_pixdata[0];
++		resource->type = NSGTK_RESOURCE_INLINE;
++		NSLOG(netsurf, INFO, "Found builtin for %s", resource->name);
++		return NSERROR_OK;
++	}
++
++	if (strncmp(resource->name, "netsurf.xpm", resource->len) == 0) {
++		resource->path = (char *)&netsurf_pixdata[0];
++		resource->type = NSGTK_RESOURCE_INLINE;
++		NSLOG(netsurf, INFO, "Found builtin for %s", resource->name);
++		return NSERROR_OK;
++	}
++
++	if (strncmp(resource->name, "favicon.png", resource->len) == 0) {
++		resource->path = (char *)&favicon_pixdata[0];
++		resource->type = NSGTK_RESOURCE_INLINE;
++		NSLOG(netsurf, INFO, "Found builtin for %s", resource->name);
++		return NSERROR_OK;
++	}
++#endif
++	return init_resource(respath, resource);
++}
++
++/**
++ * locate a ui resource
++ *
++ * UI resources need their resource name changing to account for gtk versions
++ *
++ * \param respath A string vector containing the valid resource search paths
++ * \param ui_res A resource entry to initialise
++ */
++static nserror init_ui_resource(char **respath, struct nsgtk_resource_s *ui_res)
++{
++#if GTK_CHECK_VERSION(3,0,0)
++	int gtkv = 3;
++#else
++	int gtkv = 2;
++#endif
++	int resnamelen;
++	char *resname;
++	struct nsgtk_resource_s resource;
++	nserror res;
++
++	resnamelen = ui_res->len + 10; /* allow for the expanded ui name */
++
++	resname = malloc(resnamelen);
++	if (resname == NULL) {
++		return NSERROR_NOMEM;
++	}
++	snprintf(resname, resnamelen, "%s.gtk%d.ui", ui_res->name, gtkv);
++	resource.name = resname;
++	resource.len = ui_res->len;
++	resource.path = NULL;
++
++	res = init_resource(respath, &resource);
++
++	ui_res->path = resource.path;
++	ui_res->type = resource.type;
++
++	free(resname);
++
++	return res;
++}
++
++/**
++ * Find a resource entry by name.
++ *
++ * \param resname The resource name to match.
++ * \param resource The list of resources entries to search.
++ */
++static struct nsgtk_resource_s *
++find_resource_from_name(const char *resname, struct nsgtk_resource_s *resource)
++{
++	/* find resource from name */
++	while ((resource->name != NULL) &&
++	       ((resname[0] != resource->name[0]) ||
++		(strncmp(resource->name, resname, resource->len) != 0))) {
++		resource++;
++	}
++	return resource;
++}
++
++#ifdef SHOW_GRESOURCE
++/**
++ * Debug dump of all resources compiled in via GResource.
++ */
++static void list_gresource(void)
++{
++	const char *nspath = "/org/netsurf";
++	char **reslist;
++	char **cur;
++	GError* gerror = NULL;
++	reslist = g_resources_enumerate_children(nspath,
++						 G_RESOURCE_LOOKUP_FLAGS_NONE,
++						 &gerror);
++	if (gerror) {
++		NSLOG(netsurf, INFO, "gerror %s", gerror->message);
++		g_error_free(gerror);
++
++	} else {
++		cur = reslist;
++		while (cur != NULL && *cur != NULL) {
++			NSLOG(netsurf, INFO, "gres %s", *cur);
++			cur++;
++		}
++		g_strfreev(reslist);
++	}
++}
++#endif
++
++/**
++ * Initialise UI resource table
++ *
++ */
++/* exported interface documented in gtk/resources.h */
++nserror nsgtk_init_resources(char **respath)
++{
++	struct nsgtk_resource_s *resource;
++	nserror res;
++
++#ifdef SHOW_GRESOURCE
++	list_gresource();
++#endif
++
++	/* iterate the ui resource table and initialise all its members */
++	resource = &ui_resource[0];
++	while (resource->name != NULL) {
++		res = init_ui_resource(respath, resource);
++		if (res != NSERROR_OK) {
++			return res;
++		}
++		resource++;
++	}
++
++	/* iterate the pixbuf resource table and initialise all its members */
++	resource = &pixbuf_resource[0];
++	while (resource->name != NULL) {
++		res = init_pixbuf_resource(respath, resource);
++		if (res != NSERROR_OK) {
++			return res;
++		}
++		resource++;
++	}
++
++	/* iterate the direct resource table and initialise all its members */
++	resource = &direct_resource[0];
++	while (resource->name != NULL) {
++		res = init_direct_resource(respath, resource);
++		if (res != NSERROR_OK) {
++			return res;
++		}
++		resource++;
++	}
++
++	return NSERROR_OK;
++}
++
++
++/* exported interface documented in gtk/resources.h */
++nserror
++nsgdk_pixbuf_new_from_resname(const char *resname, GdkPixbuf **pixbuf_out)
++{
++	struct nsgtk_resource_s *resource;
++	GdkPixbuf *new_pixbuf = NULL;
++	GError* error = NULL;
++
++	resource = find_resource_from_name(resname, &pixbuf_resource[0]);
++	if (resource->name == NULL) {
++		return NSERROR_NOT_FOUND;
++	}
++
++	switch (resource->type) {
++	case NSGTK_RESOURCE_FILE:
++		new_pixbuf = gdk_pixbuf_new_from_file(resource->path, &error);
++		break;
++
++	case NSGTK_RESOURCE_GLIB:
++#ifdef WITH_GRESOURCE
++		new_pixbuf = gdk_pixbuf_new_from_resource(resource->path, &error);
++#endif
++		break;
++
++	case NSGTK_RESOURCE_INLINE:
++#ifdef WITH_BUILTIN_PIXBUF
++		new_pixbuf = gdk_pixbuf_new_from_inline(-1, (const guint8 *)resource->path, FALSE, &error);
++#endif
++		break;
++
++	case NSGTK_RESOURCE_DIRECT:
++		/* pixbuf resources are not currently direct */
++		break;
++	}
++
++	if (new_pixbuf == NULL) {
++		if (error != NULL) {
++			NSLOG(netsurf, INFO,
++			      "Unable to create pixbuf from file for %s with path %s \"%s\"",
++			      resource->name,
++			      resource->path,
++			      error->message);
++			g_error_free(error);
++		} else {
++			NSLOG(netsurf, INFO,
++			      "Unable to create pixbuf from file for %s with path %s",
++			      resource->name,
++			      resource->path);
++		}
++		return NSERROR_INIT_FAILED;
++	}
++	*pixbuf_out = new_pixbuf;
++
++	return NSERROR_OK;
++}
++
++/* exported interface documented in gtk/resources.h */
++nserror
++nsgtk_builder_new_from_resname(const char *resname, GtkBuilder **builder_out)
++{
++	GtkBuilder *new_builder;
++	struct nsgtk_resource_s *ui_res;
++	GError* error = NULL;
++
++	ui_res = find_resource_from_name(resname, &ui_resource[0]);
++	if (ui_res->name == NULL) {
++		return NSERROR_NOT_FOUND;
++	}
++
++	new_builder = gtk_builder_new();
++
++	if (ui_res->type == NSGTK_RESOURCE_FILE) {
++		if (!gtk_builder_add_from_file(new_builder,
++					       ui_res->path,
++					       &error)) {
++			NSLOG(netsurf, INFO,
++			      "Unable to add UI builder from file for %s with path %s \"%s\"",
++			      ui_res->name,
++			      ui_res->path,
++			      error->message);
++			g_error_free(error);
++			g_object_unref(G_OBJECT(new_builder));
++			return NSERROR_INIT_FAILED;
++		}
++	} else {
++		if (!nsgtk_builder_add_from_resource(new_builder,
++						     ui_res->path,
++						     &error)) {
++			NSLOG(netsurf, INFO,
++			      "Unable to add UI builder from resource for %s with path %s \"%s\"",
++			      ui_res->name,
++			      ui_res->path,
++			      error->message);
++			g_error_free(error);
++			g_object_unref(G_OBJECT(new_builder));
++			return NSERROR_INIT_FAILED;
++		}
++	}
++
++	*builder_out = new_builder;
++
++	return NSERROR_OK;
++}
++
++/* exported interface documented in gtk/resources.h */
++nserror
++nsgtk_data_from_resname(const char *resname,
++			const uint8_t ** data_out,
++			size_t *data_size_out)
++{
++#ifdef WITH_GRESOURCE
++	struct nsgtk_resource_s *resource;
++	GBytes *data;
++	const gchar *buffer;
++	gsize buffer_length;
++
++	resource = find_resource_from_name(resname, &direct_resource[0]);
++	if ((resource->name == NULL) ||
++	    (resource->type != NSGTK_RESOURCE_DIRECT)) {
++		return NSERROR_NOT_FOUND;
++	}
++
++	data = (GBytes *)resource->path;
++
++	buffer_length = 0;
++	buffer = g_bytes_get_data(data, &buffer_length);
++
++	if (buffer == NULL) {
++		return NSERROR_NOMEM;
++	}
++
++	*data_out = (const uint8_t *)buffer;
++	*data_size_out = (size_t)buffer_length;
++
++	return NSERROR_OK;
++#else
++	/** \todo consider adding compiled inline resources for things
++	 * other than pixbufs.
++	 */
++	return NSERROR_NOT_FOUND;
++#endif
++}
++
++/* exported interface documented in gtk/resources.h */
++nserror
++nsgtk_path_from_resname(const char *resname, const char **path_out)
++{
++	struct nsgtk_resource_s *resource;
++
++	resource = find_resource_from_name(resname, &direct_resource[0]);
++	if ((resource->name == NULL) ||
++	    (resource->type != NSGTK_RESOURCE_FILE)) {
++		return NSERROR_NOT_FOUND;
++	}
++
++	*path_out = (const char *)resource->path;
++
++	return NSERROR_OK;
++}
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/viewdata.c netsurf-all-3.9/netsurf/frontends/gtk/viewdata.c
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/viewdata.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/viewdata.c	2020-12-21 10:45:35.673709000 +0000
+@@ -28,7 +28,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <strings.h>
+-#define _WITH_GETLINE /* necessary for FreeBSD */
++//#define _WITH_GETLINE /* necessary for FreeBSD */
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <gtk/gtk.h>
+@@ -104,6 +104,23 @@
+ 	{NULL, NULL}
+ };
+ 
++static int getline(char * * line, int * lineSize, FILE * infile)
++{
++	char buffer[1024];
++	if (fgets(buffer, 1024, infile)) {
++		int newlen = strlen(buffer);
++		if (*lineSize <= newlen)
++		{
++			*line = realloc(*line, newlen+1);
++			*lineSize = newlen+1;
++		}
++		strcpy(*line, buffer);
++		return newlen;
++	} else {
++		return -1;
++	}
++}
++
+ static void nsgtk_attach_viewdata_menu_handlers(GtkBuilder *xml, gpointer g)
+ {
+ 	struct menu_events *event = viewdata_menu_events;
+@@ -660,7 +677,8 @@
+ 	}
+ 
+ 	mimetype_len = strlen(mimetype);
+-	while ((rd = getline(&line, &len, fp)) != -1) {
++	//while ((rd = getline(&line, &len, fp)) != -1) {
++    while ((rd = fgets(line, sizeof(line), fp)) != -1) {
+ 		/* line includes line endings if present, remove them */
+ 		while ((line[rd - 1] == '\n') || (line[rd - 1] == '\r')) {
+ 			rd--;
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/dirent.h netsurf-all-3.9/netsurf/utils/dirent.h
+--- netsurf-all-3.9.orig/netsurf/utils/dirent.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/dirent.h	2020-12-21 10:45:35.682649000 +0000
+@@ -32,7 +32,7 @@
+ #define NETSURF_UTILS_DIRENT_H
+ 
+ #include "utils/config.h"
+-
++#define _SGIAPI 1
+ #include <dirent.h>
+ 
+ #ifndef HAVE_SCANDIR
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/file.c netsurf-all-3.9/netsurf/utils/file.c
+--- netsurf-all-3.9.orig/netsurf/utils/file.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/file.c	2020-12-21 10:45:35.709980200 +0000
+@@ -19,6 +19,8 @@
+ /** \file
+  * Table operations for files with posix compliant path separator.
+  */
++#define _XOPEN_SOURCE 700
++#undef __c99
+ 
+ #include <stdarg.h>
+ #include <string.h>
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/filepath.c netsurf-all-3.9/netsurf/utils/filepath.c
+--- netsurf-all-3.9.orig/netsurf/utils/filepath.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/filepath.c	2020-12-21 10:45:35.711737000 +0000
+@@ -44,6 +44,7 @@
+ /* exported interface documented in filepath.h */
+ char *filepath_vsfindfile(char *str, const char *format, va_list ap)
+ {
++    #define PATH_MAX 4096
+ 	char *realpathname;
+ 	char *pathname;
+ 	int len;
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/log.c netsurf-all-3.9/netsurf/utils/log.c
+--- netsurf-all-3.9.orig/netsurf/utils/log.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/log.c	2020-12-21 10:45:35.742287400 +0000
+@@ -18,6 +18,7 @@
+ 
+ #include <stdarg.h>
+ #include <stdio.h>
++#include <sys/time.h>
+ 
+ #include "utils/config.h"
+ #include "utils/nsoption.h"
+@@ -71,13 +72,15 @@
+  */
+ static const char *nslog_gettime(void)
+ {
++#include <sys/time.h>
+ 	static struct timeval start_tv;
+ 	static char buff[32];
+ 
+ 	struct timeval tv;
+ 	struct timeval now_tv;
+ 
+-	if (!timerisset(&start_tv)) {
++	//if (!timerisset(&start_tv)) {
++    if (start_tv.tv_sec != 0) {
+ 		gettimeofday(&start_tv, NULL);
+ 	}
+ 	gettimeofday(&now_tv, NULL);
+diff -Naur netsurf-all-3.9.orig/nsgenbind/Makefile netsurf-all-3.9/nsgenbind/Makefile
+--- netsurf-all-3.9.orig/nsgenbind/Makefile	2019-07-17 11:37:01.000000000 +0000
++++ netsurf-all-3.9/nsgenbind/Makefile	2020-12-21 10:45:35.780493000 +0000
+@@ -32,7 +32,7 @@
+   endif
+ endif
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L \
++CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE  -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS\
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
