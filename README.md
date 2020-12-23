@@ -81,6 +81,8 @@ gunzip -dc /path/to/sgug-rse-srpms-0.0.7beta.tar.gz | tar xf -
 
 (8) Now you can install packages - you have two options (8a) or (8b)
 
+Need help with setting up sudo? Please see our [troubleshooting guide](troubleshooting.md).
+
 (8a) Install everything (Just under 3GB total in 0.0.7beta)
 
 ```
