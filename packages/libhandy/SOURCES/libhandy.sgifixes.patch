@@ -1,0 +1,12 @@
+diff -Naur libhandy-v0.0.13.orig/src/hdy-paginator.c libhandy-v0.0.13/src/hdy-paginator.c
+--- libhandy-v0.0.13.orig/src/hdy-paginator.c	2019-12-27 03:23:11.000000000 +0000
++++ libhandy-v0.0.13/src/hdy-paginator.c	2020-12-21 11:11:43.400627900 +0000
+@@ -12,7 +12,7 @@
+ #include "hdy-paginator-box-private.h"
+ #include "hdy-swipe-tracker-private.h"
+ #include "hdy-swipeable-private.h"
+-
++#include <values.h>
+ #include <math.h>
+ 
+ #define DOTS_RADIUS 3
