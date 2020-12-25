@@ -6,7 +6,7 @@
 
 Name:           pixman
 Version:        0.38.4
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Pixel manipulation library
 
 License:        MIT
@@ -40,7 +40,7 @@ Development library for pixman.
 #sed -i 's/120/600/' test/meson.build
 
 %build
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 # Skip building/linking gtk demos
 %configure --disable-gtk
 
@@ -71,6 +71,9 @@ make check
 %{_libdir}/pkgconfig/pixman-1.pc
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 0.38.4-4
+- Correct _SGI_SOURCES (no plural)
+
 * Sun Jul 12 2020 Daniel Hams <daniel.hams@gmail.com> - 0.38.4-3
 - Stop gtk demos being built/linked, they cause issues with optimised link flags
 

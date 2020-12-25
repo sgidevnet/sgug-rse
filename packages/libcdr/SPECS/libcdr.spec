@@ -1,8 +1,8 @@
 %global apiversion 0.1
 
 Name: libcdr
-Version: 0.1.5
-Release: 5%{?dist}
+Version: 0.1.6
+Release: 1%{?dist}
 Summary: A library for import of CorelDRAW drawings
 
 # the only Public Domain source is src/lib/CDRColorProfiles.h
@@ -35,12 +35,12 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
-%package doc
-Summary: Documentation of %{name} API
-BuildArch: noarch
+#%%package doc
+#Summary: Documentation of #%%{name} API
+#BuildArch: noarch
 
-%description doc
-The %{name}-doc package contains documentation files for %{name}.
+#%%description doc
+#The #%%{name}-doc package contains documentation files for #%%{name}.
 
 %package tools
 Summary: Tools to transform CorelDRAW drawings into other formats
@@ -68,7 +68,7 @@ rm -f %{buildroot}/%{_libdir}/*.la
 rm -rf %{buildroot}/%{_docdir}/%{name}
 
 # generate and install man pages
-export LD_LIBRARY_PATH=%{buildroot}%{_libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+#export LD_LIBRARY_PATH=%{buildroot}%{_libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 #for tool in cdr2raw cmx2raw cdr2xhtml cmx2xhtml cdr2text cmx2text; do
 #    help2man -N -S '%{name} %{version}' -o ${tool}.1 %{buildroot}%{_bindir}/${tool}
 #done
@@ -111,8 +111,17 @@ make %{?_smp_mflags} check
 #%%{_mandir}/man1/cmx2xhtml.1*
 
 %changelog
-* Sat May 30 2020  Alexander Tafarte <notes2@gmx.de> - 0.1.6-6
-- compiles on Irix 6.5 with sgug-rse gcc 9.2 passing the tests.
+* Tue Sep 29 2020  HAL <notes2@gmx.de> - 0.1.6-1
+- compiles on Irix 6.5 with sgug-rse gcc 9.2 and passes the test.
+
+* Fri Feb 07 2020 David Tardon <dtardon@redhat.com> - 0.1.6-1
+- new upstream release
+
+* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 0.1.5-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
+* Fri Nov 01 2019 Pete Walter <pwalter@fedoraproject.org> - 0.1.5-6
+- Rebuild for ICU 65
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.1.5-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

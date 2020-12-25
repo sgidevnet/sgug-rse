@@ -1,0 +1,87 @@
+%global pypi_name sphinxcontrib-devhelp
+
+# when bootstrapping sphinx, we cannot run tests yet
+%bcond_with check
+
+Name:           python-%{pypi_name}
+Version:        1.0.1
+Release:        2%{?dist}
+Summary:        Sphinx extension for Devhelp documents
+License:        BSD
+URL:            http://sphinx-doc.org/
+Source0:        %{pypi_source}
+BuildArch:      noarch
+
+BuildRequires:  gettext
+BuildRequires:  python3-devel
+BuildRequires:  python3-setuptools
+
+%if %{with check}
+BuildRequires:  python3-pytest
+BuildRequires:  python3-sphinx >= 1:2
+%endif
+
+%description
+sphinxcontrib-devhelp is a sphinx extension which outputs Devhelp document.
+
+
+%package -n     python3-%{pypi_name}
+Summary:        %{summary}
+%{?python_provide:%python_provide python3-%{pypi_name}}
+
+%description -n python3-%{pypi_name}
+sphinxcontrib-devhelp is a sphinx extension which outputs Devhelp document.
+
+
+%prep
+%autosetup -n %{pypi_name}-%{version}
+find -name '*.mo' -delete
+
+
+%build
+for po in $(find -name '*.po'); do
+  msgfmt --output-file=${po%.po}.mo ${po}
+done
+%py3_build
+
+
+%install
+%py3_install
+
+# Move language files to /usr/share
+export PREV_WD=`pwd`
+cd %{buildroot}%{python3_sitelib}
+for lang in `find sphinxcontrib/devhelp/locales -maxdepth 1 -mindepth 1 -type d -not -path '*/\.*' -printf "%f "`;
+do
+  test $lang == __pycache__ && continue
+  install -d %{buildroot}%{_datadir}/locale/$lang/LC_MESSAGES
+  mv sphinxcontrib/devhelp/locales/$lang/LC_MESSAGES/*.mo %{buildroot}%{_datadir}/locale/$lang/LC_MESSAGES/
+done
+rm -rf sphinxcontrib/devhelp/locales
+ln -s %{_datadir}/locale sphinxcontrib/devhelp/locales
+cd $PREV_WD
+
+
+%find_lang sphinxcontrib.devhelp
+
+
+%if %{with check}
+%check
+%{__python3} -m pytest
+%endif
+
+
+%files -n python3-%{pypi_name} -f sphinxcontrib.devhelp.lang
+%license LICENSE
+%doc README.rst
+%{python3_sitelib}/sphinxcontrib/
+%{python3_sitelib}/sphinxcontrib_devhelp-%{version}-py%{python3_version}-*.pth
+%{python3_sitelib}/sphinxcontrib_devhelp-%{version}-py%{python3_version}.egg-info/
+
+
+%changelog
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.1-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Fri Mar 01 2019 Miro Hrončok <mhroncok@redhat.com> - 1.0.1-1
+- Initial package

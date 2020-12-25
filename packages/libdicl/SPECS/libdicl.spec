@@ -1,10 +1,15 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
+# This package is NOT able to use optimised linker flags.
+#%%global build_ldflags %%{sgug_optimised_ldflags}
 
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
 
 Summary: Dans Irix Compatibility Library
 Name: libdicl
-Version: 0.1.28
+Version: 0.1.39
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
@@ -29,9 +34,20 @@ to develop programs that use libdicl library.
 %prep
 %setup -q
 
+# A place to generate a patch
+#exit 1
+
+
 %build
 
-%{configure}
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="-g -Og"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
+%configure
+
 make %{?_smp_mflags}
 
 %check
@@ -39,22 +55,53 @@ make check
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT prefix=%{_prefix} INSTALL='install -p'
-rm $RPM_BUILD_ROOT%{_libdir}/libdicl-0.1.la
+rm $RPM_BUILD_ROOT%{_libdir}/libdicl*.la
 
 %files
 #%%{!?_licensedir:%%global license %%doc}
 #%%license COPYING
 #%%doc README ChangeLog NEWS
-%{_libdir}/libdicl-0.1.so.*
+%{_libdir}/libdicl*.so.*
+%{_libexecdir}/libdicl/*
 
 %files devel
-%{_libdir}/libdicl-0.1.a
-%{_libdir}/libdicl-0.1.so
-%{_libdir}/pkgconfig/libdicl-0.1.pc
-%{_includedir}/libdicl-0.1
+%{_libdir}/libdicl*.a
+%{_libdir}/libdicl*.so
+%{_libdir}/pkgconfig/libdicl*.pc
+%{_includedir}/libdicl*
 
 
 %changelog
+* Sat Dec 12 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.39-1
+- Use 0.1.39 with "dicld" fcntl.h
+
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.38-1
+- Use 0.1.38 with removed fcntl.h
+
+* Sat Nov 28 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.37-1
+- Upgrade to 0.1.37 with posix_openpt function
+
+* Fri Nov 27 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.36-1
+- Upgrade to 0.1.36 with C++ stubs for strto* functions
+
+* Wed Sep 23 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.35-1
+- Upgrade to 0.1.25 with memrchr + fopendir implementations
+
+* Sat Sep 05 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.33-1
+- Bug to posix spawn to avoid attempting to sigaction for the IRIX internal signal 65.
+
+* Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.32-1
+- libdicl unhappy with optimised linker flags (test fails to build), switch to non-optimised linker flags
+
+* Sun Aug 16 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.31-1
+- Fix longstanding issue with rpl_select causing uknown fd_set compilation problems
+
+* Sat Aug 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.30-1
+- Bug fix and little optimisation to funopen bits.
+
+* Sat Aug 15 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.29-1
+- Add dprintf, vdprintf, funopen impl/lib for libsolv
+
 * Thu Jun 18 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.28-1
 - Add strptime and strftime, switch to lgpl2.1
 

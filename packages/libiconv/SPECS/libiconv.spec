@@ -1,12 +1,20 @@
-# This package is able to use optimised linker flags.
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
+# This package is able to use optimised linker flags (non-debug build)
+%if !(0%{debug})
 %global build_ldflags %{sgug_optimised_ldflags}
+%endif
 
 %define debug_package %{nil}
 # $Revision: 1.4 $, $Date: 2017/03/27 17:07:55 $
 Summary:	Character set conversion library
 Name:		libiconv
 Version:	1.16
-Release:	2%{?dist}
+Release:	3%{?dist}
 License:	LGPL v2+
 Group:		Libraries
 Source0:	http://ftp.gnu.org/gnu/libiconv/%{name}-%{version}.tar.gz
@@ -73,7 +81,13 @@ rm -f po/stamp-po
 #%%{__autoconf}
 aclocal -I m4 -I srcm4
 autoconf
-export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CPPFLAGS"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CPPFLAGS"
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
+
 %configure --enable-static --enable-dynamic
 #%{__make}
 %make_build
@@ -104,11 +118,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libcharset.so.1
 %attr(755,root,root) %{_libdir}/libiconv.so.*.*.*
 %{_libdir}/libiconv.so.2
-##%attr(755,root,root) %{_libdir}/preloadable_libiconv.so
-##%attr(644,root,root) %{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
-##%ifarch x86_64
-##%attr(755,root,root) %{_prefix}/lib
-##%endif
+##%%attr(755,root,root) %%{_libdir}/preloadable_libiconv.so
+##%%attr(644,root,root) %%{_sysconfdir}/ld.so.conf.d/%%{name}-%%{_arch}.conf
+##%%ifarch x86_64
+##%%attr(755,root,root) %%{_prefix}/lib
+##%%endif
 
 %files devel
 %defattr(644,root,root,755)
@@ -135,6 +149,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
+* Sat Sep 12 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-3
+- Bug fix to error handling
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.16-2
 - Cleanup of things that should be commented out.
 

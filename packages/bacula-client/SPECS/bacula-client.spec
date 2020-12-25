@@ -1,5 +1,11 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%else
 # This package is able to use optimised linker flags.
 %global build_ldflags %{sgug_optimised_ldflags}
+%endif
 
 Summary: Bacula Client
 Name: bacula-client
@@ -23,7 +29,13 @@ to find and recover lost or damaged files.
 %setup -n bacula-%{version}
 
 %build
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-lpthread -Wl,-z,relro -Wl,-z,now"
+%else
 export LDFLAGS="-lpthread $RPM_LD_FLAGS"
+%endif
 #cd autoconf
 #aclocal -I bacula-macros/ -I gettext-macros/ -I libtool/
 #cd ..

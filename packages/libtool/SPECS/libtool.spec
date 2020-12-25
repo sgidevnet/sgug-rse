@@ -11,7 +11,7 @@
 Summary: The GNU Portable Library Tool
 Name:    libtool
 Version: 2.4.6
-Release: 32%{?dist}
+Release: 33%{?dist}
 License: GPLv2+ and LGPLv2+ and GFDL
 URL:     http://www.gnu.org/software/libtool/
 
@@ -30,7 +30,7 @@ Patch1: libtool-2.4.6-am-1.16-test.patch
 # See the rhbz#1289759 and rhbz#1214506.  We disable hardening namely because
 # that bakes the CFLAGS/LDFLAGS into installed /bin/libtool and ltmain.sh files.
 # At the same time we want to have libltdl.so hardened.  Downstream-only patch.
-#%undefine _hardened_build
+#%%undefine _hardened_build
 #Patch3: libtool-2.4.6-hardening.patch
 
 # rhbz#1622611, upstream 350082b6aa89f9ef603fcebbb4cf33f15a743f2f
@@ -46,7 +46,7 @@ Patch500: libtool.sgifixes.patch
 # Libtool must be rebuilt whenever a new upstream gcc is built
 # Starting with gcc 7 gcc in Fedora is packaged so that only major
 # number changes need libtool rebuilding.
-#Requires: gcc(major) = %{gcc_major}
+#Requires: gcc(major) = %%{gcc_major}
 Requires: autoconf, automake, sed, tar, findutils
 
 %if ! 0%{?_module_build}
@@ -121,6 +121,7 @@ Static libraries and header files for development with ltdl.
 autoreconf -v
 
 %build
+export CPPFLAGS="-DLIBTOOL_SEP_CONFIG_CACHE"
 %configure  --prefix=%{_prefix}                 \
             --exec-prefix=%{_prefix}            \
             --bindir=%{_bindir}                 \
@@ -137,7 +138,7 @@ autoreconf -v
 #make %{?_smp_mflags} \
 #    CUSTOM_LTDL_CFLAGS="%_hardening_cflags" \
 #    CUSTOM_LTDL_LDFLAGS="%_hardening_ldflags" #
-make %{?_smp_mflags}
+V=1 VERBOSE=1 make %{?_smp_mflags}
 
 
 %check
@@ -185,6 +186,9 @@ rm -f %{buildroot}%{_libdir}/libltdl.{a,la}
 
 
 %changelog
+* Sat Nov 28 2020 Daniel Hams <daniel.hams@gmail.com> - 2.4.6-33
+- Use an isolated CONFIG_CACHE (by CPPFLAGS) to avoid configuration poisoning
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.4.6-32
 - Remove hard coded shell paths
 

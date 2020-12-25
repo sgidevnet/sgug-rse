@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 # Do we add appdata-files?
 # consider conditional on whether %%_metainfodir is defined or not instead -- rex
 %if 0%{?fedora} || 0%{?rhel} > 7
@@ -68,7 +74,7 @@
 
 Name:           %{orig_name}%{?name_suffix}
 Version:        %{major_version}.%{minor_version}.2
-Release:        6%{?relsuf}%{?dist}
+Release:        7%{?relsuf}%{?dist}
 Summary:        Cross-platform make system
 
 # most sources are BSD
@@ -302,9 +308,15 @@ export CXX=mips-sgi-irix6.5-g++
 # Yes, we don't have this
 export FC=mips-sgi-irix6.5-gcf
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
+%if 0%{debug}
+export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1"
+%else
 export CFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CFLAGS"
-export CXXFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $CXXFLAGS"
+export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 $LDFLAGS"
+%endif
 export NUM_PARALLEL=`echo -- "%{_smp_mflags}" |perl -pe "s|.*\-j(\\\\d+).*|\\\$1|g"`
 
 $SHELL $SRCDIR/bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
@@ -526,6 +538,9 @@ mv -f Modules/FindLibArchive.disabled Modules/FindLibArchive.cmake
 
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-7
+- Revert msg_ctrl patch changes causing socket build failures
+
 * Wed Jun 17 2020 Daniel Hams <daniel.hams@gmail.com> - 3.17.2-6
 - Update FindZLIB module to hunt first for sgug libz
 

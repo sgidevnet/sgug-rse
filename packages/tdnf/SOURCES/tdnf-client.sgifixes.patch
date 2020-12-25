@@ -1,0 +1,36 @@
+--- tdnf-3.0.0-beta-orig/client/utils.c	2020-12-19 12:47:40.511709360 +0000
++++ tdnf-3.0.0-beta/client/utils.c	2020-12-19 12:48:24.036735200 +0000
+@@ -445,24 +445,7 @@
+    )
+ {
+     uint32_t dwError = 0;
+-    char* pszArch = NULL;
+-    struct utsname stUtsName;
+-
+-    if(!ppszArch)
+-    {
+-        dwError = ERROR_TDNF_INVALID_PARAMETER;
+-        BAIL_ON_TDNF_ERROR(dwError);
+-    }
+-    if(uname(&stUtsName) != 0)
+-    {
+-        dwError = errno;
+-    }
+-    BAIL_ON_TDNF_SYSTEM_ERROR(dwError);
+-
+-    dwError = TDNFAllocateString(stUtsName.machine, &pszArch);
+-    BAIL_ON_TDNF_ERROR(dwError);
+-
+-    *ppszArch = pszArch;
++    *ppszArch = strdup("mips");
+ 
+ cleanup:
+     return dwError;
+@@ -472,7 +455,6 @@
+     {
+         *ppszArch = NULL;
+     }
+-    TDNF_SAFE_FREE_MEMORY(pszArch);
+     goto cleanup;
+ }
+ 

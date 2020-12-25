@@ -1,5 +1,13 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 # This package is able to use optimised linker flags.
+%if !(0%{debug})
 %global build_ldflags %{sgug_optimised_ldflags}
+%endif
 
 # python3 is not available on RHEL <= 7
 %bcond_with python3
@@ -109,9 +117,19 @@ cp -a python %{py3dir}
 # Fix config.guess to find aarch64 - #925339
 autoreconf -fi
 
+# Original fedora approach
 #export CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
-export CPPFLAGS="%{optflags} -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+%if 0%{debug}
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+export CFLAGS="-g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now"
+%else
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+export CFLAGS="$RPM_OPT_FLAGS"
+export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+%endif
 
 export gl_cv_cc_visibility=no
 

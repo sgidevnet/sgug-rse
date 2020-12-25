@@ -1,7 +1,7 @@
 # This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
+#%%global build_ldflags %{sgug_optimised_ldflags}
 
-%global __strip /bin/true
+#%%global __strip /bin/true
 
 %if 0%{?fedora}
 %ifnarch s390 s390x
@@ -22,12 +22,14 @@ Source0: http://www.jackaudio.org/downloads/jack-audio-connection-kit-%{version}
 #Source4: %{name}-limits.conf
 
 # For 0.125.0
-Patch100: jack1.sgifixes00.patch
-Patch101: jack1.sgifixes01.patch
-Patch102: jack1.sgifixes02.patch
-Patch103: jack1.sgifixes03.patch
+#Patch100: jack1.sgifixes00.patch
+#Patch101: jack1.sgifixes01.patch
+#Patch102: jack1.sgifixes02.patch
+#Patch103: jack1.sgifixes03.patch
 
-Patch104: jack1.sgidebugging.patch
+#Patch104: jack1.sgidebugging.patch
+
+Patch1000: jack1.sgifixesnew.patch
 
 URL: http://www.jackaudio.org
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -87,11 +89,15 @@ Small example clients that use the Jack Audio Connection Kit.
 # For 0.125.0
 %setup -q -n jack-audio-connection-kit-%{version}
 
-%patch100 -p1 -b .sgifixes00
-%patch101 -p1 -b .sgifixes01
-%patch102 -p1 -b .sgifixes02
-%patch103 -p1 -b .sgifixes03
-%patch104 -p1 -b .sgidebugging
+#%patch100 -p1 -b .sgifixes00
+#%patch101 -p1 -b .sgifixes01
+#%patch102 -p1 -b .sgifixes02
+#%patch103 -p1 -b .sgifixes03
+#%patch104 -p1 -b .sgidebugging
+
+%patch1000 -p1 -b .sgifixesnew
+
+#exit 1
 
 # Put custom HTML_FOOTER to avoid timestamp inside
 # (recipe was taken from http://fedoraproject.org/wiki/PackagingDrafts/MultilibTricks)
@@ -106,8 +112,8 @@ touch -r %{doxyfile} %{doxyfile}.new
 mv -f %{doxyfile}.new %{doxyfile}
 
 %build
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
-export LDFLAGS="-ldicl-0.1 -lpthread -ltinfo"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
+export LDFLAGS="-ldicl-0.1 -lpthread -ltinfo $RPM_LD_FLAGS"
 export ac_cv_func_getopt_long=yes
 # x86_64 issue reported by Rudolf Kastl (not checked, but not bad).
 # For 0.121.3

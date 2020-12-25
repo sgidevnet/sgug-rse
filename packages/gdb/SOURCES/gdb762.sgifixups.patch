@@ -1,0 +1,1034 @@
+diff -u -r gdb-7.6.2-orig/bfd/elfxx-mips.c gdb-7.6.2/bfd/elfxx-mips.c
+--- gdb-7.6.2-orig/bfd/elfxx-mips.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/bfd/elfxx-mips.c	2020-10-24 10:59:01.370755680 +0000
+@@ -4256,14 +4256,19 @@
+ 	 Note that the former condition does not always imply the
+ 	 latter: symbols do not bind locally if they are completely
+ 	 undefined.  We'll report undefined symbols later if appropriate.  */
++      /*
+       if (h->root.dynindx == -1
+ 	  || (h->got_only_for_calls
+ 	      ? SYMBOL_CALLS_LOCAL (info, &h->root)
+ 	      : SYMBOL_REFERENCES_LOCAL (info, &h->root)))
++      */
++      if (h->root.forced_local || h->root.dynindx == -1)
++	{
+ 	/* The symbol belongs in the local GOT.  We no longer need this
+ 	   entry if it was only used for relocations; those relocations
+ 	   will be against the null or section symbol instead of H.  */
+ 	h->global_got_area = GGA_NONE;
++	}
+       else if (htab->is_vxworks
+ 	       && h->got_only_for_calls
+ 	       && h->root.plt.offset != MINUS_ONE)
+@@ -4795,10 +4800,12 @@
+ static bfd_boolean
+ mips_elf_local_relocation_p (bfd *input_bfd,
+ 			     const Elf_Internal_Rela *relocation,
+-			     asection **local_sections)
++			     asection **local_sections,
++			     bfd_boolean check_forced)
+ {
+   unsigned long r_symndx;
+   Elf_Internal_Shdr *symtab_hdr;
++  struct mips_elf_link_hash_entry *h;
+   size_t extsymoff;
+ 
+   r_symndx = ELF_R_SYM (input_bfd, relocation->r_info);
+@@ -4810,6 +4817,20 @@
+   if (elf_bad_symtab (input_bfd) && local_sections[r_symndx] != NULL)
+     return TRUE;
+ 
++  if (check_forced)
++    {
++      /* Look up the hash table to check whether the symbol
++ 	 was forced local.  */
++      h = (struct mips_elf_link_hash_entry *)
++	elf_sym_hashes (input_bfd) [r_symndx - extsymoff];
++      /* Find the real hash-table entry for this symbol.  */
++      while (h->root.root.type == bfd_link_hash_indirect
++ 	     || h->root.root.type == bfd_link_hash_warning)
++	h = (struct mips_elf_link_hash_entry *) h->root.root.u.i.link;
++      if (h->root.forced_local)
++	return TRUE;
++    }
++
+   return FALSE;
+ }
+ 
+@@ -5104,7 +5125,7 @@
+      used in the array of hash table entries.  */
+   symtab_hdr = &elf_tdata (input_bfd)->symtab_hdr;
+   local_p = mips_elf_local_relocation_p (input_bfd, relocation,
+-					 local_sections);
++					 local_sections, FALSE);
+   was_local_p = local_p;
+   if (! elf_bad_symtab (input_bfd))
+     extsymoff = symtab_hdr->sh_info;
+@@ -5376,9 +5397,12 @@
+ 				    || target_is_micromips_code_p))));
+ 
+   local_p = (h == NULL
+-	     || (h->got_only_for_calls
++	     ||
++	     ((h->got_only_for_calls
+ 		 ? SYMBOL_CALLS_LOCAL (info, &h->root)
+-		 : SYMBOL_REFERENCES_LOCAL (info, &h->root)));
++	       : SYMBOL_REFERENCES_LOCAL (info, &h->root)))
++	     &&
++	     mips_elf_local_relocation_p(input_bfd, relocation, local_sections, TRUE));
+ 
+   gp0 = _bfd_get_gp_value (input_bfd);
+   gp = _bfd_get_gp_value (abfd);
+@@ -9314,7 +9338,7 @@
+   Elf_Internal_Sym *sym;
+   asection *sec;
+ 
+-  if (mips_elf_local_relocation_p (input_bfd, rel, local_sections))
++  if (mips_elf_local_relocation_p (input_bfd, rel, local_sections, FALSE))
+     {
+       r_type = ELF_R_TYPE (output_bfd, rel->r_info);
+       if (gprel16_reloc_p (r_type)
+@@ -9432,7 +9456,7 @@
+ 
+       r_symndx = ELF_R_SYM (input_bfd, rel->r_info);
+       symtab_hdr = &elf_tdata (input_bfd)->symtab_hdr;
+-      if (mips_elf_local_relocation_p (input_bfd, rel, local_sections))
++      if (mips_elf_local_relocation_p (input_bfd, rel, local_sections, FALSE))
+ 	{
+ 	  sec = local_sections[r_symndx];
+ 	  h = NULL;
+@@ -9494,7 +9518,7 @@
+ 	      if (hi16_reloc_p (r_type)
+ 		  || (got16_reloc_p (r_type)
+ 		      && mips_elf_local_relocation_p (input_bfd, rel,
+-						      local_sections)))
++						      local_sections, FALSE)))
+ 		{
+ 		  if (!mips_elf_add_lo16_rel_addend (input_bfd, rel, relend,
+ 						     contents, &addend))
+diff -u -r gdb-7.6.2-orig/gdb/breakpoint.c gdb-7.6.2/gdb/breakpoint.c
+--- gdb-7.6.2-orig/gdb/breakpoint.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/breakpoint.c	2020-10-24 10:59:35.033921520 +0000
+@@ -2528,6 +2528,9 @@
+ 	        }
+ 	      if (e.reason < 0)
+ 	        {
++		  if (info_verbose) {
++		    printf_unfiltered("DH: section of breakpoint already mapped\n");
++		  }
+ 	          val = 1;
+ 	          hw_bp_err_string = (char *) e.message;
+ 	        }
+@@ -2552,7 +2555,7 @@
+ 	      if (!*disabled_breaks)
+ 		{
+ 		  fprintf_unfiltered (tmp_error_stream, 
+-				      "Cannot insert breakpoint %d.\n", 
++				      "(DH1) Cannot insert breakpoint %d.\n", 
+ 				      bl->owner->number);
+ 		  fprintf_unfiltered (tmp_error_stream, 
+ 				      "Temporarily disabling shared "
+@@ -2577,7 +2580,7 @@
+ 	      else
+ 		{
+ 		  fprintf_unfiltered (tmp_error_stream, 
+-				      "Cannot insert breakpoint %d.\n", 
++				      "(DH2) Cannot insert breakpoint %d.\n", 
+ 				      bl->owner->number);
+ 		  fprintf_filtered (tmp_error_stream, 
+ 				    "Error accessing memory address ");
+@@ -5365,6 +5368,8 @@
+ void
+ handle_solib_event (void)
+ {
++  if (info_verbose)
++    printf("DH: handle_solib_event called\n");
+   clear_program_space_solib_cache (current_inferior ()->pspace);
+ 
+   /* Check for any newly added shared libraries if we're supposed to
+diff -u -r gdb-7.6.2-orig/gdb/common/signals.c gdb-7.6.2/gdb/common/signals.c
+--- gdb-7.6.2-orig/gdb/common/signals.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/common/signals.c	2020-10-24 10:59:06.634494920 +0000
+@@ -66,8 +66,11 @@
+ {
+   if ((int) sig >= GDB_SIGNAL_FIRST && (int) sig <= GDB_SIGNAL_LAST)
+     return signals[sig].string;
+-  else
++  else {
++    warning("gdb_signal_to_string returning unknown for %d",
++	    sig);
+     return signals[GDB_SIGNAL_UNKNOWN].string;
++  }
+ }
+ 
+ /* Return the name for a signal.  */
+@@ -101,6 +104,8 @@
+     if (signals[sig].name != NULL
+ 	&& strcmp (name, signals[sig].name) == 0)
+       return sig;
++  warning("gdb_signal_from_name returning unknown for %s",
++	  name);
+   return GDB_SIGNAL_UNKNOWN;
+ }
+ 
+@@ -250,6 +255,36 @@
+   if (hostsig == SIGXFSZ)
+     return GDB_SIGNAL_XFSZ;
+ #endif
++  /* IRIX BITS */
++#if defined (SIGK32)
++  if (hostsig == SIGK32)
++    return GDB_SIGNAL_K32;
++#endif
++#if defined (SIGCKPT)
++  if (hostsig == SIGCKPT)
++    return GDB_SIGNAL_CKPT;
++#endif
++#if defined (SIGRESTART)
++  if (hostsig == SIGRESTART)
++    return GDB_SIGNAL_RESTART;
++#endif
++#if defined (SIGPTINTR)
++  if (hostsig == SIGPTINTR)
++    return GDB_SIGNAL_PTINTR;
++#endif
++#if defined (SIGPTRESCHED)
++  if (hostsig == SIGPTRESCHED)
++    return GDB_SIGNAL_PTRESCHED;
++#endif
++#if defined (SIGRTMIN)
++  if (hostsig == SIGRTMIN)
++    return GDB_SIGNAL_RTMIN;
++#endif
++#if defined (SIGRTMAX)
++  if (hostsig == SIGRTMAX)
++    return GDB_SIGNAL_RTMAX;
++#endif
++  /* END IRIX BITS */
+ #if defined (SIGWIND)
+   if (hostsig == SIGWIND)
+     return GDB_SIGNAL_WIND;
+@@ -352,6 +387,8 @@
+     }
+ #endif
+ 
++  /*warning("gdb_signal_from_host returning unknown for %d",
++	  hostsig);*/
+   return GDB_SIGNAL_UNKNOWN;
+ }
+ 
+@@ -507,6 +544,36 @@
+     case GDB_SIGNAL_XFSZ:
+       return SIGXFSZ;
+ #endif
++      /* IRIX BITS */
++#if defined (SIGK32)
++    case GDB_SIGNAL_K32:
++      return SIGK32;
++#endif
++#if defined (SIGCKPT)
++    case GDB_SIGNAL_CKPT:
++      return SIGCKPT;
++#endif
++#if defined (SIGRESTART)
++    case GDB_SIGNAL_RESTART:
++      return SIGRESTART;
++#endif
++#if defined (SIGPTINTR)
++    case GDB_SIGNAL_PTINTR:
++      return SIGPTINTR;
++#endif
++#if defined (SIGPTRESCHED)
++    case GDB_SIGNAL_PTRESCHED:
++      return SIGPTRESCHED;
++#endif
++#if defined (SIGRTMIN)
++    case GDB_SIGNAL_RTMIN:
++      return SIGRTMIN;
++#endif
++#if defined (SIGRTMAX)
++    case GDB_SIGNAL_RTMAX:
++      return SIGRTMAX;
++#endif
++      /* END IRIX BITS */
+ #if defined (SIGWIND)
+     case GDB_SIGNAL_WIND:
+       return SIGWIND;
+@@ -642,7 +709,8 @@
+     {
+       /* The user might be trying to do "signal SIGSAK" where this system
+          doesn't have SIGSAK.  */
+-      warning (_("Signal %s does not exist on this system."),
++      warning (_("Signal (%d) %s does not exist on this system."),
++	       oursig,
+ 	       gdb_signal_to_name (oursig));
+       return 0;
+     }
+diff -u -r gdb-7.6.2-orig/gdb/defs.h gdb-7.6.2/gdb/defs.h
+--- gdb-7.6.2-orig/gdb/defs.h	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/defs.h	2020-10-24 10:59:06.637211560 +0000
+@@ -25,6 +25,10 @@
+ #  error gdbserver should not include gdb/defs.h
+ #endif
+ 
++#define _SGI_SOURCE 1
++#define _SGI_MP_SOURCE 1
++#define _SGI_REENTRANT_FUNCTIONS 1
++
+ #include "config.h"		/* Generated by configure.  */
+ #include "build-gnulib/config.h"
+ 
+diff -u -r gdb-7.6.2-orig/gdb/infrun.c gdb-7.6.2/gdb/infrun.c
+--- gdb-7.6.2-orig/gdb/infrun.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/infrun.c	2020-10-24 10:59:06.648132520 +0000
+@@ -7303,6 +7303,13 @@
+   signal_stop[GDB_SIGNAL_CANCEL] = 0;
+   signal_print[GDB_SIGNAL_CANCEL] = 0;
+ 
++  /* IRIX BITS */
++  signal_stop[GDB_SIGNAL_PTINTR] = 0;
++  signal_print[GDB_SIGNAL_PTINTR] = 0;
++  signal_stop[GDB_SIGNAL_PTRESCHED] = 0;
++  signal_print[GDB_SIGNAL_PTRESCHED] = 0;
++  /* END IRIX BITS */
++
+   /* Update cached state.  */
+   signal_cache_update (-1);
+ 
+diff -u -r gdb-7.6.2-orig/gdb/irix5-nat.c gdb-7.6.2/gdb/irix5-nat.c
+--- gdb-7.6.2-orig/gdb/irix5-nat.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/irix5-nat.c	2020-10-24 10:59:08.157797000 +0000
+@@ -266,6 +266,9 @@
+ {
+   struct target_ops *t;
+ 
++  if (info_verbose)
++    printf("DH: _initialize_irix5_nat\n");
++
+   t = procfs_target ();
+   procfs_use_watchpoints (t);
+   add_target (t);
+diff -u -r gdb-7.6.2-orig/gdb/mips-tdep.c gdb-7.6.2/gdb/mips-tdep.c
+--- gdb-7.6.2-orig/gdb/mips-tdep.c	2013-12-08 04:33:13.000000000 +0000
++++ gdb-7.6.2/gdb/mips-tdep.c	2020-10-24 10:59:08.170993000 +0000
+@@ -793,7 +793,7 @@
+    time across a 2400 baud serial line.  Allows the user to limit this
+    search.  */
+ 
+-static unsigned int heuristic_fence_post = 0;
++static unsigned int heuristic_fence_post = 512;
+ 
+ /* Number of bytes of storage in the actual machine representation for
+    register N.  NOTE: This defines the pseudo register type so need to
+@@ -4021,7 +4021,15 @@
+   int seen_adjsp = 0;
+   struct inferior *inf;
+ 
++  if (info_verbose) {
++    warning("DH Looking for proc_start of %lld - %llx", pc, pc);
++    warning("DH heuristic_fence_post is %d", heuristic_fence_post);
++  }
++
+   pc = gdbarch_addr_bits_remove (gdbarch, pc);
++  if (info_verbose) {
++    warning("DH Adjusted to %lld - %llx", pc, pc);
++  }
+   start_pc = pc;
+   fence = start_pc - heuristic_fence_post;
+   if (start_pc == 0)
+@@ -4035,7 +4043,9 @@
+   inf = current_inferior ();
+ 
+   /* Search back for previous return.  */
+-  for (start_pc -= instlen;; start_pc -= instlen)
++  for (start_pc -= instlen;; start_pc -= instlen) {
++    if (info_verbose)
++      warning("DH Checking %lld - %llx", start_pc, start_pc);
+     if (start_pc < fence)
+       {
+ 	/* It's not clear to me why we reach this point when
+@@ -4174,10 +4184,13 @@
+       }
+     else if (mips_about_to_return (gdbarch, start_pc))
+       {
++	if (info_verbose)
++	  warning("DH Didn't find anything expected, skipping up a frame");
+ 	/* Skip return and its delay slot.  */
+ 	start_pc += 2 * MIPS_INSN32_SIZE;
+ 	break;
+       }
++  }
+ 
+   return start_pc;
+ }
+diff -u -r gdb-7.6.2-orig/gdb/python/python.c gdb-7.6.2/gdb/python/python.c
+--- gdb-7.6.2-orig/gdb/python/python.c	2013-12-08 04:33:14.000000000 +0000
++++ gdb-7.6.2/gdb/python/python.c	2020-10-24 10:59:08.174710440 +0000
+@@ -1445,6 +1445,14 @@
+ /* Provide a prototype to silence -Wmissing-prototypes.  */
+ extern initialize_file_ftype _initialize_python;
+ 
++#ifdef IS_PY3K
++PyMODINIT_FUNC
++PyInit__gdb(void)
++{
++  return PyModule_Create(&GdbModuleDef);
++}
++#endif
++
+ void
+ _initialize_python (void)
+ {
+@@ -1559,10 +1567,12 @@
+     }
+   setlocale (LC_ALL, oldloc);
+ 
++  PyImport_AppendInittab("_gdb", PyInit__gdb);
+   /* Note that Py_SetProgramName expects the string it is passed to
+      remain alive for the duration of the program's execution, so
+      it is not freed after this call.  */
+   Py_SetProgramName (progname_copy);
++
+ #else
+   Py_SetProgramName (progname);
+ #endif
+@@ -1572,9 +1582,7 @@
+   PyEval_InitThreads ();
+ 
+ #ifdef IS_PY3K
+-  gdb_module = PyModule_Create (&GdbModuleDef);
+-  /* Add _gdb module to the list of known built-in modules.  */
+-  _PyImport_FixupBuiltin (gdb_module, "_gdb");
++  gdb_module = PyImport_ImportModule("_gdb");
+ #else
+   gdb_module = Py_InitModule ("_gdb", GdbMethods);
+ #endif
+diff -u -r gdb-7.6.2-orig/gdb/solib-irix.c gdb-7.6.2/gdb/solib-irix.c
+--- gdb-7.6.2-orig/gdb/solib-irix.c	2013-12-08 04:33:14.000000000 +0000
++++ gdb-7.6.2/gdb/solib-irix.c	2020-10-24 10:59:28.196869160 +0000
+@@ -30,12 +30,17 @@
+ #include "gdbcore.h"
+ #include "target.h"
+ #include "inferior.h"
++#include "regcache.h"
+ #include "gdbthread.h"
+ 
+ #include "solist.h"
+ #include "solib.h"
+ #include "solib-irix.h"
+ 
++#include "bfd-target.h"
++#include "elf-bfd.h"
++#include "exec.h"
++#include "gdb_bfd.h"
+ 
+ /* Link map info to include in an allocate so_list entry.  Unlike some
+    of the other solib backends, this (Irix) backend chooses to decode
+@@ -66,6 +71,7 @@
+   gdb_byte b[4];
+ }
+ gdb_int32_bytes;
++
+ typedef struct
+ {
+   gdb_byte b[8];
+@@ -124,6 +130,142 @@
+   struct irix_elf64_obj_info oi64;
+ };
+ 
++struct irix_info
++{
++  int debug_loader_offset_p;
++  CORE_ADDR debug_loader_offset;
++  char *debug_loader_name;
++
++  CORE_ADDR interp_text_sect_low;
++  CORE_ADDR interp_text_sect_high;
++  CORE_ADDR interp_plt_sect_low;
++  CORE_ADDR interp_plt_sect_high;
++};
++
++static const char * const solib_break_names[] =
++  {
++    "__tp_dlinsert_post",
++    "__tp_main",
++    NULL
++  };
++
++static int
++cmp_name_and_sec_flags (asymbol *sym, void *data)
++{
++  return (strcmp (sym->name, (const char *) data) == 0
++	  && (sym->section->flags & (SEC_CODE | SEC_DATA)) != 0);
++}
++
++static const struct program_space_data *solib_irix_pspace_data;
++
++static void
++irix_pspace_data_cleanup (struct program_space *pspace, void *arg)
++{
++  struct irix_info *info;
++
++  info = program_space_data (pspace, solib_irix_pspace_data);
++  xfree (info);
++}
++
++static struct irix_info *
++get_irix_info(void)
++{
++  struct irix_info *info;
++
++  info = program_space_data (current_program_space, solib_irix_pspace_data);
++  if (info != NULL)
++    return info;
++
++  info = XZALLOC (struct irix_info);
++  set_program_space_data (current_program_space, solib_irix_pspace_data, info);
++  return info;
++}
++
++int
++irix_in_dynsym_resolve_code (CORE_ADDR pc)
++{
++  struct irix_info *info = get_irix_info ();
++
++  if (info_verbose)
++    printf_unfiltered("DH: irix_in_dynsym_resolve_code(%llx >= %llx < %llx\n",
++		      info->interp_text_sect_low,
++		      pc,
++		      info->interp_text_sect_high);
++
++  return ((pc >= info->interp_text_sect_low
++	   && pc < info->interp_text_sect_high)
++	  ||
++	  (pc >= info->interp_plt_sect_low
++	   && pc < info->interp_plt_sect_high)
++	  || in_plt_section (pc, NULL)
++	  || in_gnu_ifunc_stub (pc));
++}
++
++static int
++irix_same_1 (const char *gdb_so_name, const char *inferior_so_name)
++{
++  if (info_verbose)
++    printf_unfiltered("DH: irix_same_1 of (%s<->%s)\n",
++		      gdb_so_name,
++		      inferior_so_name);
++  if (strcmp (gdb_so_name, inferior_so_name) == 0)
++    return 1;
++
++  return 0;
++}
++
++static int
++irix_same (struct so_list *gdb, struct so_list *inferior)
++{
++  return (irix_same_1 (gdb->so_original_name, inferior->so_original_name));
++}
++
++/* Return program interpreter string */
++static gdb_byte *
++find_program_interpreter (void)
++{
++  gdb_byte *buf = NULL;
++
++  if (exec_bfd && bfd_get_flavour (exec_bfd) == bfd_target_elf_flavour)
++    {
++      struct bfd_section *interp_sect;
++
++      interp_sect = bfd_get_section_by_name (exec_bfd, ".interp");
++      if (interp_sect != NULL)
++	{
++	  int sect_size = bfd_section_size (exec_bfd, interp_sect);
++
++	  buf = xmalloc (sect_size);
++	  bfd_get_section_contents (exec_bfd, interp_sect, buf, 0, sect_size);
++	}
++    }
++
++  if (info_verbose) {
++    if (!buf)
++      warning ("DH: didn't find program interpreter\n");
++    else
++      printf_unfiltered ("DH: found interpreter %s\n", buf);
++  }
++  return buf;
++}
++
++static CORE_ADDR
++lm_addr_check (struct so_list *so, bfd *abfd)
++{
++  return so->lm_info->addr;
++}
++
++static CORE_ADDR
++exec_entry_point (struct bfd *abfd, struct target_ops *targ)
++{
++  CORE_ADDR addr;
++
++  addr = gdbarch_convert_from_func_ptr_addr (target_gdbarch (),
++					     bfd_get_start_address (abfd),
++					     targ);
++  return gdbarch_addr_bits_remove (target_gdbarch (), addr);
++}
++
+ /* MIPS sign extends its 32 bit addresses.  We could conceivably use
+    extract_typed_address here, but to do so, we'd have to construct an
+    appropriate type.  Calling extract_signed_integer seems simpler.  */
+@@ -292,33 +434,47 @@
+   return (address);
+ }
+ 
+-/* Remove the "mapping changed" breakpoint.
++/* "First" breakpoint that gets the inferior running and
++   direct shared library references resolved. */
++static int
++enable_first_break ()
++{
++  if (info_verbose)
++    printf("DH: solib-irix:enable-first-break called\n");
++
++  if (symfile_objfile != NULL && has_stack_frames ())
++    {
++      struct frame_info *frame = get_current_frame ();
++      struct address_space *aspace = get_frame_address_space (frame);
++      CORE_ADDR entry_point;
+ 
+-   Removes the breakpoint that gets hit when the dynamic linker
+-   completes a mapping change.  */
++      if (!entry_point_address_query (&entry_point))
++	return 0;
++
++      base_breakpoint = deprecated_insert_raw_breakpoint (target_gdbarch (),
++							  aspace, entry_point);
++
++      if (base_breakpoint != NULL)
++	return 1;
++    }
++
++  return 0;
++}
+ 
+ static int
+-disable_break (void)
++disable_first_break (void)
+ {
+   int status = 1;
+ 
+-  /* Note that breakpoint address and original contents are in our address
+-     space, so we just need to write the original contents back.  */
++  if (info_verbose)
++    printf("DH: solib-irix:disable-first-break called\n");
+ 
+   if (deprecated_remove_raw_breakpoint (target_gdbarch (), base_breakpoint) != 0)
+     {
+       status = 0;
+     }
+-
+   base_breakpoint = NULL;
+-
+-  /* Note that it is possible that we have stopped at a location that
+-     is different from the location where we inserted our breakpoint.
+-     On mips-irix, we can actually land in __dbx_init(), so we should
+-     not check the PC against our breakpoint address here.  See procfs.c
+-     for more details.  */
+-
+-  return (status);
++  return status;
+ }
+ 
+ /* Arrange for dynamic linker to hit breakpoint.
+@@ -327,22 +483,155 @@
+    main executable, where all shared libraries are mapped in.  */
+ 
+ static int
+-enable_break (void)
++enable_dynamic_break (struct irix_info *info, int from_tty)
+ {
+-  if (symfile_objfile != NULL && has_stack_frames ())
+-    {
+-      struct frame_info *frame = get_current_frame ();
+-      struct address_space *aspace = get_frame_address_space (frame);
+-      CORE_ADDR entry_point;
++  const char * const *bkpt_namep;
++  asection *interp_sect;
++  gdb_byte *interp_name;
++  CORE_ADDR sym_addr;
++
++  if (info_verbose)
++    printf("DH: solib-irix:enable_dynamic_break called\n");
++
++  info->interp_text_sect_low = info->interp_text_sect_high = 0;
++  info->interp_plt_sect_low = info->interp_plt_sect_high = 0;
++
++  solib_add (NULL, from_tty, &current_target, auto_solib_add);
++  sym_addr = 0;
++
++  interp_name = find_program_interpreter ();
++  if (interp_name)
++    {
++      CORE_ADDR load_addr=0;
++      int load_addr_found=0;
++      int loader_found_in_list=0;
++      struct so_list *so;
++      bfd *tmp_bfd=NULL;
++      struct target_ops *tmp_bfd_target;
++      volatile struct gdb_exception ex;
+ 
+-      if (!entry_point_address_query (&entry_point))
+-	return 0;
++      TRY_CATCH (ex, RETURN_MASK_ALL)
++	{
++	  tmp_bfd = solib_bfd_open (interp_name);
++	}
++      if (tmp_bfd == NULL)
++	goto bkpt_at_symbol;
+ 
+-      base_breakpoint = deprecated_insert_raw_breakpoint (target_gdbarch (),
+-							  aspace, entry_point);
++      if (info_verbose)
++	printf_unfiltered ("DH: loaded the interpreter bfd\n");
++      tmp_bfd_target = target_bfd_reopen (tmp_bfd);
++      gdb_bfd_unref (tmp_bfd);
+ 
+-      if (base_breakpoint != NULL)
+-	return 1;
++      if (!load_addr_found)
++	{
++	  struct regcache *regcache;
++	  if (info_verbose)
++	    warning("DH: Didn't find the load_addr of interpreter.\n");
++	  regcache = get_thread_arch_regcache (inferior_ptid, target_gdbarch());
++
++	  load_addr = (regcache_read_pc(regcache)
++		       - exec_entry_point(tmp_bfd, tmp_bfd_target));
++	  if (info_verbose)
++	    warning("DH: Computed load_addr of %lld (%llx)\n",
++		    load_addr,
++		    load_addr);
++	  /* DH Hack, always assume load addr of zero, otherwise
++	   * the initial library resolution ends up changing the load_addr
++	   * and I'm not entirely certain why yet.
++	   **/
++	  load_addr = 0;
++	  if (info_verbose)
++	    warning("DH: But overriding load_addr to 0\n");
++	}
++      else if (info_verbose)
++	{
++	  printf_unfiltered("DH: found load_addr of interpreter: %lld (%llx)\n",
++			    load_addr,
++			    load_addr);
++	}
++
++      if (!loader_found_in_list)
++	{
++	  if (info_verbose)
++	    printf_unfiltered("DH: attempting solib_add of interpreter directly.\n");
++	  info->debug_loader_name = xstrdup (interp_name);
++	  info->debug_loader_offset_p = 1;
++	  info->debug_loader_offset = load_addr;
++	  solib_add (NULL, from_tty, &current_target, auto_solib_add);
++	}
++
++      interp_sect = bfd_get_section_by_name (tmp_bfd, ".text");
++      if (interp_sect)
++	{
++	  info->interp_text_sect_low =
++	    bfd_section_vma (tmp_bfd, interp_sect) + load_addr;
++	  info->interp_text_sect_high =
++	    info->interp_text_sect_low
++	    + bfd_section_size (tmp_bfd, interp_sect);
++	  if (info_verbose)
++	    printf_unfiltered("DH: interp_text_sect(%llx->%llx)\n",
++			      info->interp_text_sect_low,
++			      info->interp_text_sect_high);
++	}
++      else if (info_verbose)
++	{
++	  printf_unfiltered("DH: No text section of interpreter found.\n");
++	}
++      interp_sect = bfd_get_section_by_name (tmp_bfd, ".plt");
++      if (interp_sect)
++	{
++	  info->interp_plt_sect_low =
++	    bfd_section_vma (tmp_bfd, interp_sect) + load_addr;
++	  info->interp_plt_sect_high =
++	    info->interp_plt_sect_low
++	    + bfd_section_size (tmp_bfd, interp_sect);
++	  if (info_verbose)
++	    printf_unfiltered("DH: interp_plt_sect(%llx->%llx)\n",
++			      info->interp_plt_sect_low,
++			      info->interp_plt_sect_high);
++	}
++      else if (info_verbose)
++	{
++	  printf_unfiltered("DH: No plt section of interpreter found.\n");
++	}
++
++      for (bkpt_namep = solib_break_names; *bkpt_namep != NULL; bkpt_namep++)
++	{
++	  sym_addr = gdb_bfd_lookup_symbol (tmp_bfd, cmp_name_and_sec_flags,
++					    (void *)*bkpt_namep);
++	  if (sym_addr != 0)
++	    {
++	      if (info_verbose)
++		printf_unfiltered("DH: found symbol to break on: %s\n",
++				  *bkpt_namep);
++	      break;
++	    }
++	}
++
++      if (sym_addr != 0)
++	{
++	  sym_addr = gdbarch_convert_from_func_ptr_addr (target_gdbarch(),
++							 sym_addr,
++							 tmp_bfd_target);
++	}
++
++      target_close (tmp_bfd_target, 0);
++      if (sym_addr != 0)
++	{
++	  if (info_verbose)
++	    printf_unfiltered("DH: creating solib_event_breakpoint on: %lld (%llx)\n",
++			      (load_addr + sym_addr),
++			      (load_addr + sym_addr));
++	  create_solib_event_breakpoint (target_gdbarch(), load_addr + sym_addr);
++	  xfree (interp_name);
++	  return 1;
++	}
++
++    bkpt_at_symbol:
++      xfree (interp_name);
++      warning ("Unable to find dymamic linker breakpoint function.\n"
++	       "GDB will be unable to debug shared library initializers\n"
++	       "and track explicitly loaded dynamic code.");
+     }
+ 
+   return 0;
+@@ -389,6 +678,8 @@
+ {
+   struct inferior *inf;
+   struct thread_info *tp;
++  struct irix_info *info;
++  int orig_stop_soon;
+ 
+   inf = current_inferior ();
+ 
+@@ -402,7 +693,9 @@
+   if (!target_can_run (&current_target))
+     return;
+ 
+-  if (!enable_break ())
++  orig_stop_soon = inf->control.stop_soon;
++
++  if (!enable_first_break ())
+     {
+       warning (_("shared library handler failed to enable breakpoint"));
+       return;
+@@ -432,9 +725,9 @@
+      the PC as necessary after a breakpoint, disable the breakpoint, and
+      add any shared libraries that were mapped in.  */
+ 
+-  if (!disable_break ())
++  if (!disable_first_break ())
+     {
+-      warning (_("shared library handler failed to disable breakpoint"));
++      warning (_("shared library handler failed to disable first breakpoint"));
+     }
+ 
+   /* solib_add will call reinit_frame_cache.
+@@ -445,6 +738,18 @@
+      suppresses the warning.  */
+   solib_add ((char *) 0, 0, (struct target_ops *) 0, auto_solib_add);
+   inf->control.stop_soon = NO_STOP_QUIETLY;
++  if (info_verbose) {
++    printf_unfiltered("DH: Finished hook initial break hook init\n");
++  }
++
++  inf->control.stop_soon = orig_stop_soon;
++  info = get_irix_info ();
++
++  if (!enable_dynamic_break (info, from_tty))
++    {
++      warning (_("shared library handler failed to enable dynamic breakpoint"));
++      return;
++    }
+ }
+ 
+ /* Implement the "current_sos" target_so_ops method.  */
+@@ -512,7 +817,7 @@
+ 			      name_size, &errcode);
+ 	  if (errcode != 0)
+ 	    warning (_("Can't read pathname for load map: %s."),
+-		       safe_strerror (errcode));
++		     safe_strerror (errcode));
+ 	  else
+ 	    {
+ 	      strncpy (new->so_name, name_buf, name_size);
+@@ -627,14 +932,6 @@
+   debug_base = 0;
+ }
+ 
+-/* Return 1 if PC lies in the dynamic symbol resolution code of the
+-   run time loader.  */
+-static int
+-irix_in_dynsym_resolve_code (CORE_ADDR pc)
+-{
+-  return 0;
+-}
+-
+ struct target_so_ops irix_so_ops;
+ 
+ /* Provide a prototype to silence -Wmissing-prototypes.  */
+@@ -643,6 +940,8 @@
+ void
+ _initialize_irix_solib (void)
+ {
++  solib_irix_pspace_data =
++    register_program_space_data_with_cleanup (NULL, irix_pspace_data_cleanup);
+   irix_so_ops.relocate_section_addresses = irix_relocate_section_addresses;
+   irix_so_ops.free_so = irix_free_so;
+   irix_so_ops.clear_solib = irix_clear_solib;
+@@ -652,4 +951,5 @@
+   irix_so_ops.open_symbol_file_object = irix_open_symbol_file_object;
+   irix_so_ops.in_dynsym_resolve_code = irix_in_dynsym_resolve_code;
+   irix_so_ops.bfd_open = solib_bfd_open;
++  irix_so_ops.same = irix_same;
+ }
+diff -u -r gdb-7.6.2-orig/gdb/solib-irix.h gdb-7.6.2/gdb/solib-irix.h
+--- gdb-7.6.2-orig/gdb/solib-irix.h	2013-12-08 04:11:51.000000000 +0000
++++ gdb-7.6.2/gdb/solib-irix.h	2020-10-24 10:59:08.656802840 +0000
+@@ -23,4 +23,6 @@
+ struct target_so_ops;
+ extern struct target_so_ops irix_so_ops;
+ 
++extern int irix_in_dynsym_resolve_code (CORE_ADDR pc);
++
+ #endif /* solib-irix.h */
+diff -u -r gdb-7.6.2-orig/gdb/solib.c gdb-7.6.2/gdb/solib.c
+--- gdb-7.6.2-orig/gdb/solib.c	2013-12-08 04:33:14.000000000 +0000
++++ gdb-7.6.2/gdb/solib.c	2020-10-24 10:59:08.660014840 +0000
+@@ -872,6 +872,9 @@
+ 	   struct target_ops *target, int readsyms)
+ {
+   struct so_list *gdb;
++  
++  if (info_verbose)
++    printf("DH: solib_add called\n");
+ 
+   current_program_space->solib_add_generation++;
+ 
+diff -u -r gdb-7.6.2-orig/gdb/symfile.c gdb-7.6.2/gdb/symfile.c
+--- gdb-7.6.2-orig/gdb/symfile.c	2013-12-08 04:33:14.000000000 +0000
++++ gdb-7.6.2/gdb/symfile.c	2020-10-24 10:59:08.666148760 +0000
+@@ -1230,6 +1230,9 @@
+                           struct section_addr_info *addrs,
+                           int flags, struct objfile *parent)
+ {
++  const char *name = bfd_get_filename (abfd);
++  if (info_verbose)
++    printf("DH: symbol_file_add_from_bdf of %s\n", name);
+   return symbol_file_add_with_addrs_or_offsets (abfd, add_flags, addrs, 0, 0,
+                                                 flags, parent);
+ }
+@@ -1243,6 +1246,8 @@
+ 		 int flags)
+ {
+   bfd *bfd = symfile_bfd_open (name);
++  if (info_verbose)
++    printf("DH: symbol_file_add of %s\n", name);
+   struct cleanup *cleanup = make_cleanup_bfd_unref (bfd);
+   struct objfile *objf;
+ 
+diff -u -r gdb-7.6.2-orig/include/gdb/signals.def gdb-7.6.2/include/gdb/signals.def
+--- gdb-7.6.2-orig/include/gdb/signals.def	2013-12-08 04:33:14.000000000 +0000
++++ gdb-7.6.2/include/gdb/signals.def	2020-10-24 10:59:08.680948200 +0000
+@@ -194,7 +194,17 @@
+ SET (TARGET_EXC_SOFTWARE, 149, "EXC_SOFTWARE", "Software generated exception")
+ SET (TARGET_EXC_BREAKPOINT, 150, "EXC_BREAKPOINT", "Breakpoint")
+ 
++/* IRIX BITS */
++SET (GDB_SIGNAL_K32, 151, "SIGK32", "Reserved for kernel usage")
++SET (GDB_SIGNAL_CKPT, 152, "SIGCKPT", "Checkpoint warning")
++SET (GDB_SIGNAL_RESTART, 153, "SIGRESTART", "Restart warning")
++SET (GDB_SIGNAL_PTINTR, 154, "SIGPRTINTR", "Pthread interrupt")
++SET (GDB_SIGNAL_PTRESCHED, 155, "SIGPTRESCHED", "Pthread reschedule")
++SET (GDB_SIGNAL_RTMIN, 156, "SIGRTMIN", "Posix rtmin")
++SET (GDB_SIGNAL_RTMAX, 157, "SIGRTMAX", "Posix rtmax")
++/* END IRIX BITS */
++
+ /* If you are adding a new signal, add it just above this comment.  */
+ 
+ /* Last and unused enum value, for sizing arrays, etc.  */
+-SET (GDB_SIGNAL_LAST, 151, NULL, "GDB_SIGNAL_MAGIC")
++SET (GDB_SIGNAL_LAST, 158, NULL, "GDB_SIGNAL_MAGIC")
+diff -u -r gdb-7.6.2-orig/libiberty/mkstemps.c gdb-7.6.2/libiberty/mkstemps.c
+--- gdb-7.6.2-orig/libiberty/mkstemps.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/libiberty/mkstemps.c	2020-10-24 10:59:08.683043000 +0000
+@@ -16,6 +16,8 @@
+    write to the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
+    Boston, MA 02110-1301, USA.  */
+ 
++#include <sys/time.h>
++
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #endif
+diff -u -r gdb-7.6.2-orig/libiberty/strsignal.c gdb-7.6.2/libiberty/strsignal.c
+--- gdb-7.6.2-orig/libiberty/strsignal.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/libiberty/strsignal.c	2020-10-24 10:59:08.685115960 +0000
+@@ -20,6 +20,7 @@
+ 
+ #include <stdio.h>
+ #include <signal.h>
++#include <sys/signal.h>
+ 
+ /*  Routines imported from standard C runtime libraries. */
+ 
+@@ -248,6 +249,8 @@
+ #else
+ #ifdef _NSIG
+ static int sys_nsig = _NSIG;
++#else
++static int sys_nsig = NUMSIGS;
+ #endif
+ #endif
+ extern const char * const sys_siglist[];
+diff -u -r gdb-7.6.2-orig/libiberty/timeval-utils.c gdb-7.6.2/libiberty/timeval-utils.c
+--- gdb-7.6.2-orig/libiberty/timeval-utils.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/libiberty/timeval-utils.c	2020-10-24 10:59:08.686599080 +0000
+@@ -17,6 +17,8 @@
+ write to the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
+ Boston, MA 02110-1301, USA.  */
+ 
++#include <sys/time.h>
++
+ #include "config.h"
+ 
+ /* On some systems (such as WindISS), you must include <sys/types.h>
+diff -u -r gdb-7.6.2-orig/readline/signals.c gdb-7.6.2/readline/signals.c
+--- gdb-7.6.2-orig/readline/signals.c	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/readline/signals.c	2020-10-24 10:59:08.688727720 +0000
+@@ -21,6 +21,8 @@
+ 
+ #define READLINE_LIBRARY
+ 
++#include <sys/signal.h>
++
+ #if defined (HAVE_CONFIG_H)
+ #  include <config.h>
+ #endif
+diff -u -r gdb-7.6.2-orig/sim/common/sim-arange.h gdb-7.6.2/sim/common/sim-arange.h
+--- gdb-7.6.2-orig/sim/common/sim-arange.h	2013-12-08 04:11:52.000000000 +0000
++++ gdb-7.6.2/sim/common/sim-arange.h	2020-10-24 10:59:46.457677640 +0000
+@@ -62,7 +62,7 @@
+ 
+ /* Return non-zero if ADDR is in range AR, traversing the entire tree.
+    If no range is specified, that is defined to mean "everything".  */
+-extern INLINE int
++static INLINE int
+ sim_addr_range_hit_p (ADDR_RANGE * /*ar*/, address_word /*addr*/);
+ #define ADDR_RANGE_HIT_P(ar, addr) \
+   ((ar)->range_tree == NULL || sim_addr_range_hit_p ((ar), (addr)))

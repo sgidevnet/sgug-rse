@@ -61,8 +61,8 @@ make check
 %{_bindir}/createfp
 
 %changelog
-* Sun May 17 2020  Alexander Tafarte <notes2@gmx.de> - 3.4.5-6
-- compiles on Irix 6.5 with sgug-rse gcc 9.2, all tests passed.
+* Tue Sep 29 2020  HAL <notes2@gmx.de> - 3.4.5-5
+- compiles on Irix 6.5 with sgug-rse gcc 9.2 passing all tests.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.5-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

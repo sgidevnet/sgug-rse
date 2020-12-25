@@ -1,0 +1,32 @@
+diff -u -r modulemd-2.9.3-orig/modulemd/modulemd-compression.c modulemd-2.9.3/modulemd/modulemd-compression.c
+--- modulemd-2.9.3-orig/modulemd/modulemd-compression.c	2020-04-08 15:38:27.207601000 +0000
++++ modulemd-2.9.3/modulemd/modulemd-compression.c	2020-08-29 14:50:34.180781280 +0000
+@@ -82,6 +82,20 @@
+   /* No known suffix? Try using libmagic from file-utils */
+   const char *mime_type;
+   g_auto (magic_t) magic = NULL;
++#if defined(__sgi)
++  int magic_fd = fcntl (fd, F_DUPFD, 0);
++  int clo_exec_rt = fcntl (magic_fd, FD_CLOEXEC, 0);
++  int err = errno;
++  if (magic_fd < 0 || clo_exec_rt < 0)
++    {
++      g_set_error (error,
++                   MODULEMD_ERROR,
++                   MMD_ERROR_MAGIC,
++                   "Could not dup() the file descriptor: %s",
++                   g_strerror (err));
++      return MODULEMD_COMPRESSION_TYPE_DETECTION_FAILED;
++    }
++#else
+   int magic_fd = fcntl (fd, F_DUPFD_CLOEXEC, 0);
+   int err = errno;
+   if (magic_fd < 0)
+@@ -93,6 +107,7 @@
+                    g_strerror (err));
+       return MODULEMD_COMPRESSION_TYPE_DETECTION_FAILED;
+     }
++#endif
+ 
+   magic = magic_open (MAGIC_MIME);
+   if (magic == NULL)

@@ -1,23 +1,21 @@
-%global VER 6.9.10
-%global Patchlevel 67
+%global VER 6.9.11
+%global Patchlevel 22
 
 Name:		ImageMagick
 %if 0%{?fedora} >= 27
 # ImageMagick 7 was briefly sent to Fedora 27 and Rawhide in 2017;
 # the epoch was necessary to downgrade them back to 6.
-Epoch:		1
+Epoch:		2
 %else
 Epoch:		0
 %endif
 Version:	%{VER}.%{Patchlevel}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	An X application for displaying and manipulating images
 
 License:	ImageMagick
 Url:		http://www.imagemagick.org/
 Source0:	https://www.imagemagick.org/download/%{name}-%{VER}-%{Patchlevel}.tar.xz
-
-Patch0:		ImageMagick-6.9.9-3-multiarch-implicit-pkgconfig-dir.patch
 
 BuildRequires:	bzip2-devel, freetype-devel, libjpeg-devel, libpng-devel
 BuildRequires:	libtiff-devel, giflib-devel, zlib-devel, perl-devel >= 5.8.1
@@ -28,16 +26,16 @@ BuildRequires:	perl-generators
 #BuildRequires:	ghostscript-devel
 %endif
 #BuildRequires:	djvulibre-devel
-#BuildRequires:	libwmf-devel, jasper-devel, libtool-ltdl-devel
+BuildRequires:	libwmf-devel, jasper-devel, libtool-ltdl-devel
 BuildRequires:	libX11-devel, libXext-devel, libXt-devel
-#BuildRequires:	lcms2-devel, libxml2-devel, librsvg2-devel
-#BuildRequires:	fftw-devel, ilmbase-devel, OpenEXR-devel, libwebp-devel
+BuildRequires:	lcms2-devel, libxml2-devel, librsvg2-devel
+BuildRequires:	fftw-devel, ilmbase-devel, OpenEXR-devel, libwebp-devel
 BuildRequires:	jbigkit-devel
-#BuildRequires:	openjpeg2-devel >= 2.1.0
-#BuildRequires:  graphviz-devel >= 2.9.0
-#BuildRequires:  libraqm-devel
-#BuildRequires:  liblqr-1-devel
-BuildRequires:  LibRaw-devel >= 0.14.8
+BuildRequires:	openjpeg2-devel >= 2.1.0
+BuildRequires:	graphviz-devel >= 2.9.0
+BuildRequires:	libraqm-devel
+BuildRequires:	liblqr-1-devel
+BuildRequires:	LibRaw-devel >= 0.14.8
 BuildRequires:	autoconf automake gcc gcc-c++
 
 Requires:	%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
@@ -61,14 +59,6 @@ ImageMagick-devel as well.
 %package devel
 Summary:	Library links and header files for ImageMagick app development
 Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
-%if 0%{?fedora} > 27
-Requires:	libgs-devel
-%else
-#Requires:	ghostscript-devel
-%endif
-Requires:	libX11-devel, libXext-devel, libXt-devel
-#Requires:	bzip2-devel, freetype-devel, libtiff-devel, libjpeg-devel, lcms2-devel
-#Requires:	libwebp-devel, OpenEXR-devel, jasper-devel, pkgconfig
 Requires:	%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description devel
@@ -111,7 +101,7 @@ http://www.imagemagick.org/
 %package perl
 Summary: ImageMagick perl bindings
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
-#Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+#Requires: perl(:MODULE_COMPAT_#%%(eval "`#%%{__perl} -V:version`"; echo $version))
 
 %description perl
 Perl bindings to ImageMagick.
@@ -152,9 +142,6 @@ however.
 %prep
 %setup -q -n %{name}-%{VER}-%{Patchlevel}
 
-%patch0 -p1 -b .multiarch-implicit-pkgconfig-dir
-
-
 # for %%doc
 mkdir Magick++/examples
 cp -p Magick++/demo/*.cpp Magick++/demo/*.miff Magick++/examples
@@ -167,26 +154,27 @@ export CFLAGS="%{optflags} -DIMPNG_SETJMP_IS_THREAD_SAFE"
 %configure \
 	--enable-shared \
 	--disable-static \
-	--with-modules \
 	--with-perl \
 	--with-x \
 	--with-threads \
 	--with-magick_plus_plus \
 	--with-gslib \
-	--with-wmif 
-#	--with-webp \
-#	--with-openexr \
-#	--with-rsvg \
-#	--with-xml \
-#	--with-perl-options="INSTALLDIRS=vendor %{?perl_prefix} CC='%__cc -L$PWD/magick/.libs' LDDLFLAGS='-shared -L$PWD/magick/.libs'" \
-#	--without-dps \
-#	--without-gcc-arch \
-#	--with-jbig \
-#	--with-openjp2 \
-#	--with-raw 
-#	--with-lqr \
+	--with-wmf \
+        --with-raqm \
+	--with-openexr \
+        --with-rsvg \
+	--with-raw \
+	--with-xml \
+	--with-perl-options="INSTALLDIRS=vendor %{?perl_prefix} CC='%__cc -L$PWD/magick/.libs' LDDLFLAGS='-shared -L$PWD/magick/.libs'" \
+	--without-dps \
+        --with-webp \
+	--with-jbig \
+	--with-openjp2 \
+	--with-lqr 
 #	--with-gvc \
-#	--with-raqm
+#        --without-gcc-arch \
+#        --with-modules \
+
 
 # Do *NOT* use %%{?_smp_mflags}, this causes PerlMagick to be silently misbuild
 make
@@ -213,24 +201,24 @@ find %{buildroot} -name "perllocal.pod" |xargs rm -f
 echo "%defattr(-,root,root,-)" > perl-pkg-files
 find %{buildroot}/%{_libdir}/perl* -type f -print \
 	| sed "s@^%{buildroot}@@g" > perl-pkg-files
-# find %{buildroot}%{perl_vendorarch} -type d -print \
-#	| sed "s@^%{buildroot}@%dir @g" \
-#	| grep -v '^%dir %{perl_vendorarch}$' \
-#	| grep -v '/auto$' >> perl-pkg-files
-#if [ -z perl-pkg-files ] ; then
-#	echo "ERROR: EMPTY FILE LIST"
-#	exit -1
-#fi
+find %{buildroot}%{perl_vendorarch} -type d -print \
+	| sed "s@^%{buildroot}@%dir @g" \
+	| grep -v '^%dir %{perl_vendorarch}$' \
+	| grep -v '/auto$' >> perl-pkg-files
+if [ -z perl-pkg-files ] ; then
+	echo "ERROR: EMPTY FILE LIST"
+	exit -1
+fi
 
 # fix multilib issues: Rename provided file with platform-bits in name.
 # Create platform independant file inplace of provided and conditionally include required.
 # $1 - filename.h to process.
-function multilibFileVersions(){
-mv $1 ${1%%.h}-%{__isa_bits}.h
+#function multilibFileVersions(){
+#mv $1 ${1%%.h}-%{__isa_bits}.h
 
-local basename=$(basename $1)
+#local basename=$(basename $1)
 
-cat >$1 <<EOF
+#cat >$1 <<EOF
 #include <bits/wordsize.h>
 
 #if __WORDSIZE == 32
@@ -240,12 +228,12 @@ cat >$1 <<EOF
 #else
 # error "unexpected value for __WORDSIZE macro"
 #endif
-EOF
-}
+#EOF
+#}
 
-multilibFileVersions %{buildroot}%{_includedir}/%{name}-6/magick/magick-config.h
-multilibFileVersions %{buildroot}%{_includedir}/%{name}-6/magick/magick-baseconfig.h
-multilibFileVersions %{buildroot}%{_includedir}/%{name}-6/magick/version.h
+#multilibFileVersions %{buildroot}%{_includedir}/%{name}-6/magick/magick-config.h
+#multilibFileVersions %{buildroot}%{_includedir}/%{name}-6/magick/magick-baseconfig.h
+#multilibFileVersions %{buildroot}%{_includedir}/%{name}-6/magick/version.h
 
 
 %check
@@ -268,7 +256,7 @@ rm PerlMagick/demo/Generic.ttf
 %{_libdir}/libMagickWand-6.Q16.so.6*
 %{_libdir}/%{name}-%{VER}
 %{_datadir}/%{name}-6
-#%%exclude %{_libdir}/%{name}-%{VER}/modules-Q16/coders/djvu.*
+%exclude %{_libdir}/%{name}-%{VER}/modules-Q16/coders/djvu.*
 %dir %{_sysconfdir}/%{name}-6
 %config(noreplace) %{_sysconfdir}/%{name}-6/*.xml
 
@@ -296,7 +284,7 @@ rm PerlMagick/demo/Generic.ttf
 %{_mandir}/man1/MagickWand-config.*
 
 #%%files djvu
-#%%{_libdir}/%{name}-%{VER}/modules-Q16/coders/djvu.*
+#%%{_libdir}/#%%{name}-#%%{VER}/modules-Q16/coders/djvu.*
 
 %files doc
 %doc %{_datadir}/doc/%{name}-6
@@ -325,6 +313,37 @@ rm PerlMagick/demo/Generic.ttf
 %doc PerlMagick/demo/ PerlMagick/Changelog PerlMagick/README.txt
 
 %changelog
+* Mon Aug 31 2020  HAL <notes2@gmx.de> - 1:6.9.11.22-2
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
+* Mon Jun 29 2020 Michael Cronenworth <mike@cchtml.com> - 1:6.9.11.22-1
+- Update to 6.9.11.22
+
+* Sat Jun 27 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1:6.9.11.21-2
+- Perl 5.32 re-rebuild updated packages
+
+* Thu Jun 25 2020 Michael Cronenworth <mike@cchtml.com> - 1:6.9.11.21-1
+- Update to 6.9.11.21
+
+* Mon Jun 22 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1:6.9.11.16-2
+- Perl 5.32 rebuild
+
+* Wed Jun 03 2020 Michael Cronenworth <mike@cchtml.com> - 1:6.9.11.16-1
+- Update to 6.9.11.16
+- Drop extra BRs on -devel package (RHBZ#1835344)
+
+* Mon May 11 2020 Gwyn Ciesla <gwync@protonmail.com> - 1:6.9.10.86-3
+- Rebuild for new LibRaw
+
+* Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1:6.9.10.86-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
+* Mon Jan 13 2020 Michael Cronenworth <mike@cchtml.com> - 1:6.9.10.86-1
+- Update to 6.9.10.86
+
+* Tue Nov 26 2019 Michael Cronenworth <mike@cchtml.com> - 1:6.9.10.75-1
+- Update to 6.9.10.75
+
 * Fri Oct 04 2019 Pete Walter <pwalter@fedoraproject.org> - 1:6.9.10.67-1
 - Update to 6.9.10.67
 

@@ -9,7 +9,7 @@
 Summary:	C++ user interface toolkit
 Name:		fltk
 Version:	1.3.5
-Release:	4%{?dist}
+Release:	5%{?dist}
 
 # see COPYING (or http://www.fltk.org/COPYING.php ) for exceptions details
 License:	LGPLv2+ with exceptions	
@@ -190,6 +190,9 @@ rm -rv $RPM_BUILD_ROOT%{_mandir}/cat*
 
 
 %changelog
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.5-5
+- Rebuild for jpegturbo
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.3.5-4
 - Move over to sgug-rse libX11
 

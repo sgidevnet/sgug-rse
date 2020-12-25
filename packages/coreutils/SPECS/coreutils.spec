@@ -1,10 +1,16 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%else
 # This package is able to use optimised linker flags.
 %global build_ldflags %{sgug_optimised_ldflags}
+%endif
 
 Summary: A set of basic GNU tools commonly used in shell scripts
 Name:    coreutils
 Version: 8.30
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Url:     https://www.gnu.org/software/coreutils/
 Source0: https://ftp.gnu.org/gnu/%{name}/%{name}-%{version}.tar.xz
@@ -75,7 +81,7 @@ Conflicts: coreutils-single
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: gcc
-BuildRequires: gettext-devel
+BuildRequires: gettext-devel >= 0.19.8.1-4
 BuildRequires: gmp-devel
 #BuildRequires: hostname
 #BuildRequires: libacl-devel
@@ -118,16 +124,16 @@ the old GNU fileutils, sh-utils, and textutils packages.
 #%package single
 #Summary:  coreutils multicall binary
 #Suggests: coreutils-common
-#Provides: coreutils = %{version}-%{release}
-#Provides: coreutils%{?_isa} = %{version}-%{release}
-#%include %{SOURCE51}
+#Provides: coreutils = %%{version}-%%{release}
+#Provides: coreutils%%{?_isa} = %%{version}-%%{release}
+#%%include %%{SOURCE51}
 ## To avoid clobbering installs
 #Conflicts: coreutils < 8.24-100
 ## Note RPM doesn't support separate buildroots for %files
 ## http://rpm.org/ticket/874 so use RemovePathPostfixes
 ## (new in rpm 4.13) to support separate file sets.
 #RemovePathPostfixes: .single
-#%description single
+#%%description single
 #These are the GNU core utilities,
 #packaged as a single multicall binary.
 
@@ -159,8 +165,14 @@ find tests -name '*.sh' -perm 0644 -print -exec chmod 0755 '{}' '+'
 autoreconf -fiv
 
 %build
+#%%{expand:%%global optflags %%{optflags} -D_GNU_SOURCE=1}
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -Og -fno-strict-aliasing -fpic"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%else
 export CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing -fpic"
-%{expand:%%global optflags %{optflags} -D_GNU_SOURCE=1}
+%endif
 #for type in separate single; do
 for type in separate; do
   mkdir $type && \
@@ -240,18 +252,18 @@ rm -f $RPM_BUILD_ROOT%{_bindir}/stty
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/stty.1.gz
 
 %files -f supported_utils
-#exclude %{_bindir}/*.single
+#exclude %%{_bindir}/*.single
 %dir %{_libexecdir}/coreutils
 %{_libexecdir}/coreutils/*.so
 
-#%files single
-#%{_bindir}/*.single
-#%{_sbindir}/chroot.single
-#%dir %{_libexecdir}/coreutils
-#%{_libexecdir}/coreutils/*.so.single
+#%%files single
+#%%{_bindir}/*.single
+#%%{_sbindir}/chroot.single
+#%%dir %%{_libexecdir}/coreutils
+#%%{_libexecdir}/coreutils/*.so.single
 ## duplicate the license because coreutils-common does not need to be installed
-#%{!?_licensedir:%global license %%doc}
-#%license COPYING
+#%%{!?_licensedir:%%global license %%doc}
+#%%license COPYING
 
 %files common -f %{name}.lang
 %config(noreplace) %{_sysconfdir}/DIR_COLORS*
@@ -263,6 +275,9 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man1/stty.1.gz
 %license COPYING
 
 %changelog
+* Sun Oct 04 2020 Daniel Hams <daniel.hams@gmail.com> - 8.30-7
+- Reenable nls now we have a fixed libiconv and gettext
+
 * Tue Jul 14 2020 Daniel Hams <daniel.hams@gmail.com> - 8.30-6
 - Stop using include which breaks ability to parse the spec with tooling
 

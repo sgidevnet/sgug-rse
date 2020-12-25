@@ -50,8 +50,8 @@ make install DESTDIR=$RPM_BUILD_ROOT
 # We intentionally don't ship *.la files
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 
-#%ldconfig_post
-#%ldconfig_postun
+#%%ldconfig_post
+#%%ldconfig_postun
 
 %files
 %doc AUTHORS COPYING
@@ -63,7 +63,7 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 %{_includedir}/X11/extensions/Xvlib.h
 %{_libdir}/libXv.so
 %{_libdir}/pkgconfig/xv.pc
-#%dir %{_mandir}/man3x
+#%%dir %{_mandir}/man3x
 %{_mandir}/man3/*.3*
 
 %changelog

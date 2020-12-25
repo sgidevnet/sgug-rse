@@ -1,0 +1,39 @@
+diff -Naur netsurf-all-3.9.orig/netsurf/content/urldb.c netsurf-all-3.9/netsurf/content/urldb.c
+--- netsurf-all-3.9.orig/netsurf/content/urldb.c	2019-07-17 08:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/content/urldb.c	2020-09-06 21:02:58.174783440 +0000
+@@ -656,11 +656,6 @@
+ 	size_t host_len = strlen(host);
+ 	const char *sane_host;
+ 	const char *slash;
+-#ifndef NO_IPV6
+-	struct in6_addr ipv6;
+-	char ipv6_addr[64];
+-	unsigned int ipv6_addr_len;
+-#endif
+ 	/**
+ 	 * @todo FIXME Some parts of urldb.c make confusions between hosts
+ 	 * and "prefixes", we can sometimes be erroneously passed more than
+@@ -714,23 +709,6 @@
+ 			goto out_false;
+ 	}
+ 
+-#ifndef NO_IPV6
+-	if ((host_len < 6) ||
+-	    (sane_host[0] != '[') ||
+-	    (sane_host[host_len - 1] != ']')) {
+-		goto out_false;
+-	}
+-
+-	ipv6_addr_len = host_len - 2;
+-	if (ipv6_addr_len >= sizeof(ipv6_addr)) {
+-		ipv6_addr_len = sizeof(ipv6_addr) - 1;
+-	}
+-	strncpy(ipv6_addr, sane_host + 1, ipv6_addr_len);
+-	ipv6_addr[ipv6_addr_len] = '\0';
+-
+-	if (inet_pton(AF_INET6, ipv6_addr, &ipv6) == 1)
+-		goto out_true;
+-#endif
+ 
+ out_false:
+ 	if (slash != NULL) free((void *)sane_host);

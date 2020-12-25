@@ -1,0 +1,35 @@
+[updates-testing-modular]
+name=Sgugrse Modular $releasever - $basearch - Test Updates
+#baseurl=http://download.example/pub/sgugrse/linux/updates/testing/$releasever/Modular/$basearch/
+metalink=https://mirrors.sgugrsetest.org/metalink?repo=updates-testing-modular-f$releasever&arch=$basearch
+enabled=0
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+metadata_expire=6h
+gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False
+
+[updates-testing-modular-debuginfo]
+name=Sgugrse Modular $releasever - $basearch - Test Updates Debug
+#baseurl=http://download.example/pub/sgugrse/linux/updates/$releasever/Modular/$basearch/debug/
+metalink=https://mirrors.sgugrsetest.org/metalink?repo=updates-testing-modular-debug-f$releasever&arch=$basearch
+enabled=0
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+metadata_expire=6h
+gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False
+
+[updates-testing-modular-source]
+name=Sgugrse Modular $releasever - Test Updates Source
+#baseurl=http://download.example/pub/sgugrse/linux/updates/$releasever/Modular/SRPMS/
+metalink=https://mirrors.sgugrsetest.org/metalink?repo=updates-testing-modular-source-f$releasever&arch=$basearch
+enabled=0
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+metadata_expire=6h
+gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False

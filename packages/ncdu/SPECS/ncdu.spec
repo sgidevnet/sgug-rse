@@ -23,7 +23,7 @@ and provides a fast way to see what directories are using your disk space.
 %build
 export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 export DEFAULT_SHELL="%{_bindir}/sh"
-%configure --with-ncurses --with-shell=$DEFAULT_SHELL
+%configure --with-ncursesw --with-shell=$DEFAULT_SHELL
 make %{?_smp_mflags}
 
 %install

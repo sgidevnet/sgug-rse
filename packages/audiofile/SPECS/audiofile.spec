@@ -3,7 +3,7 @@
 Summary: Library for accessing various audio file formats
 Name: audiofile
 Version: 0.3.6
-Release: 23%{?dist}
+Release: 24%{?dist}
 Epoch: 1
 # library is LGPL / the two programs GPL / see README
 License: LGPLv2+ and GPLv2+
@@ -65,7 +65,9 @@ other resources you can use to develop Audio File applications.
 #exit 1
 
 %build
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+# Due to C++ issues, we can't use libdicl headers via CPPFLAGS or CXXFLAGS
+# ONLY expose libdicl to the C compilations
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 autoreconf -f -i
 %configure
@@ -103,6 +105,9 @@ make check
 %{_mandir}/man3/*
 
 %changelog
+* Mon Doc 08 2020 Daniel Hams <daniel.hams@gmail.com> - 1:0.3.6-24
+- Bug fix to libdicl rewriting C++ ::open calls
+
 * Sun Jul 26 2020 Daniel Hams <daniel.hams@gmail.com> - 1:0.3.6-23
 - Upgrade to version in fc31, all tests passing.
 

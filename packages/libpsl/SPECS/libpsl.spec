@@ -15,7 +15,7 @@ BuildRequires:  libunistring-devel
 BuildRequires:  libxslt
 BuildRequires:  publicsuffix-list
 BuildRequires:  python3-devel
-#Requires:       publicsuffix-list-dafsa
+Requires:       publicsuffix-list-dafsa
 
 %description
 libpsl is a C library to handle the Public Suffix List. A "public suffix" is a

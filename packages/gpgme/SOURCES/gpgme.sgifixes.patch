@@ -1,0 +1,104 @@
+diff -u -r gpgme-1.13.1-orig/src/ath.c gpgme-1.13.1/src/ath.c
+--- gpgme-1.13.1-orig/src/ath.c	2019-06-07 09:21:18.000000000 +0000
++++ gpgme-1.13.1/src/ath.c	2020-08-18 11:08:01.355211080 +0000
+@@ -135,22 +135,22 @@
+ 
+ 
+ int
+-ath_sendmsg (int s, const struct msghdr *msg, int flags)
++ath_sendmsg (int s, const struct xpg5_msghdr *msg, int flags)
+ {
+ #ifdef HAVE_W32_SYSTEM
+   return -1; /* Not supported. */
+ #else
+-  return sendmsg (s, msg, flags);
++  return _xpg5_sendmsg (s, msg, flags);
+ #endif
+ }
+ 
+ 
+ int
+-ath_recvmsg (int s, struct msghdr *msg, int flags)
++ath_recvmsg (int s, struct xpg5_msghdr *msg, int flags)
+ {
+ #ifdef HAVE_W32_SYSTEM
+   return -1; /* Not supported. */
+ #else
+-  return recvmsg (s, msg, flags);
++  return _xpg5_recvmsg (s, msg, flags);
+ #endif
+ }
+diff -u -r gpgme-1.13.1-orig/src/ath.h gpgme-1.13.1/src/ath.h
+--- gpgme-1.13.1-orig/src/ath.h	2019-06-07 09:21:18.000000000 +0000
++++ gpgme-1.13.1/src/ath.h	2020-08-18 11:07:31.695990120 +0000
+@@ -79,7 +79,7 @@
+ gpgme_ssize_t ath_waitpid (pid_t pid, int *status, int options);
+ int ath_accept (int s, struct sockaddr *addr, socklen_t *length_ptr);
+ int ath_connect (int s, const struct sockaddr *addr, socklen_t length);
+-int ath_sendmsg (int s, const struct msghdr *msg, int flags);
+-int ath_recvmsg (int s, struct msghdr *msg, int flags);
++int ath_sendmsg (int s, const struct xpg5_msghdr *msg, int flags);
++int ath_recvmsg (int s, struct xpg5_msghdr *msg, int flags);
+ 
+ #endif	/* ATH_H */
+diff -u -r gpgme-1.13.1-orig/src/posix-io.c gpgme-1.13.1/src/posix-io.c
+--- gpgme-1.13.1-orig/src/posix-io.c	2019-06-13 07:45:22.000000000 +0000
++++ gpgme-1.13.1/src/posix-io.c	2020-08-18 11:07:31.698231640 +0000
+@@ -805,7 +805,7 @@
+ 
+ 
+ int
+-_gpgme_io_recvmsg (int fd, struct msghdr *msg, int flags)
++_gpgme_io_recvmsg (int fd, struct xpg5_msghdr *msg, int flags)
+ {
+   int nread;
+   int saved_errno;
+@@ -848,7 +848,7 @@
+ 
+ 
+ int
+-_gpgme_io_sendmsg (int fd, const struct msghdr *msg, int flags)
++_gpgme_io_sendmsg (int fd, const struct xpg5_msghdr *msg, int flags)
+ {
+   int nwritten;
+   struct iovec *iov;
+diff -u -r gpgme-1.13.1-orig/src/posix-util.c gpgme-1.13.1/src/posix-util.c
+--- gpgme-1.13.1-orig/src/posix-util.c	2019-06-07 09:21:18.000000000 +0000
++++ gpgme-1.13.1/src/posix-util.c	2020-08-18 11:07:31.699483880 +0000
+@@ -109,6 +109,7 @@
+       strcpy (p, pgm);
+       if (!access (fname, X_OK))
+         return fname;
++      errno = 0;
+       if (!*s)
+         break;
+       path = s + 1;
+diff -u -r gpgme-1.13.1-orig/src/priv-io.h gpgme-1.13.1/src/priv-io.h
+--- gpgme-1.13.1-orig/src/priv-io.h	2019-06-13 07:45:22.000000000 +0000
++++ gpgme-1.13.1/src/priv-io.h	2020-08-18 11:07:31.700813240 +0000
+@@ -109,8 +109,8 @@
+ int _gpgme_io_dup (int fd);
+ 
+ #ifndef HAVE_W32_SYSTEM
+-int _gpgme_io_recvmsg (int fd, struct msghdr *msg, int flags);
+-int _gpgme_io_sendmsg (int fd, const struct msghdr *msg, int flags);
++int _gpgme_io_recvmsg (int fd, struct xpg5_msghdr *msg, int flags);
++int _gpgme_io_sendmsg (int fd, const struct xpg5_msghdr *msg, int flags);
+ int _gpgme_io_waitpid (int pid, int hang, int *r_status, int *r_signal);
+ #endif
+ 
+diff -u -r gpgme-1.13.1-orig/tests/gpg/t-eventloop.c gpgme-1.13.1/tests/gpg/t-eventloop.c
+--- gpgme-1.13.1-orig/tests/gpg/t-eventloop.c	2018-12-03 09:37:25.000000000 +0000
++++ gpgme-1.13.1/tests/gpg/t-eventloop.c	2020-08-18 11:07:31.702223960 +0000
+@@ -19,6 +19,11 @@
+  * SPDX-License-Identifier: LGPL-2.1-or-later
+  */
+ 
++#if defined(__sgi)
++#include <time.h>
++#include <sys/time.h>
++#endif
++
+ /* We need to include config.h so that we know whether we are building
+    with large file system (LFS) support. */
+ #ifdef HAVE_CONFIG_H

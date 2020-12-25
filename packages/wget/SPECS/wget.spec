@@ -4,7 +4,7 @@
 Summary: A utility for retrieving files using the HTTP or FTP protocols
 Name: wget
 Version: 1.20.3
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Url: http://www.gnu.org/software/wget/
 Source: ftp://ftp.gnu.org/gnu/wget/wget-%{version}.tar.gz
@@ -18,6 +18,7 @@ Provides: bundled(gnulib)
 #BuildRequires: perl-HTTP-Daemon, python3
 #BuildRequires: gnutls-devel, pkgconfig, texinfo, gettext, autoconf, libidn2-devel, libuuid-devel, perl-podlators, libpsl-devel, libmetalink-devel, gpgme-devel, gcc, zlib-devel
 BuildRequires: pkgconfig, texinfo, gettext, autoconf, uuid-devel, perl-podlators, gcc, zlib-devel
+BuildRequires: libdicl-devel
 
 %description
 GNU Wget is a file retrieval utility which can use either the HTTP or
@@ -39,6 +40,8 @@ grep "PACKAGE_STRING='wget .* (Red Hat modified)'" configure || exit 1
 %autopatch -p1
 
 %build
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 
 %configure \
     --with-ssl=openssl \
@@ -79,6 +82,9 @@ make check
 %{_infodir}/*
 
 %changelog
+* Sun Oct 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1.20.3-3
+- Avoid use of buggy IRIX snprintf causing redirects to fail (use libdicl)
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.20.3-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

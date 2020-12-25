@@ -1,0 +1,47 @@
+diff -Naur libsoup-2.68.4.orig/libsoup/soup-socket.c libsoup-2.68.4/libsoup/soup-socket.c
+--- libsoup-2.68.4.orig/libsoup/soup-socket.c	2020-02-25 15:57:19.855441000 +0000
++++ libsoup-2.68.4/libsoup/soup-socket.c	2020-08-30 19:44:37.153966778 +0000
+@@ -1674,7 +1674,7 @@
+ 	if (!priv->local_addr) {
+ 		GSocketAddress *addr;
+ 		struct sockaddr_storage sa;
+-		gssize sa_len;
++		gssize ls_sa_len;
+ 		GError *error = NULL;
+ 
+ 		if (priv->gsock == NULL) {
+@@ -1688,9 +1688,9 @@
+ 			g_error_free (error);
+ 			goto unlock;
+ 		}
+-		sa_len = g_socket_address_get_native_size (addr);
+-		g_socket_address_to_native (addr, &sa, sa_len, NULL);
+-		priv->local_addr = soup_address_new_from_sockaddr ((struct sockaddr *)&sa, sa_len);
++		ls_sa_len = g_socket_address_get_native_size (addr);
++		g_socket_address_to_native (addr, &sa, ls_sa_len, NULL);
++		priv->local_addr = soup_address_new_from_sockaddr ((struct sockaddr *)&sa, ls_sa_len);
+ 		g_object_unref (addr);
+ 	}
+ unlock:
+@@ -1722,7 +1722,7 @@
+ 	if (!priv->remote_addr) {
+ 		GSocketAddress *addr;
+ 		struct sockaddr_storage sa;
+-		gssize sa_len;
++		gssize ls_sa_len;
+ 		GError *error = NULL;
+ 
+ 		if (priv->gsock == NULL) {
+@@ -1736,9 +1736,9 @@
+ 			g_error_free (error);
+ 			goto unlock;
+ 		}
+-		sa_len = g_socket_address_get_native_size (addr);
+-		g_socket_address_to_native (addr, &sa, sa_len, NULL);
+-		priv->remote_addr = soup_address_new_from_sockaddr ((struct sockaddr *)&sa, sa_len);
++		ls_sa_len = g_socket_address_get_native_size (addr);
++		g_socket_address_to_native (addr, &sa, ls_sa_len, NULL);
++		priv->remote_addr = soup_address_new_from_sockaddr ((struct sockaddr *)&sa, ls_sa_len);
+ 		g_object_unref (addr);
+ 	}
+ unlock:

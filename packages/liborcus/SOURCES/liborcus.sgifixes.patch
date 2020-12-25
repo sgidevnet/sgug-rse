@@ -1,0 +1,12 @@
+diff -Naur liborcus-0.14.1.orig/src/spreadsheet/sheet.cpp liborcus-0.14.1/src/spreadsheet/sheet.cpp
+--- liborcus-0.14.1.orig/src/spreadsheet/sheet.cpp	2018-05-27 18:18:56.000000000 +0000
++++ liborcus-0.14.1/src/spreadsheet/sheet.cpp	2020-11-01 01:19:35.634914162 +0000
+@@ -246,7 +246,7 @@
+ 
+     // First, see if this can be parsed as a number.
+     char* endptr = nullptr;
+-    double val = strtod(p, &endptr);
++    double val = ::strtod(p, &endptr);
+     const char* endptr_check = p + n;
+     if (endptr == endptr_check)
+         // Treat this as a numeric value.

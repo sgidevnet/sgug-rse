@@ -1,0 +1,10 @@
+--- tdnf-3.0.0-beta-orig/etc/tdnf/tdnf.conf	2020-12-03 20:59:20.886263200 +0000
++++ tdnf-3.0.0-beta/etc/tdnf/tdnf.conf	2020-12-03 20:59:37.716229600 +0000
+@@ -2,5 +2,5 @@
+ gpgcheck=1
+ installonly_limit=3
+ clean_requirements_on_remove=true
+-repodir=/etc/yum.repos.d
+-cachedir=/var/cache/tdnf
++repodir=/usr/sgug/etc/yum.repos.d
++cachedir=/usr/sgug/var/cache/tdnf

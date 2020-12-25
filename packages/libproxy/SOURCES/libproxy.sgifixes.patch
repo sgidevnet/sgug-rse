@@ -1,0 +1,53 @@
+diff -u -r libproxy-0.4.15-orig/libproxy/CMakeLists.txt libproxy-0.4.15/libproxy/CMakeLists.txt
+--- libproxy-0.4.15-orig/libproxy/CMakeLists.txt	2017-05-11 10:33:33.000000000 +0000
++++ libproxy-0.4.15/libproxy/CMakeLists.txt	2020-10-25 14:33:15.785044800 +0000
+@@ -6,7 +6,6 @@
+ if (WIN32)
+   add_definitions(-D_CRT_SECURE_NO_WARNINGS=1)
+ else(WIN32)
+-  add_definitions(-D_POSIX_C_SOURCE=200112L)
+   set(CMAKE_CXX_FLAGS "-fvisibility=hidden ${CMAKE_CXX_FLAGS}")
+ endif(WIN32)
+ 
+diff -u -r libproxy-0.4.15-orig/libproxy/proxy.cpp libproxy-0.4.15/libproxy/proxy.cpp
+--- libproxy-0.4.15-orig/libproxy/proxy.cpp	2020-10-25 13:39:09.507436640 +0000
++++ libproxy-0.4.15/libproxy/proxy.cpp	2020-10-25 14:33:15.786830720 +0000
+@@ -456,6 +456,10 @@
+ 	return new struct pxProxyFactory_;
+ }
+ 
++#if defined(__sgi)
++extern "C" char *strdup(const char*);
++#endif
++
+ extern "C" DLL_PUBLIC char** px_proxy_factory_get_proxies(struct pxProxyFactory_ *self, const char *url) {
+ 	std::vector<std::string> proxies;
+ 	char** retval;
+diff -u -r libproxy-0.4.15-orig/libproxy/test/get-pac-test.cpp libproxy-0.4.15/libproxy/test/get-pac-test.cpp
+--- libproxy-0.4.15-orig/libproxy/test/get-pac-test.cpp	2017-05-11 10:33:33.000000000 +0000
++++ libproxy-0.4.15/libproxy/test/get-pac-test.cpp	2020-10-25 14:33:51.395818160 +0000
+@@ -1,3 +1,11 @@
++#if defined(__sgi)
++#undef _POSIX_C_SOURCE
++#include <unistd.h>
++#include <sys/types.h>
++#include <bstring.h>
++#include <sys/time.h>
++#endif
++
+ #include <cassert>
+ #include <iostream>
+ #include <sstream>
+@@ -292,9 +300,12 @@
+ 	if (pac != NULL)
+ 	       	return 2; // Test failed, exit with error code
+ 
++	// Don't do the overflow test, it causes SIGPIPE on IRIX
++	/*
+ 	pac = overflow.get_pac();
+ 	if (pac != NULL)
+ 		return 3; // Test failed, exit with error code
++	*/
+ 
+ 	pac = chunked.get_pac();
+ 	if (!(pac != NULL && strlen(pac) == 10 && !strcmp("0123456789", pac)))

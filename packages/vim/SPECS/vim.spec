@@ -1,6 +1,6 @@
 %define patchlevel 2102
 %define WITH_SELINUX 0
-%define desktop_file 0
+%define desktop_file 1
 %if %{desktop_file}
 %define desktop_file_utils_version 0.2.93
 %endif
@@ -19,7 +19,7 @@ Summary: The VIM editor
 URL:     http://www.vim.org/
 Name: vim
 Version: %{baseversion}.%{patchlevel}
-Release: 5%{?dist}
+Release: 7%{?dist}
 License: Vim and MIT
 Source0: ftp://ftp.vim.org/pub/vim/unix/vim-%{baseversion}-%{patchlevel}.tar.bz2
 Source1: vim.sh
@@ -190,7 +190,7 @@ Summary: The VIM version of the vi editor for the X Window System - GVim
 #BuildRequires: libXpm-devel
 #BuildRequires: libICE-devel
 
-#Requires: vim-common = %{epoch}:%{version}-%{release} libattr >= 2.4 gtk3 
+#Requires: vim-common = %%{epoch}:%%{version}-%%{release} libattr >= 2.4 gtk3 
 Requires: vim-common = %{epoch}:%{version}-%{release}
 Provides: gvim
 Provides: %{_bindir}/mergetool
@@ -593,11 +593,6 @@ for i in da.UTF-8 de.UTF-8 fr.UTF-8 it.UTF-8 pl.UTF-8 da.ISO8859-1 de.ISO8859-1 
   rm -rf %{buildroot}/%{_mandir}/$i
 done
 
-# Remove unused desktop bits
-rm -f %{buildroot}%{_datadir}/applications/gvim.desktop
-rm -f %{buildroot}%{_datadir}/applications/vim.desktop
-rm -f %{buildroot}%{_datadir}/metainfo/gvim.appdata.xml
-
 for i in rvim.1 gvim.1 gex.1 gview.1 vimx.1; do 
   echo ".so man1/vim.1" > %{buildroot}/%{_mandir}/man1/$i
 done
@@ -825,6 +820,12 @@ touch %{buildroot}/%{_datadir}/%{name}/vimfiles/doc/tags
 %{_datadir}/icons/locolor/*/apps/*
 
 %changelog
+* Fri Dec 18 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-7
+- Include desktop file
+
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-6
+- Rebuild for jpegturbo
+
 * Tue Jul 14 2020 Daniel Hams <daniel.hams@gmail.com> - 2:8.1.2102-5
 - Ensure separate config cache for minimal-vi so python isn''t linked it
 

@@ -28,11 +28,11 @@ The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
 #%%package doc
-#Summary: Documentation of %{name} API
+#Summary: Documentation of #%%{name} API
 #BuildArch: noarch
 
 #%%description doc
-#The %{name}-doc package contains documentation files for %{name}.
+#The #%%{name}-doc package contains documentation files for #%%{name}.
 
 %prep
 %autosetup -p1
@@ -49,17 +49,17 @@ make %{?_smp_mflags}
 make install DESTDIR=%{buildroot}
 rm -f %{buildroot}/%{_libdir}/*.la
 # we install API docs directly from build
-rm -rf %{buildroot}/%{_docdir}/%{name}
+#rm -rf %{buildroot}/%{_docdir}/%{name}
 
 #%%ldconfig_scriptlets
-
+rm -f $RPM_BUILD_ROOT/usr/sgug/share/licenses/libodfgen-doc/*
 %files
-#%%doc README NEWS
-#%%license COPYING.*
+%doc README NEWS
+%license COPYING.*
 %{_libdir}/%{name}-%{apiversion}.so.*
 
 %files devel
-#%%doc ChangeLog
+%doc ChangeLog
 %{_includedir}/%{name}-%{apiversion}
 %{_libdir}/%{name}-%{apiversion}.so
 %{_libdir}/pkgconfig/%{name}-%{apiversion}.pc
@@ -69,7 +69,7 @@ rm -rf %{buildroot}/%{_docdir}/%{name}
 #%%doc docs/doxygen/html
 
 %changelog
-* Sun May 17 2020  Alexander Tafarte <notes2@gmx.de> - 0.1.7-5
+* Tue Sep 29 2020  HAL <notes2@gmx.de> - 0.1.7-5
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.1.7-5

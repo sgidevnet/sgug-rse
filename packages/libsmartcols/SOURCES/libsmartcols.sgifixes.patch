@@ -1,0 +1,101 @@
+diff -u -r util-linux-2.34-orig/Makefile.am util-linux-2.34/Makefile.am
+--- util-linux-2.34-orig/Makefile.am	2019-05-14 12:43:06.000503000 +0000
++++ util-linux-2.34/Makefile.am	2020-08-16 18:27:25.906549120 +0000
+@@ -72,26 +72,26 @@
+ 	po/update-potfiles \
+ 	README.licensing
+ 
+-include tools/Makemodule.am
+-include include/Makemodule.am
+-include lib/Makemodule.am
+-include libuuid/Makemodule.am
+-include libblkid/Makemodule.am
+-include libmount/Makemodule.am
++#include tools/Makemodule.am
++#include include/Makemodule.am
++#include lib/Makemodule.am
++#include libuuid/Makemodule.am
++#ninclude libblkid/Makemodule.am
++#include libmount/Makemodule.am
+ include libsmartcols/Makemodule.am
+-include libfdisk/Makemodule.am
++#include libfdisk/Makemodule.am
+ 
+-include schedutils/Makemodule.am
+-include text-utils/Makemodule.am
+-include term-utils/Makemodule.am
+-include login-utils/Makemodule.am
+-include sys-utils/Makemodule.am
+-include misc-utils/Makemodule.am
+-include disk-utils/Makemodule.am
++#include schedutils/Makemodule.am
++#include text-utils/Makemodule.am
++#include term-utils/Makemodule.am
++#include login-utils/Makemodule.am
++#include sys-utils/Makemodule.am
++#include misc-utils/Makemodule.am
++#include disk-utils/Makemodule.am
+ 
+-include bash-completion/Makemodule.am
++#include bash-completion/Makemodule.am
+ 
+-include tests/Makemodule.am
++#include tests/Makemodule.am
+ 
+ # pylibmountexec module must be installed after usrlib_exec libraries,
+ # otherwise the libtool relink step will fail to find libmount.la and
+diff -u -r util-linux-2.34-orig/include/c.h util-linux-2.34/include/c.h
+--- util-linux-2.34-orig/include/c.h	2019-05-21 14:45:49.279524000 +0000
++++ util-linux-2.34/include/c.h	2020-08-16 18:28:17.284534000 +0000
+@@ -305,10 +305,12 @@
+  */
+ static inline size_t get_hostname_max(void)
+ {
++#if !defined(__sgi)
+ 	long len = sysconf(_SC_HOST_NAME_MAX);
+ 
+ 	if (0 < len)
+ 		return len;
++#endif
+ 
+ #ifdef MAXHOSTNAMELEN
+ 	return MAXHOSTNAMELEN;
+diff -u -r util-linux-2.34-orig/include/debug.h util-linux-2.34/include/debug.h
+--- util-linux-2.34-orig/include/debug.h	2018-06-04 08:57:02.791445000 +0000
++++ util-linux-2.34/include/debug.h	2020-08-16 18:27:55.079586200 +0000
+@@ -63,7 +63,7 @@
+ #define __UL_DBG(l, p, m, x) \
+ 	do { \
+ 		if ((p ## m) & l ## _debug_mask) { \
+-			fprintf(stderr, "%d: %s: %8s: ", getpid(), # l, # m); \
++			fprintf(stderr, "%ld: %s: %8s: ", getpid(), # l, # m); \
+ 			x; \
+ 		} \
+ 	} while (0)
+@@ -94,7 +94,7 @@
+ 		if (lib ## _debug_mask) { \
+ 			if (getuid() != geteuid() || getgid() != getegid()) { \
+ 				lib ## _debug_mask |= __UL_DEBUG_FL_NOADDR; \
+-				fprintf(stderr, "%d: %s: don't print memory addresses (SUID executable).\n", getpid(), # lib); \
++				fprintf(stderr, "%ld: %s: don't print memory addresses (SUID executable).\n", getpid(), # lib); \
+ 			} \
+ 		} \
+ 		lib ## _debug_mask |= pref ## INIT; \
+diff -u -r util-linux-2.34-orig/libsmartcols/src/Makemodule.am util-linux-2.34/libsmartcols/src/Makemodule.am
+--- util-linux-2.34-orig/libsmartcols/src/Makemodule.am	2019-05-06 12:20:29.112095000 +0000
++++ util-linux-2.34/libsmartcols/src/Makemodule.am	2020-08-16 18:28:06.500297480 +0000
+@@ -23,9 +23,12 @@
+ 	libsmartcols/src/calculate.c \
+ 	libsmartcols/src/grouping.c \
+ 	libsmartcols/src/walk.c \
+-	libsmartcols/src/init.c
++	libsmartcols/src/init.c \
++	lib/color-names.c \
++	lib/mbsalign.c \
++	lib/ttyutils.c
+ 
+-libsmartcols_la_LIBADD = $(LDADD) libcommon.la
++#libsmartcols_la_LIBADD = $(LDADD) libcommon.la
+ 
+ libsmartcols_la_CFLAGS = \
+ 	$(AM_CFLAGS) \

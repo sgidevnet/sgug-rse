@@ -1,6 +1,6 @@
 Name:    mallard-rng
 Version: 1.1.0
-Release: 2%{?dist}
+Release: 4%{?dist}
 Summary: RELAX NG schemas for all Mallard versions
 
 License: MIT
@@ -8,10 +8,10 @@ URL:     http://projectmallard.org/download/
 Source0: http://projectmallard.org/download/%{name}-%{version}.tar.bz2
 
 BuildArch:        noarch
-#Requires(post):   /usr/bin/xmlcatalog
-#Requires(post):   xml-common
-#Requires(postun): /usr/bin/xmlcatalog
-#Requires(postun): xml-common
+Requires(post):   %{_bindir}/xmlcatalog
+Requires(post):   xml-common
+Requires(postun): %{_bindir}/xmlcatalog
+Requires(postun): xml-common
 
 %description
 RELAX NG schemas for all Mallard versions and extensions that have been marked
@@ -30,7 +30,7 @@ final.
 %install
 %make_install
 
-#rm -f $RPM_BUILD_ROOT/usr/sgug/share/pkgconfig/mallard-rng.pc
+
 %post
 xmlcatalog --noout --add 'nextCatalog' 'file://%{_sysconfdir}/xml/mallard/catalog' "" %{_sysconfdir}/xml/catalog &> /dev/null || :
 
@@ -50,6 +50,9 @@ xmlcatalog --noout --del 'file://%{_sysconfdir}/xml/mallard/catalog' %{_sysconfd
 
 
 %changelog
+* Sat Nov 28 2020 Daniel Hams <daniel.hams@gmail.com> - 1.1.0-4
+- Put back xmlcatalog requires
+
 * Mon May 25 2020  Alexander Tafarte <notes2@gmx.de> - 1.1.0-3
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 

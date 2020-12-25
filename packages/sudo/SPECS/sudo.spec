@@ -4,7 +4,7 @@
 Summary: Allows restricted root access for specified users
 Name: sudo
 Version: 1.8.29
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: ISC
 URL: http://www.courtesan.com/sudo/
 Source0: https://www.sudo.ws/dist/%{name}-%{version}.tar.gz
@@ -51,7 +51,6 @@ The %{name}-devel package contains header files developing sudo
 plugins that use %{name}.
 
 %prep
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 %setup -q
 
 %patch1 -p1 -b .strip
@@ -60,7 +59,7 @@ export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
 %patch102 -p1 -b .sgifixes02
 
 %build
-export CPPFLAGS="-D_SGI_SOURCES -D_SGI_REENTRANT_FUNCTIONS"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 # Remove bundled copy of zlib
 rm -rf zlib/
 autoreconf -I m4 -fv --install
@@ -223,6 +222,9 @@ rm sudo.lang sudoers.lang
 %{_mandir}/man1m/sudo_plugin.1*
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 1.8.29-4
+- Correct _SGI_SOURCES (no plural)
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.8.29-3
 - Remove hard coded shell paths
 

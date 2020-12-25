@@ -1,0 +1,23 @@
+diff -Naur evince-3.34.2.orig/libdocument/ev-file-helpers.c evince-3.34.2/libdocument/ev-file-helpers.c
+--- evince-3.34.2.orig/libdocument/ev-file-helpers.c	2019-01-31 04:03:59.000000000 +0000
++++ evince-3.34.2/libdocument/ev-file-helpers.c	2020-11-28 23:47:15.318334942 +0000
+@@ -94,7 +94,7 @@
+                 const gchar *prgname;
+ 
+                 prgname = g_get_prgname ();
+-                dirname = g_strdup_printf ("%s-%u", prgname ? prgname : "unknown", getpid ());
++                dirname = g_strdup_printf ("%s-%lu", prgname ? prgname : "unknown", getpid ());
+                 tmp_dir = g_build_filename (g_get_tmp_dir (), dirname, NULL);
+                 g_free (dirname);
+         }
+diff -Naur evince-3.34.2.orig/shell/ev-utils.c evince-3.34.2/shell/ev-utils.c
+--- evince-3.34.2.orig/shell/ev-utils.c	2019-09-29 20:04:37.000000000 +0000
++++ evince-3.34.2/shell/ev-utils.c	2020-11-28 23:48:10.964569435 +0000
+@@ -26,6 +26,7 @@
+ #include <string.h>
+ #include <math.h>
+ #include <glib/gi18n.h>
++#include <values.h>
+ 
+ typedef struct
+ {

@@ -1,45 +1,46 @@
 Name:           chrpath
 Version:        0.16
-Release:        12%{?dist}
+Release:        14%{?dist}
 Summary:        Modify rpath of compiled programs
 
 License:        GPL+
 URL:            https://chrpath.alioth.debian.org/
-Source0:	https://alioth-archive.debian.org/releases/chrpath/chrpath/%{version}/chrpath-%{version}.tar.gz
 
-BuildRequires:  gcc
-BuildRequires: libdicl-devel >= 0.1.19
-Requires: libdicl >= 0.1.26
+#Source0:	https://alioth-archive.debian.org/releases/chrpath/chrpath/%{version}/chrpath-%{version}.tar.gz
+#BuildRequires:  gcc
+#BuildRequires: libdicl-devel >= 0.1.19
+#Requires: libdicl >= 0.1.26
 
 %description
 chrpath allows you to modify the dynamic library load path (rpath) of
 compiled programs.  Currently, only removing and modifying the rpath
 is supported.
 
-%prep
-%setup -q
+chrpath does nothing on RSE: https://github.com/sgidevnet/sgug-rse/issues/145
 
-
-%build
-export CFLAGS="-I%{_includedir}/libdicl-0.1"
-export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1 -ltinfo"
-%configure
-%make_build
-
+#%build
+#export CFLAGS="-I%{_includedir}/libdicl-0.1"
+#export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1 -ltinfo"
+#%configure
+#%make_build
 
 %install
-make install DESTDIR=%{buildroot} INSTALL="install -p"
-rm -fr %{buildroot}/usr/sgug/doc
-
+mkdir -p %{buildroot}%{_bindir}
+ln -s %{_bindir}/true %{buildroot}%{_bindir}/chrpath
+#make install DESTDIR=%{buildroot} INSTALL="install -p"
+#rm -fr %{buildroot}/usr/sgug/doc
 
 %files
-%doc AUTHORS README NEWS ChangeLog*
-%license COPYING
 %{_bindir}/chrpath
-%{_mandir}/man1/chrpath.1*
+#%doc AUTHORS README NEWS ChangeLog*
+#%license COPYING
+#%{_mandir}/man1/chrpath.1*
 
 %changelog
-* Thu Jun 18 2020 David Stancu <dstancu@nyu.edu> - 0.16-12
+* Sat Nov 14 2020 David Stancu <dstancu@nyu.edu> - 0.16-14
+- Make chrpath do nothing https://github.com/sgidevnet/sgug-rse/issues/145
+
+* Thu Jun 18 2020 David Stancu <dstancu@nyu.edu> - 0.16-13
 - Rebuilt for SGI IRIX
 - Update source URL
 

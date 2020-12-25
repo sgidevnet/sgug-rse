@@ -1,0 +1,50 @@
+diff -u -r lcms2-2.9-orig/src/lcms2_internal.h lcms2-2.9/src/lcms2_internal.h
+--- lcms2-2.9-orig/src/lcms2_internal.h	2017-11-12 17:15:10.000000000 +0000
++++ lcms2-2.9/src/lcms2_internal.h	2020-10-25 10:54:51.870914440 +0000
+@@ -550,7 +550,7 @@
+     
+     cmsFloat64Number  AdaptationState;
+ 
+-} _cmsAdaptationStateChunkType;
++} _cmsAdaptationStateChunkType __attribute__ ((__aligned__(__alignof__(void *))));
+ 
+ // The global Context0 storage for adaptation state
+ extern  _cmsAdaptationStateChunkType    _cmsAdaptationStateChunk;
+diff -u -r lcms2-2.9-orig/testbed/testcms2.c lcms2-2.9/testbed/testcms2.c
+--- lcms2-2.9-orig/testbed/testcms2.c	2017-11-12 17:15:10.000000000 +0000
++++ lcms2-2.9/testbed/testcms2.c	2020-10-25 10:56:29.470675000 +0000
+@@ -5459,21 +5459,31 @@
+ static
+ cmsInt32Number CheckMultilocalizedProfile(void)
+ {
++    cmsInt32Number retVal;
+     cmsHPROFILE hProfile;
+     cmsMLU *Pt;
+     char Buffer[256];
+ 
++    retVal = TRUE;
++
+     hProfile = cmsOpenProfileFromFile("crayons.icc", "r");
+ 
+     Pt = cmsReadTag(hProfile, cmsSigProfileDescriptionTag);
+     cmsMLUgetASCII(Pt, "en", "GB", Buffer, 256);
+-    if (strcmp(Buffer, "Crayon Colours") != 0) return FALSE;
++    if (strcmp(Buffer, "Crayon Colours") != 0) {
++      retVal = FALSE;
++      goto done;
++    }
+     cmsMLUgetASCII(Pt, "en", "US", Buffer, 256);
+-    if (strcmp(Buffer, "Crayon Colors") != 0) return FALSE;
++    if (strcmp(Buffer, "Crayon Colors") != 0) {
++      retVal = FALSE;
++      goto done;
++    }
+ 
++ done:
+     cmsCloseProfile(hProfile);
+ 
+-    return TRUE;
++    return retVal;
+ }
+ 
+ 

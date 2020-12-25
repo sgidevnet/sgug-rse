@@ -1,0 +1,118 @@
+diff -Naur poppler-0.73.0.orig/goo/gfile.cc poppler-0.73.0/goo/gfile.cc
+--- poppler-0.73.0.orig/goo/gfile.cc	2019-01-07 22:15:12.000000000 +0000
++++ poppler-0.73.0/goo/gfile.cc	2020-11-01 17:49:43.095726571 +0000
+@@ -485,7 +485,7 @@
+   return size.QuadPart;
+ }
+ 
+-GooFile* GooFile::open(const GooString *fileName) {
++GooFile* GooFile::gopen(const GooString *fileName) {
+   HANDLE handle = CreateFileA(fileName->c_str(),
+                               GENERIC_READ,
+                               FILE_SHARE_READ | FILE_SHARE_WRITE,
+@@ -496,7 +496,7 @@
+   return handle == INVALID_HANDLE_VALUE ? nullptr : new GooFile(handle);
+ }
+ 
+-GooFile* GooFile::open(const wchar_t *fileName) {
++GooFile* GooFile::gopen(const wchar_t *fileName) {
+   HANDLE handle = CreateFileW(fileName,
+                               GENERIC_READ,
+                               FILE_SHARE_READ | FILE_SHARE_WRITE,
+@@ -533,7 +533,7 @@
+ #endif
+ }
+ 
+-GooFile* GooFile::open(const GooString *fileName) {
++GooFile* GooFile::gopen(const GooString *fileName) {
+ #ifdef VMS
+   int fd = ::open(fileName->c_str(), Q_RDONLY, "ctx=stm");
+ #else
+diff -Naur poppler-0.73.0.orig/goo/gfile.h poppler-0.73.0/goo/gfile.h
+--- poppler-0.73.0.orig/goo/gfile.h	2019-01-07 22:15:12.000000000 +0000
++++ poppler-0.73.0/goo/gfile.h	2020-11-01 17:49:43.096736728 +0000
+@@ -125,7 +125,7 @@
+   int read(char *buf, int n, Goffset offset) const;
+   Goffset size() const;
+   
+-  static GooFile *open(const GooString *fileName);
++  static GooFile *gopen(const GooString *fileName);
+   
+ #ifdef _WIN32
+   static GooFile *open(const wchar_t *fileName);
+diff -Naur poppler-0.73.0.orig/poppler/Catalog.cc poppler-0.73.0/poppler/Catalog.cc
+--- poppler-0.73.0.orig/poppler/Catalog.cc	2019-01-07 22:15:12.000000000 +0000
++++ poppler-0.73.0/poppler/Catalog.cc	2020-11-01 17:50:11.945262022 +0000
+@@ -680,7 +680,7 @@
+     if (!pli->labelToIndex(label, index))
+       return false;
+   } else {
+-    *index = strtol(label->c_str(), &end, 10) - 1;
++    *index = ::strtol(label->c_str(), &end, 10) - 1;
+     if (*end != '\0')
+       return false;
+   }
+diff -Naur poppler-0.73.0.orig/poppler/GfxFont.cc poppler-0.73.0/poppler/GfxFont.cc
+--- poppler-0.73.0.orig/poppler/GfxFont.cc	2019-01-07 22:15:12.000000000 +0000
++++ poppler-0.73.0/poppler/GfxFont.cc	2020-11-01 17:50:59.937039706 +0000
+@@ -891,7 +891,7 @@
+       ++s;
+   }
+ 
+-  int v = strtol(s, &endptr, hex ? 16 : 10);
++  int v = ::strtol(s, &endptr, hex ? 16 : 10);
+ 
+   if (endptr == s)
+     return false;
+diff -Naur poppler-0.73.0.orig/poppler/PDFDoc.cc poppler-0.73.0/poppler/PDFDoc.cc
+--- poppler-0.73.0.orig/poppler/PDFDoc.cc	2020-10-31 14:02:58.426481000 +0000
++++ poppler-0.73.0/poppler/PDFDoc.cc	2020-11-01 17:49:43.099637631 +0000
+@@ -150,10 +150,10 @@
+   // try to open file
+ #ifdef _WIN32
+   wchar_t *wFileName = (wchar_t*)utf8ToUtf16(fileName->c_str());
+-  file = GooFile::open(wFileName);
++  file = GooFile::gopen(wFileName);
+   gfree(wFileName);
+ #else
+-   file = GooFile::open(fileName);
++   file = GooFile::gopen(fileName);
+ #endif
+   if (file == nullptr) {
+     // fopen() has failed.
+@@ -196,9 +196,9 @@
+   version.dwOSVersionInfoSize = sizeof(version);
+   GetVersionEx(&version);
+   if (version.dwPlatformId == VER_PLATFORM_WIN32_NT) {
+-    file = GooFile::open(fileNameU);
++    file = GooFile::gopen(fileNameU);
+   } else {
+-    file = GooFile::open(fileName);
++    file = GooFile::gopen(fileName);
+   }
+   if (!file) {
+     error(errIO, -1, "Couldn't open file '{0:t}'", fileName);
+diff -Naur poppler-0.73.0.orig/poppler/PageLabelInfo_p.h poppler-0.73.0/poppler/PageLabelInfo_p.h
+--- poppler-0.73.0.orig/poppler/PageLabelInfo_p.h	2019-01-07 22:15:12.000000000 +0000
++++ poppler-0.73.0/poppler/PageLabelInfo_p.h	2020-11-01 17:49:43.100741366 +0000
+@@ -48,7 +48,7 @@
+ #endif
+ 
+   char *parsed;
+-  const int number = std::strtol(begin, &parsed, 10);
++  const int number = ::strtol(begin, &parsed, 10);
+   return std::make_pair(number, parsed >= end);
+ }
+ 
+diff -Naur poppler-0.73.0.orig/poppler/XRef.cc poppler-0.73.0/poppler/XRef.cc
+--- poppler-0.73.0.orig/poppler/XRef.cc	2020-10-31 14:02:58.378347000 +0000
++++ poppler-0.73.0/poppler/XRef.cc	2020-11-01 17:50:31.520548277 +0000
+@@ -1116,7 +1116,7 @@
+ 	    cmd[1] == 'b' &&
+ 	    cmd[2] == 'j') {
+ 	  char *end_ptr;
+-	  long longNumber = strtol(cmd + 3, &end_ptr, 0);
++	  long longNumber = ::strtol(cmd + 3, &end_ptr, 0);
+ 	  if (longNumber <= INT_MAX && longNumber >= INT_MIN && *end_ptr == '\0') {
+ 	    int number = longNumber;
+ 	    error(errSyntaxWarning, -1, "Cmd was not obj but {0:s}, assuming the creator meant obj {1:d}", cmd, number);

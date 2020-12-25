@@ -1,3 +1,6 @@
+# To get a non-stripped set of installed libraries use this
+#%%global __strip /bin/true
+
 # This package is able to use optimised linker flags.
 %global build_ldflags %{sgug_optimised_ldflags}
 
@@ -5,12 +8,13 @@
 Summary: Ncurses support utilities
 Name: ncurses
 Version: 6.1
-Release: 13.%{revision}%{?dist}
+Release: 14%{?dist}
 License: MIT
 URL: https://invisible-island.net/ncurses/ncurses.html
-Source0: https://invisible-mirror.net/archives/ncurses/current/ncurses-%{version}-%{revision}.tgz
-Source1: https://invisible-mirror.net/archives/ncurses/current/ncurses-%{version}-%{revision}.tgz.asc
-Source2: https://invisible-island.net/public/dickey-invisible-island.txt
+#Source0: https://invisible-mirror.net/archives/ncurses/current/ncurses-%{version}-%{revision}.tgz
+#Source1: https://invisible-mirror.net/archives/ncurses/current/ncurses-%{version}-%{revision}.tgz.asc
+#Source2: https://invisible-island.net/public/dickey-invisible-island.txt
+Source0: http://ftp.gnu.org/gnu/ncurses/ncurses-6.1.tar.gz
 
 Patch8: ncurses-config.patch
 Patch9: ncurses-libs.patch
@@ -122,12 +126,13 @@ The ncurses-static package includes static libraries of the ncurses library.
 %prep
 #%{gpgverify} --keyring=%{SOURCE2} --signature=%{SOURCE1} --data=%{SOURCE0}
 
-%setup -q -n %{name}-%{version}-%{revision}
+#%%setup -q -n %%{name}-%%{version}-%%{revision}
+%setup -q -n %{name}-%{version}
 
 %patch8 -p1 -b .config
 %patch9 -p1 -b .libs
 %patch11 -p1 -b .urxvt
-%patch12 -p1 -b .kbs
+#%%patch12 -p1 -b .kbs
 %patch100 -p1 -b .sgiinfocmperr
 
 #for f in ANNOUNCE; do
@@ -136,8 +141,6 @@ The ncurses-static package includes static libraries of the ncurses library.
 #done
 
 %build
-# Avoid any use of configure caching (issues seen)
-unset CONFIG_SITE
 common_options="\
     --enable-colorfgbg \
     --enable-hard-tabs \
@@ -154,8 +157,18 @@ common_options="\
     --with-termlib=tinfo \
     --with-ticlib=tic \
     --with-xterm-kbs=DEL \
-    --without-ada"
+    --without-ada \
+    --enable-assertions"
+
 abi5_options="--with-chtype=long"
+
+# Avoid any sharing of configure caching (issues seen)
+export CPPFLAGS="-DNCURSES_SPECIFIC_CONFIGCACHE"
+
+# For debugging
+#export CFLAGS="-g -O0"
+#export CXXFLAGS="$CFLAGS"
+#export LDFLAGS="-Wl,-z,relro"
 
 # We don't care about older abi on irix
 #for abi in 5 6; do
@@ -166,14 +179,14 @@ for abi in 6; do
         ln -s ../configure .
 
         [ $abi = 6 -a $char = widec ] && progs=yes || progs=no
-
+	echo "Before configure"
         %configure $(
             echo $common_options --with-abi-version=$abi
             [ $abi = 5 ] && echo $abi5_options
             [ $char = widec ] && echo --enable-widec
             [ $progs = yes ] || echo --without-progs
         )
-
+	echo "After configure"
         make %{?_smp_mflags} libs
         [ $progs = yes ] && make %{?_smp_mflags} -C progs
 
@@ -182,6 +195,7 @@ for abi in 6; do
 done
 
 %install
+#
 export LD_LIBRARYN32_PATH=../lib:$LD_LIBRARYN32_PATH
 #make -C narrowc5 DESTDIR=$RPM_BUILD_ROOT install.libs
 #rm -f ${RPM_BUILD_ROOT}%{_libdir}/lib{tic,tinfo}.so.5*
@@ -255,11 +269,11 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/pkgconfig/*_g.pc
 
 xz NEWS
 
-#%ldconfig_scriptlets libs
+#%%ldconfig_scriptlets libs
 
-#%ldconfig_scriptlets c++-libs
+#%%ldconfig_scriptlets c++-libs
 
-#%ldconfig_scriptlets compat-libs
+#%%ldconfig_scriptlets compat-libs
 
 %files
 %doc ANNOUNCE AUTHORS NEWS.xz README TO-DO
@@ -310,6 +324,9 @@ xz NEWS
 %{_libdir}/lib*.a
 
 %changelog
+* Tue Jul 28 2020 Daniel Hams <daniel.hams@gmail.com> - 6.1-14
+- Roll back to "official" 6.1 release
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 6.1-13
 - Remove hard coded shell paths, avoid use of config.cache
 

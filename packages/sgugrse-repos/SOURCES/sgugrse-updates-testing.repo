@@ -1,0 +1,21 @@
+[updates-testing]
+name=Sgugrse $releasever - $basearch - Test Updates
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/rse-archive/sgugrse/irix/updates/testing/$releasever/Everything/
+enabled=0
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+metadata_expire=6h
+gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False
+
+[updates-testing-source]
+name=Sgugrse $releasever - Test Updates Source
+baseurl=http://sgugrse.s3-website.us-east-2.amazonaws.com/rse-archive/sgugrse/irix/updates/testing/$releasever/Everything/srpms/
+enabled=0
+repo_gpgcheck=0
+type=rpm
+gpgcheck=1
+metadata_expire=6h
+gpgkey=file:///usr/sgug/etc/pki/rpm-gpg/RPM-GPG-KEY-sgugrse-$releasever-$basearch
+skip_if_unavailable=False
