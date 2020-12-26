@@ -43,7 +43,7 @@ Summary: Qt toolkit
 Name:    qt
 Epoch:   1
 Version: 4.8.7
-Release: 50%{?dist}
+Release: 55%{?dist}
 
 # See LGPL_EXCEPTIONS.txt, LICENSE.GPL3, respectively, for exception details
 License: (LGPLv2 with exceptions or GPLv3 with exceptions) and ASL 2.0 and BSD and FTL and MIT
@@ -225,6 +225,9 @@ Patch181: qt-everywhere-opensource-src-4.8.7-qforeach.patch
 # CVE-2018-19872 qt: malformed PPM image causing division by zero and crash in qppmhandler.cpp
 Patch500: qt-everywhere-opensource-src-4.8.7-crash-in-qppmhandler.patch
 
+# CVE-2020-17507 qt: buffer over-read in read_xbm_body in gui/image/qxbmhandler.cpp
+Patch501: qt-CVE-2020-17507.patch
+
 # desktop files
 Source20: assistant.desktop
 Source21: designer.desktop
@@ -266,7 +269,7 @@ Source31: hi48-app-qt4-logo.png
 %endif
 
 # workaround FTBFS with gcc9
-#if 0#%%{?fedora} > 29
+#if 0%{?fedora} > 29
 %if 0
 %global no_javascript_jit -no-javascript-jit
 %endif
@@ -277,7 +280,7 @@ Source1: macros.qt4
 %define _qt4_prefix %{_libdir}/qt4
 %define _qt4_bindir %{_qt4_prefix}/bin
 # _qt4_datadir is not multilib clean, and hacks to workaround that breaks stuff.
-#define _qt4_datadir #%%{_datadir}/qt4
+#define _qt4_datadir %{_datadir}/qt4
 %define _qt4_datadir %{_qt4_prefix}
 %define _qt4_demosdir %{_qt4_prefix}/demos
 %define _qt4_docdir %{_docdir}/qt4
@@ -321,8 +324,8 @@ BuildRequires: pkgconfig(xtst)
 BuildRequires: pkgconfig(zlib)
 BuildRequires: rsync
 
-#%%define gl_deps pkgconfig(gl) pkgconfig(glu)
-#%%define x_deps pkgconfig(ice) pkgconfig(sm) pkgconfig(xcursor) pkgconfig(xext) pkgconfig(xfixes) pkgconfig(xft) pkgconfig(xi) pkgconfig(xinerama) pkgconfig(xrandr) pkgconfig(xrender) pkgconfig(xt) pkgconfig(xv) pkgconfig(x11) pkgconfig(xproto)
+%define gl_deps pkgconfig(gl) pkgconfig(glu)
+%define x_deps pkgconfig(ice) pkgconfig(sm) pkgconfig(xcursor) pkgconfig(xext) pkgconfig(xfixes) pkgconfig(xft) pkgconfig(xi) pkgconfig(xinerama) pkgconfig(xrandr) pkgconfig(xrender) pkgconfig(xt) pkgconfig(xv) pkgconfig(x11) pkgconfig(xproto)
 #BuildRequires: %{gl_deps}
 #BuildRequires: %{x_deps}
 
@@ -330,19 +333,19 @@ BuildRequires: rsync
 BuildRequires: clucene09-core-devel >= 0.9.21b-12
 %endif
 
-%if "%{?ibase}" != "-no-sql-ibase"
+#%%if "%{?ibase}" != "-no-sql-ibase"
 #BuildRequires: firebird-devel
-%endif
+#%%endif
 
-%if "%{?mysql}" == "-no-sql-mysql"
-Obsoletes: %{name}-mysql < %{epoch}:%{version}-%{release}
-%else
-%if 0%{?fedora} > 27 || 0%{?rhel} > 7
+#%%if "%{?mysql}" == "-no-sql-mysql"
+#Obsoletes: %{name}-mysql < %{epoch}:%{version}-%{release}
+#%%else
+#%%if 0%{?fedora} > 27 || 0%{?rhel} > 7
 #BuildRequires: mariadb-connector-c-devel
-%else
+#%%else
 #BuildRequires: mysql-devel >= 4.0
-%endif
-%endif
+#%%endif
+#%%endif
 
 %if "%{?phonon_backend}" == "-phonon-backend"
 BuildRequires: pkgconfig(gstreamer-0.10) 
@@ -353,12 +356,12 @@ BuildRequires: pkgconfig(gstreamer-plugins-base-0.10)
 BuildRequires: pkgconfig(gtk+-2.0) 
 %endif
 
-%if "%{?psql}" != "-no-sql-psql"
+#%%if "%{?psql}" != "-no-sql-psql"
 #BuildRequires: libpq-devel
-%endif
+#%%endif
 
 %if "%{?odbc}" != "-no-sql-odbc"
-#BuildRequires: unixODBC-devel
+BuildRequires: unixODBC-devel
 %endif
 
 %if "%{?sqlite}" != "-no-sql-sqlite"
@@ -373,7 +376,7 @@ Provides:  qt-sqlite = %{?epoch:%{epoch}:}%{version}-%{release}
 %{?_isa:Provides: qt-sqlite%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}}
 
 %if "%{?tds}" != "-no-sql-tds"
-#BuildRequires: freetds-devel
+BuildRequires: freetds-devel
 %endif
 
 Obsoletes: qgtkstyle < 0.1
@@ -416,7 +419,7 @@ Provides: bundled(clucene09)
 Summary: Graphical configuration tool for programs using Qt 4 
 # -config introduced in 4.7.1-10 , for upgrade path
 # seems to tickle a pk bug, https://bugzilla.redhat.com/674326
-#Obsoletes: #%%{name}-x11 < 1:4.7.1-10
+#Obsoletes: %{name}-x11 < 1:4.7.1-10
 Obsoletes: qt4-config < 4.5.0
 Provides:  qt4-config = %{version}-%{release}
 Requires: %{name}-x11%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
@@ -461,8 +464,8 @@ Requires: %{name}-sqlite%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
 # Recommends: gcc-c++
 # or a combination of the 2
 Requires: gcc-c++
-#Requires: %{gl_deps}
-#Requires: %{x_deps}
+Requires: %{gl_deps}
+Requires: %{x_deps}
 Requires: pkgconfig
 %if 0%{?phonon:1}
 Provides: qt4-phonon-devel = %{version}-%{release}
@@ -636,7 +639,7 @@ rm -rf src/3rdparty/clucene
 %endif
 %patch91 -p1 -b .mips64
 %patch92 -p1 -b .gcc6
-#%%patch93 -p1 -b .alsa1.1
+%patch93 -p1 -b .alsa1.1
 %if 0%{?fedora} > 27 || 0%{?rhel} > 7
 %patch94 -p1 -b .openssl1.1
 %endif
@@ -656,41 +659,47 @@ rm -rf src/3rdparty/clucene
 
 # security fixes
 %patch500 -p1 -b .malformed-ppb-image-causing-crash
+%patch501 -p1 -b .buffer-over-read-in-read_xbm_body
 
 # regression fixes for the security fixes
 %patch84 -p1 -b .QTBUG-35459
 
 %patch86 -p1 -b .systemtrayicon
 
+
 %define platform irix-g++
 
 # some 64bit platforms assume -64 suffix, https://bugzilla.redhat.com/569542
-#%%if "%{?__isa_bits}"  == "64"
-#%%define platform linux-g++-64
-#%%endif
+%if "%{?__isa_bits}"  == "64"
+%define platform linux-g++-64
+%endif
+
+%ifarch mips
+%define platform irix-g++
+%endif
 
 # https://bugzilla.redhat.com/478481
 %ifarch x86_64 aarch64
 %define platform linux-g++
 %endif
 
-#%%if 0%{?inject_optflags}
-#%%patch2 -p1 -b .multilib-optflags
+%if 0%{?inject_optflags}
+%patch2 -p1 -b .multilib-optflags
 # drop backup file(s), else they get installed too, http://bugzilla.redhat.com/639463
-#%rm -fv mkspecs/linux-g++*/qmake.conf.multilib-optflags
+rm -fv mkspecs/linux-g++*/qmake.conf.multilib-optflags
 
 # drop -fexceptions from $RPM_OPT_FLAGS
 RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS | sed 's|-fexceptions||g'`
 
 sed -i -e "s|-O2|$RPM_OPT_FLAGS|g" \
-  mkspecs/irix-g++/qmake.conf 
+  mkspecs/%{platform}/qmake.conf 
 
 sed -i -e "s|^\(QMAKE_LFLAGS_RELEASE.*\)|\1 $RPM_LD_FLAGS|" \
   mkspecs/common/g++-unix.conf
-#%%endif
+%endif
 
 # undefine QMAKE_STRIP (and friends), so we get useful -debuginfo pkgs (#193602)
-#sed -i -e 's|^\(QMAKE_STRIP.*=\).*$|\1|g' mkspecs/common/linux.conf
+sed -i -e 's|^\(QMAKE_STRIP.*=\).*$|\1|g' mkspecs/common/linux.conf
 
 # set correct lib path
 #if [ "%{_lib}" == "lib64" ] ; then
@@ -709,8 +718,13 @@ for f in translations/*.ts ; do
   touch ${f%.ts}.qm
 done
 
-
+perl -pi -e "s|#include <wacom.h>||g" %{_builddir}/qt-everywhere-opensource-src-4.8.7/config.tests/x11/xinput/xinput.cpp
 %build
+# QT is known not to work properly with LTO at this point.  Some of the issues
+# are being worked on upstream and disabling LTO should be re-evaluated as
+# we update this change.  Until such time...
+# Disable LTO
+%define _lto_cflags %{nil}
 
 # drop -fexceptions from $RPM_OPT_FLAGS
 RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS | sed 's|-fexceptions||g'`
@@ -748,17 +762,19 @@ export MAKEFLAGS="%{?_smp_mflags}"
   -plugindir %{_qt4_plugindir} \
   -sysconfdir %{_qt4_sysconfdir} \
   -translationdir %{_qt4_translationdir} \
-  -platform irix-g++ \
-  -debug \
+  -platform %{platform} \
+  -release \
   -shared \
   -fontconfig \
   -largefile \
   -gtkstyle \
   -no-rpath \
+  %{?reduce_relocations} \
   -no-separate-debug-info \
   %{?phonon} %{!?phonon:-no-phonon} \
   %{?phonon_backend} \
   %{?no_pch} \
+  %{?no_javascript_jit} \
   -sm \
   -stl \
   -system-libmng \
@@ -768,27 +784,27 @@ export MAKEFLAGS="%{?_smp_mflags}"
   -system-zlib \
   -xcursor \
   -xfixes \
-  -no-xinput \
   -xinerama \
+  -no-xinput \
   -xshape \
   -xrandr \
   -xrender \
   -xkb \
   -glib \
   -icu \
-  -openssl \
+  %{?openssl} \
   -xmlpatterns \
+  %{?dbus} %{!?dbus:-no-dbus} \
   %{?graphicssystem} \
-  %{?ibase} \
+  %{?webkit} %{!?webkit:-no-webkit } \
+  %{?no_psql} \
   %{?odbc} \
   %{?sqlite} %{?_system_sqlite} \
+  %{?tds} \
+  %{!?docs:-nomake docs} \
   %{!?demos:-nomake demos} \
   %{!?examples:-nomake examples}
-#%%{?webkit} %{!?webkit:-no-webkit } \
-#%%{!?docs:-nomake docs} \
-#  -cups \
-#  -xinput \
-#    %{?dbus} %{!?dbus:-no-dbus} \
+#   -xinput \
 
 # verify QT_BUILD_KEY
 grep '^#define QT_BUILD_KEY ' src/corelib/global/qconfig.h
@@ -814,7 +830,7 @@ make clean -C qmake
 %{?qvfb:%make_build -C tools/qvfb}
 
 # recreate .qm files
-bin/lrelease translations/*.ts
+/usr/sgug/bin/lrelease translations/*.ts
 
 
 %install
@@ -851,15 +867,15 @@ if [ "%{?openssl}" == "-openssl-linked" ]; then
 ssl_libs=$(pkg-config --libs openssl)
 fi
 for dep in \
-  -ldbus-1 -lfreetype -lfontconfig ${glib2_libs} \
-  -ljpeg -lm -lmng -lpng -lsqlite3 -lz \
+  -laudio -ldbus-1 -lfreetype -lfontconfig ${glib2_libs} \
+  -ljpeg -lm -lmng -lpng -lpulse -lpulse-mainloop-glib ${ssl_libs} -lsqlite3 -lz \
   -L/usr/X11R6/lib -L/usr/X11R6/%{_lib} -L%{_libdir} ; do
   sed -i -e "s|$dep ||g" %{buildroot}%{_qt4_libdir}/lib*.la 
 #  sed -i -e "s|$dep ||g" %{buildroot}%{_qt4_libdir}/pkgconfig/*.pc
   sed -i -e "s|$dep ||g" %{buildroot}%{_qt4_libdir}/*.prl
 done
 # riskier
-for dep in -ldl -lpthread -lICE -lSM -lX11 -lXcursor -lXext -lXfixes -lXft -lXinerama -lXi -lXrandr -lXrender -lXt ; do
+for dep in -ldl -lphonon -lpthread -lICE -lSM -lX11 -lXcursor -lXext -lXfixes -lXft -lXinerama -lXi -lXrandr -lXrender -lXt ; do
   sed -i -e "s|$dep ||g" %{buildroot}%{_qt4_libdir}/lib*.la 
 #  sed -i -e "s|$dep ||g" %{buildroot}%{_qt4_libdir}/pkgconfig/*.pc 
   sed -i -e "s|$dep ||g" %{buildroot}%{_qt4_libdir}/*.prl
@@ -887,7 +903,7 @@ ln -s  ../../share/doc/qt4 %{buildroot}%{_qt4_prefix}/doc
 
 # hardlink files to %{_bindir}, add -qt4 postfix to not conflict
 mkdir %{buildroot}%{_bindir}
-#pushd 
+#pushd
 PREVWD=`pwd`
 cd %{buildroot}%{_qt4_bindir}
 for i in * ; do
@@ -912,7 +928,7 @@ cd $PREVWD
 #popd
 
 # _debug targets (see bug #196513)
-#pushd 
+#pushd
 PREVWD=`pwd`
 cd %{buildroot}%{_qt4_libdir}
 for lib in libQt*.so ; do
@@ -944,7 +960,7 @@ cd $PREVWD
 # qtchooser conf
 %if 0%{?qtchooser}
   mkdir -p %{buildroot}%{_sysconfdir}/xdg/qtchooser
-  #pushd    
+  #pushd
   PREVWD=`pwd`
   cd %{buildroot}%{_sysconfdir}/xdg/qtchooser
   echo "%{_qt4_bindir}" >  4-%{__isa_bits}.conf
@@ -952,7 +968,7 @@ cd $PREVWD
   # alternatives targets
   touch default.conf 4.conf
   cd $PREVWD
-#  popd
+  #popd
 %endif
 
 %if ! 0%{?qt_settings}
@@ -1074,7 +1090,7 @@ fi
 %endif
 
 %post
-%{?ldconfig}
+#%%{?ldconfig}
 %if 0%{?qtchooser}
 %{_sbindir}/update-alternatives \
   --install %{_sysconfdir}/xdg/qtchooser/4.conf \
@@ -1090,7 +1106,7 @@ fi
 %endif
 
 %postun
-%{?ldconfig}
+#%%{?ldconfig}
 %if 0%{?qtchooser}
 if [ $1 -eq 0 ]; then
 %{_sbindir}/update-alternatives  \
@@ -1378,8 +1394,23 @@ fi
 
 
 %changelog
-* Tue Oct 06 2020  HAL <notes2@gmx.de> - 1:4.8.7-50
-- 1st commit, it builds qmake and fails later on.
+* Wed Dec 23 2020  HAL <notes2@gmx.de> - 4.8.7-55
+- initial commit get's you past build of qmake and fails later on using sgug-rse 9.2 
+
+* Thu Aug 13 2020 Than Ngo <than@redhat.com> - 4.8.7-55
+- fixed #1868534 - CVE-2020-17507
+
+* Wed Jul 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1:4.8.7-54
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
+
+* Wed Jul 01 2020 Jeff Law <law@redhat.com> - 4.8.7-53
+- Disable LTO
+
+* Fri Jan 31 2020 Than Ngo <than@redhat.com> - 4.8.7-52
+- fixed FTBFS against gcc10
+
+* Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1:4.8.7-51
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:4.8.7-50
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
