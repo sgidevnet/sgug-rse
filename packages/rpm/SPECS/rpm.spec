@@ -27,7 +27,7 @@
 
 %global rpmver 4.15.0
 #global snapver rc1
-%global rel 19
+%global rel 20
 
 %global srcver %{version}%{?snapver:-%{snapver}}
 %global srcdir %{?snapver:testing}%{!?snapver:%{name}-%(echo %{version} | cut -d'.' -f1-2).x}
@@ -626,6 +626,9 @@ make check || (cat tests/rpmtests.log; exit 0)
 %doc doc/librpm/html/*
 
 %changelog
+* Fri Dec 25 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-20
+- Remove optflags from rpmrc so we can conditionally activate debugging with a define to rpmbuild
+
 * Fri Nov 27 2020 Daniel Hams <daniel.hams@gmail.com> - 4.15.0-19
 - Bug to segfault during pre/post trigger handling (null info in signal)
 

@@ -7,7 +7,7 @@
 Summary: SGUG specific rpm configuration files
 Name: sgug-rpm-config
 Version: 3
-Release: 1%{?dist}
+Release: 2%{?dist}
 # No version specified.
 License: GPL+
 URL: https://github.com/sgidevnet/sgug-rse
@@ -54,15 +54,15 @@ Source201: brp-mangle-shebangs
 Source202: brp-python-bytecompile
 
 # Dependency generator scripts (deprecated)
-Source300: find-provides
+#Source300: find-provides
 #Source301: find-provides.ksyms
-Source304: find-requires
+#Source304: find-requires
 #Source305: find-requires.ksyms
 #Source308: firmware.prov
 #Source309: modalias.prov
 
 # Misc helper scripts
-Source400: dist.sh
+#Source400: dist.sh
 #Source401: rpmsort
 #Source402: symset-table
 #Source403: kmodtool
@@ -222,6 +222,9 @@ install -p -m 644 -T sgug-etc-rpm-macros %{buildroot}%{rpmetcdir}/macros
 #%%{_rpmconfigdir}/macros.d/macros.kmp
 
 %changelog
+* Fri Dec 25 2020 Daniel Hams <daniel.hams@gmail.com> - 3-2
+- Add a define (_sgug_debug) that can be passed to rpmbuild to choose debug optimisation, no RPATH linking and no symbol stripping
+
 * Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 3-1
 - Merge / fix redhat-rpm-config and sgug-rpm-config to have a single corrected package with this stuff
 
