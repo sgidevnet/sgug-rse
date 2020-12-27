@@ -1,0 +1,78 @@
+diff -Naur xmltoman-0.4.orig/Makefile xmltoman-0.4/Makefile
+--- xmltoman-0.4.orig/Makefile	2020-12-27 13:50:49.438323000 +0000
++++ xmltoman-0.4/Makefile	2020-12-27 13:51:35.754394794 +0000
+@@ -1,4 +1,4 @@
+-PREFIX=/usr/local
++PREFIX=/usr/sgug
+ PACKAGE=xmltoman
+ VERSION=0.3
+ DISTNAME=$(PACKAGE)-$(VERSION)
+diff -Naur xmltoman-0.4.orig/Makefile.timestamps xmltoman-0.4/Makefile.timestamps
+--- xmltoman-0.4.orig/Makefile.timestamps	2008-03-22 15:38:37.000000000 +0000
++++ xmltoman-0.4/Makefile.timestamps	2020-12-27 13:52:24.022434101 +0000
+@@ -1,4 +1,4 @@
+-PREFIX=/usr/local
++PREFIX=/usr/sgug
+ PACKAGE=xmltoman
+ VERSION=0.3
+ DISTNAME=$(PACKAGE)-$(VERSION)
+diff -Naur xmltoman-0.4.orig/xml/xmlmantohtml.1.xml xmltoman-0.4/xml/xmlmantohtml.1.xml
+--- xmltoman-0.4.orig/xml/xmlmantohtml.1.xml	2008-03-22 15:38:37.000000000 +0000
++++ xmltoman-0.4/xml/xmlmantohtml.1.xml	2020-12-27 13:57:10.788952284 +0000
+@@ -12,10 +12,10 @@
+ 
+ <p>xmlmantohtml is a small script to convert xml/man to html.</p>
+ 
+-<p>You will find the dtd in <file>/usr/share/xmltoman/</file> on a
++<p>You will find the dtd in <file>/usr/sgug/share/xmltoman/</file> on a
+ debian system. There is also an xsl file to generate html using
+ <manref name="xsltproc" section="1"/>.
+-See also <file>/usr/share/doc/xmltoman/examples</file> for examples.</p>
++See also <file>/usr/sgug/share/doc/xmltoman/examples</file> for examples.</p>
+                                                                                                              <p>If xsltproc proves to be a useful alternative, this program
+ will be obsoleted.</p>
+ 
+diff -Naur xmltoman-0.4.orig/xml/xmltoman.1.xml xmltoman-0.4/xml/xmltoman.1.xml
+--- xmltoman-0.4.orig/xml/xmltoman.1.xml	2008-03-22 15:38:37.000000000 +0000
++++ xmltoman-0.4/xml/xmltoman.1.xml	2020-12-27 13:56:16.997839609 +0000
+@@ -15,17 +15,17 @@
+ options, see also etc. The xml format also supports converting to html
+ pages.</p>
+ 
+-<p>You will find the dtd in <file>/usr/share/xmltoman/</file> on a
++<p>You will find the dtd in <file>/usr/sgug/share/xmltoman/</file> on a
+ debian system. There is also an xsl file to generate html using
+ <manref name="xsltproc" section="1"/>.
+-See also <file>/usr/share/doc/xmltoman/examples</file> for examples.</p>
++	See also <file>/usr/sgug/share/doc/xmltoman/examples</file> for examples.</p>
+ 
+ </description>
+ 
+ <section name ="Files">
+-<p><file>/usr/share/xmltoman/xmltoman.dtd</file> the DTD file.</p>
+-<p><file>/usr/share/xmltoman/xmltoman.xsl</file> XSLT stylesheet to generate html.</p>
+-<p><file>/usr/share/xmltoman/xmltoman.css</file> stylesheet to be used for HTML.</p>
++<p><file>/usr/sgug/share/xmltoman/xmltoman.dtd</file> the DTD file.</p>
++<p><file>/usr/sgug/share/xmltoman/xmltoman.xsl</file> XSLT stylesheet to generate html.</p>
++<p><file>/usr/sgug/share/xmltoman/xmltoman.css</file> stylesheet to be used for HTML.</p>
+ </section>
+ 
+ <section name = "Author">
+diff -Naur xmltoman-0.4.orig/xmlmantohtml xmltoman-0.4/xmlmantohtml
+--- xmltoman-0.4.orig/xmlmantohtml	2008-03-22 15:38:37.000000000 +0000
++++ xmltoman-0.4/xmlmantohtml	2020-12-27 13:54:08.589126236 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ 
+ #    xmlmanhtml - simple xml to man converter
+ #    Copyright (C) 2000-2002  Oliver Kurth <oku@masqmail.cx>
+diff -Naur xmltoman-0.4.orig/xmltoman xmltoman-0.4/xmltoman
+--- xmltoman-0.4.orig/xmltoman	2008-03-22 15:38:37.000000000 +0000
++++ xmltoman-0.4/xmltoman	2020-12-27 13:53:44.868925446 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/usr/sgug/bin/perl -w
+ 
+ #    xmltoman - simple xml to man converter
+ #    Copyright (C) 2000-2002 Oliver Kurth <oku@masqmail.cx>
