@@ -1,14 +1,8 @@
-%global debug 0
-
-%if 0%{debug}
-%global __strip /bin/true
-%endif
-
 %global _changelog_trimtime %(date +%s -d "1 year ago")
 
 Name: glib2
 Version: 2.62.6
-Release: 10%{?dist}
+Release: 11%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -41,6 +35,8 @@ BuildRequires: python3-devel
 BuildRequires: libdicl-devel >= 0.1.35
 
 BuildRequires: initial-sgug >= 0.2.0-4
+
+BuildRequires: sgug-fam-devel
 
 # for GIO content-type support
 Recommends: shared-mime-info
@@ -122,13 +118,7 @@ export GLIB2_BUILD_DIR=`pwd`/mips-sgug-irix
 export LD_LIBRARYN32_PATH=$GLIB2_BUILD_DIR/gobject:$GLIB2_BUILD_DIR/gmodule:$GLIB2_BUILD_DIR/gio:$GLIB2_BUILD_DIR/glib:$LD_LIBRARYN32_PATH
 
 # Note nsl library required for SVR4 pipe() functionality
-%if 0%{debug}
-export CFLAGS="-g -Og"
-export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-ldicl-0.1 -lnsl"
-%else
 export LDFLAGS="-ldicl-0.1 -lnsl $RPM_LD_FLAGS"
-%endif
 %meson \
     --default-library=both \
     -Dman=true \
@@ -269,6 +259,9 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Sun Dec 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-11
+- Depend on new drop in libfam replacement
+
 * Tue Dec 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-10
 - More hardcoded UTF fixes (options in help)
 
