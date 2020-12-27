@@ -7,7 +7,7 @@
 Summary: SGUG specific rpm configuration files
 Name: sgug-rpm-config
 Version: 3
-Release: 2%{?dist}
+Release: 3%{?dist}
 # No version specified.
 License: GPL+
 URL: https://github.com/sgidevnet/sgug-rse
@@ -222,6 +222,9 @@ install -p -m 644 -T sgug-etc-rpm-macros %{buildroot}%{rpmetcdir}/macros
 #%%{_rpmconfigdir}/macros.d/macros.kmp
 
 %changelog
+* Sun Dec 27 2020 Daniel Hams <daniel.hams@gmail.com> - 3-3
+- Bug fix - stop strip being defined recursively, which lua no likey
+
 * Fri Dec 25 2020 Daniel Hams <daniel.hams@gmail.com> - 3-2
 - Add a define (_sgug_debug) that can be passed to rpmbuild to choose debug optimisation, no RPATH linking and no symbol stripping
 

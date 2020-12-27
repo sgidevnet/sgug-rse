@@ -64,7 +64,7 @@
 %sgug_optimised_ldflags -Wl,-z,relro -Wl,--as-needed -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
 %build_ldflags %{?_sgug_debug:%sgug_debug_ldflags}%{!?_sgug_debug:%sgug_regular_ldflags}
 
-%__strip %{?_sgug_debug:/bin/true}%{!?_sgug_debug:%__strip}
+%__strip %{?_sgug_debug:/bin/true}%{!?_sgug_debug:/usr/sgug/bin/strip}
 
 %dist .sgug%{?_sgug_debug:debug}
 
