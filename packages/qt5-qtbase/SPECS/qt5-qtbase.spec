@@ -138,6 +138,7 @@ Patch101: 0001-QLibrary-Unix-do-not-attempt-to-load-a-library-relat.patch
 Patch102: qt5-qtbase-CVE-2015-9541.patch
 
 Patch150: qt51.sgifixes.patch
+Patch151: qt51.sgifixes2.patch
 
 
 # Do not check any files in %%{_qt5_plugindir}/platformthemes/ for requires.
@@ -415,6 +416,7 @@ Qt5 libraries used for drawing widgets and OpenGL items.
 %patch101 -p1 -b .QLibrary-Unix-do-not-attempt-to-load-a-library-relat
 %patch102 -p1 -b .CVE-2015-9541
 %patch150 -p1 -b qt51.sgifixes
+%patch151 -p1 -b qt51.sgifixes2.patch
 
 # move some bundled libs to ensure they're not accidentally used
 #pushd
