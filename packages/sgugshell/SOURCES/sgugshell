@@ -4,6 +4,7 @@ unset PKG_CONFIG_PATH
 unset LDFLAGS
 unset CFLAGS
 unset CPPFLAGS
+unset CXXFLAGS
 unset PERL
 unset M4
 unset SED
