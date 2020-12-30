@@ -1,15 +1,3 @@
-diff -Naur netsurf-all-3.9.orig/Makefile netsurf-all-3.9/Makefile
---- netsurf-all-3.9.orig/Makefile	2019-07-17 11:36:40.000000000 +0000
-+++ netsurf-all-3.9/Makefile	2020-12-21 10:45:35.518836200 +0000
-@@ -25,7 +25,7 @@
- NETSURF_TARG := netsurf
- 
- # nsgenbind host tool
--NSGENBIND_TARG := nsgenbind
-+#NSGENBIND_TARG := nsgenbind
- 
- # Library targets
- NSLIB_ALL_TARG := buildsystem libnslog libwapcaplet libparserutils libcss libhubbub libdom libnsbmp libnsgif librosprite libnsutils libutf8proc libnspsl
 diff -Naur netsurf-all-3.9.orig/Makefile.orig netsurf-all-3.9/Makefile.orig
 --- netsurf-all-3.9.orig/Makefile.orig	1969-12-31 19:00:00.000000000 +0000
 +++ netsurf-all-3.9/Makefile.orig	2019-07-17 11:36:40.000000000 +0000
@@ -191,7 +179,7 @@ diff -Naur netsurf-all-3.9.orig/buildsystem/makefiles/Makefile.gcc netsurf-all-3
  CCINC := -I
 diff -Naur netsurf-all-3.9.orig/buildsystem/makefiles/Makefile.tools netsurf-all-3.9/buildsystem/makefiles/Makefile.tools
 --- netsurf-all-3.9.orig/buildsystem/makefiles/Makefile.tools	2019-07-17 11:36:59.000000000 +0000
-+++ netsurf-all-3.9/buildsystem/makefiles/Makefile.tools	2020-12-26 11:28:04.622373800 +0000
++++ netsurf-all-3.9/buildsystem/makefiles/Makefile.tools	2020-12-29 18:42:35.217967400 +0000
 @@ -118,6 +118,13 @@
      LDFLAGS := $(LDFLAGS) -L/opt/local/lib
    endif
@@ -200,7 +188,7 @@ diff -Naur netsurf-all-3.9.orig/buildsystem/makefiles/Makefile.tools netsurf-all
 +    #irix
 +    CFLAGS := $(CFLAGS) -I/usr/sgug/local/include -I%{_includedir}/libdicl-0.1 -g -Og
 +    CXXFLAGS := $(CXXFLAGS) -I/usr/sgug/local/include -I%{_includedir}/libdicl-0.1 -g -Og
-+    LDFLAGS := $(LDFLAGS) -L/usr/sgug/local/lib -Wl,-z,relro -Wl,-z,now $RPM_LD_FLAGS
++    LDFLAGS := $(LDFLAGS) -L/usr/sgug/local/lib -Wl,-z,relro -Wl,-z,now 
 +  endif
 +
  else
@@ -229,6 +217,14 @@ diff -Naur netsurf-all-3.9.orig/libnslog/Makefile netsurf-all-3.9/libnslog/Makef
  
  REQUIRED_LIBS := nslog
  
+diff -Naur netsurf-all-3.9.orig/libnslog/include/nslog/nslog.h netsurf-all-3.9/libnslog/include/nslog/nslog.h
+--- netsurf-all-3.9.orig/libnslog/include/nslog/nslog.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/libnslog/include/nslog/nslog.h	2020-12-29 11:20:07.971273800 +0000
+@@ -1,3 +1,4 @@
++#undef printf
+ /*
+  * Copyright 2017 Daniel Silverstone <dsilvers@netsurf-browser.org>
+  *
 diff -Naur netsurf-all-3.9.orig/libnspsl/Makefile netsurf-all-3.9/libnspsl/Makefile
 --- netsurf-all-3.9.orig/libnspsl/Makefile	2019-07-17 11:37:00.000000000 +0000
 +++ netsurf-all-3.9/libnspsl/Makefile	2020-12-21 10:45:35.571325800 +0000
@@ -339,7 +335,7 @@ diff -Naur netsurf-all-3.9.orig/libparserutils/Makefile.config netsurf-all-3.9/l
  -include Makefile.config.override
 diff -Naur netsurf-all-3.9.orig/netsurf/Makefile.config netsurf-all-3.9/netsurf/Makefile.config
 --- netsurf-all-3.9.orig/netsurf/Makefile.config	1969-12-31 19:00:00.000000000 +0000
-+++ netsurf-all-3.9/netsurf/Makefile.config	2020-12-21 10:45:35.662198600 +0000
++++ netsurf-all-3.9/netsurf/Makefile.config	2020-12-29 21:13:10.395095400 +0000
 @@ -0,0 +1,51 @@
 +#
 +# NetSurf build configuration example
@@ -385,13 +381,21 @@ diff -Naur netsurf-all-3.9.orig/netsurf/Makefile.config netsurf-all-3.9/netsurf/
 +
 +### To change the compiled in log level, alter this.
 +# Valid options are: DEEPDEBUG, DEBUG, VERBOSE, INFO, WARNING, ERROR, CRITICAL
-+# override NETSURF_LOG_LEVEL := DEBUG
++override NETSURF_LOG_LEVEL := DEBUG
 +
 +### To change the compiled in default log, change this
 +# override NETSURF_BUILTIN_LOG_FILTER := "(level:WARNING || cat:jserrors)"
 +
 +### To change the compiled in *verbose* log, change this
 +# override NETSURF_BUILTIN_VERBOSE_FILTER := "(level:VERBOSE || cat:jserrors)"
+diff -Naur netsurf-all-3.9.orig/netsurf/content/handlers/html/box.h netsurf-all-3.9/netsurf/content/handlers/html/box.h
+--- netsurf-all-3.9.orig/netsurf/content/handlers/html/box.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/content/handlers/html/box.h	2020-12-29 11:33:43.787792200 +0000
+@@ -1,3 +1,4 @@
++#undef option
+ /*
+  * Copyright 2005 James Bursa <bursa@users.sourceforge.net>
+  * Copyright 2003 Phil Mellor <monkeyson@users.sourceforge.net>
 diff -Naur netsurf-all-3.9.orig/netsurf/content/urldb.c netsurf-all-3.9/netsurf/content/urldb.c
 --- netsurf-all-3.9.orig/netsurf/content/urldb.c	2019-07-17 11:37:00.000000000 +0000
 +++ netsurf-all-3.9/netsurf/content/urldb.c	2020-12-21 10:45:11.047209800 +0000
@@ -3028,6 +3032,51 @@ diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/viewdata.h netsurf-all-3.9
  /*
   * Copyright 2014 Vincent Sanders <vince@netsurf-browser.org>
   *
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/config.h netsurf-all-3.9/netsurf/utils/config.h
+--- netsurf-all-3.9.orig/netsurf/utils/config.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/config.h	2020-12-29 20:44:30.400260200 +0000
+@@ -23,19 +23,22 @@
+ 
+ /* Try to detect which features the target OS supports */
+ 
+-#if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)) && !defined(__riscos__))
++/*#if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)) && !defined(__riscos__))
+ #define HAVE_STRNDUP
+ #else
+ #undef HAVE_STRNDUP
+ char *strndup(const char *s, size_t n);
+-#endif
++#endif 
+ 
+ #if (defined(_GNU_SOURCE) || defined(__APPLE__) || defined(__HAIKU__) || defined(__OpenBSD__))
+ #define HAVE_STRCASESTR
+ #else
+ #undef HAVE_STRCASESTR
+ char *strcasestr(const char *haystack, const char *needle);
+-#endif
++#endif */
++#define HAVE_STRNDUP
++#define HAVE_STRCASESTR
++
+ 
+ /* Although these platforms might have strftime or strptime they
+  *  appear not to support the time_t seconds format specifier.
+@@ -51,12 +54,13 @@
+ /* For some reason, UnixLib defines this unconditionally. Assume we're using
+  *  UnixLib if building for RISC OS.
+  */
+-#if ((defined(_GNU_SOURCE) && !defined(__APPLE__)) || defined(__riscos__))
++/*#if ((defined(_GNU_SOURCE) && !defined(__APPLE__)) || defined(__riscos__))
+ #define HAVE_STRCHRNUL
+ #else
+ #undef HAVE_STRCHRNUL
+ char *strchrnul(const char *s, int c);
+-#endif
++#endif */
++#define HAVE_STRCHRNUL
+ 
+ #define HAVE_SYS_SELECT
+ #define HAVE_INETATON
 diff -Naur netsurf-all-3.9.orig/netsurf/utils/corestringlist.h netsurf-all-3.9/netsurf/utils/corestringlist.h
 --- netsurf-all-3.9.orig/netsurf/utils/corestringlist.h	2019-07-17 11:37:00.000000000 +0000
 +++ netsurf-all-3.9/netsurf/utils/corestringlist.h	2020-12-28 16:17:26.134469800 +0000
@@ -3035,6 +3084,14 @@ diff -Naur netsurf-all-3.9.orig/netsurf/utils/corestringlist.h netsurf-all-3.9/n
 +#undef options
  /*
   * Copyright 2012 Vincent Sanders <vince@netsurf-browser.org>
+  *
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/corestrings.h netsurf-all-3.9/netsurf/utils/corestrings.h
+--- netsurf-all-3.9.orig/netsurf/utils/corestrings.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/corestrings.h	2020-12-29 13:41:49.696035400 +0000
+@@ -1,3 +1,4 @@
++#undef option
+ /*
+  * Copyright 2012 Michael Drake <tlsa@netsurf-browser.org>
   *
 diff -Naur netsurf-all-3.9.orig/netsurf/utils/dirent.h netsurf-all-3.9/netsurf/utils/dirent.h
 --- netsurf-all-3.9.orig/netsurf/utils/dirent.h	2019-07-17 11:37:00.000000000 +0000
@@ -3099,6 +3156,16 @@ diff -Naur netsurf-all-3.9.orig/netsurf/utils/log.c netsurf-all-3.9/netsurf/util
  		gettimeofday(&start_tv, NULL);
  	}
  	gettimeofday(&now_tv, NULL);
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/string.h netsurf-all-3.9/netsurf/utils/string.h
+--- netsurf-all-3.9.orig/netsurf/utils/string.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/string.h	2020-12-29 19:54:01.650045800 +0000
+@@ -1,3 +1,6 @@
++#undef strcasestr
++#undef strchrnul
++#undef strndup
+ /*
+  * Copyright 2016 Vincent Sanders <vince@netsurf-browser.org>
+  *
 diff -Naur netsurf-all-3.9.orig/nsgenbind/Makefile netsurf-all-3.9/nsgenbind/Makefile
 --- netsurf-all-3.9.orig/nsgenbind/Makefile	2019-07-17 11:37:01.000000000 +0000
 +++ netsurf-all-3.9/nsgenbind/Makefile	2020-12-21 10:45:35.780493000 +0000
@@ -3111,3 +3178,11 @@ diff -Naur netsurf-all-3.9.orig/nsgenbind/Makefile netsurf-all-3.9/nsgenbind/Mak
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
+diff -Naur netsurf-all-3.9.orig/nsgenbind/src/output.h netsurf-all-3.9/nsgenbind/src/output.h
+--- netsurf-all-3.9.orig/nsgenbind/src/output.h	2019-07-17 11:37:01.000000000 +0000
++++ netsurf-all-3.9/nsgenbind/src/output.h	2020-12-29 18:11:56.095938600 +0000
+@@ -1,3 +1,4 @@
++#undef printf
+ /* generated output handlers
+  *
+  * This file is part of nsgenbind.
