@@ -99,9 +99,10 @@ want to use.
 
 %build
 #export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DLIBDICL_NEED_FUNOPEN -DLIBDICL_NEED_GETOPT=1 -g -Og"
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -g -Og"
+#export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -g -Og"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -g -Og"
 export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,-z,relro -Wl,-z,now $RPM_LD_FLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now $RPM_LD_FLAGS -ldicl-0.1"
 #export CFLAGS='%{optflags}'
 #export CXXFLAGS='%{optflags}'
 #%make %{?_smp_mflags} %{fb_make_opts}

@@ -177,6 +177,35 @@ diff -Naur netsurf-all-3.9.orig/Makefile.orig netsurf-all-3.9/Makefile.orig
 +	$(eval DIST_FILE := $(COMPONENT)-${GIT_VER})
 +	$(Q)git-archive-all --force-submodules --prefix=$(DIST_FILE)/ $(DIST_FILE).tgz
 +	$(Q)mv $(DIST_FILE).tgz $(DIST_FILE).tar.gz
+diff -Naur netsurf-all-3.9.orig/buildsystem/makefiles/Makefile.gcc netsurf-all-3.9/buildsystem/makefiles/Makefile.gcc
+--- netsurf-all-3.9.orig/buildsystem/makefiles/Makefile.gcc	2019-07-17 11:36:59.000000000 +0000
++++ netsurf-all-3.9/buildsystem/makefiles/Makefile.gcc	2020-12-26 10:32:54.999635400 +0000
+@@ -2,7 +2,7 @@
+ # We assume that we're using a standard GCC/binutils environment
+ 
+ CCDEF := -D
+-CCOPT := -O2
++CCOPT := -O0
+ CCNOOPT := -O0
+ CCDBG := -g
+ CCINC := -I
+diff -Naur netsurf-all-3.9.orig/buildsystem/makefiles/Makefile.tools netsurf-all-3.9/buildsystem/makefiles/Makefile.tools
+--- netsurf-all-3.9.orig/buildsystem/makefiles/Makefile.tools	2019-07-17 11:36:59.000000000 +0000
++++ netsurf-all-3.9/buildsystem/makefiles/Makefile.tools	2020-12-26 11:28:04.622373800 +0000
+@@ -118,6 +118,13 @@
+     LDFLAGS := $(LDFLAGS) -L/opt/local/lib
+   endif
+ 
++  ifeq ($(findstring mips-sgi-irix6.5,$(HOST)),mips-sgi-irix6.5)
++    #irix
++    CFLAGS := $(CFLAGS) -I/usr/sgug/local/include -I%{_includedir}/libdicl-0.1 -g -Og
++    CXXFLAGS := $(CXXFLAGS) -I/usr/sgug/local/include -I%{_includedir}/libdicl-0.1 -g -Og
++    LDFLAGS := $(LDFLAGS) -L/usr/sgug/local/lib -Wl,-z,relro -Wl,-z,now $RPM_LD_FLAGS
++  endif
++
+ else
+   # Cross compiling
+ 
 diff -Naur netsurf-all-3.9.orig/libnsfb/src/plot.h netsurf-all-3.9/libnsfb/src/plot.h
 --- netsurf-all-3.9.orig/libnsfb/src/plot.h	2019-07-17 11:36:59.000000000 +0000
 +++ netsurf-all-3.9/libnsfb/src/plot.h	2020-12-21 10:45:35.808735400 +0000
@@ -404,12 +433,14 @@ diff -Naur netsurf-all-3.9.orig/netsurf/content/urldb.c netsurf-all-3.9/netsurf/
  	if (slash != NULL) free((void *)sane_host);
 diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/Makefile netsurf-all-3.9/netsurf/frontends/gtk/Makefile
 --- netsurf-all-3.9.orig/netsurf/frontends/gtk/Makefile	2019-07-17 11:37:00.000000000 +0000
-+++ netsurf-all-3.9/netsurf/frontends/gtk/Makefile	2020-12-21 16:55:18.408126600 +0000
-@@ -38,7 +38,8 @@
++++ netsurf-all-3.9/netsurf/frontends/gtk/Makefile	2020-12-26 11:12:29.910184200 +0000
+@@ -37,8 +37,9 @@
+ 		$(GTKDEPFLAGS) \
  		-D_BSD_SOURCE \
  		-D_DEFAULT_SOURCE \
- 		-D_XOPEN_SOURCE=700 \
+-		-D_XOPEN_SOURCE=700 \
 -		-D_POSIX_C_SOURCE=200809L \
++		-D_XOPEN_SOURCE=500 \
 +       -D_SGI_SOURCE \
 +       -D_SGI_REENTRANT_FUNCTIONS \
  		-D_NETBSD_SOURCE \
@@ -2935,6 +2966,14 @@ diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/resources.c.orig netsurf-a
 +
 +	return NSERROR_OK;
 +}
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/scaffolding.h netsurf-all-3.9/netsurf/frontends/gtk/scaffolding.h
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/scaffolding.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/scaffolding.h	2020-12-29 09:31:00.418953800 +0000
+@@ -1,3 +1,4 @@
++#undef option
+ /*
+  * Copyright 2005 James Bursa <bursa@users.sourceforge.net>
+  *
 diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/viewdata.c netsurf-all-3.9/netsurf/frontends/gtk/viewdata.c
 --- netsurf-all-3.9.orig/netsurf/frontends/gtk/viewdata.c	2019-07-17 11:37:00.000000000 +0000
 +++ netsurf-all-3.9/netsurf/frontends/gtk/viewdata.c	2020-12-21 10:45:35.673709000 +0000
@@ -2981,6 +3020,22 @@ diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/viewdata.c netsurf-all-3.9
  		/* line includes line endings if present, remove them */
  		while ((line[rd - 1] == '\n') || (line[rd - 1] == '\r')) {
  			rd--;
+diff -Naur netsurf-all-3.9.orig/netsurf/frontends/gtk/viewdata.h netsurf-all-3.9/netsurf/frontends/gtk/viewdata.h
+--- netsurf-all-3.9.orig/netsurf/frontends/gtk/viewdata.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/frontends/gtk/viewdata.h	2020-12-29 09:54:05.982717800 +0000
+@@ -1,3 +1,4 @@
++#undef getline
+ /*
+  * Copyright 2014 Vincent Sanders <vince@netsurf-browser.org>
+  *
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/corestringlist.h netsurf-all-3.9/netsurf/utils/corestringlist.h
+--- netsurf-all-3.9.orig/netsurf/utils/corestringlist.h	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/corestringlist.h	2020-12-28 16:17:26.134469800 +0000
+@@ -1,3 +1,4 @@
++#undef options
+ /*
+  * Copyright 2012 Vincent Sanders <vince@netsurf-browser.org>
+  *
 diff -Naur netsurf-all-3.9.orig/netsurf/utils/dirent.h netsurf-all-3.9/netsurf/utils/dirent.h
 --- netsurf-all-3.9.orig/netsurf/utils/dirent.h	2019-07-17 11:37:00.000000000 +0000
 +++ netsurf-all-3.9/netsurf/utils/dirent.h	2020-12-21 10:45:35.682649000 +0000
