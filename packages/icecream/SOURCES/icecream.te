@@ -1,0 +1,222 @@
+
+policy_module(icecream,0.1.9)
+
+########################################
+#
+# iceccd declarations
+#
+
+type iceccd_t;
+type iceccd_exec_t;
+init_daemon_domain(iceccd_t, iceccd_exec_t)
+
+type iceccd_tmp_t;
+files_tmp_file(iceccd_tmp_t)
+
+type iceccd_var_run_t;
+files_pid_file(iceccd_var_run_t)
+
+type iceccd_cache_t;
+files_type(iceccd_cache_t)
+
+########################################
+#
+# iceccd_createenv declarations
+#
+
+type iceccd_createenv_t;
+type iceccd_createenv_exec_t;
+application_domain(iceccd_createenv_t, iceccd_createenv_exec_t)
+role system_r types iceccd_createenv_t;
+
+########################################
+#
+# icecc_scheduler declarations
+#
+
+type icecc_scheduler_t;
+type icecc_scheduler_exec_t;
+init_daemon_domain(icecc_scheduler_t, icecc_scheduler_exec_t)
+
+########################################
+#
+# iceccd_untrusted declarations
+#
+
+type iceccd_untrusted_t;
+domain_type(iceccd_untrusted_t);
+domain_entry_file(iceccd_untrusted_t, iceccd_cache_t)
+role system_r types iceccd_untrusted_t;
+
+# port declarations. for separate module only.
+type iceccd_port_t;
+type icecc_scheduler_port_t;
+corenet_port(iceccd_port_t);
+corenet_port(icecc_scheduler_port_t);
+
+########################################
+#
+# iceccd policy
+#
+
+allow iceccd_t self:capability { chown dac_override fowner fsetid kill
+	setgid setuid sys_chroot setpcap };
+allow iceccd_t self:fifo_file rw_fifo_file_perms;
+allow iceccd_t self:netlink_route_socket r_netlink_socket_perms;
+allow iceccd_t self:process { signal_perms setsched setrlimit setcap };
+allow iceccd_t self:tcp_socket create_stream_socket_perms;
+allow iceccd_t self:udp_socket create_socket_perms;
+
+dontaudit iceccd_t iceccd_untrusted_t:process { siginh rlimitinh
+	noatsecure };
+
+allow iceccd_t iceccd_untrusted_t:process signal;
+
+allow iceccd_t iceccd_var_run_t:sock_file { create unlink };
+
+domtrans_pattern(iceccd_t, iceccd_createenv_exec_t, iceccd_createenv_t)
+domtrans_pattern(iceccd_t, iceccd_cache_t, iceccd_untrusted_t)
+
+manage_files_pattern(iceccd_t, iceccd_var_run_t, iceccd_var_run_t)
+files_pid_filetrans(iceccd_t, iceccd_var_run_t, file)
+
+manage_dirs_pattern(iceccd_t, iceccd_cache_t, iceccd_cache_t)
+manage_files_pattern(iceccd_t, iceccd_cache_t, iceccd_cache_t)
+files_var_filetrans(iceccd_t, iceccd_cache_t, { dir file })
+
+files_search_tmp(iceccd_t)
+manage_dirs_pattern(iceccd_t, iceccd_tmp_t, iceccd_tmp_t)
+manage_files_pattern(iceccd_t, iceccd_tmp_t, iceccd_tmp_t)
+files_tmp_filetrans(iceccd_t, iceccd_tmp_t, { dir file })
+
+corenet_all_recvfrom_unlabeled(iceccd_t)
+corenet_all_recvfrom_netlabel(iceccd_t)
+corenet_tcp_sendrecv_generic_if(iceccd_t)
+corenet_udp_sendrecv_generic_if(iceccd_t)
+corenet_tcp_sendrecv_generic_node(iceccd_t)
+corenet_udp_sendrecv_generic_node(iceccd_t)
+corenet_tcp_sendrecv_all_ports(iceccd_t)
+corenet_udp_sendrecv_all_ports(iceccd_t)
+corenet_tcp_bind_generic_node(iceccd_t)
+allow iceccd_t iceccd_port_t:tcp_socket { name_bind };
+allow iceccd_t icecc_scheduler_port_t:tcp_socket { name_connect };
+# tcp port 8765 is lirc_port_t
+corenet_tcp_connect_lirc_port(iceccd_t)
+
+corecmd_exec_bin(iceccd_t)
+corecmd_read_bin_symlinks(iceccd_t)
+
+#files_getattr_tmp_dirs(iceccd_t)
+files_read_etc_files(iceccd_t)
+
+fs_getattr_all_fs(iceccd_t)
+
+kernel_read_system_state(iceccd_t)
+
+sysnet_read_config(iceccd_t)
+
+libs_use_ld_so(iceccd_t)
+libs_use_shared_libs(iceccd_t)
+
+miscfiles_read_localization(iceccd_t)
+
+auth_use_nsswitch(iceccd_t)
+
+########################################
+#
+# iceccd_createenv policy
+#
+
+allow iceccd_createenv_t self:fifo_file rw_fifo_file_perms;
+
+dontaudit iceccd_createenv_t self:process { setfscreate };
+dontaudit iceccd_createenv_t iceccd_tmp_t:file { execute };
+
+manage_dirs_pattern(iceccd_createenv_t, iceccd_cache_t, iceccd_cache_t)
+manage_files_pattern(iceccd_createenv_t, iceccd_cache_t, iceccd_cache_t)
+# no files_var_filetrans, createenv does not create the cache dir itself
+
+manage_dirs_pattern(iceccd_createenv_t, iceccd_tmp_t, iceccd_tmp_t)
+manage_files_pattern(iceccd_createenv_t, iceccd_tmp_t, iceccd_tmp_t)
+allow iceccd_createenv_t iceccd_tmp_t:file { map };
+files_tmp_filetrans(iceccd_createenv_t, iceccd_tmp_t, { dir file })
+
+corecmd_exec_bin(iceccd_createenv_t)
+corecmd_exec_shell(iceccd_createenv_t)
+
+dev_read_urand(iceccd_createenv_t)
+
+files_read_etc_files(iceccd_createenv_t)
+files_read_usr_files(iceccd_createenv_t)
+
+kernel_read_system_state(iceccd_createenv_t)
+
+libs_exec_ld_so(iceccd_createenv_t)
+libs_exec_lib_files(iceccd_createenv_t)
+
+libs_exec_ldconfig(iceccd_createenv_t)
+
+libs_use_ld_so(iceccd_createenv_t)
+libs_use_shared_libs(iceccd_createenv_t)
+
+miscfiles_read_localization(iceccd_createenv_t)
+
+fs_getattr_tmpfs(iceccd_createenv_t)
+
+userdom_dontaudit_search_user_home_dirs(iceccd_createenv_t)
+
+optional_policy(`
+	nscd_socket_use(iceccd_createenv_t)
+')
+
+########################################
+#
+# iceccd_untrusted policy
+#
+
+allow iceccd_untrusted_t self:fifo_file rw_fifo_file_perms;
+allow iceccd_untrusted_t self:process signal_perms;
+allow iceccd_untrusted_t iceccd_t:unix_stream_socket rw_stream_socket_perms;
+
+manage_files_pattern(iceccd_untrusted_t, iceccd_cache_t, iceccd_cache_t)
+manage_lnk_files_pattern(iceccd_untrusted_t, iceccd_cache_t, iceccd_cache_t)
+
+can_exec(iceccd_untrusted_t, iceccd_cache_t)
+
+fs_getattr_all_fs(iceccd_untrusted_t)
+
+########################################
+#
+# icecc_scheduler policy
+#
+
+allow icecc_scheduler_t self:tcp_socket create_stream_socket_perms;
+allow icecc_scheduler_t self:udp_socket create_socket_perms;
+allow icecc_scheduler_t self:netlink_route_socket r_netlink_socket_perms;
+allow icecc_scheduler_t iceccd_port_t:tcp_socket { name_connect };
+
+corenet_all_recvfrom_unlabeled(icecc_scheduler_t)
+corenet_all_recvfrom_netlabel(icecc_scheduler_t)
+corenet_tcp_sendrecv_generic_if(icecc_scheduler_t)
+corenet_udp_sendrecv_generic_if(icecc_scheduler_t)
+corenet_tcp_sendrecv_generic_node(icecc_scheduler_t)
+corenet_udp_sendrecv_generic_node(icecc_scheduler_t)
+corenet_tcp_sendrecv_all_ports(icecc_scheduler_t)
+corenet_udp_sendrecv_all_ports(icecc_scheduler_t)
+corenet_tcp_bind_generic_node(icecc_scheduler_t)
+corenet_udp_bind_generic_node(icecc_scheduler_t)
+allow icecc_scheduler_t icecc_scheduler_port_t:tcp_socket { name_bind };
+corenet_tcp_bind_lirc_port(icecc_scheduler_t)
+allow icecc_scheduler_t icecc_scheduler_port_t:udp_socket { name_bind };
+corenet_udp_bind_lirc_port(icecc_scheduler_t)
+
+files_read_etc_files(icecc_scheduler_t)
+
+libs_use_ld_so(icecc_scheduler_t)
+libs_use_shared_libs(icecc_scheduler_t)
+
+miscfiles_read_localization(icecc_scheduler_t)
+
+kernel_read_system_state(icecc_scheduler_t)
+
+sysnet_read_config(icecc_scheduler_t)
