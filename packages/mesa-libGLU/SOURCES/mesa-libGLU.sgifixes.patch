@@ -1,6 +1,18 @@
+diff -ur glu-9.0.1.orig/include/GL/glu.h glu-9.0.1/include/GL/glu.h
+--- glu-9.0.1.orig/include/GL/glu.h	2021-01-01 19:00:54.031952000 +0000
++++ glu-9.0.1/include/GL/glu.h	2021-01-01 19:02:26.763328000 +0000
+@@ -56,6 +56,8 @@
+ /* tag specifying we're building for DLL runtime support */
+ # undef GLAPI
+ # define GLAPI __declspec(dllimport)
++#elif defined(LIBRARYBUILD) && !defined(GLAPI)
++# define GLAPI __attribute__ ((visibility ("default")))
+ #elif !defined(GLAPI)
+ /* for use with static link lib build of Win32 edition only */
+ # define GLAPI extern
 diff -ur glu-9.0.1.orig/src/libnurbs/interface/glrenderer.h glu-9.0.1/src/libnurbs/interface/glrenderer.h
---- glu-9.0.1.orig/src/libnurbs/interface/glrenderer.h	2021-01-01 15:28:38.650175200 +0000
-+++ glu-9.0.1/src/libnurbs/interface/glrenderer.h	2021-01-01 15:29:18.463885600 +0000
+--- glu-9.0.1.orig/src/libnurbs/interface/glrenderer.h	2021-01-01 19:00:53.890042400 +0000
++++ glu-9.0.1/src/libnurbs/interface/glrenderer.h	2021-01-01 19:01:04.977245600 +0000
 @@ -42,6 +42,10 @@
  #include "glsurfeval.h"
  #include "glcurveval.h"
