@@ -6,7 +6,7 @@
 Summary: X.Org X11 Protocol headers
 Name: xorg-x11-proto-devel
 Version: 2019.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: MIT
 URL: https://www.x.org
 BuildArch: noarch
@@ -40,6 +40,9 @@ make %{?_smp_mflags}
 %install
 %make_install
 
+# remove conflicting glxtokens
+rm -f $RPM_BUILD_ROOT%{_includedir}/GL/glxtokens.h
+
 # trim some fat
 for i in apple windows trap ; do
     rm -f $RPM_BUILD_ROOT%{_includedir}/X11/extensions/*${i}*
@@ -56,7 +59,6 @@ rm -f $RPM_BUILD_ROOT%{_docdir}/*/*.{html,svg}
 %{_includedir}/GL/glxint.h
 %{_includedir}/GL/glxmd.h
 %{_includedir}/GL/glxproto.h
-%{_includedir}/GL/glxtokens.h
 %dir %{_includedir}/GL/internal
 %{_includedir}/GL/internal/glcore.h
 %dir %{_includedir}/X11
@@ -215,6 +217,9 @@ rm -f $RPM_BUILD_ROOT%{_docdir}/*/*.{html,svg}
 %{_docdir}/xorgproto/*
 
 %changelog
+* Wed Dec 30 2020 Julien Maerten <julien@3dw.org> - 2019.1-4
+- Remove conflicting glxtokens.h
+
 * Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2019.1-3
 - Rebuild for jpegturbo + fix bzero issue
 
