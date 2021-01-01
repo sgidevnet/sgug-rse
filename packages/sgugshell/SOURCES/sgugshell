@@ -25,6 +25,7 @@ unset AR
 unset RANLIB
 unset PYTHONPATH
 unset PYTHONHOME
+unset HOST
 
 SGUG_ROOT=/usr/sgug
 SGUG_BIN=$SGUG_ROOT/bin
