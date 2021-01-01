@@ -22,39 +22,14 @@ Patch4:   0004-do-not-use-usr-bin-env.patch
 Patch5:	  icecream.sgifixes.patch
 
 BuildRequires: gcc-c++
-#BuildRequires: systemd
 #BuildRequires: libcap-ng-devel
 BuildRequires: lzo-devel libzstd-devel libarchive-devel
 #BuildRequires: docbook2X
-#BuildRequires: environment(modules)
-#BuildRequires: firewalld-filesystem
 BuildRequires: autoconf automake libtool
-
-#Requires:         firewalld-filesystem
-#Requires:         environment(modules)
-#Requires(pre):    shadow-utils
-#Requires(post):   systemd
-#Requires(preun):  systemd
-#Requires(postun): systemd
+BuildRequires: make
 Requires(post):   findutils
 
-#%if %{with selinux}
-# For SELinux protection:
-#BuildRequires: checkpolicy selinux-policy-devel hardlink
-BuildRequires: make
-# semanage is in policycoreutils (EL-5) or policycoreutils-python (Fedora). File dep will work in both.
-#Requires(post):   policycoreutils /usr/sbin/semanage
-#Requires(preun):  policycoreutils /usr/sbin/semanage
-#Requires(postun): policycoreutils
-#%define selinux_policyver %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' /usr/share/selinux/devel/policyhelp) 
-#%if "%{selinux_policyver}" != ""
-#Requires:         selinux-policy >= %{selinux_policyver}
-#%endif
-#%define selinux_variants mls strict targeted 
-#%endif
-
 %define _tmpfilesdir /tmp
-
 
 # description copied from Debian icecc package
 %description
@@ -87,7 +62,9 @@ cp -p %{SOURCE6} %{SOURCE7} %{SOURCE11} fedora
 export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
-export DOCBOOK2X="/usr/sgug/bin/true"
+
+sed -ie 's,/usr/bin/,/usr/sgug/bin/,g' client/icecc-create-env.in
+sed -ie 's,/usr/bin/,/usr/sgug/bin/,g' client/icecc-test-env.in
 
 ./autogen.sh
 
@@ -113,10 +90,10 @@ make install DESTDIR=%{buildroot}
 rm -f %{buildroot}/%{_libdir}/libicecc.la
 
 # install config file and initscripts
-install -d -m 755 %{buildroot}/%{_unitdir}
-mkdir -p %{buildroot}%{_tmpfilesdir}
-install -p -m 644 fedora/icecream-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/icecream.conf
-install -D -m 644 %{SOURCE1} %{buildroot}/%{_sysconfdir}/sysconfig/icecream
+#install -d -m 755 %{buildroot}/%{_unitdir}
+#mkdir -p %{buildroot}%{_tmpfilesdir}
+#install -p -m 644 fedora/icecream-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/icecream.conf
+#install -D -m 644 %{SOURCE1} %{buildroot}/%{_sysconfdir}/sysconfig/icecream
 
 # create default working dir
 mkdir -p %{buildroot}/%{_localstatedir}/cache/icecream
@@ -142,12 +119,10 @@ exit 0
 %{_libdir}/libicecc.so.*
 %{_sbindir}/iceccd
 %{_sbindir}/icecc-scheduler
-#%{_modulesdir}/icecream/
-%config(noreplace) %{_sysconfdir}/sysconfig/icecream
 %attr(0775, root, icecc) %{_localstatedir}/cache/icecream
 %attr(0775, root, icecc) /run/icecc
-#%{_mandir}/man*/*
-%{_tmpfilesdir}/icecream.conf
+##%{_mandir}/man*/*
+##%{_tmpfilesdir}/icecream.conf
 
 %files devel
 %dir %{_includedir}/icecc/
