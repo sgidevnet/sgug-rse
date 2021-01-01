@@ -335,7 +335,7 @@ diff -Naur netsurf-all-3.9.orig/libparserutils/Makefile.config netsurf-all-3.9/l
  -include Makefile.config.override
 diff -Naur netsurf-all-3.9.orig/netsurf/Makefile.config netsurf-all-3.9/netsurf/Makefile.config
 --- netsurf-all-3.9.orig/netsurf/Makefile.config	1969-12-31 19:00:00.000000000 +0000
-+++ netsurf-all-3.9/netsurf/Makefile.config	2020-12-29 21:13:10.395095400 +0000
++++ netsurf-all-3.9/netsurf/Makefile.config	2020-12-31 08:19:02.554623400 +0000
 @@ -0,0 +1,51 @@
 +#
 +# NetSurf build configuration example
@@ -381,7 +381,7 @@ diff -Naur netsurf-all-3.9.orig/netsurf/Makefile.config netsurf-all-3.9/netsurf/
 +
 +### To change the compiled in log level, alter this.
 +# Valid options are: DEEPDEBUG, DEBUG, VERBOSE, INFO, WARNING, ERROR, CRITICAL
-+override NETSURF_LOG_LEVEL := DEBUG
++override NETSURF_LOG_LEVEL := DEEPDEBUG
 +
 +### To change the compiled in default log, change this
 +# override NETSURF_BUILTIN_LOG_FILTER := "(level:WARNING || cat:jserrors)"
@@ -396,6 +396,17 @@ diff -Naur netsurf-all-3.9.orig/netsurf/content/handlers/html/box.h netsurf-all-
  /*
   * Copyright 2005 James Bursa <bursa@users.sourceforge.net>
   * Copyright 2003 Phil Mellor <monkeyson@users.sourceforge.net>
+diff -Naur netsurf-all-3.9.orig/netsurf/content/llcache.c netsurf-all-3.9/netsurf/content/llcache.c
+--- netsurf-all-3.9.orig/netsurf/content/llcache.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/content/llcache.c	2020-12-31 07:43:25.430449800 +0000
+@@ -52,6 +52,7 @@
+ #include "content/fetch.h"
+ #include "content/backing_store.h"
+ #include "content/urldb.h"
++#define LLCACHE_TRACE 1
+ 
+ /**
+  * State of a low-level cache object fetch.
 diff -Naur netsurf-all-3.9.orig/netsurf/content/urldb.c netsurf-all-3.9/netsurf/content/urldb.c
 --- netsurf-all-3.9.orig/netsurf/content/urldb.c	2019-07-17 11:37:00.000000000 +0000
 +++ netsurf-all-3.9/netsurf/content/urldb.c	2020-12-21 10:45:11.047209800 +0000
@@ -3079,9 +3090,9 @@ diff -Naur netsurf-all-3.9.orig/netsurf/utils/config.h netsurf-all-3.9/netsurf/u
  #define HAVE_INETATON
 diff -Naur netsurf-all-3.9.orig/netsurf/utils/corestringlist.h netsurf-all-3.9/netsurf/utils/corestringlist.h
 --- netsurf-all-3.9.orig/netsurf/utils/corestringlist.h	2019-07-17 11:37:00.000000000 +0000
-+++ netsurf-all-3.9/netsurf/utils/corestringlist.h	2020-12-28 16:17:26.134469800 +0000
++++ netsurf-all-3.9/netsurf/utils/corestringlist.h	2021-01-01 10:02:13.951903400 +0000
 @@ -1,3 +1,4 @@
-+#undef options
++#undef option
  /*
   * Copyright 2012 Vincent Sanders <vince@netsurf-browser.org>
   *
@@ -3166,6 +3177,33 @@ diff -Naur netsurf-all-3.9.orig/netsurf/utils/string.h netsurf-all-3.9/netsurf/u
  /*
   * Copyright 2016 Vincent Sanders <vince@netsurf-browser.org>
   *
+diff -Naur netsurf-all-3.9.orig/netsurf/utils/useragent.c netsurf-all-3.9/netsurf/utils/useragent.c
+--- netsurf-all-3.9.orig/netsurf/utils/useragent.c	2019-07-17 11:37:00.000000000 +0000
++++ netsurf-all-3.9/netsurf/utils/useragent.c	2020-12-31 09:55:01.134313800 +0000
+@@ -48,10 +48,11 @@
+                 sysname = un.sysname;
+         }
+ 
+-        len = snprintf(NULL, 0, NETSURF_UA_FORMAT_STRING,
++        /*len = snprintf(NULL, 0, NETSURF_UA_FORMAT_STRING,
+                        netsurf_version_major,
+                        netsurf_version_minor,
+-                       sysname);
++                       sysname); */
++	len = 128;
+         ua_string = malloc(len + 1);
+         if (!ua_string) {
+                 /** \todo this needs handling better */
+@@ -63,7 +64,8 @@
+                  netsurf_version_minor,
+                  sysname);
+ 
+-        core_user_agent_string = ua_string;
++        core_user_agent_string = ua_string; 
++        /*core_user_agent_string = "Netsurf_3.9"; */
+ 
+         NSLOG(netsurf, INFO, "Built user agent \"%s\"",
+               core_user_agent_string);
 diff -Naur netsurf-all-3.9.orig/nsgenbind/Makefile netsurf-all-3.9/nsgenbind/Makefile
 --- netsurf-all-3.9.orig/nsgenbind/Makefile	2019-07-17 11:37:01.000000000 +0000
 +++ netsurf-all-3.9/nsgenbind/Makefile	2020-12-21 10:45:35.780493000 +0000
