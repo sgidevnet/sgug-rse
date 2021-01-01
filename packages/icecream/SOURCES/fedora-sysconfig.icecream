@@ -1,0 +1,24 @@
+# Identification for the network the scheduler and daemon run on. 
+# You can have several distinct icecream networks in the same LAN
+# for whatever reason.
+#
+ICECREAM_NETNAME=""
+
+# If the daemon can't find the scheduler by broadcast (e.g. because 
+# of a firewall) you can specify it.
+#
+ICECREAM_SCHEDULER_HOST=""
+
+# You can overwrite here the number of jobs to run in parallel. Per
+# default this depends on the number of (virtual) CPUs installed. 
+#
+# Note: a value of "0" is actually interpreted as "1", however it
+# also sets ICECREAM_ALLOW_REMOTE="no".
+#
+ICECREAM_MAX_JOBS=""
+
+# Specifies whether jobs submitted by other nodes are allowed to run on
+# this one.
+#
+ICECREAM_ALLOW_REMOTE="yes"
+

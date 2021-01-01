@@ -4,7 +4,7 @@
 Summary: Utilities for manipulating .desktop files
 Name: desktop-file-utils
 Version: 0.24
-Release: 3%{?dist}
+Release: 4%{?dist}
 URL: https://www.freedesktop.org/software/desktop-file-utils
 Source0: https://www.freedesktop.org/software/desktop-file-utils/releases/%{name}-%{version}.tar.xz
 Source1: desktop-entry-mode-init.el
@@ -70,6 +70,9 @@ update-desktop-database &> /dev/null || :
 %{_emacs_sitelispdir}/%{pkg}
 
 %changelog
+* Wed Dec 30 2020 David Stancu <dstancu@nyu.edu> - 0.24-4
+- Tag launchers with 0x0
+
 * Thu Dec 17 2020 Daniel Hams <daniel.hams@gmail.com> - 0.24-3
 - Generate a log, handle apps that need a terminal, set python env var, use basename of executable
 

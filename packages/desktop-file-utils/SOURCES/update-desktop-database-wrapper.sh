@@ -59,5 +59,7 @@ for DESKTOP_FILE_PATH in $(find $SGUG_DATADIR_APPS/*.desktop -type f); do
 	    echo "exec $DESKTOP_KEY_EXEC_BASENAME" >> $CATALOG_ROOT/$APPNAME
 	fi
 	echo "Finished writing $CATALOG_ROOT/$APPNAME" >> /tmp/uddw.log
+	tag 0x0 $CATALOG_ROOT/$APPNAME
+	echo "Tagged $CATALOG_ROOT/$APPNAME as (0x0) generic application" >> /tmp/uddw.log
 done
 

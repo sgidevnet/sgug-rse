@@ -10,7 +10,7 @@
 
 Name:       SDL
 Version:    1.2.15
-Release:    43%{?dist}
+Release:    44%{?dist}
 Summary:    A cross-platform multimedia library
 URL:        https://www.libsdl.org/
 # The license of the file src/video/fbcon/riva_mmio.h is bad, but the contents
@@ -246,8 +246,8 @@ autoconf
 
 # Rename SDL_config.h to SDL_config-<arch>.h to avoid file conflicts on
 # multilib systems and install SDL_config.h wrapper
-mv %{buildroot}/%{_includedir}/SDL/SDL_config.h %{buildroot}/%{_includedir}/SDL/SDL_config-%{_arch}.h
-install -m644 %{SOURCE3} %{buildroot}/%{_includedir}/SDL/SDL_config.h
+#mv %{buildroot}/%{_includedir}/SDL/SDL_config.h %{buildroot}/%{_includedir}/SDL/SDL_config-%{_arch}.h
+#install -m644 %{SOURCE3} %{buildroot}/%{_includedir}/SDL/SDL_config.h
 
 # remove libtool .la file
 rm -f %{buildroot}%{_libdir}/*.la
@@ -271,6 +271,9 @@ rm -f %{buildroot}%{_libdir}/*.la
 %{_libdir}/lib*.a
 
 %changelog
+* Wed Dec 30 2020 Julien Maerten <julien@3dw.org> - 1.2.15-44
+- Fix broken SDL_config.h wrapper for mips
+
 * Wed Jul 08 2020  HAL <notes2@gmx.de> - 1.2.15-43
 - compiles on Irix 6.5 with sgug-rse gcc 9.2. esd is supported.
 

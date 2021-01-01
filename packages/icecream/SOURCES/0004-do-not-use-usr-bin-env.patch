@@ -1,0 +1,22 @@
+From 8d14b19ed2bc174e2669e0effaafcb862a7c4054 Mon Sep 17 00:00:00 2001
+From: Michal Schmidt <mschmidt@redhat.com>
+Date: Fri, 11 Nov 2016 15:23:40 +0100
+Subject: [PATCH 4/4] do not use #!/usr/bin/env
+
+---
+ client/icecc-create-env.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/client/icecc-create-env.in b/client/icecc-create-env.in
+index cb52c9daa7..deb686fd65 100755
+--- a/client/icecc-create-env.in
++++ b/client/icecc-create-env.in
+@@ -1,4 +1,4 @@
+-#! /usr/bin/env bash
++#!/usr/bin/bash
+ # icecc -- A simple distributed compiler system
+ #
+ # Copyright (C) 2004 by the Icecream Authors
+-- 
+2.21.0
+

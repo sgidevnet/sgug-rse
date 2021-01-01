@@ -1,0 +1,26 @@
+diff -Naur orc-0.4.30.orig/orc/orccodemem.c orc-0.4.30/orc/orccodemem.c
+--- orc-0.4.30.orig/orc/orccodemem.c	2019-09-09 00:21:43.000000000 +0000
++++ orc-0.4.30/orc/orccodemem.c	2020-12-30 20:41:25.233291329 +0000
+@@ -255,16 +255,18 @@
+ static int
+ orc_code_region_allocate_codemem_anon_map (OrcCodeRegion *region)
+ {
+-  region->exec_ptr = mmap (NULL, SIZE, PROT_READ|PROT_WRITE|PROT_EXEC,
+-      MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+-  if (region->exec_ptr == MAP_FAILED) {
++  int anonfd;
++  anonfd = open("/dev/zero", O_RDWR);
++
++  region->exec_ptr = mmap (NULL, SIZE, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, anonfd, 0);
++    if (region->exec_ptr == MAP_FAILED) {
+     ORC_WARNING("failed to create write/exec map");
+     return FALSE;
+   }
+   region->write_ptr = region->exec_ptr;
+   region->size = SIZE;
+   return TRUE;
+-}
++}  
+ 
+ static void
+ orc_code_region_allocate_codemem (OrcCodeRegion *region)

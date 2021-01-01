@@ -1,0 +1,7 @@
+/usr/sbin/iceccd                           -- gen_context(system_u:object_r:iceccd_exec_t,s0)
+/usr/libexec/icecc/iceccd-wrapper          -- gen_context(system_u:object_r:initrc_exec_t,s0)
+/usr/sbin/icecc-scheduler                  -- gen_context(system_u:object_r:icecc_scheduler_exec_t,s0)
+/usr/libexec/icecc/icecc-scheduler-wrapper -- gen_context(system_u:object_r:initrc_exec_t,s0)
+/usr/bin/icecc-create-env                  -- gen_context(system_u:object_r:iceccd_createenv_exec_t,s0)
+/var/cache/icecream(/.*)?                     gen_context(system_u:object_r:iceccd_cache_t,s0)
+/var/run/icecc(/.*)?                          gen_context(system_u:object_r:iceccd_var_run_t,s0)

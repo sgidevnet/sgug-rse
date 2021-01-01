@@ -1,0 +1,31 @@
+#!/bin/sh
+
+config=/etc/sysconfig/icecream
+[ -e $config ] && . $config
+
+params=""
+if [ -n "$ICECREAM_NETNAME" ] ; then
+	params="$params -n $ICECREAM_NETNAME"
+fi
+if [ -n "$ICECREAM_SCHEDULER_HOST" ] ; then
+	params="$params -s $ICECREAM_SCHEDULER_HOST"
+fi
+if [ "$ICECREAM_ALLOW_REMOTE" = "no" ] ; then
+	params="$params --no-remote"
+fi
+if [ -n "$ICECREAM_MAX_JOBS" ] ; then
+	if [ "$ICECREAM_MAX_JOBS" -eq 0 ] ; then
+		params="$params -m 1"
+		params="$params --no-remote"
+	else
+		params="$params -m $ICECREAM_MAX_JOBS"
+	fi
+fi
+if [ -n "$ICECREAM_LOG_FILE" ] ; then
+	params="$params -l $ICECREAM_LOG_FILE"
+fi
+if [ "$ICECREAM_DEBUG" = "yes" ] ; then
+    params="$params -vvv"
+fi
+
+exec /usr/sbin/iceccd "$@" $params
