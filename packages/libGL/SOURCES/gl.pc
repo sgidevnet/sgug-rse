@@ -1,0 +1,8 @@
+Name: GL
+Description: GL Library
+Version: 1.2
+Requires: 
+Requires.private: 
+Cflags:
+Libs: -lGL -lGLcore /usr/lib32/libXext.so
+Libs.private: 
