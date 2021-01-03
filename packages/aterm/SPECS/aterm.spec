@@ -3,7 +3,7 @@
 
 Name:           aterm
 Version:        1.0.1
-Release:        31%{?dist}
+Release:        32%{?dist}
 
 Summary:        Afterstep XVT, VT102 emulator for the X Window system
 License:        GPLv2+
@@ -23,6 +23,7 @@ BuildRequires:  libAfterImage-devel >= 1.07
 #BuildRequires:  mesa-libGL-devel
 
 Requires: libAfterImage
+Requires: xorg-x11-fonts-misc
 
 # fix #454936
 #Requires: xorg-x11-fonts-misc
@@ -67,6 +68,9 @@ make %{?_smp_mflags}
 
 
 %changelog
+* Fri Jan 01 2021 Daniel Hams <daniel.hams@gmail.com> - 1.0.1-32
+- Include dep on xorg-x11-fonts-misc for k14 font
+
 * Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1.0.1-31
 - Rebuild for jpegturbo, separate CCACHE
 
