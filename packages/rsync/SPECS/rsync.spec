@@ -1,6 +1,3 @@
-# This package is able to use optimised linker flags.
-%global build_ldflags %{sgug_optimised_ldflags}
-
 %global _hardened_build 1
 
 %define isprerelease 0
@@ -11,8 +8,8 @@
 
 Summary: A program for synchronizing files over a network
 Name: rsync
-Version: 3.1.3
-Release: 9%{?dist}
+Version: 3.2.3
+Release: 1%{?dist}
 URL: http://rsync.samba.org/
 
 Source0: https://download.samba.org/pub/rsync/src/rsync-%{version}%{?prerelease}.tar.gz
@@ -23,17 +20,17 @@ Source4: rsyncd.conf
 Source5: rsyncd.sysconfig
 Source6: rsyncd@.service
 
-BuildRequires:  gcc
+BuildRequires: gcc gcc-c++
 #BuildRequires: libacl-devel, libattr-devel, autoconf, popt-devel, systemd
-BuildRequires: autoconf, popt-devel
-Requires: zlib
+BuildRequires: lz4-devel openssl-devel libzstd-devel
 #Added virtual provide for zlib due to https://fedoraproject.org/wiki/Bundled_Libraries?rd=Packaging:Bundled_Libraries
 Provides: bundled(zlib) = 1.2.8
 License: GPLv3+
 
-Patch0: rsync-man.patch
-Patch1: rsync-noatime.patch
-Patch2: rsync-3.0.6-iconv-logging.patch
+#Added temporarily until new rebase
+Patch0: rsync-3.2.2-ssl-verify-hostname.patch
+#Added due to rhbz#1873975 - default-acls test fail on s390x due to libacl
+Patch1: rsync-3.2.2-runtests.patch
 
 %description
 Rsync uses a reliable algorithm to bring remote and host files into
@@ -48,7 +45,7 @@ package.
 Summary: Service for anonymous access to rsync
 BuildArch: noarch
 Requires: %{name} = %{version}-%{release}
-%{?systemd_requires}
+#%%{?systemd_requires}
 %description daemon
 Rsync can be used to offer read only access to anonymous clients. This
 package provides the anonymous rsync service.
@@ -64,25 +61,22 @@ package provides the anonymous rsync service.
 %setup -q -b 1
 %endif
 
-chmod -x support/*
-
-#Needed for compatibility with previous patched rsync versions
-patch -p1 -i patches/acls.diff
-patch -p1 -i patches/xattrs.diff
-
 #Enable --copy-devices parameter
 patch -p1 -i patches/copy-devices.diff
 
-%patch0 -p1 -b .man
-%patch1 -p1 -b .noatime
-%patch2 -p1 -b .iconv
+%patch0 -p1 -b .verify-hostname
+%patch1 -p1 -b .runtests
 
 %build
 
-%configure --with-included-popt
+%configure --disable-xxhash --disable-xattr-support --disable-acl-support --disable-ipv6
 # --with-included-zlib=no temporary disabled because of #1043965
 
 make %{?_smp_mflags}
+
+%check
+make check
+chmod -x support/*
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -98,28 +92,44 @@ install -D -m644 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/rsyncd.conf
 %files
 %{!?_licensedir:%global license %%doc}
 %license COPYING
-%doc NEWS OLDNEWS README support/ tech_report.tex
+%doc support/ tech_report.tex
 %{_bindir}/%{name}
+%{_bindir}/%{name}-ssl
 %{_mandir}/man1/%{name}.1*
+%{_mandir}/man1/%{name}-ssl.1*
 %{_mandir}/man5/rsyncd.conf.5*
 %config(noreplace) %{_sysconfdir}/rsyncd.conf
 
-#%files daemon
-#%config(noreplace) %{_sysconfdir}/sysconfig/rsyncd
-#%{_unitdir}/rsyncd.socket
-#%{_unitdir}/rsyncd.service
-#%{_unitdir}/rsyncd@.service
+#%%files daemon
+#%%config(noreplace) %{_sysconfdir}/sysconfig/rsyncd
+#%%{_unitdir}/rsyncd.socket
+#%%{_unitdir}/rsyncd.service
+#%%{_unitdir}/rsyncd@.service
 
-#%post daemon
-#%systemd_post rsyncd.service
+#%%post daemon
+#%%systemd_post rsyncd.service
 
-#%preun daemon
-#%systemd_preun rsyncd.service
+#%%preun daemon
+#%%systemd_preun rsyncd.service
 
-#%postun daemon
-#%systemd_postun_with_restart rsyncd.service
+#%%postun daemon
+#%%systemd_postun_with_restart rsyncd.service
 
 %changelog
+* Sun Jan 09 2021  HAL <notes2@gmx.de> - 
+- builds on Irix 6.5 with sgug-rse gcc 9.2. All tests pass (build with --nocheck)
+- Run the testsuite as root otherwise the chown-test will fail.
+
+* Mon Aug 31 2020 Michal Ruprich <mruprich@redhat.com> - 3.2.3-1
+- New version 3.2.3
+- Removed upstream patches acls.diff and xattrs.diff
+
+* Tue Jul 21 2020 Michal Ruprich <michalruprich@gmail.com> - 3.2.2-1
+- New version 3.2.2
+
+* Thu Oct 10 2019 Michal Ruprich <mruprich@redhat.com> - 3.1.3-10
+- Enabling upstream test suite during build rhbz#1533846
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.1.3-9
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
