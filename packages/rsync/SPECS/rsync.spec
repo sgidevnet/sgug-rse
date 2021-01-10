@@ -67,6 +67,14 @@ patch -p1 -i patches/copy-devices.diff
 %patch0 -p1 -b .verify-hostname
 %patch1 -p1 -b .runtests
 
+perl -pi -e "s|#!/usr/bin/env bash|#!/usr/sgug/bin/bash|g" %{_builddir}/rsync-3.2.3/support/rsync-no-vanished
+perl -pi -e "s|#!/usr/bin/env bash|#!/usr/sgug/bin/bash|g" %{_builddir}/rsync-3.2.3/support/deny-rsync
+perl -pi -e "s|#!/usr/bin/env bash|#!/usr/sgug/bin/bash|g" %{_builddir}/rsync-3.2.3/support/instant-rsyncd
+perl -pi -e "s|#!/usr/bin/env bash|#!/usr/sgug/bin/bash|g" %{_builddir}/rsync-3.2.3/support/rsync-slash-strip
+perl -pi -e "s|#!/usr/bin/env bash|#!/usr/sgug/bin/bash|g" %{_builddir}/rsync-3.2.3/rsync-ssl
+perl -pi -e "s|#!/usr/bin/env bash|#!/usr/sgug/bin/bash|g" %{_builddir}/rsync-3.2.3/rsync-ssl.verify-hostname
+perl -pi -e "s|#!/bin/bash|#!/usr/sgug/bin/bash|g" %{_builddir}/rsync-3.2.3/support/instant-rsyncd
+
 %build
 
 %configure --disable-xxhash --disable-xattr-support --disable-acl-support --disable-ipv6
@@ -116,7 +124,7 @@ install -D -m644 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/rsyncd.conf
 #%%systemd_postun_with_restart rsyncd.service
 
 %changelog
-* Sun Jan 09 2021  HAL <notes2@gmx.de> - 
+* Sat Jan 09 2021  HAL <notes2@gmx.de> - 3.2.3-1
 - builds on Irix 6.5 with sgug-rse gcc 9.2. All tests pass (build with --nocheck)
 - Run the testsuite as root otherwise the chown-test will fail.
 
