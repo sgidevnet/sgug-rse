@@ -4,5 +4,5 @@ Version: 1.2
 Requires: 
 Requires.private: 
 Cflags:
-Libs: -lGL -lGLcore /usr/lib32/libXext.so
+Libs: -lGL -lGLcore /usr/lib32/libX11.so
 Libs.private: 
