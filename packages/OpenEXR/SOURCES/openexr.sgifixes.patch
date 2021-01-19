@@ -1,0 +1,27 @@
+diff -ur openexr-2.3.0.orig/IlmImfTest/bswap_32.h openexr-2.3.0/IlmImfTest/bswap_32.h
+--- openexr-2.3.0.orig/IlmImfTest/bswap_32.h    2021-01-19 12:17:42.813154200 +0000
++++ openexr-2.3.0/IlmImfTest/bswap_32.h 2021-01-19 11:59:01.139555000 +0000
+@@ -24,6 +24,9 @@
+ #if defined(__BSWAP_RENAME) && !defined(__bswap_32)
+ #define bswap_32(x) bswap32(x)
+ #endif
++#elif defined(__sgi)
++#include <sex.h>
++#define bswap_32(x) swap_word(x)
+ #else
+ #include <byteswap.h>
+ #endif
+diff -ur openexr-2.3.0.orig/IlmImfTest/main.cpp openexr-2.3.0/IlmImfTest/main.cpp
+--- openexr-2.3.0.orig/IlmImfTest/main.cpp      2018-08-10 03:34:59.000000000 +0000
++++ openexr-2.3.0/IlmImfTest/main.cpp   2021-01-19 11:39:02.330422200 +0000
+@@ -210,7 +210,9 @@
+ 
+ 
+     std::cout << "removing temp dir " << tempDir << std::endl;
++#ifndef __sgi
+     rmdir (tempDir.c_str());
++#endif
+ 
+     #ifdef OPENEXR_IMF_HAVE_LINUX_PROCFS
+ 
+
