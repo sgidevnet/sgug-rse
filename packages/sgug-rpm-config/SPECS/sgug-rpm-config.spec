@@ -40,7 +40,7 @@ Source103: macros.nodejs-srpm
 #Source151: macros.kmp
 Source152: macros.vpath
 Source153: macros.forge
-#Source154: macros.ldconfig
+Source154: macros.ldconfig
 Source155: macros.sgugrse-misc
 
 # Build policy scripts
@@ -196,7 +196,7 @@ install -p -m 644 -T sgug-etc-rpm-macros %{buildroot}%{rpmetcdir}/macros
 %{_rpmconfigdir}/macros.d/macros.*-srpm
 #%%{_rpmconfigdir}/macros.d/macros.dwz
 %{_rpmconfigdir}/macros.d/macros.forge
-#%%{_rpmconfigdir}/macros.d/macros.ldconfig
+%{_rpmconfigdir}/macros.d/macros.ldconfig
 %{_rpmconfigdir}/macros.d/macros.vpath
 %{_rpmconfigdir}/macros.d/macros.sgugrse-misc
 %dir %{_rpmluadir}/sgugrse
