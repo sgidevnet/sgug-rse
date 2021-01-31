@@ -1,0 +1,7 @@
+%ldconfig /usr/sgug/bin/echo
+%ldconfig_post(n:) /usr/sgug/bin/echo
+%ldconfig_postun(n:) /usr/sgug/bin/echo
+%ldconfig_scriptlets(n:) %{?ldconfig:\
+%ldconfig_post /usr/sgug/bin/echo \
+%ldconfig_postun /usr/sgug/bin/echo }\
+}
