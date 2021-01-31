@@ -9,7 +9,7 @@ diff -ur glew-2.1.0.orig/config/Makefile.irix glew-2.1.0/config/Makefile.irix
 +CC = gcc
 +LD = gcc
 +#ABI = -64# -n32
-+ABI = -mips4
++ABI = -mabi=n32
  CC += $(ABI)
  LD += $(ABI)
 -LDFLAGS.EXTRA =
