@@ -16,21 +16,19 @@ BuildRequires: xorg-x11-util-macros
 BuildRequires: autoconf automake libtool
 BuildRequires: pkgconfig(xproto) pkgconfig(xext)
 
-%if !%{with_devel}
+#%%if !%{with_devel}
 Obsoletes: libXxf86misc-devel <= 1.0.4-4
-%endif
+#%%endif
 
 %description
 X.Org X11 libXxf86misc runtime library
 
-%if %{with_devel}
 %package devel
 Summary: X.Org X11 libXxf86misc development package
 Requires: %{name} = %{version}-%{release}
 
 %description devel
 X.Org X11 libXxf86misc development package
-%endif
 
 %prep
 %setup -q
@@ -46,14 +44,14 @@ make %{?_smp_mflags}
 %install
 make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
-%if %{with_devel}
+#%%if %{with_devel}
 mkdir -p $RPM_BUILD_ROOT%{_includedir}/X11/extensions
 install -m 0644 -p %{SOURCE1} %{SOURCE2} $RPM_BUILD_ROOT%{_includedir}/X11/extensions
-%else
-rm -f $RPM_BUILD_ROOT%{_libdir}/*.so
-rm -rf $RPM_BUILD_ROOT%{_libdir}/pkgconfig
-rm -rf $RPM_BUILD_ROOT%{_mandir}/man3/*.3*
-%endif
+#%%else
+#rm -f $RPM_BUILD_ROOT%{_libdir}/*.so
+#rm -rf $RPM_BUILD_ROOT%{_libdir}/pkgconfig
+#rm -rf $RPM_BUILD_ROOT%{_mandir}/man3/*.3*
+#%%endif
 
 #%%ldconfig_post
 #%%ldconfig_postun
@@ -63,15 +61,16 @@ rm -rf $RPM_BUILD_ROOT%{_mandir}/man3/*.3*
 %{_libdir}/libXxf86misc.so.1
 %{_libdir}/libXxf86misc.so.1.1.0
 
-%if %{with_devel}
 %files devel
 %{_includedir}/X11/extensions/*.h
 %{_libdir}/libXxf86misc.so
 %{_libdir}/pkgconfig/xxf86misc.pc
 %{_mandir}/man3/*.3*
-%endif
 
 %changelog
+* Wed Jan 27 2021  HAL <notes2@gmx.de> - 1.0.4-5
+- builds on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.4-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

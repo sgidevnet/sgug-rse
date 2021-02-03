@@ -85,6 +85,9 @@ This package contains the python3 bindings for %{name}
 %{python2_sitearch}/gi/overrides/*
 
 %changelog
+* Wed Jan 27 2021  HAL <notes2@gmx.de> - 0.12-1.1
+- initial commit, builds on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Mon May 25 2020 Kalev Lember <klember@redhat.com> - 0.12.1-1
 - Update to 0.12.1
 
