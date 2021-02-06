@@ -1,6 +1,6 @@
-diff -Naur ghostscript-9.27.orig/Makefile.in ghostscript-9.27/Makefile.in
---- ghostscript-9.27.orig/Makefile.in	2019-04-04 00:43:14.000000000 +0000
-+++ ghostscript-9.27/Makefile.in	2020-11-14 01:22:46.628761324 +0000
+diff -ur ghostscript-9.27.orig/Makefile.in ghostscript-9.27/Makefile.in
+--- ghostscript-9.27.orig/Makefile.in	2019-04-04 09:43:14.000000000 +0000
++++ ghostscript-9.27/Makefile.in	2021-02-06 00:24:39.595985200 +0000
 @@ -112,7 +112,7 @@
  # Define the default directory/ies for the runtime
  # initialization and font files.  Separate multiple directories with a :.
@@ -10,3 +10,30 @@ diff -Naur ghostscript-9.27.orig/Makefile.in ghostscript-9.27/Makefile.in
  
  # Define the default directory for cached data files
  # this must be a single path.
+@@ -454,10 +454,10 @@
+ XPS_LDFLAGS=$(LDFLAGS)
+ PDL_LDFLAGS=$(LDFLAGS)
+ 
+-GS_LDFLAGS_SO=@GS_DYNAMIC_LDFLAGS@
+-PCL_LDFLAGS_SO=@PCL_DYNAMIC_LDFLAGS@
+-XPS_LDFLAGS_SO=@XPS_DYNAMIC_LDFLAGS@
+-PDL_LDFLAGS_SO=@PDL_DYNAMIC_LDFLAGS@
++GS_LDFLAGS_SO=@GS_DYNAMIC_LDFLAGS@ -shared
++PCL_LDFLAGS_SO=@PCL_DYNAMIC_LDFLAGS@ -shared
++XPS_LDFLAGS_SO=@XPS_DYNAMIC_LDFLAGS@ -shared
++PDL_LDFLAGS_SO=@PDL_DYNAMIC_LDFLAGS@ -shared
+ 
+ # Define any extra libraries to link into the executable.
+ # ISC Unix 2.2 wants -linet.
+diff -ur ghostscript-9.27.orig/cups/gdevcups.c ghostscript-9.27/cups/gdevcups.c
+--- ghostscript-9.27.orig/cups/gdevcups.c	2019-04-04 09:43:14.000000000 +0000
++++ ghostscript-9.27/cups/gdevcups.c	2021-02-05 23:42:55.469066800 +0000
+@@ -3003,6 +3003,8 @@
+ 					 CUPS_RASTER_WRITE :
+ 					 CUPS_RASTER_WRITE_COMPRESSED)))) ==
+ 	NULL)
++#elif defined(__sgi)
++                                       CUPS_RASTER_WRITE)) == NULL)
+ #else
+                                        (cups->cupsRasterVersion == 3 ?
+ 					CUPS_RASTER_WRITE :
