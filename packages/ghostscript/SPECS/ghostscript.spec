@@ -223,13 +223,13 @@ of various document files (including PS and PDF).
 
 # ---------------
 
-%package x11
-Summary:          Ghostscript's X11-based driver for document rendering
-Requires:         %{name}%{?_isa} = %{version}-%{release}
+#%%package x11
+#Summary:          Ghostscript's X11-based driver for document rendering
+#Requires:         %{name}%{?_isa} = %{version}-%{release}
 
-%description x11
-This package provides X11-based driver for Ghostscript, which enables displaying
-of various document files (including PS and PDF).
+#%%description x11
+#This package provides X11-based driver for Ghostscript, which enables displaying
+#of various document files (including PS and PDF).
 
 # ---------------
 
@@ -314,7 +314,7 @@ sed -r -i 's|/bin/sh|/usr/sgug/bin/sh|' %{_builddir}/ghostscript-9.27/configure
 %else
 
 %configure --disable-dynamic --disable-compile-inits --without-cups --without-versioned-path \
-           --with-fontpath="%{urw_base35_fontpath}:%{google_droid_fontpath}:%{_datadir}/fonts"
+           --with-fontpath="/usr/sgug/share/fonts/urw-base35:/usr/sgug/share/fonts/google-droid:%{_datadir}/fonts"
 %endif
 
 %make_build so
@@ -358,10 +358,10 @@ ln -s %{_mandir}/man1/gs.1 %{buildroot}%{_mandir}/man1/ghostscript.1
 # process for Ghostscript startup, and they advise using the symlinks where
 # possible. The fontconfig (Ghostscript's search path) should be used preferably
 # as a fallback only.
-ln -fs %{google_droid_fontpath}/DroidSansFallback.ttf %{buildroot}%{_datadir}/%{name}/Resource/CIDFSubst/DroidSansFallback.ttf
+ln -fs /usr/sgug/share/fonts/google-droid/DroidSansFallback.ttf %{buildroot}%{_datadir}/%{name}/Resource/CIDFSubst/DroidSansFallback.ttf
 
 for font in $(basename --multiple %{buildroot}%{_datadir}/%{name}/Resource/Font/*); do
-  ln -fs %{urw_base35_fontpath}/${font}.t1 %{buildroot}%{_datadir}/%{name}/Resource/Font/${font}
+  ln -fs /usr/sgug/share/fonts/urw-base35/${font}.t1 %{buildroot}%{_datadir}/%{name}/Resource/Font/${font}
 done
 
 # Using the system-wide available CMap files from Adobe via Ghostscript's search
@@ -369,7 +369,7 @@ done
 # according to upstream. Their preferred solution is to just create symlink for
 # each of the CMap files in Ghostscript's Resources/CMap folder.
 for file in $(basename --multiple %{buildroot}%{_datadir}/%{name}/Resource/CMap/*); do
-  find %{adobe_mappings_rootpath} -type f -name ${file} -exec ln -fs {} %{buildroot}%{_datadir}/%{name}/Resource/CMap/${file} \;
+  find /usr/sgug/share/adobe/resources/mapping -type f -name ${file} -exec ln -fs {} %{buildroot}%{_datadir}/%{name}/Resource/CMap/${file} \;
 done
 
 # Create the configuration folder fo RHEL:
@@ -468,8 +468,8 @@ done
 
 # ---------------
 
-%files x11
-%{_libdir}/%{name}/
+#%%files x11
+#%%{_libdir}/%{name}/
 
 # ---------------
 
@@ -483,7 +483,7 @@ done
 # =============================================================================
 
 %changelog
-* Wed Jan 27 2020  HAL <notes2@gmx.de> - 9.27-9
+* Wed Jan 27 2021  HAL <notes2@gmx.de> - 9.27-9
 - initial commit fails after a while with a problem related to linking.
 
 * Thu Jul 02 2020 Michael J Gruber <mjg@fedoraproject.org> - 9.27-9
