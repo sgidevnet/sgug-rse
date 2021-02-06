@@ -1,0 +1,11 @@
+--- dillo-3.0.5/dpi/downloads.cc       2021-02-05 23:10:37.177846160 +0000
++++ dillo-3.0.5/dpi/downloads.cc        2021-02-05 23:08:33.870283120 +0000
+@@ -464,7 +464,7 @@
+    dClose(LogPipe[0]);
+    dup2(LogPipe[1], 2); // stderr
+    // set the locale to C for log parsing
+-   setenv("LC_ALL", "C", 1);
++   // setenv("LC_ALL", "C", 1);
+    // start wget
+    execvp(dl_argv[0], dl_argv);
+ }
