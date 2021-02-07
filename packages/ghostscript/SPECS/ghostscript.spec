@@ -48,7 +48,7 @@
 Name:             ghostscript
 Summary:          Interpreter for PostScript language & PDF
 Version:          9.27
-Release:          9%{?dist}
+Release:          10%{?dist}
 
 License:          AGPLv3+
 
@@ -143,7 +143,7 @@ Requires:         google-droid-sans-fonts
 Requires:         urw-base35-fonts
 
 # FIXME:          Remove the line below once F28 is EOL.
-Conflicts:        %{name}-core < %{conflicts_vers}
+#Conflicts:        %{name}-core < %{conflicts_vers}
 
 %description -n libgs
 This library provides Ghostscript's core functionality, based on Ghostscript's
@@ -179,14 +179,14 @@ against Ghostscript's library, which provides Ghostscript's core functionality.
 #       Previously, the 'dvips' was moving between packages before, so it's
 #       more convenient (even for users) to have a direct requiremnt for the
 #       executable instead of package.
-%package tools-dvipdf
-Summary:          Ghostscript's 'dvipdf' utility
-Requires:         %{name}%{?_isa} = %{version}-%{release}
-Requires:         %{_bindir}/dvips
+#%%package tools-dvipdf
+#Summary:          Ghostscript's 'dvipdf' utility
+#Requires:         %{name}%{?_isa} = %{version}-%{release}
+#Requires:         %{_bindir}/dvips
 
-%description tools-dvipdf
-This package provides the utility 'dvipdf' for converting of TeX DVI files into
-PDF files using Ghostscript and dvips.
+#%%description tools-dvipdf
+#This package provides the utility 'dvipdf' for converting of TeX DVI files into
+#PDF files using Ghostscript and dvips.
 
 # ---------------
 
@@ -313,7 +313,7 @@ sed -r -i 's|/bin/sh|/usr/sgug/bin/sh|' %{_builddir}/ghostscript-9.27/configure
            --with-fontpath="%{urw_base35_fontpath}:%{google_droid_fontpath}:%{_datadir}/%{name}/conf.d/"
 %else
 
-%configure --disable-dynamic --disable-compile-inits --without-cups --without-versioned-path \
+%configure --disable-dynamic --disable-compile-inits --with-x --disable-cups --without-versioned-path \
            --with-fontpath="/usr/sgug/share/fonts/urw-base35:/usr/sgug/share/fonts/google-droid:%{_datadir}/fonts"
 %endif
 
@@ -377,6 +377,8 @@ done
   install -m 0755 -d %{buildroot}%{_datadir}/%{name}/conf.d/
 %endif
 
+rm -f $RPM_BUILD_ROOT/usr/sgug/bin/dvipdf
+
 # === INSTALLATION INSTRUCTIONS ===============================================
 
 #%%ldconfig_scriptlets -n libgs
@@ -418,20 +420,22 @@ done
 %{_mandir}/man1/eps2*
 %{_mandir}/man1/pdf2*
 %{_mandir}/man1/ps2*
+%{_mandir}/man1/dvipdf*
+
 
 %lang(de) %{_mandir}/de/man1/gsnd*
 %lang(de) %{_mandir}/de/man1/eps2*
 %lang(de) %{_mandir}/de/man1/pdf2*
 %lang(de) %{_mandir}/de/man1/ps2*
+%lang(de) %{_mandir}/de/man1/dvipdf*
 
 # ---------------
 
-%files tools-dvipdf
-%{_bindir}/dvipdf
+#%%files tools-dvipdf
+#%%{_bindir}/dvipdf
+#%%{_mandir}/man1/dvipdf*
 
-%{_mandir}/man1/dvipdf*
-
-%lang(de) %{_mandir}/de/man1/dvipdf*
+#%%lang(de) %{_mandir}/de/man1/dvipdf*
 
 # ---------------
 
@@ -483,6 +487,9 @@ done
 # =============================================================================
 
 %changelog
+* Sun Feb 07 2021  HAL <notes2@gmx.de> - 9.27-10
+- fixed the dependency of cups.
+
 * Wed Jan 27 2021  HAL <notes2@gmx.de> - 9.27-9
 - initial commit fails after a while with a problem related to linking.
 
