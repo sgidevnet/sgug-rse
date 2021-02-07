@@ -95,7 +95,7 @@ test "$(pkg-config --modversion IlmBase)" = "%{version}"
 %endif
 
 
-#%ldconfig_scriptlets
+#%%ldconfig_scriptlets
 
 
 %files
