@@ -1,0 +1,66 @@
+diff -Naur devilutionX-1.0.orig/3rdParty/StormLib/src/FileStream.cpp devilutionX-1.0/3rdParty/StormLib/src/FileStream.cpp
+--- devilutionX-1.0.orig/3rdParty/StormLib/src/FileStream.cpp	2021-02-14 17:08:42.000000000 +0000
++++ devilutionX-1.0/3rdParty/StormLib/src/FileStream.cpp	2021-02-14 18:51:34.721220915 +0000
+@@ -143,7 +143,7 @@
+ 
+ #if defined(PLATFORM_MAC) || defined(PLATFORM_LINUX) || defined(PLATFORM_HAIKU) || defined(PLATFORM_AMIGA) || defined(PLATFORM_SWITCH)
+     {
+-        struct stat64 fileinfo;
++        struct stat fileinfo;
+         int oflag = (dwStreamFlags & STREAM_FLAG_READ_ONLY) ? O_RDONLY : O_RDWR;
+         intptr_t handle;
+ 
+@@ -157,7 +157,7 @@
+         }
+ 
+         // Get the file size
+-        if(fstat64(handle, &fileinfo) == -1)
++        if(fstat(handle, &fileinfo) == -1)
+         {
+             nLastError = errno;
+             close(handle);
+@@ -220,7 +220,7 @@
+         // we have to update the file position   xxx
+         if(ByteOffset != pStream->Base.File.FilePos)
+         {
+-            lseek64((intptr_t)pStream->Base.File.hFile, (off64_t)(ByteOffset), SEEK_SET);
++            lseek((intptr_t)pStream->Base.File.hFile, (off64_t)(ByteOffset), SEEK_SET);
+             pStream->Base.File.FilePos = ByteOffset;
+         }
+ 
+@@ -291,7 +291,7 @@
+         // we have to update the file position
+         if(ByteOffset != pStream->Base.File.FilePos)
+         {
+-            lseek64((intptr_t)pStream->Base.File.hFile, (off64_t)(ByteOffset), SEEK_SET);
++            lseek((intptr_t)pStream->Base.File.hFile, (off64_t)(ByteOffset), SEEK_SET);
+             pStream->Base.File.FilePos = ByteOffset;
+         }
+ 
+@@ -352,7 +352,7 @@
+ 
+ #if defined(PLATFORM_MAC) || defined(PLATFORM_LINUX) || defined(PLATFORM_HAIKU) || defined(PLATFORM_AMIGA) || defined(PLATFORM_SWITCH)
+     {
+-        if(ftruncate64((intptr_t)pStream->Base.File.hFile, (off64_t)NewFileSize) == -1)
++        if(ftruncate((intptr_t)pStream->Base.File.hFile, (off64_t)NewFileSize) == -1)
+         {
+             nLastError = errno;
+             return false;
+@@ -494,7 +494,7 @@
+ #endif
+ 
+ #if defined(PLATFORM_MAC) || defined(PLATFORM_LINUX) || defined(PLATFORM_HAIKU) || defined(PLATFORM_AMIGA) || defined(PLATFORM_SWITCH)
+-    struct stat64 fileinfo;
++    struct stat fileinfo;
+     intptr_t handle;
+     bool bResult = false;
+ 
+@@ -503,7 +503,7 @@
+     if(handle != -1)
+     {
+         // Get the file size
+-        if(fstat64(handle, &fileinfo) != -1)
++        if(fstat(handle, &fileinfo) != -1)
+         {
+ #if !defined(PLATFORM_AMIGA)
+ #if defined(PLATFORM_SWITCH)

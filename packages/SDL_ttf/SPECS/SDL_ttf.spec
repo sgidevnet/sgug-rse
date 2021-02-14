@@ -37,6 +37,7 @@ developing applications that use %{name}.
 
 
 %build
+export LDFLAGS="%{optflags} -liconv"
 %configure --disable-dependency-tracking --disable-static
 make %{?_smp_mflags}
 
@@ -48,7 +49,7 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
 
-#%ldconfig_scriptlets
+#%%ldconfig_scriptlets
 
 
 %files
