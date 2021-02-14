@@ -5,7 +5,7 @@
          SYS_GL_LIBS=""
          ;;
 +    mips-sgi-irix6.5)
-+        SYS_GL_LIBS="-lGL -lGLcore /usr/lib32/libXext.so"
++        SYS_GL_LIBS="-lGL -lGLcore /usr/lib32/libXext.so -Wl,--allow-shlib-undefined"
 +        ;;
      *)
          MATHLIB="-lm"
