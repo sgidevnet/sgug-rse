@@ -1,0 +1,60 @@
+diff -Naur postgresql-12.3.orig/src/Makefile.shlib postgresql-12.3/src/Makefile.shlib
+--- postgresql-12.3.orig/src/Makefile.shlib	2021-02-20 21:35:57.555785423 +0000
++++ postgresql-12.3/src/Makefile.shlib	2021-02-20 22:57:55.809145655 +0000
+@@ -300,6 +300,15 @@
+ 	touch $@
+ endif #haslibarule
+ 
++ifeq ($(PORTNAME), irix)
++  ifdef SO_MAJOR_VERSION
++    shlib		= lib$(NAME)$(DLSUFFIX).$(SO_MAJOR_VERSION)
++  endif
++  LINK.shared		= $(COMPILER) -shared
++  ifdef soname
++    LINK.shared		+= -Wl,-set_version,sgi$(SO_MAJOR_VERSION).$(SO_MINOR_VERSION)
++  endif
++endif
+ 
+ ifeq (,$(filter cygwin win32,$(PORTNAME)))
+ ifneq ($(PORTNAME), aix)
+diff -Naur postgresql-12.3.orig/src/include/port/irix.h postgresql-12.3/src/include/port/irix.h
+--- postgresql-12.3.orig/src/include/port/irix.h	1970-01-01 01:00:00.000000000 +0000
++++ postgresql-12.3/src/include/port/irix.h	2021-02-20 22:57:11.642701816 +0000
+@@ -0,0 +1,7 @@
++/* src/include/port/irix.h */
++
++/*
++ * IRIX 6.5.26f and 6.5.22f (at least) have a strtod() that accepts
++ * "infinity", but leaves endptr pointing to "inity".
++ */
++#define HAVE_BUGGY_IRIX_STRTOD
+diff -Naur postgresql-12.3.orig/src/makefiles/Makefile.irix postgresql-12.3/src/makefiles/Makefile.irix
+--- postgresql-12.3.orig/src/makefiles/Makefile.irix	1970-01-01 01:00:00.000000000 +0000
++++ postgresql-12.3/src/makefiles/Makefile.irix	2021-02-20 22:57:11.643472042 +0000
+@@ -0,0 +1,21 @@
++AROPT = crs
++#rpath = -Wl,-rpath,'$(rpathdir)'
++
++DLSUFFIX = .so
++# PIC is default
++CFLAGS_SL =
++
++override CPPFLAGS += -U_NO_XOPEN4
++
++#ifneq ($(GCC), yes)
++#  CFLAGS += -woff 1164,1171,1185,1195,1552
++#endif
++#LDFLAGS += -Wl,-woff,15 -Wl,-woff,84
++CC=mips-sgi-irix6.5-gcc
++CXX=mips-sgi-irix6.5-g++
++
++# Rule for building a shared library from a single .o file
++%.so: %.o
++	$(CC) $(CFLAGS) $(LDFLAGS) $(LDFLAGS_SL) -shared -o $@ $<
++
++sqlmansect = 5sql
+diff -Naur postgresql-12.3.orig/src/template/irix postgresql-12.3/src/template/irix
+--- postgresql-12.3.orig/src/template/irix	1970-01-01 01:00:00.000000000 +0000
++++ postgresql-12.3/src/template/irix	2021-02-20 22:57:11.644156686 +0000
+@@ -0,0 +1 @@
++
