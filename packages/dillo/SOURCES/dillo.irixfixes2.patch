@@ -1,0 +1,12 @@
+--- dillo-3.0.5/dpi/https.c    2021-02-05 22:48:22.276884000 +0000
++++ dillo-3.0.5/dpi/https.c     2021-02-06 12:22:26.571408000 +0000
+@@ -169,7 +169,7 @@
+    /*FIXME - provide for sysconfdir variables and such*/
+    if (exit_error == 0){
+       if (SSL_CTX_load_verify_locations(
+-         ssl_context, NULL, "/etc/ssl/certs/" ) == 0){
++         ssl_context, NULL, "/usr/sgug/etc/ssl/certs/" ) == 0){
+          MSG("Error opening system x509 certificate location\n");
+          exit_error = 1;
+       }
+
