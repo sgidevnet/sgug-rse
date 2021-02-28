@@ -11,8 +11,8 @@ Source1:        %{name}.desktop
 Source2:        %{name}.png
 Patch0:         dillo-openssl.patch
 Patch100:       dillo.irixfixes.patch
-Patch101:       dillo.irixfixes2.patch
-Patch102:       dillo.irixfixes3.patch
+# Patch101:       dillo.irixfixes2.patch
+# Patch102:       dillo.irixfixes3.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  gcc
@@ -42,8 +42,8 @@ Currently: no frames,https,javascript.
 
 %patch0 -p1 -b.dso
 %patch100 -p1 -b .sgifixes
-%patch101 -p1 -b .sgifixes
-%patch102 -p1 -b .sgifixes
+#%%patch101 -p1 -b .sgifixes
+#%%patch102 -p1 -b .sgifixes
 
 autoreconf -vif
 
@@ -81,6 +81,9 @@ iconv -f iso8859-1 -t utf-8 Cookies.txt > Cookies.txt.conv && mv -f Cookies.txt.
 %{_libdir}/%{name}
 
 %changelog
+* Sun Feb 28 2021 SGUG-RSE <Jenna64bit>
+- Patches for more seamless operation in SGUG Irix environment
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.0.5-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
