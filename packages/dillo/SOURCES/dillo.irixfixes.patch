@@ -13,15 +13,6 @@
 
 --- dillo-3.0.5/dpi/https.c	2015-06-30 08:06:08.000000000 +0000
 +++ dillo-3.0.5/dpi/https.c	2021-02-26 20:59:06.552726000 +0000
-@@ -530,7 +530,7 @@
-          a_Dpip_dsh_write_str(sh, 1, d_cmd);
-          dFree(d_cmd);
- 
--         response_number = dialog_get_answer_number();
-+         response_number = 1;
-          if (response_number == 1) {
-             ret = 0;
-          }
 @@ -675,9 +675,9 @@
              "Unable to get local issuer certificate. The issuer certificate "
              "of an untrusted certificate cannot be found.",
