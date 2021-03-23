@@ -73,11 +73,16 @@ rm -f wscript
 
 
 %build
-RST2HTML=/usr/bin/rst2html-3
+RST2HTML=/usr/sgug/bin/rst2html-3
 
 %configure --docdir=%{geany_docdir} --enable-gtk3
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+
+rm -r $RPM_BUILD_DIR/geany-%{version}/libtool
+cp /usr/sgug/bin/libtool $RPM_BUILD_DIR/geany-%{version}
+
+
 make %{?_smp_mflags}
 
 %install
@@ -129,6 +134,7 @@ SentUpstream: 2014-09-17
    -->
 </application>
 EOF
+rm -f $RPM_BUILD_ROOT/usr/sgug/lib32/libgeany.a
 
 %files -f %{name}.lang
 %exclude %{geany_docdir}/TODO
@@ -153,7 +159,9 @@ EOF
 %{_libdir}/pkgconfig/geany.pc
 
 %changelog
-* Sun Nov 29 2020  HAL <notes2@gmx.de> - 1.37-1
+
+
+* Tue Mar 23 2021  HAL <notes2@gmx.de> - 1.37-1
 - compiles on Irix 6.5 with sgug-rse gcc 9.2
 
 * Sun Oct 25 2020 Dominic Hopf <dmaphy@fedoraproject.org> - 1.37-1
