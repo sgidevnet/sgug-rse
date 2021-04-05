@@ -1,0 +1,504 @@
+%define majorversion 3
+%define minorversion 0
+%define microversion 4
+%define svnver 0
+
+Summary: Word processing program
+Name: abiword
+Version: %{majorversion}.%{minorversion}.%{microversion}
+Release: 1%{?dist}
+Epoch: 1
+License: GPLv2+
+URL: http://www.abisource.com/
+
+Source0: http://abisource.com/downloads/abiword/%{version}/source/abiword-%{version}.tar.gz
+Source1: http://abisource.com/downloads/abiword/%{version}/source/abiword-docs-3.0.2.tar.gz
+Source11: abiword.mime
+Source12: abiword.keys
+Source13: abiword.xml
+Patch0: abiword-2.6.0-windowshelppaths.patch
+Patch1: abiword-2.8.3-desktop.patch
+Patch2: abiword-2.6.0-boolean.patch
+Patch3: abiword-3.0.0-librevenge.patch
+Patch4: abiword-3.0.2-explicit-python2.patch
+Patch5: abiword-3.0.4-pygobject.patch
+Patch100:  abiword.sgifixes.patch
+
+BuildRequires: autoconf
+BuildRequires: automake
+BuildRequires: aiksaurus-devel
+BuildRequires: aiksaurus-gtk-devel
+#BuildRequires: asio-devel
+BuildRequires: bison
+BuildRequires: boost-devel
+BuildRequires: bzip2-devel
+BuildRequires: cairo-devel
+BuildRequires: dbus-glib-devel
+BuildRequires: desktop-file-utils
+BuildRequires: enchant-devel
+BuildRequires: flex
+BuildRequires: fribidi-devel
+BuildRequires: gcc-c++
+BuildRequires: gobject-introspection-devel
+#BuildRequires: goffice-devel
+BuildRequires: gtk3-devel
+#BuildRequires: gtkmathview-devel
+BuildRequires: libgsf-devel
+BuildRequires: libpng-devel
+BuildRequires: librevenge-devel
+BuildRequires: librsvg2-devel
+BuildRequires: libsoup-devel
+BuildRequires: libwmf-devel
+BuildRequires: libwpd-devel
+BuildRequires: libwpg-devel
+BuildRequires: libxslt-devel
+#BuildRequires: link-grammar-devel
+BuildRequires: loudmouth-devel
+BuildRequires: ots-devel
+#BuildRequires: pkgconf-pkg-config
+BuildRequires: pkgconfig(libwps-0.4)
+BuildRequires: poppler-devel
+BuildRequires: popt-devel
+BuildRequires: python2-gobject
+BuildRequires: python2-devel
+BuildRequires: python2-setuptools
+BuildRequires: readline-devel
+BuildRequires: t1lib-devel
+BuildRequires: telepathy-glib-devel
+BuildRequires: wv-devel
+BuildRequires: zlib-devel
+
+Requires: libabiword = %{epoch}:%{version}-%{release}
+
+%description
+AbiWord is a cross-platform Open Source word processor. It is full-featured,
+while still remaining lean.
+
+
+%package -n libabiword
+Summary: Library for developing applications based on AbiWord's core
+
+%description -n libabiword
+Library for developing applications based on AbiWord's core.
+
+
+%package -n libabiword-devel
+Summary: Files for developing with libabiword
+Requires: libabiword = %{epoch}:%{version}-%{release}
+
+%description -n libabiword-devel
+Includes and definitions for developing with libabiword.
+
+
+#%%package -n python2-abiword
+#%%{?python_provide:%python_provide python2-abiword}
+#Summary: Python bindings for developing with libabiword
+#Requires: libabiword = %{epoch}:%{version}-%{release}
+
+#%%description -n python2-abiword
+#Python bindings for developing with libabiword
+
+%package -n python3-abiword
+%{?python_provide:%python_provide python3-abiword}
+Summary: Python bindings for developing with libabiword
+Requires: libabiword = %{epoch}:%{version}-%{release}
+
+%description -n python3-abiword
+Python bindings for developing with libabiword
+
+%prep
+# setup abiword
+%setup -q -a 1
+
+# patch abiword
+%patch1 -p1 -b .desktop
+%patch2 -p1 -b .boolean
+%patch3 -p0 -b .librevenge
+%patch4 -p1 -b .explicit_python2
+%patch5 -p1 -b .pygo
+%patch100 -p1 -b abiword.sgifixes
+
+# setup abiword documentation
+cd abiword-docs-3.0.1
+%patch0 -p1 -b .windowshelppaths
+
+%build
+# build libabiword and abiword
+export CFLAGS="-I%{_includedir} -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="$RPM_LD_FLAGS"
+cd $RPM_BUILD_DIR/abiword-%{version}
+
+%configure --enable-plugins --enable-clipart --enable-templates --enable-introspection
+
+rm -r $RPM_BUILD_DIR/abiword-%{version}/libtool
+cp /usr/sgug/bin/libtool $RPM_BUILD_DIR/abiword-%{version}
+
+%{make_build} V=1
+
+# build the documentation
+cd abiword-docs-3.0.1
+ABI_DOC_PROG=$(pwd)/../%{name}-%{version}/src/abiword ./make-html.sh
+
+%install
+cd $RPM_BUILD_DIR/abiword-%{version}
+%{make_install}
+
+# Register as an application to be visible in the software center
+#
+# NOTE: It would be *awesome* if this file was maintained by the upstream
+# project, translated and installed into the right place during `make install`.
+#
+# See http://www.freedesktop.org/software/appstream/docs/ for more details.
+#
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/appdata
+cat > $RPM_BUILD_ROOT%{_datadir}/appdata/%{name}.appdata.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2014 Richard Hughes <richard@hughsie.com> -->
+<!--
+BugReportURL: http://bugzilla.abisource.com/show_bug.cgi?id=13672
+SentUpstream: 2014-09-17
+-->
+<application>
+  <id type="desktop">abiword.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <description>
+    <p>
+      AbiWord is a free word processing program similar to Microsoft® Word.
+      It is suitable for a wide variety of word processing tasks.
+    </p>
+    <p>
+      AbiWord allows you to collaborate with multiple people on one document at the
+      same time.
+      It is tightly integrated with the AbiCollab.net web service, which lets you
+      store documents online, allows easy document sharing with your friends, and
+      performs format conversions on the fly.
+    </p>
+    <!-- FIXME: Probably needs another paragraph -->
+  </description>
+  <url type="homepage">http://www.abisource.com/</url>
+  <screenshots>
+  <!-- FIXME: Needs an official up to date screenshot -->
+    <screenshot type="default">https://raw.githubusercontent.com/hughsie/fedora-appstream/master/screenshots-extra/abiword/a.png</screenshot>
+    <screenshot type="default">https://raw.githubusercontent.com/hughsie/fedora-appstream/master/screenshots-extra/abiword/b.png</screenshot>
+    <screenshot type="default">https://raw.githubusercontent.com/hughsie/fedora-appstream/master/screenshots-extra/abiword/c.png</screenshot>
+  </screenshots>
+  <!-- FIXME: change this to an upstream email address for spec updates
+  <updatecontact>someone_who_cares@upstream_project.org</updatecontact>
+   -->
+</application>
+EOF
+
+# install the documentation
+cd abiword-docs-3.0.1
+mkdir -p $RPM_BUILD_ROOT/%{_datadir}/%{name}-%{majorversion}.%{minorversion}/AbiWord/help
+cp -rp help/* $RPM_BUILD_ROOT/%{_datadir}/%{name}-%{majorversion}.%{minorversion}/AbiWord/help/
+# some of the help dirs have bad perms (#109261)
+find $RPM_BUILD_ROOT/%{_datadir}/%{name}-%{majorversion}.%{minorversion}/AbiWord/help/ -type d -exec chmod -c o+rx {} \;
+
+install -p -m 0644 -D %{SOURCE11} $RPM_BUILD_ROOT%{_datadir}/mime-info/abiword.mime
+install -p -m 0644 -D %{SOURCE12} $RPM_BUILD_ROOT%{_datadir}/mime-info/abiword.keys
+install -p -m 0644 -D %{SOURCE13} $RPM_BUILD_ROOT%{_datadir}/mime/packages/abiword.xml
+
+# Remove libtool archives and static libs
+find %{buildroot} -name '*.la' -delete
+find %{buildroot} -name '*.a' -delete
+
+#%%ldconfig_scriptlets -n libabiword
+
+%files
+%{_bindir}/abiword
+%{_datadir}/appdata/*.appdata.xml
+%{_datadir}/applications/*.desktop
+%{_datadir}/mime-info/abiword.mime
+%{_datadir}/mime-info/abiword.keys
+%{_datadir}/mime/packages/abiword.xml
+%{_datadir}/icons/hicolor/*/apps/abiword.png
+%{_datadir}/icons/hicolor/scalable/apps/abiword.svg
+# Abiword help
+%{_datadir}/%{name}-%{majorversion}.%{minorversion}/AbiWord
+%{_mandir}/man1/abiword.1.gz
+
+%files -n libabiword
+%doc $RPM_BUILD_DIR/%{name}-%{version}/COPYING $RPM_BUILD_DIR/%{name}-%{version}/COPYRIGHT.TXT
+%{_libdir}/libabiword-%{majorversion}.%{minorversion}.so
+%{_libdir}/libAiksaurusGtk3*
+%{_libdir}/%{name}-%{majorversion}.%{minorversion}
+%{_libdir}/girepository-1.0/Abi-3.0.typelib
+%{_datadir}/%{name}-%{majorversion}.%{minorversion}
+%{_datadir}/dbus-1/services/org.freedesktop.Telepathy.Client.AbiCollab.service
+%{_datadir}/telepathy/clients/AbiCollab.client
+# Abiword help - included in GUI app
+%exclude %{_datadir}/%{name}-%{majorversion}.%{minorversion}/AbiWord
+
+%files -n libabiword-devel
+%{_includedir}/%{name}-%{majorversion}.%{minorversion}
+%{_libdir}/pkgconfig/%{name}-%{majorversion}.%{minorversion}.pc
+%{_datadir}/gir-1.0/Abi-3.0.gir
+
+#%%files -n python2-abiword
+#%%{python2_sitearch}/*
+
+%files -n python3-abiword
+%{python3_sitearch}/*
+
+
+%changelog
+* Mon Apr 05 2021  HAL <notes2@gmx.de> - 1:3.0.4-1
+- builds on Irix 6.5 with sgug-rse gcc 9.2.
+
+* Fri Nov 29 2019 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.4-1
+- Update to 3.0.4
+- Disable gtkmathview plugins until requires issue is fixed
+
+* Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.2-21
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Sun Feb 17 2019 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 1:3.0.2-20
+- Rebuild for readline 8.0
+
+* Fri Feb 01 2019 Caolán McNamara <caolanm@redhat.com> - 1:3.0.2-19
+- Rebuilt for fixed libwmf soname
+
+* Fri Feb 01 2019 Björn Esser <besser82@fedoraproject.org> - 1:3.0.2-18
+- Add patch to explicitly use python2 (#1671692)
+
+* Fri Feb 01 2019 Björn Esser <besser82@fedoraproject.org> - 1:3.0.2-17
+- Rebuilt for libwmf soname bump
+
+* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.2-16
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Tue Jul 17 2018 Miro Hrončok <mhroncok@redhat.com> - 1:3.0.2-15
+- Update Python macros to new packaging standards
+  (See https://fedoraproject.org/wiki/Changes/Move_usr_bin_python_into_separate_package)
+
+* Thu Jul 12 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.2-14
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
+* Wed Feb 28 2018 Caolán McNamara <caolanm@redhat.com> - 1:3.0.2-13
+- rebuild for fribidi
+
+* Wed Feb 07 2018 Iryna Shcherbina <ishcherb@redhat.com> - 1:3.0.2-12
+- Update Python 2 dependency declarations to new packaging standards
+  (See https://fedoraproject.org/wiki/FinalizingFedoraSwitchtoPython3)
+
+* Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.2-11
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Sun Jan 07 2018 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 1:3.0.2-10
+- Remove obsolete scriptlets
+
+* Sat Aug 19 2017 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl> - 1:3.0.2-9
+- Python 2 binary package renamed to python2-abiword
+  See https://fedoraproject.org/wiki/FinalizingFedoraSwitchtoPython3
+
+* Wed Aug 02 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.2-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
+
+* Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.2-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
+* Mon May 15 2017 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:3.0.2-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild
+
+* Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.2-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
+* Thu Jan 12 2017 Igor Gnatenko <ignatenko@redhat.com> - 1:3.0.2-4
+- Rebuild for readline 7.x
+
+* Wed Dec  7 2016 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.2-3
+- Fix the black drawing regression with Gtk3.22
+
+* Tue Nov 29 2016 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.2-2
+- Run ldconfig for libabiword
+
+* Tue Nov 29 2016 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.2-1
+- Update to 3.0.2 stable
+
+* Tue Jul 19 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:3.0.1-12
+- https://fedoraproject.org/wiki/Changes/Automatic_Provides_for_Python_RPM_Packages
+
+* Sun Apr 10 2016 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.1-11
+- fix parallel build (thanks yselkowi) rhbz 1214395
+
+* Sun Apr 10 2016 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.1-10
+- Add patches to fix building with newer gnutls and gcc6
+- Add patch to fix Wordperfect support
+
+* Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.1-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
+* Wed Jul 29 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:3.0.1-8
+- Rebuilt for https://fedoraproject.org/wiki/Changes/F23Boost159
+
+* Wed Jul 22 2015 David Tardon <dtardon@redhat.com> - 1:3.0.1-7
+- rebuild for Boost 1.58
+
+* Tue Jun 16 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:3.0.1-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
+* Sat Jun 06 2015 David Tardon <dtardon@redhat.com> - 1:3.0.1-5
+- really enable WordPerfect import
+- enable MS Works import
+
+* Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:3.0.1-4
+- Rebuilt for GCC 5 C++11 ABI change
+
+* Thu Mar 26 2015 Richard Hughes <rhughes@redhat.com> - 1:3.0.1-3
+- Add an AppData file for the software center
+
+* Tue Jan 27 2015 Petr Machata <pmachata@redhat.com> - 1:3.0.1-2
+- Rebuild for boost 1.57.0
+
+* Wed Dec 24 2014 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.1-1
+- Update to 3.0.1 stable
+
+* Fri Aug 15 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:3.0.0-14
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
+* Tue Jul 22 2014 Kalev Lember <kalevlember@gmail.com> - 1:3.0.0-13
+- Rebuilt for gobject-introspection 1.41.4
+
+* Tue Jul 08 2014 Rex Dieter <rdieter@fedoraproject.org> 1:3.0.0-12
+- update scriptlets (mimeinfo mostly)
+
+* Mon Jun 30 2014 Jon Ciesla <limburgher@gmail.com> - 1:3.0.0-11
+- Corrected and second patches from Linas Vepstas.
+
+* Tue Jun 24 2014 Jon Ciesla <limburgher@gmail.com> - 1:3.0.0-10
+- Rebuild for new link-grammar, with patch for API change.
+- Add librevenge BuildRequires, modified patch for current librevenge header placement.
+
+* Fri Jun 06 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:3.0.0-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
+* Tue May 27 2014 David Tardon <dtardon@redhat.com> - 1:3.0.0-8
+- switch to librevenge-based import libs
+
+* Fri May 23 2014 Petr Machata <pmachata@redhat.com> - 1:3.0.0-7
+- Rebuild for boost 1.55.0
+
+* Tue Apr 22 2014 Tomáš Mráz <tmraz@redhat.com> - 1:3.0.0-6
+- Rebuild for new libgcrypt
+
+* Sat Feb 22 2014 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.0-5
+- Add patch to fix redraw issues of ruler
+
+* Mon Nov  4 2013 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.0-4
+- Add patch to fix libabiword_init annotation
+
+* Fri Oct 25 2013 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.0-3
+- Update icon cache on install/update/erase
+
+* Wed Oct 16 2013 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.0-2
+- Enable gobject-introspection and python bindings
+
+* Mon Oct 14 2013 Peter Robinson <pbrobinson@fedoraproject.org> 1:3.0.0-1
+- Update to 3.0.0 stable
+
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:2.8.6-24
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
+* Tue Jul 30 2013 Petr Machata <pmachata@redhat.com> - 1:2.8.6-23
+- Rebuild for boost 1.54.0
+
+* Sun Feb 17 2013 Christoph Wickert <cwickert@fedoraproject.org> - 1:2.8.6-22
+- Make desktop file --vendor conditional
+- Remove obsolete category 'Applications" from desktop file
+
+* Sat Feb 09 2013 Rahul Sundaram <sundaram@fedoraproject.org> - 1:2.8.6-21
+- remove vendor tag from desktop file. https://fedorahosted.org/fpc/ticket/247
+- clean up spec to follow current guidelines
+- remove obsolete and unapplied boolean patch
+
+* Fri Jan 18 2013 Adam Tkac <atkac redhat com> - 1:2.8.6-20
+- rebuild due to "jpeg8-ABI" feature drop
+
+* Fri Dec 21 2012 Adam Tkac <atkac redhat com> - 1:2.8.6-19
+- rebuild against new libjpeg
+
+* Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:2.8.6-18
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Mon Feb 27 2012 Tom Callaway <spot@fedoraproject.org> - 1:2.8.6-17
+- fix build against modern glib, libpng
+
+* Thu Jan 12 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:2.8.6-16
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
+* Tue Dec 06 2011 Adam Jackson <ajax@redhat.com> - 1:2.8.6-15
+- Rebuild for new libpng
+
+* Tue Aug  9 2011 Peter Robinson <pbrobinson@gmail.com> - 1:2.8.6-14
+- rebuild with link-grammar now its back
+
+* Tue Aug  2 2011 Peter Robinson <pbrobinson@gmail.com> - 1:2.8.6-13
+- rebuild for new asio
+- drop obsolete OLPC and ARM includes
+
+* Tue Aug 02 2011 Marc Maurer <uwog@abisource.com> - 1:2.8.6-12
+- Fix a typo in the previous patch
+
+* Tue Aug 02 2011 Marc Maurer <uwog@abisource.com> - 1:2.8.6-11
+- Fix BZ 716005: --no-undefined is a linker flag, not a g++ flag
+
+* Tue Aug 02 2011 Marc Maurer <uwog@abisource.com> - 1:2.8.6-10
+- Mixed up the microversion and the release
+
+* Tue Aug 02 2011 Marc Maurer <uwog@abisource.com> - 1:2.8.6-9
+- Remove link-grammar from the BR and R until it is revived
+
+* Thu May 05 2011 Chris Tyler <chris@tylers.info> - 1:2.8.6-8
+- Excluded asio-devel from ARM builds
+
+* Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:2.8.6-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Thu Dec 30 2010 Peter Robinson <pbrobinson@gmail.com> - 1:2.8.6-6
+- Rebuild for library soname bumps
+
+* Wed Dec  8 2010 Caolán McNamara <caolanm@redhat.com> - 1:2.8.6-5
+- Rebuild for libwpd 0.9
+
+* Wed Dec  8 2010 Peter Robinson <pbrobinson@gmail.com> - 1:2.8.6-4
+- Rebuild for library soname bumps
+
+* Wed Sep 29 2010 jkeating - 1:2.8.6-3
+- Rebuilt for gcc bug 634757
+
+* Wed Sep 22 2010 Peter Robinson <pbrobinson@gmail.com> - 1:2.8.6-2
+- Move abiword gui help from the library to the app. Fixes 578596
+
+* Sat Aug 14 2010 Marc Maurer <uwog@abisource.com> - 1:2.8.6-1
+- New upstream release
+
+* Sat Jun 05 2010 Marc Maurer <uwog@abisource.com> - 1:2.8.5-1
+- New upstream release
+
+* Fri Apr 16 2010 Marc Maurer <uwog@abisource.com> - 1:2.8.4-1
+- New upstream release
+
+* Thu Apr 08 2010 Marc Maurer <uwog@abisource.com> - 1:2.8.3-2
+- Update .desktop patch
+
+* Thu Apr 08 2010 Marc Maurer <uwog@abisource.com> - 1:2.8.3-1
+- New upstream release
+
+* Tue Mar 02 2010 Marc Maurer <uwog@abisource.com> - 1:2.8.2-1
+- New upstream release
+- Package the man page
+
+* Wed Dec 23 2009 Rahul Sundaram <sundaram@fedoraproject.org> -1:2.8.1-4
+- Rebuild again since the wv soname bump was accidental
+- Remove superflous BuildRoot definitions and removals
+
+* Mon Dec 21 2009 Peter Robinson <pbrobinson@gmail.com> - 1:2.8.1-3
+- Rebuild against new libwv
+
+* Sun Nov 01 2009 Marc Maurer <uwog@abisource.com> - 1:2.8.1-2
+- Rebuild
+
+* Sun Nov 01 2009 Marc Maurer <uwog@abisource.com> - 1:2.8.1-1
+- New upstream release
