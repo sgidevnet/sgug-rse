@@ -59,7 +59,7 @@ find $RPM_BUILD_ROOT -type f -name "*.a" -delete
 # sigh
 chmod 0755 $RPM_BUILD_ROOT%{_libdir}/*.so*
 
-#%ldconfig_scriptlets -n libGLEW
+#%%ldconfig_scriptlets -n libGLEW
 
 %files
 %license LICENSE.txt
@@ -76,6 +76,9 @@ chmod 0755 $RPM_BUILD_ROOT%{_libdir}/*.so*
 %doc doc/*
 
 %changelog
+* Wed Dec 30 2020 Julien Maerten <julien@3dw.org> - 2.1.0-5
+- initial commit built using sgug-rse 0.0.7
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.1.0-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
