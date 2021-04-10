@@ -58,7 +58,7 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/enchant/*.la
 %{_libdir}/lib*.so.*
 %dir %{_libdir}/enchant
 %{_libdir}/enchant/lib*myspell.so*
-%{_mandir}/man1/enchant.1
+%{_mandir}/man1/enchant.1.gz
 %{_datadir}/enchant
 
 %files aspell
