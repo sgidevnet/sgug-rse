@@ -85,6 +85,9 @@ cp %{SOURCE1} $RPM_BUILD_ROOT%{compdir}/
 %(dirname %{compdir})
 
 %changelog
+* Tue Apr 13 2021 Chris Fitzpatrick <chris@synthtc.com> - 3.04-13
+- Rebuilt for sgug-rse
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.04-13
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

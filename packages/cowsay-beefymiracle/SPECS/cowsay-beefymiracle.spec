@@ -40,6 +40,9 @@ echo Installation successful | cowsay -f beefymiracle
 %{_datadir}/cowsay/beefymiracle.cow
 
 %changelog
+* Tue Apr 13 2021 Chris Fitzpatrick <chris@synthtc.com> - 1.0-13
+- Rebuilt for sgug-rse
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.0-13
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
