@@ -77,7 +77,7 @@ chmod -x samples/*.sh
 	--with-tdsver="auto" \
 	--with-unixodbc="%{_prefix}" \
 	--enable-msdblib \
-	--enable-sybase-compat \
+	--disable-sybase-compat \
 	--with-gnutls 
 #	--enable-krb5
 
