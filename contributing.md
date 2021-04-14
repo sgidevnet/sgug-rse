@@ -33,7 +33,7 @@ At the next point-in-time release of sgug-rse, our tooling then works through th
 
 2) Check fedora fc31 if the package exists, pull the latest source RPM
 
-3) Install srpm, copy .spec into rse packages/PACKAGENAME/SPECS/PACKAGENAME.specorigfedora
+3) Install srpm, copy .spec into rse packages/PACKAGENAME/SPECS/PACKAGENAME.spec.origfedora
 
 4) Edit ~/rpmbuild/SPECS/PACKAGENAME.spec until it is happily building (add patches in ~/rpmbuild/SOURCES/packagename.sgifixes.patch etc)
 
