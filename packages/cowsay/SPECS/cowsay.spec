@@ -10,9 +10,11 @@ URL:            https://github.com/tnalpgge/rank-amateur-cowsay
 Source0:        %{url}/archive/%{name}-%{version}.tar.gz
 Source1:        cowsay.bashcomp
 Source2:        animalsay
-Source3:        sgi-cube.cow
-Source4:        sgi-cube-3d.cow
-Source5:        sgi-logo-99.cow
+
+Source100:        sgi-cube.cow
+Source101:        sgi-cube-3d.cow
+Source102:        sgi-logo-99.cow
+
 Patch0:         cowsay-3.03-help.patch
 Patch1:         mech-and-cow.patch
 # these are from https://packages.debian.org/sid/cowsay
@@ -39,6 +41,7 @@ pictures of other animals.
          -e 's#%BANGPERL%#!%{__perl}#' -i %{name}
 %{__sed} -e 's#%PREFIX%/share/cows#%{_datadir}/%{name}#' \
          -e 's#/usr/local/share/cows#%{_datadir}/%{name}#' -i %{name}.1
+
 %{__sed} -e 's#/usr/share#%{_datadir}#' \
          -e 's#/usr/bin#%{_bindir}#' \
          -e 's#/bin/sh#%{_bindir}/sh#' -i %{SOURCE2}
@@ -61,9 +64,10 @@ cp -p %{name} $RPM_BUILD_ROOT%{_bindir}
 cp -p cows/* $RPM_BUILD_ROOT%{_datadir}/%{name}
 cp -p %{name}.1 $RPM_BUILD_ROOT%{_mandir}/man1
 cp -p %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}
-cp -p %{SOURCE3} $RPM_BUILD_ROOT%{_datadir}/%{name}
-cp -p %{SOURCE4} $RPM_BUILD_ROOT%{_datadir}/%{name}
-cp -p %{SOURCE5} $RPM_BUILD_ROOT%{_datadir}/%{name}
+
+cp -p %{SOURCE100} $RPM_BUILD_ROOT%{_datadir}/%{name}
+cp -p %{SOURCE101} $RPM_BUILD_ROOT%{_datadir}/%{name}
+cp -p %{SOURCE102} $RPM_BUILD_ROOT%{_datadir}/%{name}
 
 # License issue
 rm -f $RPM_BUILD_ROOT%{_datadir}/%{name}/daemon.cow
