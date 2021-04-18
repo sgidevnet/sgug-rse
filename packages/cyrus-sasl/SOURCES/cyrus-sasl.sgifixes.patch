@@ -1,0 +1,73 @@
+diff -Naur cyrus-sasl-2.1.27.original/configure cyrus-sasl-2.1.27/configure
+--- cyrus-sasl-2.1.27.original/configure	2018-10-09 08:58:13.000000000 +0000
++++ cyrus-sasl-2.1.27/configure	2021-04-17 06:22:41.225530160 +0000
+@@ -17099,7 +17099,7 @@
+   $as_echo_n "(cached) " >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lgssapi_krb5 ${GSSAPIBASE_LIBS} -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err ${LIB_SOCKET} $LIBS"
++LIBS="${GSSAPIBASE_LIBS} ${LIB_SOCKET} $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -17306,12 +17306,12 @@
+   fi
+ 
+   if test "$gss_impl" = "mit"; then
+-    GSSAPIBASE_LIBS="$GSSAPIBASE_LIBS -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err"
+-    GSSAPIBASE_STATIC_LIBS="$GSSAPIBASE_LIBS $gssapi_dir/libgssapi_krb5.a $gssapi_dir/libkrb5.a $gssapi_dir/libk5crypto.a $gssapi_dir/libcom_err.a"
++    GSSAPIBASE_LIBS="$GSSAPIBASE_LIBS"
++    GSSAPIBASE_STATIC_LIBS="$GSSAPIBASE_LIBS"
+   elif test "$gss_impl" = "heimdal"; then
+     CPPFLAGS="$CPPFLAGS"
+-    GSSAPIBASE_LIBS="$GSSAPIBASE_LIBS -lgssapi -lkrb5 -lasn1 -lroken ${LIB_CRYPT} ${LIB_DES} -lcom_err"
+-    GSSAPIBASE_STATIC_LIBS="$GSSAPIBASE_STATIC_LIBS $gssapi_dir/libgssapi.a $gssapi_dir/libkrb5.a $gssapi_dir/libasn1.a $gssapi_dir/libroken.a $gssapi_dir/libcom_err.a ${LIB_CRYPT}"
++    GSSAPIBASE_LIBS="$GSSAPIBASE_LIBS -lgssapi -lasn1 -lroken ${LIB_CRYPT} ${LIB_DES}"
++    GSSAPIBASE_STATIC_LIBS="$GSSAPIBASE_STATIC_LIBS $gssapi_dir/libgssapi.a  $gssapi_dir/libasn1.a $gssapi_dir/libroken.a ${LIB_CRYPT}"
+   elif test "$gss_impl" = "cybersafe03"; then
+ # Version of CyberSafe with two libraries
+     CPPFLAGS="$CPPFLAGS -D$platform -I${gssapi}/appsec-sdk/include"
+diff -Naur cyrus-sasl-2.1.27.original/libsasl2.pc.in cyrus-sasl-2.1.27/libsasl2.pc.in
+--- cyrus-sasl-2.1.27.original/libsasl2.pc.in	2015-12-26 11:48:10.000000000 +0000
++++ cyrus-sasl-2.1.27/libsasl2.pc.in	2021-04-17 07:54:36.887566400 +0000
+@@ -9,4 +9,4 @@
+ Version: @VERSION@
+ Cflags: -I${includedir}
+ Libs: -L${libdir} -lsasl2
+-Libs.private: @LIB_DOOR@ @SASL_DL_LIB@ @LIBS@
++Libs.private: @LIB_DOOR@ @SASL_DL_LIB@
+diff -Naur cyrus-sasl-2.1.27.original/m4/sasl2.m4 cyrus-sasl-2.1.27/m4/sasl2.m4
+--- cyrus-sasl-2.1.27.original/m4/sasl2.m4	2017-11-30 14:15:49.000000000 +0000
++++ cyrus-sasl-2.1.27/m4/sasl2.m4	2021-04-17 17:37:54.446439840 +0000
+@@ -118,7 +118,7 @@
+   if test "$gss_impl" = "auto" -o "$gss_impl" = "mit"; then
+     gss_failed=0
+     AC_CHECK_LIB(gssapi_krb5,gss_unwrap,gss_impl="mit",gss_failed=1,
+-                 ${GSSAPIBASE_LIBS} -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err ${LIB_SOCKET})
++                 ${GSSAPIBASE_LIBS} ${LIB_SOCKET})
+     if test "$gss_impl" != "auto" -a "$gss_failed" = "1"; then
+       gss_impl="failed"
+     fi
+@@ -170,8 +170,8 @@
+   fi
+ 
+   if test "$gss_impl" = "mit"; then
+-    GSSAPIBASE_LIBS="$GSSAPIBASE_LIBS -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err"
+-    GSSAPIBASE_STATIC_LIBS="$GSSAPIBASE_LIBS $gssapi_dir/libgssapi_krb5.a $gssapi_dir/libkrb5.a $gssapi_dir/libk5crypto.a $gssapi_dir/libcom_err.a"
++    GSSAPIBASE_LIBS="$GSSAPIBASE_LIBS"
++    GSSAPIBASE_STATIC_LIBS="$GSSAPIBASE_LIBS"
+   elif test "$gss_impl" = "heimdal"; then
+     CPPFLAGS="$CPPFLAGS"
+     GSSAPIBASE_LIBS="$GSSAPIBASE_LIBS -lgssapi -lkrb5 -lasn1 -lroken ${LIB_CRYPT} ${LIB_DES} -lcom_err"
+diff -Naur cyrus-sasl-2.1.27.original/saslauthd/auth_rimap.c cyrus-sasl-2.1.27/saslauthd/auth_rimap.c
+--- cyrus-sasl-2.1.27.original/saslauthd/auth_rimap.c	2018-11-08 10:29:57.000000000 +0000
++++ cyrus-sasl-2.1.27/saslauthd/auth_rimap.c	2021-04-17 04:12:30.441962320 +0000
+@@ -398,7 +398,7 @@
+             }
+         }
+     } while (rc < buflen &&
+-             ( rbuf[rc-1] != '\n' || !memmem(rbuf, rc, tag, strlen(tag)) ));
++             ( rbuf[rc-1] != '\n'));
+ 
+     return rc;
+ }

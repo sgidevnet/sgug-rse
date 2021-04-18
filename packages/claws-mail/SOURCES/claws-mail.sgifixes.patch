@@ -1,0 +1,11 @@
+diff -Naur claws-mail-3.17.8.original/src/common/proxy.c claws-mail-3.17.8/src/common/proxy.c
+--- claws-mail-3.17.8.original/src/common/proxy.c	2020-10-19 04:37:56.000000000 +0000
++++ claws-mail-3.17.8/src/common/proxy.c	2021-04-17 19:37:59.487956240 +0000
+@@ -28,6 +28,7 @@
+ #  include <stdint.h>
+ #else
+ #  include <sys/socket.h>
++#  include <netinet/in_systm.h>
+ #  include <netinet/in.h>
+ #  include <netinet/ip.h>
+ #endif
