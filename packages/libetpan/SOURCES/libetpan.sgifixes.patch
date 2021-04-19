@@ -1,0 +1,12 @@
+diff -Naur libetpan-1.9.3.original/src/low-level/smtp/mailsmtp.c libetpan-1.9.3/src/low-level/smtp/mailsmtp.c
+--- libetpan-1.9.3.original/src/low-level/smtp/mailsmtp.c	2021-04-17 18:33:05.369730480 +0000
++++ libetpan-1.9.3/src/low-level/smtp/mailsmtp.c	2021-04-17 18:33:33.615015200 +0000
+@@ -276,7 +276,7 @@
+     if (r != 0)
+       return MAILSMTP_ERROR_HOSTNAME;
+ 
+-#if (defined __linux__ || defined WIN32 || defined __sun)
++#if (defined __linux__ || defined WIN32 || defined __sun || defined __sgi)
+     r = getnameinfo(&addr, sizeof(addr), hostname, HOSTNAME_SIZE, NULL, 0, NI_NUMERICHOST);
+ #else
+     r = getnameinfo(&addr, addr.sa_len, hostname, HOSTNAME_SIZE, NULL, 0, NI_NUMERICHOST);
