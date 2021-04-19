@@ -124,8 +124,8 @@ Requires: %{name}-plugins-address-keeper
 Requires: %{name}-plugins-archive
 Requires: %{name}-plugins-att-remover
 Requires: %{name}-plugins-attachwarner
-Requires: %{name}-plugins-bogofilter
-Requires: %{name}-plugins-bsfilter
+##Requires: %{name}-plugins-bogofilter
+##Requires: %{name}-plugins-bsfilter
 Requires: %{name}-plugins-clamd
 Requires: %{name}-plugins-dillo
 %if 0%{?with_fancy}
@@ -149,7 +149,7 @@ Requires: %{name}-plugins-python
 %endif
 Requires: %{name}-plugins-rssyl
 Requires: %{name}-plugins-smime
-Requires: %{name}-plugins-spamassassin
+##Requires: %{name}-plugins-spamassassin
 Requires: %{name}-plugins-spam-report
 ##Requires: %{name}-plugins-tnef
 ##Requires: %{name}-plugins-vcalendar
@@ -202,23 +202,23 @@ Requires:       claws-mail(plugin-api)%{?_isa} = %pluginapi
 Enables the removal of attachments from emails. When right-clicking a message,
 choose 'Remove attachments' from the sub-menu.
 
-%package plugins-bogofilter
-Summary:        Bogofilter plugin for Claws Mail
-Requires:       claws-mail(plugin-api)%{?_isa} = %pluginapi
-Requires:       bogofilter
-
-%description plugins-bogofilter
-%{summary}
-
-%if !0%{?rhel}
-%package plugins-bsfilter
-Summary:        Bayesian spam filtering for Claws Mail
-Requires:       claws-mail(plugin-api)%{?_isa} = %pluginapi
-Requires:       bsfilter
-
-%description plugins-bsfilter
-Bayesian spam filtering for Claws Mail using Bsfilter.
-%endif
+##%package plugins-bogofilter
+##Summary:        Bogofilter plugin for Claws Mail
+##Requires:       claws-mail(plugin-api)%{?_isa} = %pluginapi
+##Requires:       bogofilter
+##
+##%description plugins-bogofilter
+##%{summary}
+##
+##%if !0%{?rhel}
+##%package plugins-bsfilter
+##Summary:        Bayesian spam filtering for Claws Mail
+##Requires:       claws-mail(plugin-api)%{?_isa} = %pluginapi
+##Requires:       bsfilter
+##
+##%description plugins-bsfilter
+##Bayesian spam filtering for Claws Mail using Bsfilter.
+##%endif
 
 
 %package plugins-clamd
@@ -386,13 +386,13 @@ This plugin handles S/MIME signed and/or encrypted mails. You can decrypt
 mails, verify signatures or sign and encrypt your own mails.
 
 
-%package plugins-spamassassin
-Summary:        Spamassassin plugin for Claws Mail
-Requires:       claws-mail(plugin-api)%{?_isa} = %pluginapi
-Requires:       spamassassin
-
-%description plugins-spamassassin
-%{summary}
+##%package plugins-spamassassin
+##Summary:        Spamassassin plugin for Claws Mail
+##Requires:       claws-mail(plugin-api)%{?_isa} = %pluginapi
+##Requires:       spamassassin
+##
+##%description plugins-spamassassin
+##%{summary}
 
 
 %package plugins-spam-report
@@ -469,7 +469,11 @@ autoreconf -f
            --disable-python-plugin \
 %endif
            --enable-libetpan \
-           --enable-appdata
+           --enable-appdata \
+	   --disable-spamassassin-plugin \
+	   --disable-bogofilter-plugin \
+	   --disable-bsfilter-plugin \
+	   --disable-ldap
 
 # change DEFAULT_INC_PATH for the optional external "inc" tool to match
 # Fedora's "nmh" package // unimportant fix, but add a grep guard, too
@@ -582,11 +586,11 @@ touch -r NEWS %{buildroot}%{_includedir}/%{name}/config.h
 %files plugins-att-remover
 %{_libdir}/claws-mail/plugins/att_remover*
 
-%files plugins-bogofilter
-%{_libdir}/claws-mail/plugins/bogofilter.so
-
-%files plugins-bsfilter
-%{_libdir}/claws-mail/plugins/bsfilter*
+##%files plugins-bogofilter
+##%{_libdir}/claws-mail/plugins/bogofilter.so
+##
+##%files plugins-bsfilter
+##%{_libdir}/claws-mail/plugins/bsfilter*
 
 %files plugins-clamd
 %{_libdir}/claws-mail/plugins/clamd*
@@ -647,8 +651,8 @@ touch -r NEWS %{buildroot}%{_includedir}/%{name}/config.h
 %{_libdir}/claws-mail/plugins/smime.so
 %{_libdir}/claws-mail/plugins/smime.deps
 
-%files plugins-spamassassin
-%{_libdir}/claws-mail/plugins/spamassassin.so
+##%files plugins-spamassassin
+##%{_libdir}/claws-mail/plugins/spamassassin.so
 
 %files plugins-spam-report
 %{_libdir}/claws-mail/plugins/spamreport.so
