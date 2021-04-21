@@ -78,6 +78,8 @@ UK English hunspell dictionaries
 
 %build
 grep -rnil '#!/usr/bin/perl' | xargs sed -i 's,#!/usr/bin/perl,#!/usr/sgug/bin/perl,'
+grep -rnil '#!/bin/sh' | xargs sed -i 's,#!/bin/sh,#!/usr/sgug/bin/bash,'
+grep -rnil '#!/bin/bash' | xargs sed -i 's,#!/bin/bash,#!/usr/sgug/bin/bash,'
 export PERL5LIB=`pwd`/scowl/r/varcon${PERL5LIB:+:${PERL5LIB}}
 make
 cd scowl/speller
