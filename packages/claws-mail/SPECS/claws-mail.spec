@@ -28,6 +28,7 @@ Summary:        Email client and news reader based on GTK+
 License:        GPLv3+
 URL:            http://claws-mail.org
 Source0:        http://downloads.sourceforge.net/sylpheed-claws/%{name}-%{version}.tar.xz
+Source100:      claws-mail.desktop
 
 # rhbz#1179279
 Patch11:        claws-mail-system-crypto-policies.patch
@@ -501,6 +502,7 @@ grep 'dlopen.*PYTHON_SHARED_LIB' src/plugins/python/* -R || exit -1
 
 make %{?_smp_mflags} LIBTOOL=%{_bindir}/libtool
 
+
 %install
 %if 0%{?rhel}
 rm -rf %{buildroot}
@@ -517,7 +519,7 @@ desktop-file-install \
 --remove-key="Encoding" \
 --remove-key="Info" \
 --dir=%{buildroot}%{_datadir}/applications \
-%{name}.desktop
+%{SOURCE100}
 
 desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
 
