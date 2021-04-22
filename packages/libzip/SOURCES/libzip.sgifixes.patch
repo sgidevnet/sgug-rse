@@ -1,0 +1,12 @@
+diff -Naur libzip-1.5.2.orig/CMakeLists.txt libzip-1.5.2/CMakeLists.txt
+--- libzip-1.5.2.orig/CMakeLists.txt	2019-03-12 12:44:02.000000000 +0000
++++ libzip-1.5.2/CMakeLists.txt	2021-04-22 13:45:32.044145974 +0000
+@@ -267,7 +267,7 @@
+ # rpath handling: use rpath in installed binaries
+ IF(NOT CMAKE_SYSTEM_NAME MATCHES Linux)
+ 	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+-	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
++	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+ ENDIF()
+ 
+ # Testing

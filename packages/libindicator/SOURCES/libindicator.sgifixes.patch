@@ -1,0 +1,48 @@
+diff -Naur libindicator-12.10.1.orig/libindicator/Makefile.am libindicator-12.10.1/libindicator/Makefile.am
+--- libindicator-12.10.1.orig/libindicator/Makefile.am	2012-09-19 17:38:05.113919000 +0000
++++ libindicator-12.10.1/libindicator/Makefile.am	2021-04-22 15:56:22.811815462 +0000
+@@ -57,7 +57,7 @@
+ 	$(LIBINDICATOR_CFLAGS) \
+ 	$(COVERAGE_CFLAGS) \
+ 	-DG_LOG_DOMAIN=\"libindicator\" \
+-	-Wall -Werror
++	-Wall
+ 
+ libindicator_la_LIBADD = \
+ 	$(LIBINDICATOR_LIBS)
+diff -Naur libindicator-12.10.1.orig/libindicator/Makefile.in libindicator-12.10.1/libindicator/Makefile.in
+--- libindicator-12.10.1.orig/libindicator/Makefile.in	2012-09-19 17:40:09.127898000 +0000
++++ libindicator-12.10.1/libindicator/Makefile.in	2021-04-22 15:56:49.479345377 +0000
+@@ -380,7 +380,7 @@
+ 	$(LIBINDICATOR_CFLAGS) \
+ 	$(COVERAGE_CFLAGS) \
+ 	-DG_LOG_DOMAIN=\"libindicator\" \
+-	-Wall -Werror
++	-Wall
+ 
+ libindicator_la_LIBADD = \
+ 	$(LIBINDICATOR_LIBS)
+diff -Naur libindicator-12.10.1.orig/tools/Makefile.am libindicator-12.10.1/tools/Makefile.am
+--- libindicator-12.10.1.orig/tools/Makefile.am	2012-09-19 17:38:04.933829000 +0000
++++ libindicator-12.10.1/tools/Makefile.am	2021-04-22 15:57:23.620653361 +0000
+@@ -17,7 +17,7 @@
+ 	indicator-loader.c
+ 
+ indicator_loader_CFLAGS = \
+-	-Wall -Werror \
++	-Wall \
+ 	$(LIBINDICATOR_CFLAGS) -I$(top_srcdir) \
+ 	-DBUILD_DIR="\"$(builddir)\""
+ 
+diff -Naur libindicator-12.10.1.orig/tools/Makefile.in libindicator-12.10.1/tools/Makefile.in
+--- libindicator-12.10.1.orig/tools/Makefile.in	2012-09-19 17:40:09.424046000 +0000
++++ libindicator-12.10.1/tools/Makefile.in	2021-04-22 15:57:09.272080881 +0000
+@@ -303,7 +303,7 @@
+ 	indicator-loader.c
+ 
+ indicator_loader_CFLAGS = \
+-	-Wall -Werror \
++	-Wall \
+ 	$(LIBINDICATOR_CFLAGS) -I$(top_srcdir) \
+ 	-DBUILD_DIR="\"$(builddir)\""
+ 

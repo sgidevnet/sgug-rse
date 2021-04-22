@@ -1,0 +1,15 @@
+diff -Naur goffice-0.10.47.orig/goffice/utils/go-file.c goffice-0.10.47/goffice/utils/go-file.c
+--- goffice-0.10.47.orig/goffice/utils/go-file.c	2020-04-20 02:40:49.000000000 +0000
++++ goffice-0.10.47/goffice/utils/go-file.c	2021-04-20 14:30:38.475312131 +0000
+@@ -49,6 +49,11 @@
+ #endif
+ #include <time.h>
+ 
++#if defined(__sgi)
++#include <sys/stat.h>
++#endif
++#define g_lstat   stat
++
+ /**
+  * GOFilePermissions:
+  * @owner_read: owner can read.
