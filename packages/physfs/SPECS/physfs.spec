@@ -7,7 +7,6 @@ URL:		http://www.icculus.org/physfs/
 Source0:	http://www.icculus.org/physfs/downloads/physfs-%{version}.tar.bz2
 BuildRequires:  gcc-c++
 #BuildRequires:	doxygen, readline-devel, libtool, cmake
-BuildRequires: readline-devel, libtool, cmake
 # Only needed to build a test program.
 # BuildRequires:	wxGTK-devel
 Provides:	bundled(lzma-sdk457)
@@ -74,21 +73,24 @@ rm -rf $RPM_BUILD_ROOT%{_libdir}/*.la
 # Get rid of static library.
 rm -rf $RPM_BUILD_ROOT%{_libdir}/*.a
 
-#%ldconfig_scriptlets
+#%%ldconfig_scriptlets
 
 %files
 %doc docs/CHANGELOG.txt docs/CREDITS.txt LICENSE.txt docs/TODO.txt
 %{_libdir}/*.so.*
 
 %files devel
-#%doc docs/html/
+#%%doc docs/html/
 %{_bindir}/test_physfs
 %{_includedir}/physfs.h
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/physfs.pc
-#%{_mandir}/man3/*
+#%%{_mandir}/man3/*
 
 %changelog
+* Sun Feb 14 2021  HAL <notes2@gmx.de> - 3.0.2-2
+- builds on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.0.2-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

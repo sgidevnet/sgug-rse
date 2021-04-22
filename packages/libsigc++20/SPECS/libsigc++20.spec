@@ -76,8 +76,8 @@ find $RPM_BUILD_ROOT -type f -name "*.la" -exec rm -f {} ';'
 
 
 %changelog
-* Sun Jun 21 2020  HAL <notes2@gmx.de> - 2.10.2-2
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+* Tue Aug 18 2020  HAL <notes2@gmx.de> - 2.10.2-2
+- compiles on Irix 6.5 with sgug-rse gcc 9.2, all tests pass.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.10.2-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

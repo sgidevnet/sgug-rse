@@ -6,7 +6,7 @@ Summary:        Telepathy filesystem layout
 License:        Public Domain
 
 BuildArch:      noarch
-Requires:       filesystem
+#Requires:       filesystem
 
 
 %description
