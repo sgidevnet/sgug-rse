@@ -1,0 +1,70 @@
+diff -u -r gnupg-2.2.20-orig/dirmngr/dns.c gnupg-2.2.20/dirmngr/dns.c
+--- gnupg-2.2.20-orig/dirmngr/dns.c	2019-07-09 10:08:45.000000000 +0000
++++ gnupg-2.2.20/dirmngr/dns.c	2020-08-16 12:48:35.180371720 +0000
+@@ -6812,7 +6812,7 @@
+ } /* dns_hints_i_init() */
+ 
+ 
+-unsigned dns_hints_grep(struct sockaddr **sa, socklen_t *sa_len, unsigned lim, struct dns_hints_i *i, struct dns_hints *H) {
++unsigned int dns_hints_grep(struct sockaddr **sa, socklen_t *soa_len, unsigned int lim, struct dns_hints_i *i, struct dns_hints *H) {
+ 	struct dns_hints_soa *soa;
+ 	unsigned n;
+ 
+@@ -6823,10 +6823,10 @@
+ 
+ 	while (i->state.next < soa->count && n < lim) {
+ 		*sa	= (struct sockaddr *)&soa->addrs[i->state.next].ss;
+-		*sa_len	= dns_sa_len(*sa);
++		*soa_len	= dns_sa_len(*sa);
+ 
+ 		sa++;
+-		sa_len++;
++		soa_len++;
+ 		n++;
+ 
+ 		i->state.next	= dns_hints_i_skip(i->state.next, i, soa);
+diff -u -r gnupg-2.2.20-orig/g10/t-stutter.c gnupg-2.2.20/g10/t-stutter.c
+--- gnupg-2.2.20-orig/g10/t-stutter.c	2017-08-28 11:22:54.000000000 +0000
++++ gnupg-2.2.20/g10/t-stutter.c	2020-08-16 12:48:44.165080240 +0000
+@@ -195,7 +195,7 @@
+ /* Whether we need to resynchronize the CFB after writing the random
+    data (this is the case for encrypted packets, but not encrypted and
+    integrity protected packets).  */
+-static int sync;
++static int ssync;
+ 
+ static int
+ block_offset (int i)
+@@ -255,7 +255,7 @@
+ 
+   rc = openpgp_cipher_open (&cipher_hd, dek.algo,
+ 			    GCRY_CIPHER_MODE_CFB,
+-			    (! sync /* ed->mdc_method || dek.algo >= 100 */ ?
++			    (! ssync /* ed->mdc_method || dek.algo >= 100 */ ?
+                              0 : GCRY_CIPHER_ENABLE_SYNC));
+   if (rc)
+     log_fatal ("Failed to open cipher: %s\n", gpg_strerror (rc));
+@@ -485,10 +485,10 @@
+            is 1.  */
+         log_assert (raw_data[hdrlen] == 1);
+         hdrlen ++;
+-        sync = 0;
++        ssync = 0;
+       }
+     else
+-      sync = 1;
++      ssync = 1;
+ 
+     msg = &raw_data[hdrlen];
+     msg_len = raw_data_len - hdrlen;
+diff -u -r gnupg-2.2.20-orig/tests/gpgscm/ffi.c gnupg-2.2.20/tests/gpgscm/ffi.c
+--- gnupg-2.2.20-orig/tests/gpgscm/ffi.c	2017-08-28 11:22:54.000000000 +0000
++++ gnupg-2.2.20/tests/gpgscm/ffi.c	2020-08-16 12:48:35.183411960 +0000
+@@ -1368,6 +1368,7 @@
+   ffi_define_function (sc, getenv);
+   ffi_define_function (sc, setenv);
+   ffi_define_function_name (sc, "_exit", exit);
++#undef open
+   ffi_define_function (sc, open);
+   ffi_define_function (sc, fdopen);
+   ffi_define_function (sc, close);

@@ -1,0 +1,84 @@
+--- qtbase-everywhere-src-5.13.2-orig/src/3rdparty/sha3/brg_endian.h	2019-10-25 03:16:48.000000000 +0000
++++ qtbase-everywhere-src-5.13.2/src/3rdparty/sha3/brg_endian.h	2020-12-27 19:26:10.362191920 +0000
+@@ -41,6 +41,11 @@
+ #  include <machine/endian.h>
+ #elif defined( __linux__ ) || defined( __GNUC__ ) || defined( __GNU_LIBRARY__ )
+ #  if !defined( __MINGW32__ ) && !defined( _AIX ) && !defined(Q_OS_QNX)
++#elif defined(__sgi)
++
++# include <sys/endian.h>
++# include <netinet/in.h>
++# include <inttypes.h>
+ #    include <endian.h>
+ #    if !defined( __BEOS__ )
+ #      include <byteswap.h>
+--- qtbase-everywhere-src-5.13.2-orig/src/corelib/thread/qthread_unix.cpp	2019-10-25 03:16:48.000000000 +0000
++++ qtbase-everywhere-src-5.13.2/src/corelib/thread/qthread_unix.cpp	2020-12-27 19:19:12.394437520 +0000
+@@ -445,9 +445,9 @@
+     return to_HANDLE(pthread_self());
+ }
+ 
+-#if defined(QT_LINUXBASE) && !defined(_SC_NPROCESSORS_ONLN)
+-// LSB doesn't define _SC_NPROCESSORS_ONLN.
+-#  define _SC_NPROCESSORS_ONLN 84
++#if defined(QT_LINUXBASE) && !defined(_SC_NPROC_ONLN)
++// LSB doesn't define _SC_NPROC_ONLN.
++#  define _SC_NPROC_ONLN 84
+ #endif
+ 
+ #ifdef Q_OS_WASM
+@@ -506,7 +506,7 @@
+     cores = QThreadPrivate::idealThreadCount;
+ #else
+     // the rest: Linux, Solaris, AIX, Tru64
+-    cores = (int)sysconf(_SC_NPROCESSORS_ONLN);
++    cores = (int)sysconf(_SC_NPROC_ONLN);
+     if (cores == -1)
+         return 1;
+ #endif
+--- qtbase-everywhere-src-5.13.2-orig/src/corelib/tools/qtimezoneprivate_tz.cpp	2019-10-25 03:16:48.000000000 +0000
++++ qtbase-everywhere-src-5.13.2/src/corelib/tools/qtimezoneprivate_tz.cpp	2020-12-27 19:37:05.338597600 +0000
+@@ -1053,23 +1053,11 @@
+ 
+ static long getSymloopMax()
+ {
+-#if defined(SYMLOOP_MAX)
+-    return SYMLOOP_MAX; // if defined, at runtime it can only be greater than this, so this is a safe bet
+-#else
+-    errno = 0;
+-    long result = sysconf(_SC_SYMLOOP_MAX);
+-    if (result >= 0)
+-        return result;
+-    // result is -1, meaning either error or no limit
+-    Q_ASSERT(!errno); // ... but it can't be an error, POSIX mandates _SC_SYMLOOP_MAX
+-
+-    // therefore we can make up our own limit
+ #  if defined(MAXSYMLINKS)
+     return MAXSYMLINKS;
+ #  else
+     return 8;
+ #  endif
+-#endif
+ }
+ 
+ // TODO Could cache the value and monitor the required files for any changes
+--- qtbase-everywhere-src-5.13.2-orig/src/corelib/io/qlockfile_unix.cpp	2019-10-25 03:16:48.000000000 +0000
++++ qtbase-everywhere-src-5.13.2/src/corelib/io/qlockfile_unix.cpp	2020-12-27 20:00:10.179832400 +0000
+@@ -58,6 +58,8 @@
+ #include <sys/file.h>  // flock
+ #endif
+ 
++#include <sys/file.h>
++
+ #include <sys/types.h> // kill
+ #include <signal.h>    // kill
+ #include <unistd.h>    // gethostname
+@@ -135,7 +137,7 @@
+ 
+ static bool setNativeLocks(int fd)
+ {
+-#if defined(LOCK_EX) && defined(LOCK_NB)
++#if !defined(__sgi) && defined(LOCK_EX) && defined(LOCK_NB)
+     if (flock(fd, LOCK_EX | LOCK_NB) == -1) // other threads, and other processes on a local fs
+         return false;
+ #else

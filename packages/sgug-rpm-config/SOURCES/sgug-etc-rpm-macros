@@ -46,24 +46,33 @@
 # Needed when installing perl/python
 #_rpmmacrodir /usr/sgug/lib/rpm/macros.d
 
-%build_cflags %{optflags}
-%build_cxxflags %{optflags}
+%_build_optflags -O3 -g
+%_debug_optflags -Og -g
+%_rpl_optflags %{?_sgug_debug:%_debug_optflags}%{!?_sgug_debug:%_build_optflags}
+
+%optflags %{_rpl_optflags}
+
+%build_cflags %{_rpl_optflags}
+%build_cxxflags %{_rpl_optflags}
 
 # LD FLAGS AND ISSUES
 # If we ever get around to figuring out how to fix --as-needed so it
 # doesn't break various packages, we can flick this over to optimised.
 # For now, packages have to _opt in_ to the optimised flags.
+%sgug_debug_ldflags -Wl,-z,relro -Wl,-z,now
 %sgug_regular_ldflags -Wl,-z,relro -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
 %sgug_optimised_ldflags -Wl,-z,relro -Wl,--as-needed -Wl,-z,now -Wl,-rpath -Wl,%{_libdir} -Wl,-rpath -Wl,/usr/lib32
-%build_ldflags %{sgug_regular_ldflags}
+%build_ldflags %{?_sgug_debug:%sgug_debug_ldflags}%{!?_sgug_debug:%sgug_regular_ldflags}
+
+%__strip %{?_sgug_debug:/bin/true}%{!?_sgug_debug:/usr/sgug/bin/strip}
+
+%dist .sgug%{?_sgug_debug:debug}
 
 %__global_ldflags %{build_ldflags}
 
 %_install_script_path %{_bindir}:%{_sbindir}:/sbin:/bin:/usr/sbin:/usr/bin
 
 %_hardened_ldflags %{nil}
-
-%dist .sgug
 
 %_pkgdocdir %{_docdir}/%{name}
 %_docdir_fmt %%{NAME}

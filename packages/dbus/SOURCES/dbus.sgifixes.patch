@@ -1,0 +1,15 @@
+diff -Naur dbus-1.12.20.orig/tools/dbus-print-message.c dbus-1.12.20/tools/dbus-print-message.c
+--- dbus-1.12.20.orig/tools/dbus-print-message.c	2017-10-30 05:26:18.000000000 +0000
++++ dbus-1.12.20/tools/dbus-print-message.c	2020-08-22 13:33:05.912212197 +0000
+@@ -23,6 +23,11 @@
+ #include <config.h>
+ #include "dbus-print-message.h"
+ 
++#if defined(__sgi)
++#include <sys/bsd_types.h> 
++#include <netinet/in_systm.h>
++#endif
++
+ #ifdef DBUS_UNIX
+ #include <sys/types.h>
+ #include <sys/stat.h>

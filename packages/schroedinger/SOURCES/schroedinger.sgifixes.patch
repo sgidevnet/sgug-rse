@@ -1,0 +1,12 @@
+diff -Naur schroedinger-1.0.11.orig/schroedinger/schroasync-pthread.c schroedinger-1.0.11/schroedinger/schroasync-pthread.c
+--- schroedinger-1.0.11.orig/schroedinger/schroasync-pthread.c	2012-01-07 12:44:10.000000000 +0000
++++ schroedinger-1.0.11/schroedinger/schroasync-pthread.c	2021-02-03 09:36:26.288240346 +0000
+@@ -108,7 +108,7 @@
+         }
+       }
+ #else
+-      n_threads = sysconf (_SC_NPROCESSORS_CONF);
++      n_threads = sysconf (_SC_NPROC_CONF);
+ #endif
+     }
+     if (n_threads == 0) {

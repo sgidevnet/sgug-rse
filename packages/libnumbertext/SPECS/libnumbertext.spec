@@ -53,7 +53,7 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/*.la
 %{_libdir}/*.so
 
 %changelog
-* Sun May 17 2020  Alexander Tafarte <notes2@gmx.de> - 1.0.5-4
+* Sun May 17 2020  HAL <notes2@gmx.de> - 1.0.5-4
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.0.5-3

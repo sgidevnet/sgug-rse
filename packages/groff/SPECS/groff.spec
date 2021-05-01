@@ -3,7 +3,7 @@
 Summary: A document formatting system
 Name: groff
 Version: 1.22.4
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+ and GFDL and BSD and MIT
 URL: http://www.gnu.org/software/groff/
 Source: ftp://ftp.gnu.org/gnu/groff/groff-%{version}.tar.gz
@@ -108,6 +108,8 @@ for file in NEWS src/devices/grolbp/grolbp.1.man doc/webpage.ms \
 done
 
 %build
+# Avoid sharing config cache entries (causes problems)
+export CPPFLAGS="-DGROFF_HAVE_UNIQ_CONFIG_CACHE"
 %configure \
     --docdir=%{_pkgdocdir} \
     --with-appresdir=%{_datadir}/X11/app-defaults \
@@ -429,6 +431,9 @@ chmod 755 %{buildroot}%{_datadir}/groff/%{version}/font/devlj4/generate/special.
 %doc %{_pkgdocdir}/pdf/
 
 %changelog
+* Thu Aug 06 2020 Daniel Hams <daniel.hams@gmail.com> - 1.22.4-23
+- Use a standalone config cache for groff - otherwise the X11 pieces are missing and the build will fail.
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.22.4-22
 - Move over to sgug-rse libX11
 

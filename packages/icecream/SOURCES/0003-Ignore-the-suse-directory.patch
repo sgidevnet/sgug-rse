@@ -1,0 +1,28 @@
+From b84e85638790fa51667c7440f5a79bb63196999f Mon Sep 17 00:00:00 2001
+From: Michal Schmidt <mschmidt@redhat.com>
+Date: Fri, 11 Nov 2016 15:14:28 +0100
+Subject: [PATCH 3/4] Ignore the 'suse' directory
+
+Processing the 'suse' directory causes FTBFS on s390x due to unpackaged
+files.
+
+https://bugzilla.redhat.com/show_bug.cgi?id=1393742
+---
+ Makefile.am | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index 00fdf8a5f1..7311a9f4dd 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -8,7 +8,6 @@ SUBDIRS = \
+ 	daemon \
+ 	client \
+ 	doc \
+-	suse \
+ 	compilerwrapper \
+ 	scheduler \
+ 	tests \
+-- 
+2.21.0
+

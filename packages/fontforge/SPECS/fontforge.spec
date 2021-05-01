@@ -3,19 +3,23 @@
 
 Name:           fontforge
 Version:        20190801
-Release:        1%{?dist}
+Release:        6%{?dist}
 Summary:        Outline and bitmap font editor
 
 License:        GPLv3+
 URL:            http://fontforge.github.io/
 Source0:        https://github.com/fontforge/%{name}/archive/%{gittag0}.tar.gz#/%{name}-%{version}.tar.gz
-Patch0:         fontforge-20190413-python-3.8-pkg-config.patch
+#Patch0:         fontforge-20190413-python-3.8-pkg-config.patch
 # Below are upstream patches
 Patch1:         fontforge-20190801-fix-metainfo.xml-file.patch
-Patch100:       fontforge2.sgifixes.patch
+# https://github.com/fontforge/fontforge/issues/4084
+Patch2:         fontforge-20190801-cve-2020-5395.patch
+# https://github.com/fontforge/fontforge/issues/4164
+Patch3:         fontforge-20190801-cve-2020-5395-followup-fix.patch
+Patch100:       fontforge.sgifixes.patch
 
 Requires:       xdg-utils
-Requires:       autotrace
+#Requires:       autotrace
 Requires:       hicolor-icon-theme
 
 BuildRequires:  gcc
@@ -38,7 +42,7 @@ BuildRequires:  python3-devel
 #BuildRequires:  gnulib-devel
 BuildRequires:  libtool-ltdl-devel
 BuildRequires:  readline-devel
-#BuildRequires:  libappstream-glib
+BuildRequires:  libappstream-glib
 # This is failing on aarch64 so drop it
 #BuildRequires:  python-ipython
 # F25 build is failing add following to fix
@@ -54,7 +58,7 @@ fonts. It supports a range of font formats, including PostScript
 
 %package devel
 Summary: Development tools for fontforge
-Requires: %{name} = %{version}-%{release}
+#Requires: #%%{name} = #%%{version}-#%%{release}
 Requires: %{name}-doc = %{version}-%{release}
 Requires: pkgconfig
 
@@ -76,6 +80,8 @@ This package contains documentation files for %{name}.
 %patch0 -p1
 %endif
 %patch1 -p1
+%patch2 -p1
+%patch3 -p1
 %patch100 -p1
 
 mkdir htdocs
@@ -89,8 +95,8 @@ chmod 644 htdocs/nonBMP/index.html
 %build
 ./bootstrap --skip-git
 export CFLAGS="%{optflags} -fno-strict-aliasing"
-
 %configure PYTHON=python3
+perl -pi -e "s|#define vfork fork||g" %{_builddir}/fontforge-20190801/inc/fontforge-config.h
 make V=1 %{?_smp_mflags}
 
 %install
@@ -107,7 +113,7 @@ desktop-file-install \
 rm -f %{buildroot}%{_datadir}/appdata/*.appdata.xml
 rm -f %{buildroot}%{_metainfodir}/*.appdata.xml
 
-appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.metainfo.xml
+#appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.metainfo.xml
 
 # The fontforge makefiles install htdocs as well, but we
 # prefer to have them under the standard RPM location, so
@@ -117,6 +123,8 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/doc/fontforge
 # remove unneeded .la and .a files
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 find $RPM_BUILD_ROOT -name '*.a' -exec rm -f {} ';'
+perl -pi -e "s|/usr/bin/env fontforge|/usr/sgug/bin/fontforge|g" %{buildroot}/usr/sgug/share/fontforge/python/simple/expand-a.py
+perl -pi -e "s|/usr/bin/env fontforge|/usr/sgug/bin/fontforge|g" %{buildroot}/usr/sgug/share/fontforge/python/simple/load-font-and-show-name.py
 
 # Find translations
 %find_lang %{gettext_package}
@@ -145,6 +153,24 @@ find $RPM_BUILD_ROOT -name '*.a' -exec rm -f {} ';'
 %doc htdocs
 
 %changelog
+* Wed Sep 30 2020  HAL <notes2@gmx.de> - 20190801-6
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
+* Sun Feb 16 2020 Parag Nemade <pnemade AT redhat DOT com> - 20190801-6
+- another fix for rh#1790042 - CVE-2020-5395:out-of-bounds write in sfd.c
+
+* Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 20190801-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
+* Thu Jan 16 2020 Parag Nemade <pnemade AT redhat DOT com> - 20190801-4
+- Resolves:rh#1790042 - CVE-2020-5395:out-of-bounds write in sfd.c
+
+* Tue Aug 27 2019 Kevin Fenzi <kevin@scrye.com> - 20190801-3
+- Rebuild for new libspiro
+
+* Mon Aug 19 2019 Miro Hrončok <mhroncok@redhat.com> - 20190801-2
+- Rebuilt for Python 3.8
+
 * Thu Aug 15 2019 Parag Nemade <pnemade AT redhat DOT com> - 20190801-1
 - Update to 20190801 version (#1739819)
 - Upstream moved to use Glib's GHashTable over uthash

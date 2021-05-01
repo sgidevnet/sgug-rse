@@ -62,7 +62,7 @@ BuildRequires:  perl(Module::Install::AuthorTests)
 BuildRequires:  perl(Module::Install::ExtraTests) >= 0.007
 %endif
 BuildRequires:  perl(utf8)
-Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
+Requires:       perl(:MODULE_COMPAT_%(eval "$(perl -V:version)"; echo $version))
 Requires:       perl(Archive::Zip) >= 1.37
 Requires:       perl(Carp)
 Requires:       perl(CPAN)
@@ -129,6 +129,9 @@ make test
 %{_mandir}/man3/*
 
 %changelog
+* Wed Oct 28 2020  HAL <notes2@gmx.de> - 1.19-11
+- compiles on Irix 6.5 with sgug-rse gcc 9.2. All tests pass.
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.19-11
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

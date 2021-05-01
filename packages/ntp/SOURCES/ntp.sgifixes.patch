@@ -1,0 +1,22 @@
+diff -Naur ntp-4.2.8p13.orig/ntpdc/layout.std ntp-4.2.8p13/ntpdc/layout.std
+--- ntp-4.2.8p13.orig/ntpdc/layout.std	2018-02-09 15:58:38.000000000 +0000
++++ ntp-4.2.8p13/ntpdc/layout.std	2020-09-15 00:44:05.116298327 +0000
+@@ -269,15 +269,15 @@
+ offsetof(addr6) = 24
+ offsetof(mask6) = 40
+ 
+-sizeof(struct conf_restrict) = 52
++sizeof(struct conf_restrict) = 56
+ offsetof(addr) = 0
+ offsetof(mask) = 4
+ offsetof(ippeerlimit) = 8
+ offsetof(flags) = 10
+ offsetof(mflags) = 12
+ offsetof(v6_flag) = 16
+-offsetof(addr6) = 20
+-offsetof(mask6) = 36
++offsetof(addr6) = 24
++offsetof(mask6) = 40
+ 
+ sizeof(struct info_monitor_1) = 72
+ offsetof(avg_int) = 0

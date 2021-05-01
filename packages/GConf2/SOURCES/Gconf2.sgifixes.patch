@@ -1,0 +1,48 @@
+diff -Naur GConf-3.2.6.orig/Makefile.am GConf-3.2.6/Makefile.am
+--- GConf-3.2.6.orig/Makefile.am	2011-08-16 04:59:31.000000000 +0000
++++ GConf-3.2.6/Makefile.am	2020-09-19 17:07:11.595477340 +0000
+@@ -1,7 +1,7 @@
+ 
+-SUBDIRS = gconf backends po doc examples
++SUBDIRS = gconf backends po examples
+ 
+-DIST_SUBDIRS = tests gconf backends po doc examples defaults gsettings
++DIST_SUBDIRS = tests gconf backends po examples defaults gsettings
+ 
+ if ENABLE_DEFAULTS_SERVICE
+ SUBDIRS += defaults
+@@ -13,7 +13,6 @@
+ 
+ EXTRA_DIST =                \
+ 	TODO                \
+-	gtk-doc.make        \
+ 	intltool-update.in  \
+ 	intltool-extract.in \
+ 	intltool-merge.in
+@@ -23,7 +22,7 @@
+ 	intltool-merge    \
+ 	intltool-extract
+ 
+-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection --enable-defaults-service --enable-gsettings-backend --disable-orbit
++DISTCHECK_CONFIGURE_FLAGS = --enable-introspection --enable-defaults-service --enable-gsettings-backend --disable-orbit
+ 
+ install-data-local:
+ 	-mkdir -p $(DESTDIR)$(sysgconfdir)/gconf.xml.defaults
+diff -Naur GConf-3.2.6.orig/gsettings/Makefile.am GConf-3.2.6/gsettings/Makefile.am
+--- GConf-3.2.6.orig/gsettings/Makefile.am	2012-03-10 23:35:08.000000000 +0000
++++ GConf-3.2.6/gsettings/Makefile.am	2020-09-19 17:09:31.946584588 +0000
+@@ -44,14 +44,6 @@
+ autostart_in_files = gsettings-data-convert.desktop.in
+ autostart_DATA = $(autostart_in_files:.desktop.in=.desktop)
+ 
+-man_MANS =
+-
+-if ENABLE_DOCUMENTATION
+-man_MANS +=			\
+-	gsettings-schema-convert.1 \
+-	gsettings-data-convert.1 \
+-	$(NULL)
+-endif
+ 
+ %.1 : %.xml
+ 	xsltproc -nonet http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<

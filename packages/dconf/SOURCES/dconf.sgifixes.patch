@@ -1,0 +1,10 @@
+diff -Naur dconf-0.34.0.orig/meson.build dconf-0.34.0/meson.build
+--- dconf-0.34.0.orig/meson.build	2019-09-10 00:56:47.000000000 +0000
++++ dconf-0.34.0/meson.build	2021-04-19 22:07:34.871215437 +0000
+@@ -80,6 +80,5 @@
+ subdir('client')
+ subdir('bin')
+ subdir('docs')
+-subdir('tests')
+ 
+ meson.add_install_script('meson_post_install.py', gio_module_dir)

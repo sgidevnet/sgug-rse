@@ -1,0 +1,38 @@
+--- dillo-3.0.5/dpi/downloads.cc       2021-02-05 23:10:37.177846160 +0000
++++ dillo-3.0.5/dpi/downloads.cc        2021-02-05 23:08:33.870283120 +0000
+@@ -464,7 +464,7 @@
+    dClose(LogPipe[0]);
+    dup2(LogPipe[1], 2); // stderr
+    // set the locale to C for log parsing
+-   setenv("LC_ALL", "C", 1);
++   // setenv("LC_ALL", "C", 1);
+    // start wget
+    execvp(dl_argv[0], dl_argv);
+ }
+
+
+--- dillo-3.0.5/dpi/https.c	2015-06-30 08:06:08.000000000 +0000
++++ dillo-3.0.5/dpi/https.c	2021-02-26 20:59:06.552726000 +0000
+@@ -675,9 +675,9 @@
+             "Unable to get local issuer certificate. The issuer certificate "
+             "of an untrusted certificate cannot be found.",
+             "Continue", "Cancel");
+-         a_Dpip_dsh_write_str(sh, 1, d_cmd);
++         // a_Dpip_dsh_write_str(sh, 1, d_cmd);
+          dFree(d_cmd);
+-         response_number = dialog_get_answer_number();
++         response_number = 1;
+          if (response_number == 1) {
+             ret = 0;
+          }
+
+@@ -169,7 +169,7 @@
+    /*FIXME - provide for sysconfdir variables and such*/
+    if (exit_error == 0){
+       if (SSL_CTX_load_verify_locations(
+-         ssl_context, NULL, "/etc/ssl/certs/" ) == 0){
++         ssl_context, NULL, "/usr/sgug/etc/ssl/certs/" ) == 0){
+          MSG("Error opening system x509 certificate location\n");
+          exit_error = 1;
+       }
+

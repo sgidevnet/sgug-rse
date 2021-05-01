@@ -1,0 +1,35 @@
+diff -Naur libnice-0.1.17.orig/socket/udp-turn.c libnice-0.1.17/socket/udp-turn.c
+--- libnice-0.1.17.orig/socket/udp-turn.c	2020-05-22 21:57:00.000000000 +0000
++++ libnice-0.1.17/socket/udp-turn.c	2021-04-21 15:30:06.161040608 +0000
+@@ -1155,13 +1155,13 @@
+           struct sockaddr_storage storage;
+           struct sockaddr addr;
+         } sa;
+-        socklen_t sa_len = sizeof(sa);
++        socklen_t ls_sa_len = sizeof(sa);
+         NiceAddress to;
+ 
+         /* look up binding associated with peer */
+         stun_message_find_xor_addr (
+             &priv->current_binding_msg->message,
+-            STUN_ATTRIBUTE_XOR_PEER_ADDRESS, &sa.storage, &sa_len);
++            STUN_ATTRIBUTE_XOR_PEER_ADDRESS, &sa.storage, &ls_sa_len);
+         nice_address_set_from_sockaddr (&to, &sa.addr);
+ 
+         /* If the binding is being refreshed, then move it to
+@@ -1423,13 +1423,13 @@
+                 struct sockaddr_storage storage;
+                 struct sockaddr addr;
+               } sa;
+-              socklen_t sa_len = sizeof(sa);
++              socklen_t ls_sa_len = sizeof(sa);
+               NiceAddress to;
+ 
+               /* look up binding associated with peer */
+               stun_message_find_xor_addr (
+                   &priv->current_binding_msg->message,
+-                  STUN_ATTRIBUTE_XOR_PEER_ADDRESS, &sa.storage, &sa_len);
++                  STUN_ATTRIBUTE_XOR_PEER_ADDRESS, &sa.storage, &ls_sa_len);
+               nice_address_set_from_sockaddr (&to, &sa.addr);
+ 
+               for (i = priv->channels; i; i = i->next) {

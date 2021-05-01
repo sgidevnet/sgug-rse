@@ -1,0 +1,30 @@
+From 0ca327dd48e5c9b7c1c26529cdc86e35c5eb30e3 Mon Sep 17 00:00:00 2001
+From: Michal Schmidt <mschmidt@redhat.com>
+Date: Thu, 29 Aug 2013 18:12:02 +0200
+Subject: [PATCH 2/4] daemon/main: do not create /run/icecc by ourselves
+
+In order to be able to restrict the daemon's SELinux policy even more,
+let's rely on tmpfiles.d to create the /run/icecc directory for us
+instead of creating it from the daemon.
+---
+ daemon/main.cpp | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/daemon/main.cpp b/daemon/main.cpp
+index 9fe151a275..3119555f6d 100644
+--- a/daemon/main.cpp
++++ b/daemon/main.cpp
+@@ -2437,10 +2437,6 @@ int main(int argc, char **argv)
+             logfile = "/var/log/icecc/iceccd.log";
+         }
+ 
+-        mkdir("/var/run/icecc", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+-        chmod("/var/run/icecc", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+-        ignore_result(chown("/var/run/icecc", d.user_uid, d.user_gid));
+-
+ #ifdef HAVE_LIBCAP_NG
+         capng_clear(CAPNG_SELECT_BOTH);
+         capng_update(CAPNG_ADD, (capng_type_t)(CAPNG_EFFECTIVE | CAPNG_PERMITTED), CAP_SYS_CHROOT);
+-- 
+2.21.0
+

@@ -1,6 +1,12 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 Name:           libjpeg-turbo
 Version:        2.0.2
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        A MMX/SSE2/SIMD accelerated library for manipulating JPEG image files
 License:        IJG
 URL:            http://sourceforge.net/projects/libjpeg-turbo
@@ -88,9 +94,14 @@ manipulate JPEG files using the TurboJPEG library.
 #%%endif
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
 #exit 1
-%{cmake} -DCMAKE_SKIP_RPATH:BOOL=YES \
-         -DCMAKE_SKIP_INSTALL_RPATH:BOOL=YES \
+%{cmake} -DCMAKE_INSTALL_LIBDIR="%{_libdir}" \
+         -DCMAKE_SKIP_RPATH:BOOL=YES \
+         -DCMAKE_SKIP_INSTALL_RPATH:BOOL=NO \
          -DENABLE_STATIC:BOOL=NO . \
          -DWITH_SIMD:BOOL=NO \
          --log-level=DEBUG
@@ -146,7 +157,7 @@ EOF
 fi
 
 %check
-LD_LIBRARYN32_PATH=%{buildroot}%{_libdir} make test %{?_smp_mflags}
+LD_LIBRARYN32_PATH=.:%{_libdir}:/usr/lib32:/lib32 make test %{?_smp_mflags}
 
 #%%ldconfig_scriptlets
 #%%ldconfig_scriptlets -n turbojpeg
@@ -191,6 +202,9 @@ LD_LIBRARYN32_PATH=%{buildroot}%{_libdir} make test %{?_smp_mflags}
 %{_libdir}/pkgconfig/libturbojpeg.pc
 
 %changelog
+* Mon Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2.0.2-6
+- Clean up for libjpegturbo switch
+
 * Tue Nov 12 2019 Nikola Forró <nforro@redhat.com> - 2.0.2-5
 - Fix CVE-2019-2201 (#1770988)
 

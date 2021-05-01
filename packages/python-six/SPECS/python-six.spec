@@ -1,7 +1,7 @@
 %global modname six
 %bcond_with wheel
 
-%bcond_with tests
+%bcond_without tests
 
 %bcond_without python2
 %bcond_without python3

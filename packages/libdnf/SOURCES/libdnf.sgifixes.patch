@@ -1,0 +1,379 @@
+diff -u -r libdnf-0.48.0-orig/libdnf/conf/ConfigMain.cpp libdnf-0.48.0/libdnf/conf/ConfigMain.cpp
+--- libdnf-0.48.0-orig/libdnf/conf/ConfigMain.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/conf/ConfigMain.cpp	2020-12-12 09:29:30.997300760 +0000
+@@ -185,7 +185,7 @@
+     OptionNumber<std::int32_t> log_size{1024 * 1024, strToBytes};
+     OptionNumber<std::int32_t> log_rotate{4, 0};
+     OptionStringList varsdir{VARS_DIRS};
+-    OptionStringList reposdir{{"/etc/yum.repos.d", "/etc/yum/repos.d", "/etc/distro.repos.d"}};
++    OptionStringList reposdir{"/etc/yum/repos.d"};
+     OptionBool debug_solver{false};
+     OptionStringList installonlypkgs{INSTALLONLYPKGS};
+     OptionStringList group_package_types{GROUP_PACKAGE_TYPES};
+@@ -257,7 +257,7 @@
+     OptionString rpmverbosity{"info"};
+     OptionBool strict{true}; // :api
+     OptionBool skip_broken{false}; // :yum-compatibility
+-    OptionBool autocheck_running_kernel{true}; // :yum-compatibility
++    OptionBool autocheck_running_kernel{false}; // :yum-compatibility
+     OptionBool clean_requirements_on_remove{true};
+ 
+     OptionEnum<std::string> history_list_view{"commands", {"single-user-commands", "users", "commands"},
+diff -u -r libdnf-0.48.0-orig/libdnf/dnf-lock.cpp libdnf-0.48.0/libdnf/dnf-lock.cpp
+--- libdnf-0.48.0-orig/libdnf/dnf-lock.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/dnf-lock.cpp	2020-12-12 09:29:30.999245000 +0000
+@@ -429,7 +429,11 @@
+         }
+ 
+         /* create file with our process ID */
++#if defined(__sgi)
++        pid_text = g_strdup_printf("%ld", getpid());
++#else
+         pid_text = g_strdup_printf("%i", getpid());
++#endif
+         if (!g_file_set_contents(filename, pid_text, -1, &error_local)) {
+             g_set_error(error,
+                         DNF_ERROR,
+diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo-loader.cpp libdnf-0.48.0/libdnf/dnf-repo-loader.cpp
+--- libdnf-0.48.0-orig/libdnf/dnf-repo-loader.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/dnf-repo-loader.cpp	2020-12-12 09:29:31.001491240 +0000
+@@ -181,6 +181,7 @@
+         return FALSE;
+ 
+     g_debug("added repo %s", dnf_repo_get_id(repo));
++    //    abort();
+     g_ptr_array_add(priv->repos, repo);
+     return TRUE;
+ }
+@@ -352,6 +353,7 @@
+         return FALSE;
+ 
+     g_debug("added repo %s\t%s", filename, id);
++    //    abort();
+     g_ptr_array_add(priv->repos, g_object_ref(repo));
+     return TRUE;
+ }
+@@ -429,6 +431,7 @@
+         /* find all the .repo files */
+         while (auto file = g_dir_read_name(dir)) {
+             g_autofree gchar *path_tmp = NULL;
++            //g_debug("DH Checking %s", file);
+             if (!g_str_has_suffix(file, ".repo"))
+                 continue;
+             path_tmp = g_build_filename(repo_path, file, NULL);
+@@ -545,6 +548,7 @@
+ static void
+ dnf_repo_loader_setup_monitor(DnfRepoLoader *self, const char * path, bool is_dir)
+ {
++    /*printf("dnf_repo_loader_setup_monitor on %s\n", path);*/
+     DnfRepoLoaderPrivate *priv = GET_PRIVATE(self);
+     g_autoptr(GFile) file_path = g_file_new_for_path(path);
+     g_autoptr(GError) error = NULL;
+@@ -555,10 +559,12 @@
+         monitor = g_file_monitor_file(file_path, G_FILE_MONITOR_NONE, NULL, &error);
+     }
+     if (monitor) {
++        /*printf("dnf_repo_loader_setup_monitor success on %s\n", path);*/
+         g_ptr_array_add(priv->monitor_repos, monitor);
+         g_signal_connect(monitor, "changed",
+                             G_CALLBACK(dnf_repo_loader_directory_changed_cb), self);
+     } else {
++        /*printf("dnf_repo_loader_setup_monitor failure on %s\n", path);*/
+         g_warning("failed to setup monitor: %s",
+                 error->message);
+     }
+diff -u -r libdnf-0.48.0-orig/libdnf/dnf-repo.cpp libdnf-0.48.0/libdnf/dnf-repo.cpp
+--- libdnf-0.48.0-orig/libdnf/dnf-repo.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/dnf-repo.cpp	2020-12-12 09:30:57.060035080 +0000
+@@ -1676,7 +1676,13 @@
+ 
+     /* download to known location */
+     g_debug("Downloading %s to %s", gpgkey, key_tmp);
++
++#if defined(__sgi)
++#define O_CLOEXEC 0
++#endif
++
+     fd = g_open(key_tmp, O_CLOEXEC | O_CREAT | O_RDWR, 0774);
++
+     if (fd < 0) {
+         g_set_error(error,
+                     DNF_ERROR,
+@@ -2402,7 +2408,7 @@
+ 
+     try {
+         auto mdfile = libdnf::File::newFile(path);
+-        mdfile->open("r");
++        mdfile->dnfopen("r");
+         const auto &fcontent = mdfile->getContent();
+         mdfile->close();
+         auto data = g_malloc(fcontent.length());
+diff -u -r libdnf-0.48.0-orig/libdnf/dnf-transaction.cpp libdnf-0.48.0/libdnf/dnf-transaction.cpp
+--- libdnf-0.48.0-orig/libdnf/dnf-transaction.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/dnf-transaction.cpp	2020-12-12 09:29:31.008595320 +0000
+@@ -1553,6 +1553,7 @@
+     } else {
+         dbPath = ":memory:";
+     }
++    /*printf("dnf_transaction_new dbPath(%s)\n", dbPath.c_str());*/
+     priv->swdb = new libdnf::Swdb(dbPath);
+     priv->context = context;
+     g_object_add_weak_pointer(G_OBJECT(priv->context), (void **)&priv->context);
+diff -u -r libdnf-0.48.0-orig/libdnf/dnf-utils.cpp libdnf-0.48.0/libdnf/dnf-utils.cpp
+--- libdnf-0.48.0-orig/libdnf/dnf-utils.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/dnf-utils.cpp	2020-12-12 09:29:31.010108520 +0000
+@@ -70,13 +70,19 @@
+ {
+     gchar *real = NULL;
+     char *temp;
++    char *tmpbuf;
+ 
+     /* don't trust realpath one little bit */
+     if (path == NULL)
+         return NULL;
+ 
+     /* glibc allocates us a buffer to try and fix some brain damage */
++#if defined(__sgi)
++    tmpbuf = (char *)malloc(MAXPATHLEN);
++    temp = realpath(path, tmpbuf);
++#else
+     temp = realpath(path, NULL);
++#endif
+     if (temp == NULL)
+         return NULL;
+     real = g_strdup(temp);
+diff -u -r libdnf-0.48.0-orig/libdnf/hy-iutil.cpp libdnf-0.48.0/libdnf/hy-iutil.cpp
+--- libdnf-0.48.0-orig/libdnf/hy-iutil.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/hy-iutil.cpp	2020-12-12 09:29:31.011925000 +0000
+@@ -22,7 +22,9 @@
+ #include <errno.h>
+ #include <dirent.h>
+ #include <fcntl.h>
++#if !defined(__sgi)
+ #include <linux/limits.h>
++#endif
+ #include <pwd.h>
+ #include <unistd.h>
+ #include <stdio.h>
+diff -u -r libdnf-0.48.0-orig/libdnf/hy-util.cpp libdnf-0.48.0/libdnf/hy-util.cpp
+--- libdnf-0.48.0-orig/libdnf/hy-util.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/hy-util.cpp	2020-12-12 09:29:31.013442120 +0000
+@@ -24,7 +24,9 @@
+ #include <ctype.h>
+ #include <sys/utsname.h>
+ #include <sys/stat.h>
++#if !defined(__sgi)
+ #include <sys/auxv.h>
++#endif
+ 
+ // hawkey
+ #include "dnf-types.h"
+@@ -101,6 +103,7 @@
+     if (uname(&un) < 0)
+         return DNF_ERROR_FAILED;
+ 
++#if !defined(__sgi)
+     if (!strncmp(un.machine, "armv", 4)) {
+         /* un.machine is armvXE, where X is version number and E is
+          * endianness (b or l); we need to add modifiers such as
+@@ -118,6 +121,11 @@
+         *modifier++ = endian;
+         *modifier = 0;
+     }
++#else
++    // SGUG RSE is always mipbe n32 == mips
++    strcpy(un.machine, "mips");
++#endif
++
+ #ifdef __MIPSEL__
+     if (!strcmp(un.machine, "mips"))
+         strcpy(un.machine, "mipsel");
+diff -u -r libdnf-0.48.0-orig/libdnf/module/ModulePackage.cpp libdnf-0.48.0/libdnf/module/ModulePackage.cpp
+--- libdnf-0.48.0-orig/libdnf/module/ModulePackage.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/module/ModulePackage.cpp	2020-12-12 09:29:31.015506360 +0000
+@@ -405,7 +405,7 @@
+ static std::pair<std::string, std::string> getPlatformStream(const std::string &osReleasePath)
+ {
+     auto file = File::newFile(osReleasePath);
+-    file->open("r");
++    file->dnfopen("r");
+     std::string line;
+     while (file->readLine(line)) {
+         if (line.find("PLATFORM_ID") != std::string::npos) {
+diff -u -r libdnf-0.48.0-orig/libdnf/module/ModulePackageContainer.cpp libdnf-0.48.0/libdnf/module/ModulePackageContainer.cpp
+--- libdnf-0.48.0-orig/libdnf/module/ModulePackageContainer.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/module/ModulePackageContainer.cpp	2020-12-12 09:29:31.037025000 +0000
+@@ -103,7 +103,7 @@
+ {
+     auto yaml = File::newFile(filePath);
+ 
+-    yaml->open("r");
++    yaml->dnfopen("r");
+     const auto &yamlContent = yaml->getContent();
+     yaml->close();
+ 
+diff -u -r libdnf-0.48.0-orig/libdnf/plugin/plugin.cpp libdnf-0.48.0/libdnf/plugin/plugin.cpp
+--- libdnf-0.48.0-orig/libdnf/plugin/plugin.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/plugin/plugin.cpp	2020-12-12 09:29:31.038594120 +0000
+@@ -98,7 +98,11 @@
+         dirPath.push_back('/');
+     struct dirent **namelist;
+     auto count = scandir(dirPath.c_str(), &namelist,
++#if defined(__sgi)
++                         [](struct dirent *dent)->int{return string::endsWith(dent->d_name, ".so");},
++#else
+                          [](const struct dirent *dent)->int{return string::endsWith(dent->d_name, ".so");},
++#endif
+                          alphasort);
+     if (count == -1) {
+         int errnum = errno;
+diff -u -r libdnf-0.48.0-orig/libdnf/repo/Repo.cpp libdnf-0.48.0/libdnf/repo/Repo.cpp
+--- libdnf-0.48.0-orig/libdnf/repo/Repo.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/repo/Repo.cpp	2020-12-12 09:29:31.042351240 +0000
+@@ -420,7 +420,7 @@
+     if (path.empty()) return "";
+ 
+     auto mdfile = File::newFile(path);
+-    mdfile->open("r");
++    mdfile->dnfopen("r");
+     const auto &content = mdfile->getContent();
+     mdfile->close();
+     return content;
+diff -u -r libdnf-0.48.0-orig/libdnf/transaction/Swdb.cpp libdnf-0.48.0/libdnf/transaction/Swdb.cpp
+--- libdnf-0.48.0-orig/libdnf/transaction/Swdb.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/transaction/Swdb.cpp	2020-12-12 09:29:31.044612680 +0000
+@@ -58,6 +58,15 @@
+   : conn(nullptr)
+   , autoClose(true)
+ {
++  /*printf("Swdb::Swdb(%s)\n", path.c_str());
++  try {
++    printf("Throwing the error\n");
++    throw libdnf::Error("Test error");
++  }
++  catch (libdnf::Error & ex) {
++    printf("Caught the error\n");
++  }*/
++
+     auto logger(libdnf::Log::getLogger());
+ 
+     if (path == ":memory:") {
+@@ -127,12 +136,16 @@
+             try {
+                 // database doesn't exist, running under unprivileged user
+                 // connect to a new database and initialize it; old data is not migrated
++	      /*printf("Attempting to make db at %s\n", path.c_str());*/
+                 conn = std::make_shared<SQLite3>(path);
+                 Transformer::createDatabase(conn);
++		/*printf("Created db at %s\n", path.c_str());*/
+             } catch (SQLite3::Error & ex) {
++	      /*printf("SQLite error in create\n");*/
+                 // unpriviledged user may have insufficient permissions to create the database -> in-memory fallback
+                 conn = std::make_shared<SQLite3>(":memory:");
+                 Transformer::createDatabase(conn);
++		/*printf("Created in memory DB\n");*/
+                 logger->error(tfm::format("History database cannot be created, using in-memory database instead: %s", ex.what()));
+             }
+         }
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/CompressedFile.cpp libdnf-0.48.0/libdnf/utils/CompressedFile.cpp
+--- libdnf-0.48.0-orig/libdnf/utils/CompressedFile.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/CompressedFile.cpp	2020-12-12 09:29:31.045922760 +0000
+@@ -16,7 +16,7 @@
+ 
+ CompressedFile::~CompressedFile() = default;
+ 
+-void CompressedFile::open(const char *mode)
++void CompressedFile::dnfopen(const char *mode)
+ {
+     // There are situations when solv_xfopen returns NULL but it does not set errno.
+     // In this case errno value is random, so we set a default value.
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/CompressedFile.hpp libdnf-0.48.0/libdnf/utils/CompressedFile.hpp
+--- libdnf-0.48.0-orig/libdnf/utils/CompressedFile.hpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/CompressedFile.hpp	2020-12-12 09:29:31.047044680 +0000
+@@ -11,7 +11,7 @@
+     explicit CompressedFile(const std::string &filePath);
+     ~CompressedFile() override;
+ 
+-    void open(const char *mode) override;
++    void dnfopen(const char *mode) override;
+ 
+     std::string getContent() override;
+ };
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/File.cpp libdnf-0.48.0/libdnf/utils/File.cpp
+--- libdnf-0.48.0-orig/libdnf/utils/File.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/File.cpp	2020-12-12 09:29:31.048291080 +0000
+@@ -40,7 +40,7 @@
+     } catch (IOError &) {}
+ }
+ 
+-void File::open(const char *mode)
++void File::dnfopen(const char *mode)
+ {
+     file = fopen(filePath.c_str(), mode);
+     if (!file) {
+@@ -72,6 +72,14 @@
+     return ret;
+ }
+ 
++#if defined(__sgi)
++#undef getline
++#define getline rpl_getline
++extern "C" {
++export ssize_t rpl_getline(char **, size_t *, FILE*);
++}
++#endif
++
+ bool File::readLine(std::string &line)
+ {
+     char *buffer = nullptr;
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/File.hpp libdnf-0.48.0/libdnf/utils/File.hpp
+--- libdnf-0.48.0-orig/libdnf/utils/File.hpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/File.hpp	2020-12-12 09:29:31.049426680 +0000
+@@ -47,7 +47,7 @@
+     File & operator=(const File&) = delete;
+     virtual ~File();
+ 
+-    virtual void open(const char *mode);
++    virtual void dnfopen(const char *mode);
+     void close();
+ 
+     size_t read(char *buffer, size_t count);
+diff -u -r libdnf-0.48.0-orig/libdnf/utils/os-release.cpp libdnf-0.48.0/libdnf/utils/os-release.cpp
+--- libdnf-0.48.0-orig/libdnf/utils/os-release.cpp	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/libdnf/utils/os-release.cpp	2020-12-12 09:29:31.050683640 +0000
+@@ -50,7 +50,7 @@
+     std::string path = *it;
+ 
+     auto file = libdnf::File::newFile(path);
+-    file->open("r");
++    file->dnfopen("r");
+     std::string line;
+     while (file->readLine(line)) {
+         // remove trailing spaces and newline
+diff -u -r libdnf-0.48.0-orig/tests/CMakeLists.txt libdnf-0.48.0/tests/CMakeLists.txt
+--- libdnf-0.48.0-orig/tests/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/tests/CMakeLists.txt	2020-12-12 09:29:31.051794600 +0000
+@@ -18,4 +18,4 @@
+ target_link_libraries(run_tests libdnf cppunit)
+ 
+ add_test(NAME test_cpp COMMAND ${CMAKE_CURRENT_BINARY_DIR}/run_tests DEPENDS run_tests COMMENT "Running CPPUNIT tests...")
+-set_property(TEST test_cpp PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/libdnf")
++set_property(TEST test_cpp PROPERTY ENVIRONMENT "LD_LIBRARYN32_PATH=${CMAKE_BINARY_DIR}/libdnf:$ENV{LD_LIBRARYN32_PATH}")
+diff -u -r libdnf-0.48.0-orig/tests/hawkey/CMakeLists.txt libdnf-0.48.0/tests/hawkey/CMakeLists.txt
+--- libdnf-0.48.0-orig/tests/hawkey/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/tests/hawkey/CMakeLists.txt	2020-12-12 09:29:31.053096520 +0000
+@@ -34,4 +34,4 @@
+     ${RPMDB_LIBRARY}
+ )
+ add_test(test_hawkey_main test_hawkey_main "${CMAKE_CURRENT_SOURCE_DIR}/data/tests/hawkey/")
+-set_property(TEST test_hawkey_main PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/libdnf")
++set_property(TEST test_hawkey_main PROPERTY ENVIRONMENT "LD_LIBRARYN32_PATH=${CMAKE_BINARY_DIR}/libdnf:$ENV{LD_LIBRARYN32_PATH}")
+diff -u -r libdnf-0.48.0-orig/tests/libdnf/CMakeLists.txt libdnf-0.48.0/tests/libdnf/CMakeLists.txt
+--- libdnf-0.48.0-orig/tests/libdnf/CMakeLists.txt	2020-06-02 10:41:46.000000000 +0000
++++ libdnf-0.48.0/tests/libdnf/CMakeLists.txt	2020-12-12 09:29:31.054260360 +0000
+@@ -15,4 +15,4 @@
+ )
+ 
+ add_test(test_libdnf_main test_libdnf_main)
+-set_property(TEST test_libdnf_main PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/libdnf")
++set_property(TEST test_libdnf_main PROPERTY ENVIRONMENT "LD_LIBRARYN32_PATH=${CMAKE_BINARY_DIR}/libdnf:$ENV{LD_LIBRARYN32_PATH}")

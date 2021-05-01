@@ -1,0 +1,152 @@
+diff -Naur vte-0.58.3.orig/meson.build vte-0.58.3/meson.build
+--- vte-0.58.3.orig/meson.build	2019-11-22 16:36:35.000000000 +0000
++++ vte-0.58.3/meson.build	2021-04-18 15:32:45.055236400 +0000
+@@ -276,9 +276,9 @@
+   '-fdiagnostics-show-option',
+   '-fno-common',
+   '-fno-semantic-interposition',
+-  '-fstack-protector',
+-  '-fstack-protector-strong',
+ ]
++#  '-fstack-protector',
++#  '-fstack-protector-strong',
+ 
+ if enable_debug
+   compiler_flags_common += [
+diff -Naur vte-0.58.3.orig/src/pty.cc vte-0.58.3/src/pty.cc
+--- vte-0.58.3.orig/src/pty.cc	2019-11-22 16:36:35.000000000 +0000
++++ vte-0.58.3/src/pty.cc	2021-04-18 15:47:28.493240400 +0000
+@@ -1,3 +1,6 @@
++#include <sys/ioctl.h>
++#include <termios.h>
++
+ /*
+  * Copyright (C) 2001,2002 Red Hat, Inc.
+  * Copyright © 2009, 2010 Christian Persch
+@@ -660,14 +663,23 @@
+ {
+ 	/* Attempt to open the master. */
+         vte::util::smart_fd fd;
+-        fd = posix_openpt(O_RDWR | O_NOCTTY | O_NONBLOCK | O_CLOEXEC);
++#if defined(__sgi)
++        fd = posix_openpt(O_RDWR | O_NOCTTY | O_NONBLOCK | FD_CLOEXEC);
++#else
++	fd = posix_openpt(O_RDWR | O_NOCTTY | O_NONBLOCK | FD_CLOEXEC);
++#endif
++
+ #ifndef __linux__
+         /* Other kernels may not support CLOEXEC or NONBLOCK above, so try to fall back */
+         bool need_cloexec = false, need_nonblocking = false;
+         if (fd == -1 && errno == EINVAL) {
+                 /* Try without NONBLOCK and apply the flag afterward */
+                 need_nonblocking = true;
++#ifndef __sgi
+                 fd = posix_openpt(O_RDWR | O_NOCTTY | O_CLOEXEC);
++#else
++		fd = posix_openpt(O_RDWR | O_NOCTTY | FD_CLOEXEC);
++#endif
+                 if (fd == -1 && errno == EINVAL) {
+                         /* Try without CLOEXEC and apply the flag afterwards */
+                         need_cloexec = true;
+diff -Naur vte-0.58.3.orig/src/reaper.cc vte-0.58.3/src/reaper.cc
+--- vte-0.58.3.orig/src/reaper.cc	2019-11-22 16:36:35.000000000 +0000
++++ vte-0.58.3/src/reaper.cc	2021-04-18 15:32:45.059670000 +0000
+@@ -189,7 +189,11 @@
+                         _exit(30);
+                         break;
+                 default:
++#if defined(__sgi)
++                        g_print("[parent] Starting to wait for %ld.\n", p);
++#else
+                         g_print("[parent] Starting to wait for %d.\n", p);
++#endif
+                         vte_reaper_add_child(p);
+                         child = p;
+                         g_signal_connect(reaper,
+@@ -213,7 +217,11 @@
+                         _exit(5);
+                         break;
+                 default:
++#if defined(__sgi)
++                        g_print("[parent] Not waiting for %ld.\n", q);
++#else
+                         g_print("[parent] Not waiting for %d.\n", q);
++#endif
+                         break;
+         }
+ 
+diff -Naur vte-0.58.3.orig/src/vte.cc vte-0.58.3/src/vte.cc
+--- vte-0.58.3.orig/src/vte.cc	2019-11-22 16:36:35.000000000 +0000
++++ vte-0.58.3/src/vte.cc	2021-04-18 15:32:45.074164400 +0000
+@@ -3289,14 +3289,26 @@
+         g_object_freeze_notify(object);
+ 
+         _VTE_DEBUG_IF (VTE_DEBUG_LIFECYCLE) {
++#if defined(__sgi)
++                g_printerr ("Child[%ld] exited with status %d\n",
++#else
+                 g_printerr ("Child[%d] exited with status %d\n",
++#endif
+                             pid, status);
+ #ifdef HAVE_SYS_WAIT_H
+                 if (WIFEXITED (status)) {
++#if defined(__sgi)
++                        g_printerr ("Child[%ld] exit code %d.\n",
++#else
+                         g_printerr ("Child[%d] exit code %d.\n",
++#endif
+                                     pid, WEXITSTATUS (status));
+                 } else if (WIFSIGNALED (status)) {
++#if defined(__sgi)
++                        g_printerr ("Child[%ld] dies with signal %d.\n",
++#else
+                         g_printerr ("Child[%d] dies with signal %d.\n",
++#endif
+                                     pid, WTERMSIG (status));
+                 }
+ #endif
+@@ -3857,7 +3869,11 @@
+                                 if (G_UNLIKELY(rv < 0)) {
+                                         uint32_t c = m_utf8_decoder.codepoint();
+                                         char c_buf[7];
++#if defined(__sgi)
++                                        g_snprintf(c_buf, sizeof(c_buf), "%d", c);
++#else
+                                         g_snprintf(c_buf, sizeof(c_buf), "%lc", c);
++#endif
+                                         char const* wp_str = g_unichar_isprint(c) ? c_buf : _vte_debug_sequence_to_string(c_buf, -1);
+                                         _vte_debug_print(VTE_DEBUG_PARSER, "Parser error on U+%04X [%s]!\n",
+                                                          c, wp_str);
+@@ -4127,9 +4143,17 @@
+                                                          */
+                                                         pty_termios_changed();
+                                                 }
++#if defined(__sgi)
++                                                if (pkt_header & TIOCPKT_DOSTOP) {
++#else
+                                                 if (pkt_header & TIOCPKT_STOP) {
++#endif
+                                                         pty_scroll_lock_changed(true);
++#if defined(__sgi)
++                                                } else if (pkt_header & TIOCPKT_NOSTOP) {
++#else
+                                                 } else if (pkt_header & TIOCPKT_START) {
++#endif
+                                                         pty_scroll_lock_changed(false);
+                                                 }
+ 
+diff -Naur vte-0.58.3.orig/src/widget.cc vte-0.58.3/src/widget.cc
+--- vte-0.58.3.orig/src/widget.cc	2019-11-22 16:36:35.000000000 +0000
++++ vte-0.58.3/src/widget.cc	2021-04-18 15:32:45.075923600 +0000
+@@ -131,7 +131,11 @@
+ Widget::dispose() noexcept
+ {
+         if (m_terminal->terminate_child()) {
++#if defined(__sgi)
++                int status = SIGKILL;
++#else
+                 int status = W_EXITCODE(0, SIGKILL);
++#endif
+                 emit_child_exited(status);
+         }
+ }

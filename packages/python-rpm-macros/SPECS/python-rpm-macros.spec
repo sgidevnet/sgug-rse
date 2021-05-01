@@ -7,7 +7,7 @@
 
 Name:           python-rpm-macros
 Version:        3
-Release:        53%{?dist}
+Release:        54%{?dist}
 Summary:        The unversioned Python RPM macros
 
 # macros: MIT, compileall2.py: PSFv2
@@ -34,7 +34,7 @@ python?-devel packages require it. So install a python-devel package instead.
 
 %package -n python-srpm-macros
 Summary:        RPM macros for building Python source packages
-Requires:       redhat-rpm-config
+Requires:       sgug-rpm-config
 
 %description -n python-srpm-macros
 RPM macros for building Python source packages.
@@ -85,6 +85,9 @@ install -m 644 %{SOURCE5} \
 
 
 %changelog
+* Sat Aug 22 2020 Daniel Hams <daniel.hams@gmail.com> - 3-54
+- Depend on sgug-rpm-config not redhat-rpm-config
+
 * Sat Jun 06 2020 Daniel Hams <daniel.hams@gmail.com> - 3-53
 - Move vendor to "sgug" so these macros are correctly picked up.
 

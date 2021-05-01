@@ -1,8 +1,8 @@
 %global apiversion 0.3
 
 Name: libmwaw
-Version: 0.3.15
-Release: 2%{?dist}
+Version: 0.3.16
+Release: 1%{?dist}
 Summary: A library for import of many old Mac document formats
 
 License: LGPLv2+ or MPLv2.0
@@ -33,11 +33,11 @@ The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
 #%%package doc
-#Summary: Documentation of %{name} API
+#Summary: Documentation of #%%{name} API
 #BuildArch: noarch
 
 #%%description doc
-#The %{name}-doc package contains documentation files for %{name}.
+#The #%%{name}-doc package contains documentation files for #%%{name}.
 
 %package tools
 Summary: Tools to transform the supported formats into other formats
@@ -51,14 +51,14 @@ Supported output formats are CSV, HTML, SVG, plain text and raw.
 %autosetup -p1
 
 %build
-%configure --disable-static --disable-werror --enable-zip --disable-docs
+%configure --disable-static --disable-werror --disable-zip --enable-docs
 sed -i \
     -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
     -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
     libtool
 make %{?_smp_mflags} V=1
 
-export LD_LIBRARY_PATH=`pwd`/src/lib/.libs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+#export LD_LIBRARY_PATH=`pwd`/src/lib/.libs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 #help2man -N -n 'convert Mac spreadsheet into CSV' -o mwaw2csv.1 ./src/conv/csv/.libs/mwaw2csv
 #help2man -N -n 'debug the conversion library' -o mwaw2raw.1 ./src/conv/raw/.libs/mwaw2raw
 #help2man -N -n 'convert Mac text document into HTML' -o mwaw2html.1 ./src/conv/html/.libs/mwaw2html
@@ -78,11 +78,9 @@ rm -rf %{buildroot}/%{_docdir}/%{name}
 
 #%%ldconfig_scriptlets
 
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/licenses/libmwaw/CO*
-rm -f $RPM_BUILD_ROOT/usr/sgug/share/licenses/libmwaw-doc/CO*
 %files
-#%%doc CHANGES README
-#%%license COPYING.*
+%doc CHANGES README
+%license COPYING.*
 %{_libdir}/%{name}-%{apiversion}.so.*
 
 %files devel
@@ -101,16 +99,21 @@ rm -f $RPM_BUILD_ROOT/usr/sgug/share/licenses/libmwaw-doc/CO*
 %{_bindir}/mwaw2raw
 %{_bindir}/mwaw2svg
 %{_bindir}/mwaw2text
-%{_bindir}/mwawZip
 #%%{_mandir}/man1/mwaw2csv.1*
 #%%{_mandir}/man1/mwaw2html.1*
 #%%{_mandir}/man1/mwaw2raw.1*
-#%%{_mandir}/man1/mwaw2svg.1*
+#5%{_mandir}/man1/mwaw2svg.1*
 #%%{_mandir}/man1/mwaw2text.1*
 
 %changelog
-* Sun May 17 2020  Alexander Tafarte <notes2@gmx.de> - 0.3.15-3
+* Tue Sep 29 2020  HAL <notes2@gmx.de> - 0.3.16-1
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
+* Sun Apr 05 2020 David Tardon <dtardon@redhat.com> - 0.3.16-1
+- new upstream release
+
+* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 0.3.15-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.3.15-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild

@@ -33,11 +33,11 @@ The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
 #%%package doc
-#Summary: Documentation of %{name} API
+#Summary: Documentation of #%%{name} API
 #BuildArch: noarch
 
 #%%description doc
-#The %{name}-doc package contains documentation files for %{name}.
+#The #%%{name}-doc package contains documentation files for #%%{name}.
 
 %package tools
 Summary: Tools to transform Microsoft Publisher documents into other formats
@@ -75,8 +75,8 @@ rm -rf %{buildroot}/%{_docdir}/%{name}
 #%%ldconfig_scriptlets
 
 %files
-#%%doc AUTHORS NEWS README
-#%%license COPYING.MPL
+%doc AUTHORS NEWS README
+%license COPYING.MPL
 %{_libdir}/%{name}-%{apiversion}.so.*
 
 %files devel
@@ -96,7 +96,7 @@ rm -rf %{buildroot}/%{_docdir}/%{name}
 #%%{_mandir}/man1/pub2xhtml.1*
 
 %changelog
- Sat May 30 2020  Alexander Tafarte <notes2@gmx.de> - 0.1.4-9 
+* Tue Sep 29 2020  HAL <notes2@gmx.de> - 0.1.4-8
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.1.4-8

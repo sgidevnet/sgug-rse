@@ -1,0 +1,21 @@
+diff -Naur libcmis-0.5.2.orig/src/libcmis/xml-utils.cxx libcmis-0.5.2/src/libcmis/xml-utils.cxx
+--- libcmis-0.5.2.orig/src/libcmis/xml-utils.cxx	2018-12-22 16:03:06.000000000 +0000
++++ libcmis-0.5.2/src/libcmis/xml-utils.cxx	2020-11-01 14:45:10.138526396 +0000
+@@ -482,7 +482,7 @@
+     {
+         char* end;
+         errno = 0;
+-        long value = strtol( intStr.c_str(), &end, 0 );
++        long value = ::strtol( intStr.c_str(), &end, 0 );
+ 
+         if ( ( ERANGE == errno && ( LONG_MAX == value || LONG_MIN == value ) ) ||
+              ( errno != 0 && value == 0 ) )
+@@ -501,7 +501,7 @@
+     {
+         char* end;
+         errno = 0;
+-        double value = strtod( doubleStr.c_str(), &end );
++        double value = ::strtod( doubleStr.c_str(), &end );
+ 
+         if ( ( ERANGE == errno ) || ( errno != 0 && value == 0 ) )
+         {

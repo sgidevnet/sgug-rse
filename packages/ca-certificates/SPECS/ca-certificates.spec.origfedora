@@ -35,10 +35,10 @@ Name: ca-certificates
 # to have increasing version numbers. However, the new scheme will work, 
 # because all future versions will start with 2013 or larger.)
 
-Version: 2019.2.32
+Version: 2020.2.41
 # for Rawhide, please always use release >= 2
 # for Fedora release branches, please use release < 2 (1.0, 1.1, ...)
-Release: 3%{?dist}
+Release: 1.1%{?dist}
 License: Public Domain
 
 URL: https://fedoraproject.org/wiki/CA-Certificates
@@ -71,10 +71,10 @@ Requires(post): coreutils
 Requires: bash
 Requires: grep
 Requires: sed
-Requires(post): p11-kit >= 0.23.10
-Requires(post): p11-kit-trust >= 0.23.10
-Requires: p11-kit >= 0.23.10
-Requires: p11-kit-trust >= 0.23.10
+Requires(post): p11-kit >= 0.23.19
+Requires(post): p11-kit-trust >= 0.23.19
+Requires: p11-kit >= 0.23.19
+Requires: p11-kit-trust >= 0.23.19
 
 BuildRequires: perl-interpreter
 BuildRequires: python3
@@ -301,14 +301,30 @@ if [ $1 -gt 1 ] ; then
   fi
 fi
 
-
 %post
 #if [ $1 -gt 1 ] ; then
 #  # when upgrading or downgrading
 #fi
+# if ln is available, go ahead and run the ca-legacy and update
+# scripts. If not, wait until %posttrans.
+if [ -x %{_bindir}/ln ]; then
 %{_bindir}/ca-legacy install
 %{_bindir}/update-ca-trust
+fi
 
+%posttrans
+# When coreutils is installing with ca-certificates
+# we need to wait until coreutils install to
+# run our update since update requires ln to complete.
+# There is a circular dependency here where
+# ca-certificates depends on coreutils
+# coreutils depends on openssl
+# openssl depends on ca-certificates
+# so we run the scripts here too, in case we couldn't run them in
+# post. If we *could* run them in post this is an unnecessary
+# duplication, but it shouldn't hurt anything
+%{_bindir}/ca-legacy install
+%{_bindir}/update-ca-trust
 
 %files
 %dir %{_sysconfdir}/ssl
@@ -369,6 +385,30 @@ fi
 
 
 %changelog
+*Tue Jun 16 2020 Bob Relyea <rrelyea@redhat.com> - 2020.2.41-1.1
+- Fix %post script
+
+*Wed Jun 10 2020 Bob Relyea <rrelyea@redhat.com> - 2020.2.41-1.0
+- Update to CKBI 2.41 from NSS 3.53.0
+-    Removing:
+-     # Certificate "AddTrust Low-Value Services Root"
+-     # Certificate "AddTrust External Root"
+-     # Certificate "Staat der Nederlanden Root CA - G2"
+
+* Tue Jan 28 2020 Daiki Ueno <dueno@redhat.com> - 2020.2.40-1.1
+- Update versioned dependency on p11-kit
+
+*Thu Jan 23 2020 Daiki Ueno <dueno@redhat.com> - 2020.2.40-1.0
+- Update to CKBI 2.40 from NSS 3.48
+-    Removing:
+-     # Certificate "UTN USERFirst Email Root CA"
+-     # Certificate "Certplus Class 2 Primary CA"
+-     # Certificate "Deutsche Telekom Root CA 2"
+-     # Certificate "Swisscom Root CA 2"
+-     # Certificate "Certinomis - Root CA"
+-    Adding:
+-     # Certificate "Entrust Root Certification Authority - G4"
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2019.2.32-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

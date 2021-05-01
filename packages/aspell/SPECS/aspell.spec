@@ -1,7 +1,7 @@
 Summary: Spell checker
 Name: aspell
 Version: 0.60.8
-Release: 3%{?dist}
+Release: 4%{?dist}
 Epoch: 12
 # LGPLv2+ .. common/gettext.h
 # LGPLv2  .. modules/speller/default/phonet.hpp,
@@ -48,8 +48,9 @@ iconv -f iso-8859-2 -t utf-8 < manual/aspell.info > manual/aspell.info.aux
 mv manual/aspell.info.aux manual/aspell.info
 
 %build
-LDFLAGS=-ltinfo
-%configure --disable-rpath
+export LIBS="-ltinfo"
+#%%configure --disable-rpath
+%configure
 rm libtool
 cp /usr/sgug/bin/libtool libtool
 sed -i -e 's! -shared ! -Wl,--as-needed\0!g' libtool
@@ -98,10 +99,10 @@ rm -f ${RPM_BUILD_ROOT}%{_infodir}/dir
 %{_libdir}/lib*.so.*
 %{_libdir}/aspell-0.60/*
 %{_infodir}/aspell.*
-%{_mandir}/man1/aspell.1.*
+%{_mandir}/man1/aspell.1*
 %{_mandir}/man1/run-with-aspell.1*
 %{_mandir}/man1/word-list-compress.1*
-%{_mandir}/man1/prezip-bin.1.*
+%{_mandir}/man1/prezip-bin.1*
 
 %files devel
 %dir %{_includedir}/pspell
@@ -114,6 +115,9 @@ rm -f ${RPM_BUILD_ROOT}%{_infodir}/dir
 %{_mandir}/man1/pspell-config.1*
 
 %changelog
+* Sat Dec 05 2020 Daniel Hams <daniel.hams@gmail.com> - 12:0.60.8-4
+- Bug fix to get correct RPATH set in binaries/libraries
+
 * Thu Jun 18 2020 David Stancu <dstancu@nyu.edu> - 12:0.60.8-3
 - Rebuilt for SGUG RSE
 

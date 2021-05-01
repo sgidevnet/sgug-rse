@@ -1,0 +1,907 @@
+diff -u -r -N microdnf-3.4.0-orig/dnf/dnf-command.cpp microdnf-3.4.0/dnf/dnf-command.cpp
+--- microdnf-3.4.0-orig/dnf/dnf-command.cpp	1970-01-01 00:00:00.000000000 +0000
++++ microdnf-3.4.0/dnf/dnf-command.cpp	2020-11-29 11:29:51.634149240 +0000
+@@ -0,0 +1,41 @@
++/* dnf-command.c
++ *
++ * Copyright © 2016 Igor Gnatenko <ignatenko@redhat.com>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "dnf-command.h"
++
++G_DEFINE_INTERFACE (DnfCommand, dnf_command, G_TYPE_OBJECT)
++
++static void
++dnf_command_default_init (DnfCommandInterface *iface)
++{
++}
++
++gboolean
++dnf_command_run (DnfCommand      *cmd,
++                 int              argc,
++                 char            *argv[],
++                 GOptionContext  *opt_ctx,
++                 DnfContext      *ctx,
++                 GError         **error)
++{
++  g_return_val_if_fail (DNF_IS_COMMAND (cmd), FALSE);
++
++  DnfCommandInterface *iface = DNF_COMMAND_GET_IFACE (cmd);
++  g_return_val_if_fail (iface->run, TRUE);
++  return iface->run (cmd, argc, argv, opt_ctx, ctx, error);
++}
+diff -u -r -N microdnf-3.4.0-orig/dnf/dnf-main.c microdnf-3.4.0/dnf/dnf-main.c
+--- microdnf-3.4.0-orig/dnf/dnf-main.c	2020-01-15 10:03:12.000000000 +0000
++++ microdnf-3.4.0/dnf/dnf-main.c	2020-11-29 11:29:51.637355720 +0000
+@@ -200,18 +200,18 @@
+ static const GOptionEntry global_opts[] = {
+   { "assumeyes", 'y', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &opt_yes, "Does nothing, we always assume yes", NULL },
+   { "best", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_best, "Try the best available package versions in transactions", NULL },
+-  { "config", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Configuration file location", "<config file>" },
+-  { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable repository by an id", "ID" },
+-  { "disableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Disable plugins by name", "name" },
+-  { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable repository by an id", "ID" },
+-  { "enableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Enable plugins by name", "name" },
++  { "config", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Configuration file location", "<config file>" },
++  { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Disable repository by an id", "ID" },
++  { "disableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Disable plugins by name", "name" },
++  { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Enable repository by an id", "ID" },
++  { "enableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Enable plugins by name", "name" },
+   { "nobest", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nobest, "Do not limit the transaction to the best candidates", NULL },
+-  { "installroot", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Set install root", "PATH" },
++  { "installroot", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Set install root", "PATH" },
+   { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
+   { "noplugins", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &disable_plugins_loading, "Disable loading of plugins", NULL },
+   { "refresh", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_refresh, "Set metadata as expired before running the command", NULL },
+-  { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
+-  { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, process_global_option,
++  { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
++  { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option,
+     "Override a configuration option (install_weak_deps=0/1, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
+   { NULL }
+ };
+@@ -221,7 +221,7 @@
+ {
+   DnfContext *ctx = dnf_context_new ();
+ 
+-#define CACHEDIR "/var/cache/yum"
++#define CACHEDIR "/usr/sgug/var/cache/yum"
+   dnf_context_set_cache_dir (ctx, CACHEDIR"/metadata");
+   dnf_context_set_solv_dir (ctx, CACHEDIR"/solv");
+   dnf_context_set_lock_dir (ctx, CACHEDIR"/lock");
+@@ -349,7 +349,7 @@
+        plugin != NULL;
+        plugin = plugin->next)
+     {
+-      PeasPluginInfo *info = plugin->data;
++      PeasPluginInfo *info = (PeasPluginInfo *)plugin->data;
+       if (!peas_engine_load_plugin (engine, info))
+         continue;
+       if (peas_engine_provides_extension (engine, info, DNF_TYPE_COMMAND))
+@@ -380,6 +380,9 @@
+         }
+     }
+ 
++  PeasPluginInfo *plug = NULL;
++  PeasExtension *exten = NULL;
++  const gchar *cmd_name = NULL;
+   /*
+    * Parse the global options.
+    */
+@@ -426,7 +429,7 @@
+ 
+       for (GSList * item = enable_disable_repos; item; item = item->next)
+         {
+-          gchar * item_data = item->data;
++          gchar * item_data = (gchar *)item->data;
+           int ret;
+           if (item_data[0] == 'd')
+             ret = dnf_context_repo_disable (ctx, item_data+1, &error);
+@@ -475,7 +478,6 @@
+    * The first non-option is the command.
+    * Get it and remove it from arguments.
+    */
+-  const gchar *cmd_name = NULL;
+   for (gint in = 1; in < argc; in++)
+     {
+       if (cmd_name != NULL)
+@@ -498,8 +500,6 @@
+       goto out;
+     }
+ 
+-  PeasPluginInfo *plug = NULL;
+-  PeasExtension *exten = NULL;
+   if (cmd_name != NULL)
+     {
+       g_autofree gchar *mod_name = g_strdup_printf ("command_%s", cmd_name);
+diff -u -r -N microdnf-3.4.0-orig/dnf/dnf-main.cpp microdnf-3.4.0/dnf/dnf-main.cpp
+--- microdnf-3.4.0-orig/dnf/dnf-main.cpp	1970-01-01 00:00:00.000000000 +0000
++++ microdnf-3.4.0/dnf/dnf-main.cpp	2020-11-29 11:29:51.639596120 +0000
+@@ -0,0 +1,549 @@
++/* dnf-main.c
++ *
++ * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
++ * Copyright © 2016 Colin Walters <walters@verbum.org>
++ * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
++ * Copyright © 2017-2020 Jaroslav Rohel <jrohel@redhat.com>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <locale.h>
++#include <stdlib.h>
++#include <string.h>
++#include <glib.h>
++#include <libpeas/peas.h>
++#include <libdnf/libdnf.h>
++#include "dnf-command.h"
++
++typedef enum { ARG_DEFAULT, ARG_FALSE, ARG_TRUE } BoolArgs;
++
++static BoolArgs opt_install_weak_deps = ARG_DEFAULT;
++static gboolean opt_yes = TRUE;
++static gboolean opt_nodocs = FALSE;
++static gboolean opt_best = FALSE;
++static gboolean opt_nobest = FALSE;
++static gboolean opt_test = FALSE;
++static gboolean opt_refresh = FALSE;
++static gboolean show_help = FALSE;
++static gboolean dl_pkgs_printed = FALSE;
++static GSList *enable_disable_repos = NULL;
++static gboolean disable_plugins_loading = FALSE;
++static gboolean config_used = FALSE;
++static gboolean enable_disable_plugin_used = FALSE;
++static gboolean installroot_used = FALSE;
++static gboolean cachedir_used = FALSE;
++static gboolean reposdir_used = FALSE;
++static gboolean varsdir_used = FALSE;
++
++static gboolean
++process_global_option (const gchar  *option_name,
++                       const gchar  *value,
++                       gpointer      data,
++                       GError      **error)
++{
++  g_autoptr(GError) local_error = NULL;
++  DnfContext *ctx = DNF_CONTEXT (data);
++
++  gboolean ret = TRUE;
++  if (g_strcmp0 (option_name, "--config") == 0)
++    {
++      config_used = TRUE;
++      dnf_context_set_config_file_path (value);
++    }
++  else if (g_strcmp0 (option_name, "--disablerepo") == 0)
++    {
++      enable_disable_repos = g_slist_append (enable_disable_repos, g_strconcat("d", value, NULL));
++    }
++  else if (g_strcmp0 (option_name, "--enablerepo") == 0)
++    {
++      enable_disable_repos = g_slist_append (enable_disable_repos, g_strconcat("e", value, NULL));
++    }
++  else if (g_strcmp0 (option_name, "--disableplugin") == 0)
++    {
++      g_auto(GStrv) patterns = g_strsplit (value, ",", -1);
++      for (char **it = patterns; *it; ++it)
++        dnf_context_disable_plugins (*it);
++      enable_disable_plugin_used = TRUE;
++    }
++  else if (g_strcmp0 (option_name, "--enableplugin") == 0)
++    {
++      g_auto(GStrv) patterns = g_strsplit (value, ",", -1);
++      for (char **it = patterns; *it; ++it)
++        dnf_context_enable_plugins (*it);
++      enable_disable_plugin_used = TRUE;
++    }
++  else if (g_strcmp0 (option_name, "--installroot") == 0)
++    {
++      installroot_used = TRUE;
++      if (value[0] != '/')
++        {
++          local_error = g_error_new (G_OPTION_ERROR,
++                                     G_OPTION_ERROR_BAD_VALUE,
++                                     "Absolute path must be used");
++          ret = FALSE;
++        }
++      else
++        {
++          dnf_context_set_install_root (ctx, value);
++        }
++    }
++  else if (g_strcmp0 (option_name, "--releasever") == 0)
++    {
++      dnf_context_set_release_ver (ctx, value);
++    }
++  else if (g_strcmp0 (option_name, "--setopt") == 0)
++    {
++      g_auto(GStrv) setopt = g_strsplit (value, "=", 2);
++      if (!setopt[0] || !setopt[1])
++        {
++          local_error = g_error_new (G_OPTION_ERROR,
++                                     G_OPTION_ERROR_BAD_VALUE,
++                                     "Missing value in: %s", value);
++          ret = FALSE;
++        }
++      else if (strcmp (setopt[0], "tsflags") == 0)
++        {
++          g_auto(GStrv) tsflags = g_strsplit (setopt[1], ",", -1);
++          for (char **it = tsflags; *it; ++it)
++            {
++              if (strcmp (*it, "nodocs") == 0)
++                opt_nodocs = TRUE;
++              else if (strcmp (*it, "test") == 0)
++                opt_test = TRUE;
++              else
++                {
++                  local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
++                                            "Unknown tsflag: %s", *it);
++                  ret = FALSE;
++                  break;
++                }
++            }
++        }
++      else if (strcmp (setopt[0], "cachedir") == 0)
++        {
++          cachedir_used = TRUE;
++          const char *cachedir = setopt[1];
++          if (cachedir[0] != '\0')
++            {
++              g_autofree gchar *metadatadir = g_build_path ("/", cachedir, "metadata", NULL);
++              dnf_context_set_cache_dir (ctx, metadatadir);
++              g_autofree gchar *solvdir = g_build_path ("/", cachedir, "solv", NULL);
++              dnf_context_set_solv_dir (ctx, solvdir);
++              g_autofree gchar *lockdir = g_build_path ("/", cachedir, "lock", NULL);
++              dnf_context_set_lock_dir (ctx, lockdir);
++            }
++          else
++            {
++              local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
++                                         "Empty value in: %s", value);
++              ret = FALSE;
++            }
++        }
++      else if (strcmp (setopt[0], "install_weak_deps") == 0)
++        {
++          const char *setopt_val = setopt[1];
++          if (setopt_val[0] == '1' && setopt_val[1] == '\0')
++            opt_install_weak_deps = ARG_TRUE;
++          else if (setopt_val[0] == '0' && setopt_val[1] == '\0')
++            opt_install_weak_deps = ARG_FALSE;
++          else
++            {
++              local_error = g_error_new (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
++                                         "Invalid boolean value \"%s\" in: %s", setopt[1], value);
++              ret = FALSE;
++            }
++        }
++      else if (strcmp (setopt[0], "reposdir") == 0)
++        {
++          reposdir_used = TRUE;
++          g_auto(GStrv) reposdir = g_strsplit (setopt[1], ",", -1);
++          dnf_context_set_repos_dir (ctx, (const gchar * const *)reposdir);
++        }
++      else if (strcmp (setopt[0], "varsdir") == 0)
++        {
++          varsdir_used = TRUE;
++          g_auto(GStrv) varsdir = g_strsplit (setopt[1], ",", -1);
++          dnf_context_set_vars_dir (ctx, (const gchar * const *)varsdir);
++        }
++      else
++        {
++          local_error = g_error_new (G_OPTION_ERROR,
++                                     G_OPTION_ERROR_BAD_VALUE,
++                                     "Unable to handle: %s", value);
++          ret = FALSE;
++        }
++    }
++  else
++    g_assert_not_reached ();
++
++  if (local_error != NULL)
++    g_set_error (error,
++                 G_OPTION_ERROR,
++                 G_OPTION_ERROR_BAD_VALUE,
++                 "(%s) %s", option_name, local_error->message);
++
++  return ret;
++}
++
++static const GOptionEntry global_opts[] = {
++  { "assumeyes", 'y', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &opt_yes, "Does nothing, we always assume yes", NULL },
++  { "best", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_best, "Try the best available package versions in transactions", NULL },
++  { "config", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Configuration file location", "<config file>" },
++  { "disablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Disable repository by an id", "ID" },
++  { "disableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Disable plugins by name", "name" },
++  { "enablerepo", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Enable repository by an id", "ID" },
++  { "enableplugin", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Enable plugins by name", "name" },
++  { "nobest", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nobest, "Do not limit the transaction to the best candidates", NULL },
++  { "installroot", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Set install root", "PATH" },
++  { "nodocs", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_nodocs, "Install packages without docs", NULL },
++  { "noplugins", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &disable_plugins_loading, "Disable loading of plugins", NULL },
++  { "refresh", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &opt_refresh, "Set metadata as expired before running the command", NULL },
++  { "releasever", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option, "Override the value of $releasever in config and repo files", "RELEASEVER" },
++  { "setopt", '\0', G_OPTION_FLAG_NONE, G_OPTION_ARG_CALLBACK, (void *)process_global_option,
++    "Override a configuration option (install_weak_deps=0/1, cachedir=<path>, reposdir=<path1>,<path2>,..., tsflags=nodocs/test, varsdir=<path1>,<path2>,...)", "<option>=<value>" },
++  { NULL }
++};
++
++static DnfContext *
++context_new (void)
++{
++  DnfContext *ctx = dnf_context_new ();
++
++#define CACHEDIR "/usr/sgug/var/cache/yum"
++  dnf_context_set_cache_dir (ctx, CACHEDIR"/metadata");
++  dnf_context_set_solv_dir (ctx, CACHEDIR"/solv");
++  dnf_context_set_lock_dir (ctx, CACHEDIR"/lock");
++#undef CACHEDIR
++  dnf_context_set_check_disk_space (ctx, FALSE);
++  dnf_context_set_check_transaction (ctx, TRUE);
++  dnf_context_set_keep_cache (ctx, FALSE);
++
++  /* Sets a maximum cache age in seconds. It is an upper limit.
++   * The lower value between this value and "metadata_expire" value from repo/global
++   * configuration file is used.
++   * The value G_MAXUINT has a special meaning. It means that the cache never expires
++   * regardless of the settings in the configuration files. */
++  dnf_context_set_cache_age (ctx, G_MAXUINT - 1); 
++
++  return ctx;
++}
++
++static void
++state_action_changed_cb (DnfState       *state,
++                         DnfStateAction  action,
++                         const gchar    *action_hint)
++{
++  switch (action)
++    {
++      case DNF_STATE_ACTION_DOWNLOAD_METADATA:
++        g_print ("Downloading metadata...\n");
++        break;
++      case DNF_STATE_ACTION_DOWNLOAD_PACKAGES:
++        if (!dl_pkgs_printed)
++          {
++            g_print ("Downloading packages...\n");
++            dl_pkgs_printed = TRUE;
++          }
++        break;
++      case DNF_STATE_ACTION_TEST_COMMIT:
++        g_print ("Running transaction test...\n");
++        break;
++      case DNF_STATE_ACTION_INSTALL:
++        if (action_hint)
++          g_print ("Installing: %s\n", action_hint);
++        break;
++      case DNF_STATE_ACTION_REMOVE:
++        if (action_hint)
++          g_print ("Removing: %s\n", action_hint);
++        break;
++      case DNF_STATE_ACTION_UPDATE:
++        if (action_hint)
++          g_print ("Updating: %s\n", action_hint);
++        break;
++      case DNF_STATE_ACTION_OBSOLETE:
++        if (action_hint)
++          g_print ("Obsoleting: %s\n", action_hint);
++        break;
++      case DNF_STATE_ACTION_REINSTALL:
++        if (action_hint)
++          g_print ("Reinstalling: %s\n", action_hint);
++        break;
++      case DNF_STATE_ACTION_DOWNGRADE:
++        if (action_hint)
++          g_print ("Downgrading: %s\n", action_hint);
++        break;
++      case DNF_STATE_ACTION_CLEANUP:
++        if (action_hint)
++          g_print ("Cleanup: %s\n", action_hint);
++        break;
++      default:
++        break;
++    }
++}
++
++static GOptionGroup *
++new_global_opt_group (DnfContext *ctx)
++{
++  GOptionGroup *opt_grp = g_option_group_new ("global",
++                                              "Global Options:",
++                                              "Show global help options",
++                                              ctx,
++                                              NULL);
++  g_option_group_add_entries (opt_grp, global_opts);
++  return opt_grp;
++}
++
++int
++main (int   argc,
++      char *argv[])
++{
++  g_autoptr(GError) error = NULL;
++  g_autoptr(DnfContext) ctx = context_new ();
++  g_autoptr(PeasEngine) engine = peas_engine_get_default ();
++  g_autoptr(PeasExtensionSet) cmd_exts = NULL;
++  g_autoptr(GOptionContext) opt_ctx = g_option_context_new ("COMMAND");
++  g_autoptr(GOptionContext) subcmd_opt_ctx = NULL;
++  g_autofree gchar *subcmd_opt_param = NULL;
++
++  setlocale (LC_ALL, "");
++
++  if (g_getenv ("DNF_IN_TREE_PLUGINS") != NULL)
++    peas_engine_prepend_search_path (engine,
++                                    BUILDDIR"/plugins",
++                                    SRCDIR"/plugins");
++  else
++    peas_engine_prepend_search_path (engine,
++                                     PACKAGE_LIBDIR"/plugins",
++                                     PACKAGE_DATADIR"/plugins");
++
++  peas_engine_prepend_search_path (engine,
++                                   "resource:///org/fedoraproject/dnf/plugins",
++                                   NULL);
++
++  g_autofree gchar *path = g_build_filename (g_get_user_data_dir (),
++                                             "dnf",
++                                             "plugins",
++                                             NULL);
++  peas_engine_prepend_search_path (engine,
++                                   path,
++                                   NULL);
++
++  cmd_exts = peas_extension_set_new (engine,
++                                     DNF_TYPE_COMMAND,
++                                     NULL);
++
++  GString *cmd_summary = g_string_new ("Commands:");
++  for (const GList *plugin = peas_engine_get_plugin_list (engine);
++       plugin != NULL;
++       plugin = plugin->next)
++    {
++      PeasPluginInfo *info = (PeasPluginInfo *)plugin->data;
++      if (!peas_engine_load_plugin (engine, info))
++        continue;
++      if (peas_engine_provides_extension (engine, info, DNF_TYPE_COMMAND))
++        /*
++         * At least 2 spaces between the command and its description are needed
++         * so that help2man formats it correctly.
++         */
++        g_string_append_printf (cmd_summary, "\n  %-16s     %s", peas_plugin_info_get_name (info), peas_plugin_info_get_description (info));
++    }
++  g_option_context_set_summary (opt_ctx, cmd_summary->str);
++  g_string_free (cmd_summary, TRUE);
++  g_option_context_set_ignore_unknown_options (opt_ctx, TRUE);
++  g_option_context_set_help_enabled (opt_ctx, FALSE);
++  g_option_context_set_main_group (opt_ctx, new_global_opt_group (ctx));
++
++  /* Is help option in arguments? */
++  for (gint in = 1; in < argc; in++)
++    {
++      if (g_strcmp0 (argv[in], "--") == 0)
++        break;
++      if (g_strcmp0 (argv[in], "-h") == 0 ||
++          g_strcmp0 (argv[in], "--help") == 0 ||
++          g_strcmp0 (argv[in], "--help-all") == 0 ||
++          g_strcmp0 (argv[in], "--help-global") == 0)
++        {
++          show_help = TRUE;
++          break;
++        }
++    }
++
++  PeasPluginInfo *plug = NULL;
++  PeasExtension *exten = NULL;
++  const gchar *cmd_name = NULL;
++  /*
++   * Parse the global options.
++   */
++  if (!g_option_context_parse (opt_ctx, &argc, &argv, &error))
++    goto out;
++
++  /*
++   * Initialize dnf context only if help is not requested.
++   */
++  if (!show_help)
++    {
++      if (installroot_used &&
++          !(config_used && disable_plugins_loading && cachedir_used && reposdir_used && varsdir_used))
++        {
++          error = g_error_new_literal (G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
++            "The \"--installroot\" argument must be used together with \"--config\", "
++            "\"--noplugins\", \"--setopt=cachedir=<path>\", \"--setopt=reposdir=<path>\", "
++            "\"--setopt=varsdir=<path>\" arguments.");
++          goto out;
++        }
++        
++      if (disable_plugins_loading)
++        dnf_context_set_plugins_all_disabled (disable_plugins_loading);
++
++      if (enable_disable_plugin_used && dnf_context_get_plugins_all_disabled ())
++        {
++          if (disable_plugins_loading)
++            g_print ("Loading of plugins is disabled by command line argument \"--noplugins\". "
++                     "Use of \"--enableplugin\" and \"--disableplugin\" has no meaning.\n");
++          else
++            g_print ("Loading of plugins is disabled by configuration file. "
++                     "Use of \"--enableplugin\" and \"--disableplugin\" has no meaning.\n");
++        }
++
++      if (opt_refresh)
++       dnf_context_set_cache_age (ctx, 0);
++
++      if (!dnf_context_setup (ctx, NULL, &error))
++        goto out;
++      DnfState *state = dnf_context_get_state (ctx);
++      g_signal_connect (state, "action-changed",
++                        G_CALLBACK (state_action_changed_cb),
++                        NULL);
++
++      for (GSList * item = enable_disable_repos; item; item = item->next)
++        {
++          gchar * item_data = (gchar *)item->data;
++          int ret;
++          if (item_data[0] == 'd')
++            ret = dnf_context_repo_disable (ctx, item_data+1, &error);
++          else
++            ret = dnf_context_repo_enable (ctx, item_data+1, &error);
++          if (!ret)
++            goto out;
++        }
++
++      /* set transaction flags, allow downgrades for all transaction types */
++      DnfTransaction *txn = dnf_context_get_transaction (ctx);
++      int flags = dnf_transaction_get_flags (txn) | DNF_TRANSACTION_FLAG_ALLOW_DOWNGRADE;
++      if (opt_nodocs)
++        flags |= DNF_TRANSACTION_FLAG_NODOCS;
++      if (opt_test)
++        flags |= DNF_TRANSACTION_FLAG_TEST;
++      dnf_transaction_set_flags (txn, flags);
++      
++      /* Disable calling dnf_goal_depsolve() during dnf_context_run().
++       * The calling is done with hardcoded parameters. We dont want it. */
++      dnf_transaction_set_dont_solve_goal(txn, TRUE);
++
++      if (opt_install_weak_deps == ARG_TRUE)
++        dnf_context_set_install_weak_deps (TRUE);
++      else if (opt_install_weak_deps == ARG_FALSE)
++        dnf_context_set_install_weak_deps (FALSE);
++
++      if (opt_best && opt_nobest)
++        {
++          error = g_error_new_literal(G_OPTION_ERROR,
++                                      G_OPTION_ERROR_BAD_VALUE,
++                                      "Argument --nobest is not allowed with argument --best");
++          goto out;
++        }
++      if (opt_best)
++        {
++          dnf_context_set_best(TRUE);
++        }
++      else if (opt_nobest)
++        {
++          dnf_context_set_best(FALSE);
++        }
++    }
++
++  /*
++   * The first non-option is the command.
++   * Get it and remove it from arguments.
++   */
++  for (gint in = 1; in < argc; in++)
++    {
++      if (cmd_name != NULL)
++        argv[in-1] = argv[in];
++      else if (argv[in][0] != '-')
++        cmd_name = argv[in];
++    }
++  if (cmd_name != NULL) --argc;
++
++  g_option_context_set_help_enabled (opt_ctx, TRUE);
++
++  if (cmd_name == NULL && show_help)
++    {
++      const char *prg_name = strrchr(argv[0], '/');
++      prg_name = prg_name ? prg_name + 1 : argv[0];
++
++      g_set_prgname (prg_name);
++      g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
++      g_print ("%s", help);
++      goto out;
++    }
++
++  if (cmd_name != NULL)
++    {
++      g_autofree gchar *mod_name = g_strdup_printf ("command_%s", cmd_name);
++      plug = peas_engine_get_plugin_info (engine, mod_name);
++      if (plug != NULL)
++        exten = peas_extension_set_get_extension (cmd_exts, plug);
++    }
++  if (exten == NULL)
++    {
++      if (cmd_name == NULL)
++        error = g_error_new_literal (G_IO_ERROR,
++                                     G_IO_ERROR_FAILED,
++                                     "No command specified");
++      else
++        error = g_error_new (G_IO_ERROR,
++                             G_IO_ERROR_FAILED,
++                             "Unknown command: '%s'", cmd_name);
++
++      g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
++      g_printerr ("This is microdnf, which implements subset of `dnf'.\n"
++                  "%s", help);
++      goto out;
++    }
++
++  subcmd_opt_param = g_strdup_printf ("%s - %s",
++    peas_plugin_info_get_external_data (plug, "Command-Syntax"),
++    peas_plugin_info_get_description (plug));
++  subcmd_opt_ctx = g_option_context_new (subcmd_opt_param);
++  g_option_context_add_group (subcmd_opt_ctx, new_global_opt_group (ctx));
++  if (!dnf_command_run (DNF_COMMAND (exten), argc, argv, subcmd_opt_ctx, ctx, &error))
++    goto out;
++
++out:
++  if (error != NULL)
++    {
++      const gchar *prefix = "";
++      const gchar *suffix = "";
++      if (isatty (1))
++        {
++          prefix = "\x1b[31m\x1b[1m"; /* red, bold */
++          suffix = "\x1b[22m\x1b[0m"; /* bold off, color reset */
++        }
++      g_printerr ("%serror: %s%s\n", prefix, suffix, error->message);
++      return EXIT_FAILURE;
++    }
++  return EXIT_SUCCESS;
++}
+diff -u -r -N microdnf-3.4.0-orig/dnf/dnf-utils.cpp microdnf-3.4.0/dnf/dnf-utils.cpp
+--- microdnf-3.4.0-orig/dnf/dnf-utils.cpp	1970-01-01 00:00:00.000000000 +0000
++++ microdnf-3.4.0/dnf/dnf-utils.cpp	2020-11-29 11:29:51.640696840 +0000
+@@ -0,0 +1,156 @@
++/* dnf-utils.c
++ *
++ * Copyright © 2010-2015 Richard Hughes <richard@hughsie.com>
++ * Copyright © 2016 Colin Walters <walters@verbum.org>
++ * Copyright © 2016-2017 Igor Gnatenko <ignatenko@redhat.com>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "dnf-utils.h"
++#include <libsmartcols.h>
++
++
++// transaction details columns
++enum { COL_NEVRA, COL_REPO, COL_SIZE };
++
++
++static gint
++dnf_package_cmp_cb (DnfPackage **pkg1, DnfPackage **pkg2)
++{
++  return dnf_package_cmp (*pkg1, *pkg2);
++}
++
++
++static void
++dnf_utils_add_transaction_packages (struct libscols_table *tb,
++                                    struct libscols_line *parent,
++                                    GPtrArray *pkgs)
++{
++  // sort packages by NEVRA
++  g_ptr_array_sort (pkgs, (GCompareFunc) dnf_package_cmp_cb);
++
++  for (guint i = 0; i < pkgs->len; i++)
++    {
++      DnfPackage *pkg = (DnfPackage *)pkgs->pdata[i];
++
++      struct libscols_line *ln = scols_table_new_line (tb, parent);
++      scols_line_set_data (ln, COL_NEVRA, dnf_package_get_nevra (pkg));
++      scols_line_set_data (ln, COL_REPO, dnf_package_get_reponame (pkg));
++      char *formatted_pkg_size = g_format_size (dnf_package_get_size (pkg));
++      scols_line_set_data (ln, COL_SIZE, formatted_pkg_size);
++      g_free(formatted_pkg_size);
++    }
++}
++
++
++gboolean
++dnf_utils_print_transaction (DnfContext *ctx)
++{
++  g_autoptr(GPtrArray) pkgs = dnf_goal_get_packages (dnf_context_get_goal (ctx),
++                                                     DNF_PACKAGE_INFO_INSTALL,
++                                                     DNF_PACKAGE_INFO_REINSTALL,
++                                                     DNF_PACKAGE_INFO_DOWNGRADE,
++                                                     DNF_PACKAGE_INFO_UPDATE,
++                                                     DNF_PACKAGE_INFO_REMOVE,
++                                                     -1);
++
++  if (pkgs->len == 0)
++    {
++      g_print ("Nothing to do.\n");
++      return FALSE;
++    }
++
++  struct libscols_line *ln;
++
++  struct libscols_table *tb = scols_new_table ();
++  scols_table_new_column (tb, "Package",    0.7, SCOLS_FL_TREE);
++  scols_table_new_column (tb, "Repository", 0.2, SCOLS_FL_TRUNC);
++  scols_table_new_column (tb, "Size",       0.1, SCOLS_FL_RIGHT);
++  scols_table_enable_maxout (tb, 1);
++  struct libscols_symbols *sb = scols_new_symbols ();
++  scols_symbols_set_branch (sb, " ");
++  scols_symbols_set_right (sb, " ");
++  scols_symbols_set_vertical (sb, " ");
++  scols_table_set_symbols (tb, sb);
++
++  g_autoptr(GPtrArray) pkgs_install = dnf_goal_get_packages (dnf_context_get_goal (ctx),
++                                                             DNF_PACKAGE_INFO_INSTALL,
++                                                             -1);
++  if (pkgs_install->len != 0)
++    {
++      ln = scols_table_new_line (tb, NULL);
++      scols_line_set_data (ln, COL_NEVRA, "Installing:");
++      dnf_utils_add_transaction_packages (tb, ln, pkgs_install);
++    }
++
++
++  g_autoptr(GPtrArray) pkgs_reinstall = dnf_goal_get_packages (dnf_context_get_goal (ctx),
++                                                               DNF_PACKAGE_INFO_REINSTALL,
++                                                               -1);
++  if (pkgs_reinstall->len != 0)
++    {
++      ln = scols_table_new_line (tb, NULL);
++      scols_line_set_data (ln, COL_NEVRA, "Reinstalling:");
++      dnf_utils_add_transaction_packages (tb, ln, pkgs_reinstall);
++    }
++
++  g_autoptr(GPtrArray) pkgs_upgrade = dnf_goal_get_packages (dnf_context_get_goal (ctx),
++                                                             DNF_PACKAGE_INFO_UPDATE,
++                                                             -1);
++  if (pkgs_upgrade->len != 0)
++    {
++      ln = scols_table_new_line (tb, NULL);
++      scols_line_set_data (ln, COL_NEVRA, "Upgrading:");
++      dnf_utils_add_transaction_packages (tb, ln, pkgs_upgrade);
++    }
++
++  g_autoptr(GPtrArray) pkgs_remove = dnf_goal_get_packages (dnf_context_get_goal (ctx),
++                                                            DNF_PACKAGE_INFO_REMOVE,
++                                                            -1);
++  if (pkgs_remove->len != 0)
++    {
++      ln = scols_table_new_line (tb, NULL);
++      scols_line_set_data (ln, COL_NEVRA, "Removing:");
++      dnf_utils_add_transaction_packages (tb, ln, pkgs_remove);
++    }
++
++  g_autoptr(GPtrArray) pkgs_downgrade = dnf_goal_get_packages (dnf_context_get_goal (ctx),
++                                                               DNF_PACKAGE_INFO_DOWNGRADE,
++                                                               -1);
++  if (pkgs_downgrade->len != 0)
++    {
++      ln = scols_table_new_line (tb, NULL);
++      scols_line_set_data (ln, COL_NEVRA, "Downgrading:");
++      dnf_utils_add_transaction_packages (tb, ln, pkgs_downgrade);
++    }
++
++  scols_print_table (tb);
++  scols_unref_symbols (sb);
++  scols_unref_table (tb);
++
++  g_print ("Transaction Summary:\n");
++  g_print (" %-15s %4d packages\n", "Installing:", pkgs_install->len);
++  g_print (" %-15s %4d packages\n", "Reinstalling:", pkgs_reinstall->len);
++  g_print (" %-15s %4d packages\n", "Upgrading:", pkgs_upgrade->len);
++  g_print (" %-15s %4d packages\n", "Removing:", pkgs_remove->len);
++  g_print (" %-15s %4d packages\n", "Downgrading:", pkgs_downgrade->len);
++
++  /* check for test mode */
++  DnfTransaction *txn = dnf_context_get_transaction (ctx);
++  if (dnf_transaction_get_flags (txn) & DNF_TRANSACTION_FLAG_TEST)
++    g_print ("Test mode enabled: Microdnf will only download packages, install gpg keys, and check the transaction.\n");
++
++  return TRUE;
++}
+diff -u -r -N microdnf-3.4.0-orig/dnf/meson.build microdnf-3.4.0/dnf/meson.build
+--- microdnf-3.4.0-orig/dnf/meson.build	2020-01-15 10:03:12.000000000 +0000
++++ microdnf-3.4.0/dnf/meson.build	2020-11-29 11:31:43.992875080 +0000
+@@ -1,7 +1,10 @@
+ microdnf_srcs = [
+-  'dnf-main.c',
+-  'dnf-command.c',
+-  'dnf-utils.c',
++#  'dnf-main.c',
++#  'dnf-command.c',
++#  'dnf-utils.c',
++  'dnf-main.cpp',
++  'dnf-command.cpp',
++  'dnf-utils.cpp',
+ 
+   # install
+   gnome.compile_resources(
+@@ -81,5 +84,9 @@
+     '-DBUILDDIR="@0@"'.format(meson.current_build_dir()),
+     '-DSRCDIR="@0@"'.format(meson.current_source_dir()),
+   ],
++  cpp_args : [
++    '-DBUILDDIR="@0@"'.format(meson.current_build_dir()),
++    '-DSRCDIR="@0@"'.format(meson.current_source_dir()),
++  ],
+   install : true
+ )
+diff -u -r -N microdnf-3.4.0-orig/dnf/plugins/repoquery/dnf-command-repoquery.c microdnf-3.4.0/dnf/plugins/repoquery/dnf-command-repoquery.c
+--- microdnf-3.4.0-orig/dnf/plugins/repoquery/dnf-command-repoquery.c	2020-01-15 10:03:12.000000000 +0000
++++ microdnf-3.4.0/dnf/plugins/repoquery/dnf-command-repoquery.c	2020-11-29 11:29:51.643329240 +0000
+@@ -81,7 +81,7 @@
+   guint64 epoch = dnf_package_get_epoch (package);
+   if (epoch != 0)
+     {
+-      g_autofree gchar *str_epoch = g_strdup_printf ("%ld", epoch);
++      g_autofree gchar *str_epoch = g_strdup_printf ("%lld", epoch);
+       package_info_add_line (table, "Epoch", str_epoch);
+     }
+   package_info_add_line (table, "Version", dnf_package_get_version (package));
+diff -u -r -N microdnf-3.4.0-orig/meson.build microdnf-3.4.0/meson.build
+--- microdnf-3.4.0-orig/meson.build	2020-01-15 10:03:12.000000000 +0000
++++ microdnf-3.4.0/meson.build	2020-11-29 11:29:51.644536920 +0000
+@@ -1,10 +1,11 @@
+-project('microdnf', 'c',
++project('microdnf', ['c','cpp'],
+         version : '3.4.0',
+         license : 'GPL-3.0+',
+         default_options : [
+-          'b_asneeded=True',
++          'b_asneeded=False',
+           'b_lundef=True',
+           'c_std=gnu11',
++	  'cpp_str=c++11',
+           'warning_level=1',
+         ],
+         meson_version : '>=0.36.0')
+@@ -40,7 +41,7 @@
+ add_project_arguments(
+   '-DPACKAGE_LIBDIR="@0@"'.format(pkg_libdir),
+   '-DPACKAGE_DATADIR="@0@"'.format(pkg_datadir),
+-  language : 'c',
++  language : ['c','cpp'],
+ )
+ 
+ subdir('dnf')

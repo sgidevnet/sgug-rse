@@ -5,7 +5,7 @@ Summary:       GNU Emacs text editor
 Name:          emacs
 Epoch:         1
 Version:       23.3
-Release:       2%{?dist}
+Release:       4%{?dist}
 License:       GPLv3+ and CC0-1.0
 URL:           http://www.gnu.org/software/emacs/
 Source0:       https://ftp.gnu.org/gnu/emacs/emacs-%{version}b.tar.gz
@@ -30,24 +30,25 @@ Patch103:       emacs.moregiffixes.patch
 BuildRequires:  gcc
 #BuildRequires: atk-devel
 #BuildRequires: cairo-devel
-#BuildRequires: freetype-devel
-#BuildRequires: fontconfig-devel
+BuildRequires: freetype-devel
+BuildRequires: fontconfig-devel
 #BuildRequires: dbus-devel
 BuildRequires: giflib-devel
 #BuildRequires: glibc-devel
 BuildRequires: libpng-devel
-#BuildRequires: libjpeg-turbo-devel
-#BuildRequires: libjpeg-turbo
+BuildRequires: libjpeg-turbo-devel
+BuildRequires: libjpeg-turbo
 BuildRequires: libjpeg
 BuildRequires: libtiff-devel
-#BuildRequires: libX11-devel
-#BuildRequires: libXau-devel
-#BuildRequires: libXdmcp-devel
-#BuildRequires: libXrender-devel
-#BuildRequires: libXt-devel
-#BuildRequires: libXpm-devel
+BuildRequires: libX11-devel
+BuildRequires: libXau-devel
+BuildRequires: libXdmcp-devel
+BuildRequires: libXrender-devel
+BuildRequires: libXt-devel
+BuildRequires: libXpm-devel
+BuildRequires: motif-devel
 BuildRequires: ncurses-devel
-#BuildRequires: xorg-x11-proto-devel
+BuildRequires: xorg-x11-proto-devel
 BuildRequires: zlib-devel
 #BuildRequires: gnutls-devel
 #BuildRequires: librsvg2-devel
@@ -242,7 +243,7 @@ export LIBS="-lfreetype -lfontconfig -ltinfo"
 #           --with-tiff --with-xft --with-xpm --with-x-toolkit=gtk3 --with-gpm=no \
 #           --with-xwidgets --with-modules
 
-%configure --with-gif --with-jpeg --with-png \
+%configure --without-dbus --with-gif --with-jpeg --with-png \
            --with-tiff --with-xpm --with-x-toolkit=motif --with-gpm=no \
            --with-xwidgets
 
@@ -257,7 +258,7 @@ ln -s ../configure .
 #configure --with-dbus --with-gif --with-jpeg --with-png --with-rsvg \
 #           --with-tiff --with-xft --with-xpm --with-x-toolkit=lucid --with-gpm=no \
 #           --with-modules
-%configure --with-gif --with-jpeg --with-png \
+%configure --without-dbus --with-gif --with-jpeg --with-png \
            --with-tiff --with-xpm --with-x-toolkit=lucid --with-gpm=no
 #make %{?_smp_mflags} bootstrap
 %{setarch} make %{?_smp_mflags}
@@ -267,7 +268,7 @@ cd ..
 mkdir build-nox && cd build-nox
 ln -s ../configure .
 export LIBS="-ltinfo"
-%configure --with-x=no
+%configure --without-dbus --with-x=no
 %{setarch} make %{?_smp_mflags}
 cd ..
 
@@ -494,6 +495,12 @@ rm %{buildroot}%{_prefix}/var/games/emacs/tetris-scores
 #%{_includedir}/emacs-module.h
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 1:23.3-4
+- Disable dbus discovery
+
+* Mon Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 1:23.3-3
+- jpegturbo build
+
 * Sat Apr 25 2020 Daniel Hams <daniel.hams@gmail.com> - 1:23.3-2
 - Move over to sgug-rse libX11
 

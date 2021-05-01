@@ -1,0 +1,175 @@
+--- icecream-1.3.orig/client/local.cpp      2020-12-30 15:43:48.446200000 +0000
++++ icecream-1.3/local.cpp   2020-12-30 15:44:01.341549520 +0000
+@@ -369,7 +369,11 @@
+
+     int status = 1;
+
++#ifdef __sgi
++    while (waitpid(child_pid, &status, 0) < 0 && errno == EINTR) {}
++#else
+     while (wait4(child_pid, &status, 0, used) < 0 && errno == EINTR) {}
++#endif
+
+     status = shell_exit_status(status);
+
+--- icecream-1.3.orig/daemon/load.cpp       2020-12-30 12:40:03.606758240 +0000
++++ icecream-1.3/daemon/load.cpp     2020-12-30 15:32:23.665300800 +0000
+@@ -34,7 +34,7 @@
+
+ #ifdef HAVE_MACH_HOST_INFO_H
+ #define USE_MACH 1
+-#elif !defined( __linux__ ) && !defined(__CYGWIN__)
++#elif !defined( __linux__ ) && !defined(__CYGWIN__) && !defined(__sgi)
+ #define USE_SYSCTL
+ #endif
+
+--- icecream-1.3.orig/daemon/main.cpp	2020-12-30 12:41:16.407473760 +0000
++++ icecream-1.3/daemon/main.cpp	2020-12-30 12:33:00.791039440 +0000
+@@ -87,6 +87,10 @@
+ #include <fstream>
+ #include <string>
+ 
++#if defined(__sgi)
++#include <signal.h>
++#endif
++
+ #include "ncpus.h"
+ #include "exitcode.h"
+ #include "serve.h"
+@@ -2476,11 +2480,22 @@
+         exit(EXIT_DISTCC_FAILED);
+     }
+ 
+-    if (detach)
++    if (detach) {
++#ifdef __sgi
++        pid_t daemon_pid = fork();
++        if (daemon_pid) {
++            exit(0);
++        } else {
++            chdir("/");
++            setsid();
++        }
++#else
+         if (daemon(0, 0)) {
+             log_perror("Failed to run as a daemon.");
+             exit(EXIT_DISTCC_FAILED);
+         }
++#endif
++    }
+ 
+     if (dcc_ncpus(&d.num_cpus) == 0) {
+         log_info() << d.num_cpus << " CPU(s) online on this server" << endl;
+--- icecream-1.3.orig/daemon/workit.cpp	2019-09-11 12:49:53.000000000 +0000
++++ icecream-1.3/daemon/workit.cpp	2020-12-30 12:36:28.531765040 +0000
+@@ -34,6 +34,10 @@
+ #include <sys/param.h>
+ #endif
+ 
++#ifdef __sgi
++#include <fcntl.h>
++#endif
++
+ /* According to earlier standards */
+ #include <sys/time.h>
+ #include <sys/types.h>
+@@ -655,7 +659,11 @@
+                 struct rusage ru;
+                 int status;
+ 
++#ifdef __sgi
++                if (waitpid(pid, &status, 0) != pid) {
++#else
+                 if (wait4(pid, &status, 0, &ru) != pid) {
++#endif
+                     // this should never happen
+                     assert(false);
+                     return EXIT_DISTCC_FAILED;
+--- icecream-1.3.orig/services/comm.cpp	2019-09-11 12:49:53.000000000 +0000
++++ icecream-1.3/services/comm.cpp	2020-12-30 12:25:26.114623120 +0000
+@@ -72,15 +72,7 @@
+ 
+ static int zstd_compression()
+ {
+-    const char *level = getenv("ICECC_COMPRESSION");
+-    if (!level || !*level)
+-        return ZSTD_CLEVEL_DEFAULT;
+-
+-    char *endptr;
+-    int n = strtol(level, &endptr, 0);
+-    if (*endptr)
+-        return ZSTD_CLEVEL_DEFAULT;
+-    return n;
++    return ZSTD_CLEVEL_DEFAULT;
+ }
+ 
+ /*
+--- icecream-1.3.orig/services/getifaddrs.cpp	2019-09-11 12:49:53.000000000 +0000
++++ icecream-1.3/services/getifaddrs.cpp	2020-12-30 12:20:27.192698160 +0000
+@@ -212,7 +212,7 @@
+                 break;
+             }
+ 
+-            storage[i].netmask = ifr->ifr_netmask;
++            // storage[i].netmask = ifr->ifr_netmask;
+ 
+             if (ifr->ifr_flags & IFF_BROADCAST) {
+                 ifr->ifr_addr = storage[i].addr;
+--- icecream-1.3.orig/scheduler/scheduler.cpp       2019-09-11 12:49:53.000000000 +0000
++++ icecream-1.3/scheduler/scheduler.cpp 2020-12-31 08:37:29.892885840 +0000
+@@ -95,7 +95,12 @@
+ static string pidFilePath;
+
+ static map<int, CompileServer *> fd2cs;
++
++#ifdef __sgi
++static volatile int exit_main_loop = 0;
++#else
+ static volatile sig_atomic_t exit_main_loop = false;
++#endif
+
+ time_t starttime;
+ time_t last_announce;
+@@ -2081,10 +2086,20 @@
+     log_info() << "ICECREAM scheduler " VERSION " starting up, port " << scheduler_port << endl;
+
+     if (detach) {
++#ifdef __sgi
++        pid_t daemon_pid = fork();
++        if (daemon_pid) {
++            exit(0);
++        } else {
++            chdir("/");
++            setsid();
++        }
++#else
+         if (daemon(0, 0) != 0) {
+             log_errno("Failed to detach.", errno);
+             exit(1);
+         }
++#endif
+     }
+
+     listen_fd = open_tcp_listener(scheduler_port, scheduler_interface);
+--- icecream-1.3.orig/client/icecc-create-env.in  2020-12-31 09:51:41.984168160 +0000
++++ icecream-1.3/client/icecc-create-env.in       2020-12-31 10:00:58.978897600 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/usr/sgug/bin/bash
+ # icecc -- A simple distributed compiler system
+ #
+ # Copyright (C) 2004 by the Icecream Authors
+--- icecream-1.3.orig/services/platform.cpp   2020-12-31 22:03:30.329761280 +0000
++++ icecream-1.3/services/platform.cpp     2020-12-31 22:06:39.522466960 +0000
+@@ -54,7 +54,11 @@
+     }
+
+     if (os != "Linux") {
++#ifdef __sgi
++        platform = os + '_' + "mips";
++#else
+         platform = os + '_' + uname_buf.machine;
++#endif
+     } else { // Linux
+         platform = uname_buf.machine;
+     }

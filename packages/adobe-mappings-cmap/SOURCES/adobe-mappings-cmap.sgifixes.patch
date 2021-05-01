@@ -1,0 +1,21 @@
+diff -Naur cmap-resources-20171205.orig/Makefile cmap-resources-20171205/Makefile
+--- cmap-resources-20171205.orig/Makefile	2017-12-05 06:08:36.000000000 +0000
++++ cmap-resources-20171205/Makefile	2020-08-31 12:37:45.027514970 +0000
+@@ -7,7 +7,7 @@
+ # * DESTDIR
+ #
+ 
+-SHELL        = /bin/bash
++SHELL        = /usr/sgug/bin/bash
+ 
+ AUTHOR       = adobe
+ PACKAGE      = cmap-resources
+@@ -21,7 +21,7 @@
+ 
+ GIT_ARCHIVE_TYPE = tar.gz
+ 
+-prefix       = /usr/local
++prefix       = /usr/sgug
+ datarootdir  = $(prefix)/share
+ datadir      = $(datarootdir)
+ packagedir   = $(datadir)/$(AUTHOR)/resources/mapping

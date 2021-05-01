@@ -1,0 +1,32 @@
+diff -ur glew-2.1.0.orig/config/Makefile.irix glew-2.1.0/config/Makefile.irix
+--- glew-2.1.0.orig/config/Makefile.irix	2017-07-31 13:25:39.000000000 +0000
++++ glew-2.1.0/config/Makefile.irix	2021-01-31 15:31:21.574365600 +0000
+@@ -1,17 +1,20 @@
+ NAME = $(GLEW_NAME)
+-CC = cc
+-LD = ld
+-ABI = -64# -n32
++CC = gcc
++LD = gcc
++#ABI = -64# -n32
++ABI = -mabi=n32
+ CC += $(ABI)
+ LD += $(ABI)
+-LDFLAGS.EXTRA =
+-LDFLAGS.GL = -lGL -lXext -lX11
++LDFLAGS.EXTRA = -Wl,-z,relro -Wl,--as-needed -Wl,-z,now -Wl,-rpath -Wl,/usr/sgug/lib32 -Wl,-rpath -Wl,/usr/lib32
++LDFLAGS.GL = -lGL -lGLcore /usr/lib32/libXext.so /usr/lib32/libX11.so -Wl,--allow-shlib-undefined
+ NAME = GLEW
+-WARN = -fullwarn -woff 1110,1498
+-POPT = -O2 -OPT:Olimit=0
++#WARN = -fullwarn -woff 1110,1498
++WARN = 
++#POPT = -O2 -OPT:Olimit=0
++POPT = -O2
+ BIN.SUFFIX =
+ LIB.SONAME    = lib$(NAME).so.$(SO_MAJOR)
+ LIB.DEVLNK    = lib$(NAME).so
+ LIB.SHARED    = lib$(NAME).so.$(SO_VERSION)
+ LIB.STATIC    = lib$(NAME).a
+-LDFLAGS.SO    = -shared -soname $(LIB.SONAME)
++LDFLAGS.SO    = -shared -Wl,-soname=$(LIB.SONAME)

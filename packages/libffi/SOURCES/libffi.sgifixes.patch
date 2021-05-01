@@ -1,0 +1,151 @@
+diff -u -r libffi-3.2.1-orig/configure.ac libffi-3.2.1/configure.ac
+--- libffi-3.2.1-orig/configure.ac	2014-11-12 11:56:51.000000000 +0000
++++ libffi-3.2.1/configure.ac	2020-11-21 10:27:16.125381280 +0000
+@@ -57,8 +57,8 @@
+ fi
+ 
+ cat > local.exp <<EOF
+-set CC_FOR_TARGET "$CC"
+-set CXX_FOR_TARGET "$CXX"
++set CC_FOR_TARGET "$CC $CFLAGS"
++set CXX_FOR_TARGET "$CXX $CXXFLAGS"
+ EOF
+ 
+ AM_MAINTAINER_MODE
+Only in libffi-3.2.1: configure.ac.sgifixes
+diff -u -r libffi-3.2.1-orig/include/ffi.h.in libffi-3.2.1/include/ffi.h.in
+--- libffi-3.2.1-orig/include/ffi.h.in	2014-11-08 12:47:24.000000000 +0000
++++ libffi-3.2.1/include/ffi.h.in	2020-11-21 10:27:16.127413600 +0000
+@@ -103,6 +103,11 @@
+ #   undef  FFI_64_BIT_MAX
+ #   define FFI_64_BIT_MAX 9223372036854775807LL
+ #  endif
++#  ifdef  __sgi /* IRIX has LONGLONG_MAX */
++#   define FFI_LONG_LONG_MAX LONGLONG_MAX
++#   undef  FFI_64_BIT_MAX
++#   define FFI_64_BIT_MAX 9223372036854775807LL
++#  endif
+ # endif
+ #endif
+ 
+@@ -310,6 +315,8 @@
+ 
+ #ifdef _MSC_VER
+ __declspec(align(8))
++#elif !defined(__GNUC__) && defined(__sgi)
++# pragma pack 8
+ #endif
+ typedef struct {
+ #if @FFI_EXEC_TRAMPOLINE_TABLE@
+@@ -325,7 +332,7 @@
+ } ffi_closure __attribute__((aligned (8)));
+ #else
+ } ffi_closure;
+-# ifdef __sgi
++# if !defined(__GNUC__) && defined(__sgi)
+ #  pragma pack 0
+ # endif
+ #endif
+@@ -346,7 +353,7 @@
+ 		      void *user_data,
+ 		      void*codeloc);
+ 
+-#ifdef __sgi
++#if !defined(__GNUC__) && defined(__sgi)
+ # pragma pack 8
+ #endif
+ typedef struct {
+@@ -371,8 +378,11 @@
+ 
+   void     (*fun)(ffi_cif*,void*,ffi_raw*,void*);
+   void      *user_data;
+-
++#if defined(__GNUC__) && defined(__sgi)
++} ffi_raw_closure __attribute__((aligned (8)));
++#else
+ } ffi_raw_closure;
++#endif
+ 
+ typedef struct {
+ #if @FFI_EXEC_TRAMPOLINE_TABLE@
+@@ -398,7 +408,15 @@
+   void     (*fun)(ffi_cif*,void*,ffi_java_raw*,void*);
+   void      *user_data;
+ 
++#if defined(__GNUC__) && defined(__sgi)
++} ffi_java_raw_closure __attribute__((aligned (8)));
++#else
+ } ffi_java_raw_closure;
++#endif
++
++#if !defined(__GNUC__) && defined(__sgi)
++# pragma pack 0
++#endif
+ 
+ ffi_status
+ ffi_prep_raw_closure (ffi_raw_closure*,
+Only in libffi-3.2.1/include: ffi.h.in.sgifixes
+Only in libffi-3.2.1/src/mips: ffi.c.sgifixes
+diff -u -r libffi-3.2.1-orig/testsuite/libffi.call/cls_double_va.c libffi-3.2.1/testsuite/libffi.call/cls_double_va.c
+--- libffi-3.2.1-orig/testsuite/libffi.call/cls_double_va.c	2014-11-08 12:47:24.000000000 +0000
++++ libffi-3.2.1/testsuite/libffi.call/cls_double_va.c	2020-11-21 10:27:16.131078960 +0000
+@@ -6,7 +6,6 @@
+ 
+ /* { dg-do run { xfail strongarm*-*-* xscale*-*-* } } */
+ /* { dg-output "" { xfail avr32*-*-* } } */
+-/* { dg-output "" { xfail mips-sgi-irix6* } } PR libffi/46660 */
+ 
+ #include "ffitest.h"
+ 
+Only in libffi-3.2.1/testsuite/libffi.call: cls_double_va.c.sgifixes
+diff -u -r libffi-3.2.1-orig/testsuite/libffi.call/cls_longdouble_va.c libffi-3.2.1/testsuite/libffi.call/cls_longdouble_va.c
+--- libffi-3.2.1-orig/testsuite/libffi.call/cls_longdouble_va.c	2014-11-08 12:47:24.000000000 +0000
++++ libffi-3.2.1/testsuite/libffi.call/cls_longdouble_va.c	2020-11-21 10:27:16.132466800 +0000
+@@ -6,7 +6,6 @@
+ 
+ /* { dg-do run { xfail strongarm*-*-* xscale*-*-* } } */
+ /* { dg-output "" { xfail avr32*-*-* x86_64-*-mingw* } } */
+-/* { dg-output "" { xfail mips-sgi-irix6* } } PR libffi/46660 */
+ 
+ #include "ffitest.h"
+ 
+Only in libffi-3.2.1/testsuite/libffi.call: cls_longdouble_va.c.sgifixes
+diff -u -r libffi-3.2.1-orig/testsuite/libffi.call/cls_ulong_va.c libffi-3.2.1/testsuite/libffi.call/cls_ulong_va.c
+--- libffi-3.2.1-orig/testsuite/libffi.call/cls_ulong_va.c	2014-11-08 12:47:24.000000000 +0000
++++ libffi-3.2.1/testsuite/libffi.call/cls_ulong_va.c	2020-11-21 10:27:16.133845840 +0000
+@@ -13,9 +13,9 @@
+ static void cls_ret_T_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+ 			 void* userdata __UNUSED__)
+  {
+-   *(T *)resp = *(T *)args[0];
++   *(ffi_arg *)resp = *(T *)args[0];
+ 
+-   printf("%ld: %ld %ld\n", *(T *)resp, *(T *)args[0], *(T *)args[1]);
++   printf("%ld: %ld %ld\n", (long)*(ffi_arg *)resp, *(T *)args[0], *(T *)args[1]);
+  }
+ 
+ typedef T (*cls_ret_T)(T, ...);
+Only in libffi-3.2.1/testsuite/libffi.call: cls_ulong_va.c.sgifixes
+diff -u -r libffi-3.2.1-orig/testsuite/libffi.call/ffitest.h libffi-3.2.1/testsuite/libffi.call/ffitest.h
+--- libffi-3.2.1-orig/testsuite/libffi.call/ffitest.h	2014-11-08 12:47:24.000000000 +0000
++++ libffi-3.2.1/testsuite/libffi.call/ffitest.h	2020-11-21 10:27:16.135297440 +0000
+@@ -6,8 +6,10 @@
+ #include "fficonfig.h"
+ 
+ #if defined HAVE_STDINT_H
++# if !(defined(__cplusplus) && defined(__sgi) && !defined(__GNUC__) )
+ #include <stdint.h>
+ #endif
++#endif
+ 
+ #if defined HAVE_INTTYPES_H
+ #include <inttypes.h>
+@@ -109,6 +111,7 @@
+ #endif
+ /* This doesn't match <inttypes.h>, which has "u" here, but the arguments
+    are uintptr_t, which is always unsigned long.  */
++#undef PRIuPTR
+ #define PRIuPTR "lu"
+ #endif
+ 
+Only in libffi-3.2.1/testsuite/libffi.call: ffitest.h.sgifixes

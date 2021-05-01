@@ -3,36 +3,35 @@
 %global so_ver      4
 %global reldate     20180305
 
-# Change to %%bcond_without bootstrap to build
-# in bootstrap mode for a bumped so-name.
-# You also need to adjust the parameters below.
-%bcond_with bootstrap
-
-%if %{with bootstrap}
-%global reldate_old 20180305
-%global version_old 0.13.1
-%global so_ver_old  4
-%endif
-
 
 Name:           json-c
 Version:        0.13.1
-Release:        6%{?dist}
+Release:        13%{?dist}
 Summary:        JSON implementation in C
 
 License:        MIT
 URL:            https://github.com/%{name}/%{name}
 Source0:        %{url}/archive/%{name}-%{version}-%{reldate}.tar.gz
-%if %{with bootstrap}
-Source1:        %{url}/archive/%{name}-%{version_old}-%{reldate_old}.tar.gz
-%endif
 
 # Cherry-picked from upstream.
 Patch0:         %{url}/commit/da4b34355da023c439e96bc6ca31886cd69d6bdb.patch#/%{name}-0.13.1-parse_test_UTF8_BOM.patch
 Patch1:         %{url}/commit/f8c632f579c71012f9aca81543b880a579f634fc.patch#/%{name}-0.13.1-fix_incorrect_casts_in_calls_to_ctype_functions.patch
 Patch2:         %{url}/commit/8bd62177e796386fb6382db101c90b57b6138afe.patch#/%{name}-0.13.1-fix_typos.patch
 
+# Fixes CVE-2020-12762.
+Patch3:         %{name}-0.13.1-fix_CVE_2020_12762.patch
+
+# Fix RDRAND.
+Patch4:         %{name}-0.13.1-detect_broken_RDRAND_during_initialization.patch
+
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  gcc
 BuildRequires:  libtool
+BuildRequires:  make
+%ifarch %{valgrind_arches}
+BuildRequires:  valgrind
+%endif
 
 %description
 JSON-C implements a reference counting object model that allows you
@@ -44,7 +43,7 @@ of JSON objects.  It aims to conform to RFC 7159.
 %package        devel
 Summary:        Development files for %{name}
 
-Requires:       %{name}%{?_isa} == %{version}-%{release}
+Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description    devel
 This package contains libraries and header files for
@@ -64,107 +63,62 @@ This package contains the reference manual for %{name}.
 
 
 %prep
-%autosetup -Tb 0 -n %{name}-%{name}-%{version}-%{reldate} -p 1
+%autosetup -n %{name}-%{name}-%{version}-%{reldate} -p 1
 
 for doc in ChangeLog; do
-  %{_bindir}/iconv -f iso-8859-1 -t utf8 ${doc} > ${doc}.new
-  /bin/touch -r ${doc} ${doc}.new
-  %{__mv} -f ${doc}.new ${doc}
+  iconv -f iso-8859-1 -t utf8 ${doc} > ${doc}.new
+  touch -r ${doc} ${doc}.new
+  mv -f ${doc}.new ${doc}
 done
 
-%{__sed} -i -e 's!#ACLOCAL_AMFLAGS!ACLOCAL_AMFLAGS!g' Makefile.am
-%{_bindir}/autoreconf -fiv
-
-%if %{with bootstrap}
-%{__mkdir} -p bootstrap_ver
-pushd bootstrap_ver
-%{__tar} --strip-components=1 -xf %{SOURCE1}
-
-%{__sed} -i -e 's!#ACLOCAL_AMFLAGS!ACLOCAL_AMFLAGS!g' Makefile.am
-%{_bindir}/autoreconf -fiv
-popd
-%endif
+sed -i -e 's!#ACLOCAL_AMFLAGS!ACLOCAL_AMFLAGS!g' Makefile.am
+autoreconf -fiv
 
 
 %build
 %configure               \
   --disable-silent-rules \
   --disable-static       \
+  --enable-Bsymbolic     \
   --enable-rdrand        \
   --enable-shared        \
   --enable-threading
-
 %make_build
-
-%{_bindir}/doxygen Doxyfile
-
-%if %{with bootstrap}
-pushd bootstrap_ver
-%configure               \
-  --disable-silent-rules \
-  --disable-static       \
-  --enable-rdrand        \
-  --enable-shared        \
-  --enable-threading
-
-%make_build
-popd
-%endif
+doxygen Doxyfile
 
 
 %install
-%if %{with bootstrap}
-%make_install -C bootstrap_ver
-%{_bindir}/find %{buildroot} -xtype f -not            \
-  -name 'lib%{name}.so.%{so_ver_old}*' -delete -print
-%{_bindir}/find %{buildroot} -type l -not             \
-  -name 'lib%{name}.so.%{so_ver_old}*' -delete -print
-%endif
-
 %make_install
 
-%{_bindir}/find %{buildroot} -name '*.a' -delete -print
-%{_bindir}/find %{buildroot} -name '*.la' -delete -print
+find %{buildroot} -name '*.a' -delete -print
+find %{buildroot} -name '*.la' -delete -print
 
-%{__mkdir} -p %{buildroot}%{_pkgdocdir}
-%{__cp} -pr doc/html ChangeLog README README.* %{buildroot}%{_pkgdocdir}
+mkdir -p %{buildroot}%{_pkgdocdir}
+cp -pr doc/html ChangeLog README README.* %{buildroot}%{_pkgdocdir}
 hardlink -cvf %{buildroot}%{_pkgdocdir}
 
 
 %check
-%make_build check
-
-%if %{with bootstrap}
-%make_build -C bootstrap_ver check
+USE_VALGRIND=0 %make_build check
+%ifarch %{valgrind_arches}
+USE_VALGRIND=1 %make_build check
 %endif
-
-
-%pretrans devel -p <lua>
-path = "%{_includedir}/%{name}"
-st = posix.stat(path)
-if st and st.type == "link" then
-  os.remove(path)
-end
 
 
 %ldconfig_scriptlets
 
 
 %files
-%doc %dir %{_pkgdocdir}
 %license AUTHORS
 %license COPYING
 %{_libdir}/lib%{name}.so.%{so_ver}*
-%if %{with bootstrap}
-%{_libdir}/lib%{name}.so.%{so_ver_old}*
-%endif
 
 
 %files devel
 %doc %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/ChangeLog
 %doc %{_pkgdocdir}/README*
-%{_includedir}/%{name}/
+%{_includedir}/%{name}
 %{_libdir}/lib%{name}.so
 %{_libdir}/pkgconfig/%{name}.pc
 
@@ -177,6 +131,34 @@ end
 
 
 %changelog
+* Mon May 25 2020 Björn Esser <besser82@fedoraproject.org> - 0.13.1-13
+- Add a patch to detect broken RDRAND in some CPUs
+- Re-enable the use of RDRAND
+- Run the testssuite with valgrind on %%valgrind_arches
+
+* Wed May 13 2020 Björn Esser <besser82@fedoraproject.org> - 0.13.1-12
+- Fix CVE-2020-12762
+
+* Sun Apr 12 2020 Björn Esser <besser82@fedoraproject.org> - 0.13.1-11
+- Drop bootstrap logic, as the package is no dependency of @build anymore
+- Add some explicit BuildRequires, which were implicit
+- Small spec file cleanups
+
+* Sat Apr 11 2020 Björn Esser <besser82@fedoraproject.org> - 0.13.1-10
+- Add explicit configure switch to disable rdrand
+- Add explicit configure switch to enable linking with Bsymbolic
+- Do not use macros to invoke executables
+- Drop obsolete %%pretrans scriptlet
+
+* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 0.13.1-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
+* Thu Nov 28 2019 Petr Menšík <pemensik@redhat.com> - 0.13.1-8
+- Remove empty doc dir from library package
+
+* Wed Nov 06 2019 Miroslav Lichvar <mlichvar@redhat.com> 0.13.1-7
+- Disable rdrand support (#1745333)
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.13.1-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

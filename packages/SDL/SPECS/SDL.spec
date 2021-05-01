@@ -10,7 +10,7 @@
 
 Name:       SDL
 Version:    1.2.15
-Release:    43%{?dist}
+Release:    48%{?dist}
 Summary:    A cross-platform multimedia library
 URL:        https://www.libsdl.org/
 # The license of the file src/video/fbcon/riva_mmio.h is bad, but the contents
@@ -192,6 +192,7 @@ applications.
 %patch23 -p1
 %patch24 -p1
 %patch100 -p1
+
 for F in CREDITS; do 
     iconv -f iso8859-1 -t utf-8 < "$F" > "${F}.utf"
     touch --reference "$F" "${F}.utf"
@@ -206,13 +207,13 @@ done
 aclocal
 libtoolize
 autoconf
+
 %configure \
     --enable-video-opengl \
     --disable-video-svga \
     --disable-video-ggi \
     --disable-video-aalib \
     --enable-sdl-dlopen \
-    --disable-alsa \
     --disable-rpath \
     --disable-nas \
     --disable-arts \
@@ -220,6 +221,8 @@ autoconf
     --enable-esd \
     --disable-pulseaudio
 
+perl -pi -e "s|#define HAVE_NANOSLEEP 1|#define SDL_CDROM_DUMMY 1|g" %{_builddir}/SDL-1.2.15/include/SDL_config.h
+perl -pi -e "s|#define SDL_CDROM_DISABLED 1|#define SDL_CDROM_DISABLED 0|g" %{_builddir}/SDL-1.2.15/include/SDL_config.h
 #%%if %{with arts}
 #    --enable-arts-shared \
 #%%else
@@ -246,8 +249,8 @@ autoconf
 
 # Rename SDL_config.h to SDL_config-<arch>.h to avoid file conflicts on
 # multilib systems and install SDL_config.h wrapper
-mv %{buildroot}/%{_includedir}/SDL/SDL_config.h %{buildroot}/%{_includedir}/SDL/SDL_config-%{_arch}.h
-install -m644 %{SOURCE3} %{buildroot}/%{_includedir}/SDL/SDL_config.h
+#mv %{buildroot}/%{_includedir}/SDL/SDL_config.h %{buildroot}/%{_includedir}/SDL/SDL_config-%{_arch}.h
+#install -m644 %{SOURCE3} %{buildroot}/%{_includedir}/SDL/SDL_config.h
 
 # remove libtool .la file
 rm -f %{buildroot}%{_libdir}/*.la
@@ -271,6 +274,12 @@ rm -f %{buildroot}%{_libdir}/*.la
 %{_libdir}/lib*.a
 
 %changelog
+* Sun Feb 28 2021  HAL <notes2@gmx.de> - 1.2.15-48
+- 2 minor config-adjustments to make it work with devilutionX and other games.
+
+* Wed Dec 30 2020 Julien Maerten <julien@3dw.org> - 1.2.15-44
+- Fix broken SDL_config.h wrapper for mips
+
 * Wed Jul 08 2020  HAL <notes2@gmx.de> - 1.2.15-43
 - compiles on Irix 6.5 with sgug-rse gcc 9.2. esd is supported.
 

@@ -1,0 +1,20 @@
+diff -Naur libepoxy-1.5.3.orig/src/dispatch_common.c libepoxy-1.5.3/src/dispatch_common.c
+--- libepoxy-1.5.3.orig/src/dispatch_common.c	2020-09-19 21:52:40.234794139 +0000
++++ libepoxy-1.5.3/src/dispatch_common.c	2020-09-19 21:53:52.478204539 +0000
+@@ -164,7 +164,6 @@
+ #include <windows.h>
+ #else
+ #include <dlfcn.h>
+-#include <err.h>
+ #include <pthread.h>
+ #endif
+ #include <string.h>
+@@ -197,6 +196,8 @@
+ #define OPENGL_LIB "libOpenGL.so.0"
+ #endif
+ 
++#define RTLD_NOLOAD	0x10
++
+ #ifdef __GNUC__
+ #define CONSTRUCT(_func) static void _func (void) __attribute__((constructor));
+ #define DESTRUCT(_func) static void _func (void) __attribute__((destructor));

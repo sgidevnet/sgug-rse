@@ -1,0 +1,13 @@
+--- tdnf-3.0.0-beta-orig/common/utils.c	2020-10-27 01:14:06.000000000 +0000
++++ tdnf-3.0.0-beta/common/utils.c	2020-12-19 20:34:34.391832960 +0000
+@@ -579,6 +579,10 @@
+     dwError = TDNFAllocateMemory(1, strlen(pszPath) + 1, (void **)&pszNormalPath);
+     BAIL_ON_TDNF_ERROR(dwError);
+ 
++#if defined(__sgi)
++	*ppszNormalPath = strdup(pszPath);
++	return dwError;
++#endif
+     q = pszNormalPath;
+ 
+     while(*p)

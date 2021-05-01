@@ -1,3 +1,12 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%else
+# This package is NOT able to use optimised linker flags.
+#%%global build_ldflags %%{sgug_optimised_ldflags}
+%endif
+
 %global major_version 5.3
 # Normally, this is the same as version, but... not always.
 # No tests yet for 5.3.5
@@ -15,7 +24,7 @@
 
 Name:           lua
 Version:        %{major_version}.5
-Release:        7%{?dist}
+Release:        8%{?dist}
 Summary:        Powerful light-weight programming language
 License:        MIT
 URL:            http://www.lua.org/
@@ -119,6 +128,12 @@ cd ..
 
 
 %build
+
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
+%endif
 
 %configure --with-readline --with-compat-module
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
@@ -224,6 +239,9 @@ install -Dpm 0644 %{SOURCE1000} $RPM_BUILD_ROOT/%{macrosdir}/macros.lua
 
 
 %changelog
+* Sat Dec 12 2020 Daniel Hams <daniel.hams@gmail.com> - 5.3.5-8
+- Stop using "optimised" link flags, causes failure to link with readline
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 5.3.5-7
 - Remove hard coded shell paths, readline link fix, remove bashisms
 

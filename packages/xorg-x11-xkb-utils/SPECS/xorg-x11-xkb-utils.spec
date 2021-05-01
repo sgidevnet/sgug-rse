@@ -4,6 +4,7 @@
 %global xkbevd 1.1.4
 %global xkbprint 1.0.4
 %global xkbutils 1.0.4
+%global _buildshell /usr/sgug/bin/bash
 
 Summary:    X.Org X11 xkb utilities
 Name:       xorg-x11-xkb-utils

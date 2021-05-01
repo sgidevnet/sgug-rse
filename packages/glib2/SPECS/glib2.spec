@@ -1,11 +1,8 @@
 %global _changelog_trimtime %(date +%s -d "1 year ago")
 
-# To have an installed version with debug symbols
-#%%global __strip /bin/true
-
 Name: glib2
 Version: 2.62.6
-Release: 3%{?dist}
+Release: 11%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -17,7 +14,7 @@ Patch1000:  glib2.sgifixes.patch
 #BuildRequires: chrpath
 BuildRequires: gcc
 BuildRequires: gcc-c++
-BuildRequires: gettext
+BuildRequires: gettext >= 0.19.8.1-4
 #BuildRequires: gtk-doc
 BuildRequires: perl-interpreter
 # for sys/inotify.h
@@ -29,10 +26,17 @@ BuildRequires: meson
 #BuildRequires: systemtap-sdt-devel
 BuildRequires: pkgconfig(libelf)
 BuildRequires: pkgconfig(libffi)
+BuildRequires: libffi-devel >= 3.2.1-26
 BuildRequires: pkgconfig(libpcre)
 #BuildRequires: pkgconfig(mount)
 BuildRequires: pkgconfig(zlib)
 BuildRequires: python3-devel
+
+BuildRequires: libdicl-devel >= 0.1.35
+
+BuildRequires: initial-sgug >= 0.2.0-4
+
+BuildRequires: sgug-fam-devel
 
 # for GIO content-type support
 Recommends: shared-mime-info
@@ -62,13 +66,13 @@ The glib2-devel package includes the header files for the GLib library.
 #%%description doc
 #The glib2-doc package includes documentation for the GLib library.
 
-#%package fam
-#Summary: FAM monitoring module for GIO
-#Requires: #{name}#{?_isa} = #{version}-#{release}
+%package fam
+Summary: FAM monitoring module for GIO
+Requires: %{name}%{?_isa} = %{version}-%{release}
 #BuildRequires: gamin-devel
-#
-#%description fam
-#The glib2-fam package contains the FAM (File Alteration Monitor) module for GIO.
+
+%description fam
+The glib2-fam package contains the FAM (File Alteration Monitor) module for GIO.
 
 %package static
 Summary: glib static
@@ -95,24 +99,33 @@ the functionality of the installed glib2 package.
 perl -pi -e "s|/usr/bin/python3|%{_bindir}/python3|g" gobject/tests/genmarshal.py
 perl -pi -e "s|/usr/bin/python3|%{_bindir}/python3|g" gobject/tests/mkenums.py
 
+# Ensure we're using c99 compliant compilation options
+perl -pi -e "s|gnu89|gnu99|g" meson.build
+
+# Rewrite the test timeouts to something more reasonable for SGI machines
+perl -pi -e "s|test_timeout = 60|test_timeout = 120|g" meson.build
+perl -pi -e "s|test_timeout_slow = 180|test_timeout_slow = 360|g" meson.build
+
 %build
 # Bug 1324770: Also explicitly remove PCRE sources since we use --with-pcre=system
 rm glib/pcre/*.[ch]
 export CC=mips-sgi-irix6.5-gcc
 export CXX=mips-sgi-irix6.5-g++
-export CPPFLAGS="-D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
-export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+export CPPFLAGS="-D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -I%{_includedir}/libdicl-0.1"
 # Meson/ninja use ORIGIN a lot, only way to do that is explicit
 # add what we need to the LD_LIBRARYN32_PATH before the build
 export GLIB2_BUILD_DIR=`pwd`/mips-sgug-irix
 export LD_LIBRARYN32_PATH=$GLIB2_BUILD_DIR/gobject:$GLIB2_BUILD_DIR/gmodule:$GLIB2_BUILD_DIR/gio:$GLIB2_BUILD_DIR/glib:$LD_LIBRARYN32_PATH
+
+# Note nsl library required for SVR4 pipe() functionality
+export LDFLAGS="-ldicl-0.1 -lnsl $RPM_LD_FLAGS"
 %meson \
     --default-library=both \
     -Dman=true \
     -Ddtrace=false \
     -Dsystemtap=false \
     -Dgtk_doc=false \
-    -Dfam=false \
+    -Dfam=true \
     -Dxattr=false \
     -Dinstalled_tests=true
 
@@ -231,8 +244,8 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 #%%files doc
 #%%doc %%{_datadir}/gtk-doc/html/*
 
-#%%files fam
-#%%{_libdir}/gio/modules/libgiofam.so
+%files fam
+%{_libdir}/gio/modules/libgiofam.so
 
 %files static
 %{_libdir}/libgio-2.0.a
@@ -246,6 +259,30 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Sun Dec 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-11
+- Depend on new drop in libfam replacement
+
+* Tue Dec 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-10
+- More hardcoded UTF fixes (options in help)
+
+* Tue Dec 15 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-9
+- Change hardcoded use of UTF non-breaking spaces in sizing formats
+
+* Mon Dec 14 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-8
+- Fix up use of the IRIX file alteration monitor, enable fam module
+
+* Sat Nov 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-7
+- Depend on bug-fixed libffi
+
+* Sat Oct 10 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-6
+- Avoid picking up /dev/root as a device "node" rather than just a mount, use nsl for SVR4 pipe, up testing timeout
+
+* Sat Sep 12 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-5
+- Bug fix to error handling using newer gettext, get more tests passing
+
+* Sat Sep 05 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-4
+- Get more tests passing fixing spawn, socket bits, some other pieces
+
 * Sun Jun 21 2020 Daniel Hams <daniel.hams@gmail.com> - 2.62.6-3
 - Correct more hardcoded paths that break mime lookups, remove more fedora multi-lib-isms
 

@@ -1,3 +1,9 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 %define pixman_version 0.30.0
 %define freetype_version 2.1.9
 %define fontconfig_version 2.2.95
@@ -103,8 +109,14 @@ needed for developing software which uses the cairo Gobject library.
 %autosetup -p1
 
 %build
-export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1"
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT=1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -Og"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now -lgen"
+%else
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS -lgen"
+%endif
 # Cairo has a broken libtool that installs cairo-sphinx as the libtool script
 # autoreconf is used to replace that libtool version
 # Also, for now DON'T ACTIVATE OR USE LIBXCB - causes issues

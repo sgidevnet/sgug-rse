@@ -6,7 +6,7 @@
 Summary: X.Org X11 Protocol headers
 Name: xorg-x11-proto-devel
 Version: 2019.1
-Release: 2%{?dist}
+Release: 4%{?dist}
 License: MIT
 URL: https://www.x.org
 BuildArch: noarch
@@ -28,6 +28,9 @@ X.Org X11 Protocol headers
 %prep
 %autosetup -n xorgproto-%{version} -p1
 
+# place to make patches
+#exit 1
+
 %build
 autoreconf -f -i -v
 %configure --disable-specs
@@ -36,6 +39,9 @@ make %{?_smp_mflags}
 
 %install
 %make_install
+
+# remove conflicting glxtokens
+rm -f $RPM_BUILD_ROOT%{_includedir}/GL/glxtokens.h
 
 # trim some fat
 for i in apple windows trap ; do
@@ -53,7 +59,6 @@ rm -f $RPM_BUILD_ROOT%{_docdir}/*/*.{html,svg}
 %{_includedir}/GL/glxint.h
 %{_includedir}/GL/glxmd.h
 %{_includedir}/GL/glxproto.h
-%{_includedir}/GL/glxtokens.h
 %dir %{_includedir}/GL/internal
 %{_includedir}/GL/internal/glcore.h
 %dir %{_includedir}/X11
@@ -212,129 +217,11 @@ rm -f $RPM_BUILD_ROOT%{_docdir}/*/*.{html,svg}
 %{_docdir}/xorgproto/*
 
 %changelog
+* Wed Dec 30 2020 Julien Maerten <julien@3dw.org> - 2019.1-4
+- Remove conflicting glxtokens.h
+
+* Tue Oct 27 2020 Daniel Hams <daniel.hams@gmail.com> - 2019.1-3
+- Rebuild for jpegturbo + fix bzero issue
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2019.1-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
-
-* Thu Jun 20 2019 Peter Hutterer <peter.hutterer@redhat.com> 2019.1-1
-- xorgproto 2019.1
-- drop files for xf86misc and proxy management proto, they're legacy now
-
-* Sun Feb 03 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2018.4-3
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
-
-* Sat Jul 14 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2018.4-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
-
-* Wed Feb 28 2018 Adam Jackson <ajax@redhat.com> - 2018.4-1
-- xorgproto 2018.4
-
-* Wed Feb 21 2018 Adam Jackson <ajax@redhat.com> - 2018.3-1
-- xorgproto 2018.3
-
-* Mon Feb 12 2018 Adam Jackson <ajax@redhat.com> - 2018.2-1
-- xorgproto 2018.2
-
-* Fri Feb 09 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2018.1-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
-
-* Mon Feb 05 2018 Adam Jackson <ajax@redhat.com> - 2018.1-1
-- Switch to merged protocol headers
-- Drop evie headers
-- Pre-F18 changelog trim
-
-* Tue Nov 07 2017 Adam Jackson <ajax@redhat.com> - 7.7-24
-- Drop bootstrap hack (that had been enabled for like nine years anyway)
-- Use https URLs
-
-* Thu Jul 27 2017 Fedora Release Engineering <releng@fedoraproject.org> - 7.7-23
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
-
-* Fri May 12 2017 Hans de Goede <hdegoede@redhat.com> - 7.7-22
-- Add xproto patches from upstream adding XF86Keyboard and XF86RFKill keysyms
-
-* Sat Feb 11 2017 Fedora Release Engineering <releng@fedoraproject.org> - 7.7-21
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
-
-* Mon Sep 26 2016 Adam Jackson <ajax@redhat.com> - 7.7-20
-- xproto 7.0.31
-
-* Mon Apr 04 2016 Peter Hutterer <peter.hutterer@redhat.com> 7.7-19
-- inputproto 2.3.2
-
-* Fri Mar 11 2016 Adam Jackson <ajax@redhat.com> 7.7-18
-- videoproto 2.3.3
-
-* Fri Feb 05 2016 Fedora Release Engineering <releng@fedoraproject.org> - 7.7-17
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
-
-* Wed Jan 20 2016 Peter Hutterer <peter.hutterer@redhat.com>
-- s/define/global/
-
-* Wed Jul 01 2015 Adam Jackson <ajax@redhat.com> 7.7-16
-- xproto 7.0.28
-
-* Fri Jun 19 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 7.7-15
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
-
-* Sun May 17 2015 Dave Airlie <airlied@redhat.com> 7.7-14
-- randrproto-1.5.0
-
-* Wed Apr 01 2015 Dave Airlie <airlied@redhat.com> 7.7-13
-- randrproto-1.4.1
-
-* Thu Jun 12 2014 Hans de Goede <hdegoede@redhat.com> - 7.7-12
-- inputproto-2.3.1
-
-* Sun Jun 08 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 7.7-11
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
-
-* Wed Apr 16 2014 Hans de Goede <hdegoede@redhat.com> - 7.7-10
-- fontsproto-2.1.3
-- videoproto-2.3.2
-- xextproto-7.3.0
-- xproto-7.0.26
-- Cherry pick some unreleased fixes from upstream git
-
-* Thu Jan 23 2014 Adam Jackson <ajax@redhat.com> 7.7-9
-- Backport pointer-to-void* changes
-
-* Tue Dec 10 2013 Adam Jackson <ajax@redhat.com> 7.7-8
-- glproto 1.4.17
-
-* Wed Nov 06 2013 Adam Jackson <ajax@redhat.com> 7.7-7
-- presentproto 1.0
-- dri3proto 1.0
-- xextproto 7.2.99.901
-
-* Sun Aug 04 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 7.7-6
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
-
-* Tue Apr 02 2013 Peter Hutterer <peter.hutterer@redhat.com> 7.7-5
-- xproto 7.0.24
-
-* Thu Mar 07 2013 Dave Airlie <airlied@redhat.com> 7.7-4
-- autoreconf for aarch64
-
-* Thu Mar 07 2013 Peter Hutterer <peter.hutterer@redhat.com> 7.7-3
-- inputproto 2.3
-
-* Fri Feb 15 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 7.7-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
-
-* Tue Jan 08 2013 Adam Jackson <ajax@redhat.com> 7.7-1
-- inputproto 2.2.99.1
-
-* Thu Jul 26 2012 Peter Hutterer <peter.hutterer@redhat.com> 7.6-24
-- bigregsproto 1.1.2
-- compositeproto 0.4.2
-- damageproto 1.2.1
-- fontsproto 2.1.2
-- inputproto 2.2
-- kbproto 1.0.6
-- recordproto 1.14.2
-- scrnsaverproto 1.2.2
-- xcmiscproto 1.2.2
-- xextproto 7.2.1
-
-* Sun Jul 22 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 7.6-23
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild

@@ -1,6 +1,12 @@
+%global debug 0
+
+%if 0%{debug}
+%global __strip /bin/true
+%endif
+
 Name:       libyaml
 Version:    0.2.2
-Release:    4%{?dist}
+Release:    5%{?dist}
 Summary:    YAML 1.1 parser and emitter written in C
 
 License:    MIT
@@ -35,6 +41,18 @@ developing applications that use LibYAML.
 
 %build
 ./bootstrap
+export CC=mips-sgi-irix6.5-gcc
+export CXX=mips-sgi-irix6.5-g++
+
+export CPPFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS"
+%if 0%{debug}
+export CFLAGS="-g -O0"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 -Wl,-z,relro -Wl,-z,now"
+%else
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
+%endif
+
 %configure
 make all html %{?_smp_mflags}
 
@@ -70,6 +88,9 @@ make check
 
 
 %changelog
+* Tue Dec 08 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.2-5
+- Correct _SGI_SOURCES (no plural)
+
 * Sun Jul 05 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.2-4
 - renable the html doc building
 

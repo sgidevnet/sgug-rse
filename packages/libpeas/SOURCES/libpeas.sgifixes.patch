@@ -1,0 +1,16 @@
+diff -u -r libpeas-1.24.1-orig/loaders/python/peas-plugin-loader-python.c libpeas-1.24.1/loaders/python/peas-plugin-loader-python.c
+--- libpeas-1.24.1-orig/loaders/python/peas-plugin-loader-python.c	2019-10-28 17:24:28.000000000 +0000
++++ libpeas-1.24.1/loaders/python/peas-plugin-loader-python.c	2020-08-20 06:43:03.859607160 +0000
+@@ -19,6 +19,12 @@
+  * License along with this library; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
+  */
++#if defined(__sgi)
++#define _ABIAPI
++#include <sys/time.h>
++#include <time.h>
++#undef _ABIAPI
++#endif
+ 
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>

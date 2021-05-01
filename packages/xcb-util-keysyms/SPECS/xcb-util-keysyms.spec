@@ -41,10 +41,10 @@ make install DESTDIR=%{buildroot} INSTALL="install -p"
 rm %{buildroot}%{_libdir}/*.la
 
 
-#%ldconfig_post
+#%%ldconfig_post
 
 
-#%ldconfig_postun
+#%%ldconfig_postun
 
 
 %files
@@ -60,6 +60,9 @@ rm %{buildroot}%{_libdir}/*.la
 
 
 %changelog
+* Thu Jul 09 2020  HAL <notes2@gmx.de> - 0.4.0-11
+- compiles on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.4.0-11
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

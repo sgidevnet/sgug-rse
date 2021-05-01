@@ -1,0 +1,159 @@
+Name:		psiconv
+Version:	0.9.8
+Release:	30%{?dist}
+Summary:	A conversion utility for Psion files
+License:	GPLv2+
+URL:		http://software.frodo.looijaard.name/psiconv/
+Source0:	http://software.frodo.looijaard.name/psiconv/files/%{name}-%{version}.tar.gz
+BuildRequires:  gcc
+BuildRequires:  gcc-c++
+BuildRequires:	ImageMagick-devel
+BuildRequires:	bc
+
+%description
+A conversion utility for the Psion files
+
+%package devel
+Summary:	Development files for psiconv
+Requires:	%{name}%{?_isa} = %{version}-%{release}
+
+%description devel
+Contains library and header files for psiconv
+
+%prep
+%setup -q
+
+
+%build
+%configure --disable-static
+sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+make %{?_smp_mflags}
+
+
+%install
+make install DESTDIR=$RPM_BUILD_ROOT
+find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
+mv $RPM_BUILD_ROOT%{_datadir}/%{name} _doc
+
+
+#%%ldconfig_scriptlets
+
+
+%files
+%doc COPYING NEWS README TODO ChangeLog AUTHORS 
+%dir %{_sysconfdir}/psiconv
+%config %{_sysconfdir}/psiconv/psiconv.conf 
+%config %{_sysconfdir}/psiconv/psiconv.conf.eg
+%{_bindir}/psiconv
+%{_mandir}/man1/psiconv.1.gz
+%{_libdir}/libpsiconv.so.6
+%{_libdir}/libpsiconv.so.6.4.2
+
+
+%files devel
+%doc _doc/*
+%{_bindir}/psiconv-config
+%{_mandir}/man1/psiconv-config.1.gz
+%{_libdir}/libpsiconv.so
+#%{_datadir}/psiconv/
+%{_includedir}/psiconv/
+
+
+%changelog
+* Wed Jan 27 2021  HAL <notes2@gmx.de> - 0.9.8-30
+- initial commit, builds on Irix 6.5 with sgug-rse gcc 9.2.
+
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.9.8-30
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Sat Feb 02 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.9.8-29
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Sat Jan 05 2019 Björn Esser <besser82@fedoraproject.org> - 0.9.8-28
+- Add BuildRequires: gcc-c++, fixes FTBFS (#1605513)
+
+* Tue Aug 28 2018 Michael Cronenworth <mike@cchtml.com> - 0.9.8-27
+- Rebuild for new ImageMagick 6.9.10
+
+* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.9.8-26
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
+* Fri Feb 09 2018 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 0.9.8-25
+- Escape macros in %%changelog
+
+* Fri Feb 09 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.9.8-24
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Thu Aug 03 2017 Fedora Release Engineering <releng@fedoraproject.org> - 0.9.8-23
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
+
+* Mon Jul 31 2017 Kevin Fenzi <kevin@scrye.com> - 0.9.8-22
+- Rebuild for new ImageMagick
+
+* Thu Jul 27 2017 Fedora Release Engineering <releng@fedoraproject.org> - 0.9.8-21
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
+* Sat Feb 11 2017 Fedora Release Engineering <releng@fedoraproject.org> - 0.9.8-20
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
+* Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 0.9.8-19
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
+* Thu Jun 18 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-18
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
+* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-17
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-16
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
+* Sun Apr 13 2014 Pavel Alexeev <Pahan@Hubbitus.info> - 0.9.8-15
+- ImageMagick 6.8.8.10-3 rebuild.
+
+* Sun Aug 04 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-14
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
+* Sat Mar 30 2013 Kevin Fenzi <kevin@scrye.com> - 0.9.8-13
+- Rebuild for broken deps in rawhide
+
+* Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-12
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
+
+* Sat Jul 21 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-11
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Fri Apr 13 2012 Tom Callaway <spot@fedoraproject.org> - 0.9.8-10
+- rebuild for new ImageMagick
+
+* Sat Jan 14 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
+* Wed Feb 09 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Wed Sep 29 2010 jkeating - 0.9.8-7
+- Rebuilt for gcc bug 634757
+
+* Mon Sep 20 2010 Tom "spot" Callaway <tcallawa@redhat.com> - 0.9.8-6
+- rebuild for new ImageMagick
+
+* Sun Jul 26 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
+* Sat Mar 14 2009 Alex Lancaster <alexlan[AT]fedoraproject org> - 0.9.8-4
+- Rebuild for new ImageMagick soname
+
+* Thu Feb 26 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.8-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+
+* Thu Dec  4 2008 Michael Schwendt <mschwendt@fedoraproject.org> - 0.9.8-2
+- Include unowned /etc/psiconv directory.
+- Add missing defattr to -devel pkg.
+
+* Wed Apr 16 2008 Huzaifa Sidhpurwala <huzaifas@fedoraproject.org> - 0.9.8-1
+- Made changes to %%doc, license, added BR 
+
+* Wed Apr 16 2008 Huzaifa Sidhpurwala <huzaifas@fedoraproject.org> - 0.9.8-0
+- Initial Build

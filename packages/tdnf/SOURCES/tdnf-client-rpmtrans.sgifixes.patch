@@ -1,0 +1,35 @@
+--- tdnf-3.0.0-beta-orig/client/rpmtrans.c	2020-10-27 01:14:06.000000000 +0000
++++ tdnf-3.0.0-beta/client/rpmtrans.c	2020-12-19 21:08:54.629030400 +0000
+@@ -658,6 +658,32 @@
+ 
+         for (i = 0; ppszUrlGPGKeys[i]; i++) {
+             printf("importing key from %s\n", ppszUrlGPGKeys[i]);
++
++			if (strstr(ppszUrlGPGKeys[i], TDNF_VAR_RELEASEVER) ||
++				strstr(ppszUrlGPGKeys[i], TDNF_VAR_BASEARCH)) {
++				char *tempUrl = NULL;
++				PTDNF_CONF pConf = pTdnf->pConf;
++
++				printf("found $releasever and $basearch in gpg url, expanding...\n");
++				dwError = TDNFConfigExpandVars(pTdnf);
++				BAIL_ON_TDNF_ERROR(dwError);
++				
++				dwError = TDNFReplaceString(
++							ppszUrlGPGKeys[i],
++							TDNF_VAR_RELEASEVER,
++							pConf->pszVarReleaseVer,
++							&tempUrl);
++				BAIL_ON_TDNF_ERROR(dwError);
++
++				dwError = TDNFReplaceString(
++							tempUrl,
++							TDNF_VAR_BASEARCH,
++							pConf->pszVarBaseArch,
++							&ppszUrlGPGKeys[i]);
++				BAIL_ON_TDNF_ERROR(dwError);
++				printf("importing expanded key from %s\n", ppszUrlGPGKeys[i]);
++			}
++
+             dwError = TDNFYesOrNo(pTdnf->pArgs, "Is this ok [y/N]: ", &nAnswer);
+             BAIL_ON_TDNF_ERROR(dwError);
+ 
