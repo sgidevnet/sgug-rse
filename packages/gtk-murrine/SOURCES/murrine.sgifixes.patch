@@ -1,0 +1,292 @@
+diff -Naur murrine-0.98.2.original/src/murrine_draw.c murrine-0.98.2/src/murrine_draw.c
+--- murrine-0.98.2.original/src/murrine_draw.c	2012-01-17 11:29:05.000000000 +0000
++++ murrine-0.98.2/src/murrine_draw.c	2021-05-04 15:54:05.158711920 +0000
+@@ -43,17 +43,17 @@
+ 	cairo_move_to (cr, x+w+(radius*-0.2928932188), y-(radius*-0.2928932188));
+ 
+ 	if (corners & MRN_CORNER_TOPRIGHT)
+-		cairo_arc (cr, x+w-radius, y+radius, radius, M_PI*1.75, M_PI*2);
++		cairo_arc (cr, x+w-radius, y+radius, radius, G_PI*1.75, G_PI*2);
+ 	else
+ 		cairo_line_to (cr, x+w, y);
+ 
+ 	if (corners & MRN_CORNER_BOTTOMRIGHT)
+-		cairo_arc (cr, x+w-radius, y+h-radius, radius, 0, M_PI*0.5);
++		cairo_arc (cr, x+w-radius, y+h-radius, radius, 0, G_PI*0.5);
+ 	else
+ 		cairo_line_to (cr, x+w, y+h);
+ 
+ 	if (corners & MRN_CORNER_BOTTOMLEFT)
+-		cairo_arc (cr, x+radius, y+h-radius, radius, M_PI*0.5, M_PI*0.75);
++		cairo_arc (cr, x+radius, y+h-radius, radius, G_PI*0.5, G_PI*0.75);
+ 	else
+ 		cairo_line_to (cr, x, y+h);
+ 
+@@ -64,17 +64,17 @@
+ 	cairo_move_to (cr, x+(radius*0.2928932188), y+h+(radius*-0.2928932188));
+ 
+ 	if (corners & MRN_CORNER_BOTTOMLEFT)
+-		cairo_arc (cr, x+radius, y+h-radius, radius, M_PI*0.75, M_PI);
++		cairo_arc (cr, x+radius, y+h-radius, radius, G_PI*0.75, G_PI);
+ 	else
+ 		cairo_line_to (cr, x, y+h);
+ 
+ 	if (corners & MRN_CORNER_TOPLEFT)
+-		cairo_arc (cr, x+radius, y+radius, radius, M_PI, M_PI*1.5);
++		cairo_arc (cr, x+radius, y+radius, radius, G_PI, G_PI*1.5);
+ 	else
+ 		cairo_line_to (cr, x, y);
+ 
+ 	if (corners & MRN_CORNER_TOPRIGHT)
+-		cairo_arc (cr, x+w-radius, y+radius, radius, M_PI*1.5, M_PI*1.75);
++		cairo_arc (cr, x+w-radius, y+radius, radius, G_PI*1.5, G_PI*1.75);
+ 	else
+ 		cairo_line_to (cr, x+w, y);
+ 
+@@ -631,11 +631,11 @@
+ 	int radius = MIN (roundness, MIN (width/2.0, height/2.0));
+ 
+ 	cairo_move_to (cr, x+radius, y);
+-	cairo_arc (cr, x+width-radius, y+radius, radius, M_PI*1.5, M_PI*2);
++	cairo_arc (cr, x+width-radius, y+radius, radius, G_PI*1.5, G_PI*2);
+ 	cairo_line_to (cr, x+width, y+height-width/2.0);
+ 	cairo_line_to (cr, x+width/2.0, y+height);
+ 	cairo_line_to (cr, x, y+height-width/2.0);
+-	cairo_arc (cr, x+radius, y+radius, radius, M_PI, M_PI*1.5);
++	cairo_arc (cr, x+radius, y+radius, radius, G_PI, G_PI*1.5);
+ }
+ 
+ static void
+@@ -734,7 +734,7 @@
+ 
+ 	if (!horizontal)
+ 	{
+-		rotate_mirror_translate (cr, M_PI/2, x, y, FALSE, FALSE);
++		rotate_mirror_translate (cr, G_PI/2, x, y, FALSE, FALSE);
+ 		int tmp = height; height = width; width = tmp;
+ 	}
+ 
+@@ -892,16 +892,16 @@
+ 		x = x+1; y = y-1; width = width+2; height = height-2;
+ 
+ 		if (progressbar->orientation == MRN_ORIENTATION_TOP_TO_BOTTOM)
+-			rotate_mirror_translate (cr, M_PI/2, x, y, FALSE, FALSE);
++			rotate_mirror_translate (cr, G_PI/2, x, y, FALSE, FALSE);
+ 		else
+-			rotate_mirror_translate (cr, M_PI/2, x, y+width, TRUE, FALSE);
++			rotate_mirror_translate (cr, G_PI/2, x, y+width, TRUE, FALSE);
+ 	}
+ 
+ 	roundness = MIN (widget->roundness-widget->xthickness, height/2.0);
+ 	int yos = 0;
+ 	if ((2*roundness > width) && roundness > 0)
+ 	{
+-		int h = height*sin((M_PI*(width))/(4*roundness));
++		int h = height*sin((G_PI*(width))/(4*roundness));
+ 		roundness = round(width/2.0);
+ 		yos = 0.5+(height-h)/2.0;
+ 		height = h;
+@@ -1917,7 +1917,7 @@
+ 	else
+ 	{
+ 		int tmp = height;
+-		rotate_mirror_translate (cr, M_PI/2, x, y, FALSE, FALSE);
++		rotate_mirror_translate (cr, G_PI/2, x, y, FALSE, FALSE);
+ 		height = width;
+ 		width = tmp;
+ 	}
+@@ -2085,7 +2085,7 @@
+ 	else
+ 	{
+ 		int tmp = height;
+-		rotate_mirror_translate (cr, M_PI/2, x, y, FALSE, FALSE);
++		rotate_mirror_translate (cr, G_PI/2, x, y, FALSE, FALSE);
+ 		height = width;
+ 		width = tmp;
+ 	}
+@@ -2117,7 +2117,7 @@
+ 			for (i = circ_space; i < width-circ_space; i += 2*circ_radius+circ_space)
+ 			{
+ 				cairo_move_to (cr, i, 1);
+-				cairo_arc (cr, x1, y1, circ_radius, 0, M_PI*2);
++				cairo_arc (cr, x1, y1, circ_radius, 0, G_PI*2);
+ 
+ 				x1 += 2*circ_radius+circ_space;
+ 
+@@ -2501,7 +2501,7 @@
+ 	if (handle->horizontal)
+ 	{
+ 		int tmp = height;
+-		rotate_mirror_translate (cr, M_PI/2, x+0.5+width/2-bar_height/2, y+height/2-bar_width/2, FALSE, FALSE);
++		rotate_mirror_translate (cr, G_PI/2, x+0.5+width/2-bar_height/2, y+height/2-bar_width/2, FALSE, FALSE);
+ 		height = width;
+ 		width = tmp;
+ 	}
+@@ -2586,7 +2586,7 @@
+ 
+ 	cairo_move_to (cr, -arrow_width/2.0, line_width_2);
+ 	cairo_line_to (cr, -arrow_width/2.0 + line_width_2, 0);
+-	cairo_arc_negative (cr, 0, arrow_height-2*line_width_2-2*line_width_2*sqrt(2), 2*line_width_2, M_PI_2+M_PI_4, M_PI_4);
++	cairo_arc_negative (cr, 0, arrow_height-2*line_width_2-2*line_width_2*sqrt(2), 2*line_width_2, G_PI_2+G_PI_4, G_PI_4);
+ 	cairo_line_to (cr, arrow_width/2.0-line_width_2, 0);
+ 	cairo_line_to (cr, arrow_width/2.0, line_width_2);
+ 	cairo_line_to (cr, 0, arrow_height);
+@@ -2669,7 +2669,7 @@
+ 
+ 	cairo_save (cr);
+ 	cairo_translate (cr, x, y-(arrow_height+gap_size)/2.0);
+-	cairo_rotate (cr, M_PI);
++	cairo_rotate (cr, G_PI);
+ 	murrine_draw_normal_arrow (cr, color, 0, 0, arrow_width, arrow_height);
+ 	cairo_restore (cr);
+ 
+@@ -2686,7 +2686,7 @@
+ 
+ 	cairo_save (cr);
+ 	cairo_translate (cr, x, y-5.5);
+-	cairo_rotate (cr, M_PI);
++	cairo_rotate (cr, G_PI);
+ 	murrine_draw_normal_arrow_filled (cr, color, 0, 0, arrow_width, arrow_height);
+ 	cairo_restore (cr);
+ 
+@@ -2705,7 +2705,7 @@
+ 
+ 	cairo_save (cr);
+ 	cairo_translate (cr, x-1, y-5.5);
+-	cairo_rotate (cr, M_PI);
++	cairo_rotate (cr, G_PI);
+ 	murrine_draw_normal_arrow_filled_equilateral (cr, color, 0, 0, arrow_width, arrow_height);
+ 	cairo_restore (cr);
+ 
+@@ -2729,13 +2729,13 @@
+ 			rotate = 0;
+ 			break;
+ 		case MRN_DIRECTION_UP:
+-			rotate = M_PI;
++			rotate = G_PI;
+ 			break;
+ 		case MRN_DIRECTION_LEFT:
+-			rotate = M_PI*1.5;
++			rotate = G_PI*1.5;
+ 			break;
+ 		case MRN_DIRECTION_RIGHT:
+-			rotate = M_PI*0.5;
++			rotate = G_PI*0.5;
+ 			break;
+ 	}
+ 
+diff -Naur murrine-0.98.2.original/src/murrine_draw_rgba.c murrine-0.98.2/src/murrine_draw_rgba.c
+--- murrine-0.98.2.original/src/murrine_draw_rgba.c	2012-01-17 11:31:16.000000000 +0000
++++ murrine-0.98.2/src/murrine_draw_rgba.c	2021-05-04 15:59:51.533272640 +0000
+@@ -43,17 +43,17 @@
+ 	cairo_move_to (cr, x+w+(radius*-0.2928932188), y-(radius*-0.2928932188));
+ 
+ 	if (corners & MRN_CORNER_TOPRIGHT)
+-		cairo_arc (cr, x+w-radius, y+radius, radius, M_PI*1.75, M_PI*2);
++		cairo_arc (cr, x+w-radius, y+radius, radius, G_PI*1.75, G_PI*2);
+ 	else
+ 		cairo_line_to (cr, x+w, y);
+ 
+ 	if (corners & MRN_CORNER_BOTTOMRIGHT)
+-		cairo_arc (cr, x+w-radius, y+h-radius, radius, 0, M_PI*0.5);
++		cairo_arc (cr, x+w-radius, y+h-radius, radius, 0, G_PI*0.5);
+ 	else
+ 		cairo_line_to (cr, x+w, y+h);
+ 
+ 	if (corners & MRN_CORNER_BOTTOMLEFT)
+-		cairo_arc (cr, x+radius, y+h-radius, radius, M_PI*0.5, M_PI*0.75);
++		cairo_arc (cr, x+radius, y+h-radius, radius, G_PI*0.5, G_PI*0.75);
+ 	else
+ 		cairo_line_to (cr, x, y+h);
+ 
+@@ -64,17 +64,17 @@
+ 	cairo_move_to (cr, x+(radius*0.2928932188), y+h+(radius*-0.2928932188));
+ 
+ 	if (corners & MRN_CORNER_BOTTOMLEFT)
+-		cairo_arc (cr, x+radius, y+h-radius, radius, M_PI*0.75, M_PI);
++		cairo_arc (cr, x+radius, y+h-radius, radius, G_PI*0.75, G_PI);
+ 	else
+ 		cairo_line_to (cr, x, y+h);
+ 
+ 	if (corners & MRN_CORNER_TOPLEFT)
+-		cairo_arc (cr, x+radius, y+radius, radius, M_PI, M_PI*1.5);
++		cairo_arc (cr, x+radius, y+radius, radius, G_PI, G_PI*1.5);
+ 	else
+ 		cairo_line_to (cr, x, y);
+ 
+ 	if (corners & MRN_CORNER_TOPRIGHT)
+-		cairo_arc (cr, x+w-radius, y+radius, radius, M_PI*1.5, M_PI*1.75);
++		cairo_arc (cr, x+w-radius, y+radius, radius, G_PI*1.5, G_PI*1.75);
+ 	else
+ 		cairo_line_to (cr, x+w, y);
+ 
+@@ -470,11 +470,11 @@
+ 	int radius = MIN (roundness, MIN (width/2.0, height/2.0));
+ 
+ 	cairo_move_to (cr, x+radius, y);
+-	cairo_arc (cr, x+width-radius, y+radius, radius, M_PI*1.5, M_PI*2);
++	cairo_arc (cr, x+width-radius, y+radius, radius, G_PI*1.5, G_PI*2);
+ 	cairo_line_to (cr, x+width, y+height-width/2.0);
+ 	cairo_line_to (cr, x+width/2.0, y+height);
+ 	cairo_line_to (cr, x, y+height-width/2.0);
+-	cairo_arc (cr, x+radius, y+radius, radius, M_PI, M_PI*1.5);
++	cairo_arc (cr, x+radius, y+radius, radius, G_PI, G_PI*1.5);
+ }
+ 
+ static void
+@@ -720,16 +720,16 @@
+ 		x = x+1; y = y-1; width = width+2; height = height-2;
+ 
+ 		if (progressbar->orientation == MRN_ORIENTATION_TOP_TO_BOTTOM)
+-			rotate_mirror_translate (cr, M_PI/2, x, y, FALSE, FALSE);
++			rotate_mirror_translate (cr, G_PI/2, x, y, FALSE, FALSE);
+ 		else
+-			rotate_mirror_translate (cr, M_PI/2, x, y+width, TRUE, FALSE);
++			rotate_mirror_translate (cr, G_PI/2, x, y+width, TRUE, FALSE);
+ 	}
+ 
+ 	roundness = MIN (widget->roundness-widget->xthickness, height/2.0);
+ 	int yos = 0;
+ 	if ((2*roundness > width) && roundness > 0)
+ 	{
+-		int h = height*sin((M_PI*(width))/(4*roundness));
++		int h = height*sin((G_PI*(width))/(4*roundness));
+ 		roundness = round(width/2.0);
+ 		yos = 0.5+(height-h)/2.0;
+ 		height = h;
+@@ -1356,7 +1356,7 @@
+ 	else
+ 	{
+ 		int tmp = height;
+-		rotate_mirror_translate (cr, M_PI/2, x, y, FALSE, FALSE);
++		rotate_mirror_translate (cr, G_PI/2, x, y, FALSE, FALSE);
+ 		height = width;
+ 		width = tmp;
+ 	}
+@@ -1526,7 +1526,7 @@
+ 	else
+ 	{
+ 		int tmp = height;
+-		rotate_mirror_translate (cr, M_PI/2, x, y, FALSE, FALSE);
++		rotate_mirror_translate (cr, G_PI/2, x, y, FALSE, FALSE);
+ 		height = width;
+ 		width = tmp;
+ 	}
+@@ -1562,7 +1562,7 @@
+ 			for (i = circ_space; i < width-circ_space; i += 2*circ_radius+circ_space)
+ 			{
+ 				cairo_move_to (cr, i, 1);
+-				cairo_arc (cr, x1, y1, circ_radius, 0, M_PI*2);
++				cairo_arc (cr, x1, y1, circ_radius, 0, G_PI*2);
+ 
+ 				x1 += 2*circ_radius+circ_space;
+ 
+@@ -1752,7 +1752,7 @@
+ 	if (handle->horizontal)
+ 	{
+ 		int tmp = height;
+-		rotate_mirror_translate (cr, M_PI/2, x+0.5+width/2-bar_height/2, y+height/2-bar_width/2, FALSE, FALSE);
++		rotate_mirror_translate (cr, G_PI/2, x+0.5+width/2-bar_height/2, y+height/2-bar_width/2, FALSE, FALSE);
+ 		height = width;
+ 		width = tmp;
+ 	}
