@@ -4,6 +4,7 @@ unset PKG_CONFIG_PATH
 unset LDFLAGS
 unset CFLAGS
 unset CPPFLAGS
+unset CXXFLAGS
 unset PERL
 unset M4
 unset SED
@@ -24,6 +25,7 @@ unset AR
 unset RANLIB
 unset PYTHONPATH
 unset PYTHONHOME
+unset HOST
 
 SGUG_ROOT=/usr/sgug
 SGUG_BIN=$SGUG_ROOT/bin
