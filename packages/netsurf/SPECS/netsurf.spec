@@ -1,4 +1,3 @@
-
 Name:           netsurf
 Version:        3.9
 Release:        3%{?dist}
@@ -13,7 +12,8 @@ Source0:        https://download.netsurf-browser.org/netsurf/releases/source-ful
 #Patch100:	netsurf.sgifixes.patch
 #Patch100:	netsurf.sgifixes.patch.notsure
 #Patch100:	netsurf.sgifixes.hammypatch.notsure2
-Patch100:	netsurf.sgifixes.hammypatch
+#Patch100:	netsurf.sgifixes.hammypatch
+Patch100:	netsurf.sgifixes.j16bit
 
 BuildRequires:  gcc
 BuildRequires:  make
@@ -51,19 +51,8 @@ BuildRequires:  pkgconfig(xcb-util)
 NetSurf is a compact graphical web browser which aims for HTML5, CSS and
 JavaScript support.
 
-This package ships the version with GTK3 frontend that most users will
+This package ships the version with GTK & GTK3 frontends that most users will
 want to use.
-
-
-#%%package fb
-#Summary:        Compact graphical web browser (framebuffer frontend)
-
-#%%description fb
-#NetSurf is a compact graphical web browser which aims for HTML5, CSS and
-#JavaScript support.
-
-#This package ships the version with a special-purpose framebuffer frontend.
-
 
 %prep
 %setup -q -n netsurf-all-%{version}
@@ -88,7 +77,7 @@ want to use.
         NETSURF_FB_FONT_CURSIVE=DejaVuSerif-Italic.ttf \\\
         NETSURF_FB_FONTPATH=/usr/share/fonts/dejavu
 
-%global gtk_make_opts %{common_make_opts} TARGET=gtk3 \\\
+%global gtk_make_opts %{common_make_opts} TARGET=gtk \\\
         NETSURF_USE_RSVG=YES \\\
         NETSURF_USE_WEBP=YES \\\
         NETSURF_USE_NSSVG=NO \\\
@@ -108,22 +97,23 @@ make %{?_smp_mflags} %{gtk_make_opts}
 
 
 %install
-#%%make_install %{fb_make_opts}
 %make_install %{gtk_make_opts} NETSURF_LOG_LEVEL=DEEPDEBUG
 
 mkdir -p %{buildroot}%{_datadir}/pixmaps \
         %{buildroot}%{_datadir}/applications
 install -pm644 netsurf/frontends/gtk/res/netsurf.xpm \
         %{buildroot}%{_datadir}/pixmaps
-sed 's/Exec=netsurf-gtk/Exec=netsurf-gtk3/;s/netsurf.png/netsurf/' \
-        <netsurf/frontends/gtk/res/netsurf-gtk.desktop \
-        >%{buildroot}%{_datadir}/applications/netsurf-gtk.desktop
+#sed 's/Exec=netsurf-gtk/Exec=netsurf-gtk3/;s/netsurf.png/netsurf/' \
+#        <netsurf/frontends/gtk/res/netsurf-gtk.desktop \
+#        >%{buildroot}%{_datadir}/applications/netsurf-gtk.desktop
+install -pm644 netsurf/frontends/gtk/res/netsurf-gtk.desktop \
+        %{buildroot}%{_datadir}/applications/netsurf-gtk.desktop
 desktop-file-validate \
         %{buildroot}%{_datadir}/applications/netsurf-gtk.desktop
 
 
 %files
-%{_bindir}/netsurf-gtk3
+%{_bindir}/netsurf-gtk
 %{_datadir}/netsurf
 %{_datadir}/applications/netsurf-gtk.desktop
 %{_datadir}/pixmaps/netsurf.xpm
@@ -135,6 +125,9 @@ desktop-file-validate \
 
 
 %changelog
+* Sat May 08 2021 J6$BIT - 3.9-2
+- Debugging for stability, FIXME on snprintf hardocding though
+
 * Tue Dec 01 2020  HAL <notes2@gmx.de> - 3.9-2
 - Tweak build system to stop -D pollution and hardcoded opt levels
   renable libiconv-input processing
