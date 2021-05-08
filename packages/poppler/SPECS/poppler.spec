@@ -4,7 +4,7 @@
 Summary: PDF rendering library
 Name:    poppler
 Version: 0.73.0
-Release: 14%{?dist}
+Release: 16%{?dist}
 License: (GPLv2 or GPLv3) and GPLv2+ and LGPLv2+ and MIT
 URL:     http://poppler.freedesktop.org/
 Source0: http://poppler.freedesktop.org/poppler-%{version}.tar.xz
@@ -71,8 +71,8 @@ BuildRequires: pkgconfig(gdk-pixbuf-2.0)
 BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(gobject-2.0)
 BuildRequires: pkgconfig(gobject-introspection-1.0) 
-#BuildRequires: pkgconfig(gtk+-3.0)
-#BuildRequires: pkgconfig(gtk-doc)
+BuildRequires: pkgconfig(gtk+-3.0)
+BuildRequires: pkgconfig(gtk-doc)
 BuildRequires: pkgconfig(lcms2)
 BuildRequires: pkgconfig(libjpeg)
 BuildRequires: pkgconfig(libopenjp2)
@@ -176,12 +176,12 @@ Requires: %{name}-devel%{?_isa} = %{version}-%{release}
 %description cpp-devel
 %{summary}.
 
-#%%package utils
-#Summary: Command line utilities for converting PDF files
-#Requires: %{name}%{?_isa} = %{version}-%{release}
-#%%description utils
-#Command line tools for manipulating PDF files and converting them to
-#other formats.
+%package utils
+Summary: Command line utilities for converting PDF files
+Requires: %{name}%{?_isa} = %{version}-%{release}
+%description utils
+Command line tools for manipulating PDF files and converting them to
+other formats.
 
 %prep
 %autosetup -p1 -b 1
@@ -200,10 +200,10 @@ export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
   -DENABLE_DCTDECODER=libjpeg \
   -DENABLE_GTK_DOC=OFF \
   -DENABLE_LIBOPENJPEG=openjpeg2 \
-  -DENABLE_UNSTABLE_API_ABI_HEADERS=OFF \
+  -DENABLE_UNSTABLE_API_ABI_HEADERS=ON \
   -DENABLE_ZLIB=ON \
   -DENABLE_ZLIB_UNCOMPRESS=ON \
-  -DENABLE_UTILS=OFF \
+  -DENABLE_UTILS=ON \
   -DENABLE_QT4=OFF \
   -DENABLE_QT5=OFF \
   -DBUILD_QT4_TESTS=OFF \
@@ -247,12 +247,13 @@ test "$(pkg-config --modversion poppler-glib)" = "%{version}"
 %{_libdir}/pkgconfig/poppler.pc
 %{_libdir}/pkgconfig/poppler-splash.pc
 %{_libdir}/libpoppler.so
-%dir %{_includedir}/poppler/
+#%%dir %{_includedir}/poppler/
+%{_includedir}/poppler/
 # xpdf headers
 %{_includedir}/poppler/*/*.h
-#%%{_includedir}/poppler/fofi/
-#%%{_includedir}/poppler/goo/
-#%%{_includedir}/poppler/splash/
+%{_includedir}/poppler/fofi/
+%{_includedir}/poppler/goo/
+%{_includedir}/poppler/splash/
 
 %files glib
 %{_libdir}/libpoppler-glib.so.8*
@@ -293,9 +294,9 @@ test "$(pkg-config --modversion poppler-glib)" = "%{version}"
 %{_libdir}/libpoppler-cpp.so
 %{_includedir}/poppler/cpp
 
-#%%files utils
-#%%{_bindir}/pdf*
-#%%{_mandir}/man1/*
+%files utils
+%{_bindir}/pdf*
+%{_mandir}/man1/*
 
 %changelog
 * Sat Nov 28 2020  HAL <notes2@gmx.de> - 0.73.0-14

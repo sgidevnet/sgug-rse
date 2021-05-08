@@ -1,0 +1,343 @@
+Name:             gnumeric
+Epoch:            1
+Version:          1.12.47
+Release:          1%{?dist}
+Summary:          Spreadsheet program for GNOME
+#LGPLv2+:
+#plugins/gda/plugin-gda.c
+#plugins/fn-financial/sc-fin.c
+#plugins/plan-perfect/charset.c
+#src/widgets/gnumeric-lazy-list.h
+#GPLv3+:
+#src/parser.c
+License:          GPLv2+ and GPLv3+ and LGPLv2+
+URL:              http://projects.gnome.org/gnumeric/
+Source:           ftp://ftp.gnome.org/pub/GNOME/sources/%{name}/1.12/%{name}-%{version}.tar.xz
+Patch100:         gnumeric.sgifixes.patch
+BuildRequires:    bison
+BuildRequires:    desktop-file-utils
+BuildRequires:    docbook-dtds
+BuildRequires:    gcc
+BuildRequires:    goffice-devel >= 0.10.46
+BuildRequires:    intltool
+BuildRequires:    itstool
+BuildRequires:    libgda-ui-devel
+BuildRequires:    perl-devel
+BuildRequires:    perl-generators
+BuildRequires:    perl(ExtUtils::Embed)
+BuildRequires:    perl(Getopt::Long)
+BuildRequires:    perl(IO::Compress::Gzip)
+BuildRequires:    psiconv-devel
+BuildRequires:    zlib-devel
+#BuildRequires:    libappstream-glib
+Requires:         hicolor-icon-theme
+
+%description
+Gnumeric is a spreadsheet program for the GNOME GUI desktop
+environment.
+
+
+%package devel
+Summary:          Files necessary to develop gnumeric-based applications
+Requires:         %{name}%{?_isa} = %{epoch}:%{version}-%{release}
+
+%description devel
+Gnumeric is a spreadsheet program for the GNOME GUI desktop
+environment. The gnumeric-devel package includes files necessary to
+develop gnumeric-based applications.
+
+
+%package plugins-extras
+Summary:          Additional plugins for Gnumeric incl. Perl support
+Requires:         %{name}%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+
+%description plugins-extras
+This package contains the following additional plugins for gnumeric:
+* gda and gnomedb plugins:
+  Database functions for retrieval of data from a database.
+* perl plugin:
+  This plugin allows writing of plugins in Perl.
+
+
+%prep
+%autosetup -p1
+
+chmod -x plugins/excel/rc4.?
+
+
+%build
+%configure --disable-silent-rules --disable-maintainer-mode
+# Don't use rpath!
+sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+%make_build
+
+
+%install
+%make_install
+
+%find_lang %{name} --all-name --with-gnome
+
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
+desktop-file-install --delete-original                                  \
+  --remove-category Science                                             \
+  $RPM_BUILD_ROOT%{_datadir}/applications/*.desktop
+
+#remove unused mime type icons
+rm $RPM_BUILD_ROOT/%{_datadir}/pixmaps/gnome-application-*.png
+rm $RPM_BUILD_ROOT/%{_datadir}/pixmaps/%{name}/gnome-application-*.png
+
+#remove spurious .ico thing
+rm $RPM_BUILD_ROOT/usr/sgug/share/pixmaps/win32-%{name}.ico
+rm $RPM_BUILD_ROOT/usr/sgug/share/pixmaps/%{name}/win32-%{name}.ico
+
+#remove .la files
+find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
+
+#%%ldconfig_scriptlets
+
+
+%files -f %{name}.lang
+%doc HACKING AUTHORS ChangeLog NEWS BUGS README
+%license COPYING
+%{_bindir}/*
+%{_libdir}/libspreadsheet-%{version}.so
+%dir %{_libdir}/%{name}
+%{_libdir}/%{name}/%{version}
+%exclude %{_libdir}/%{name}/%{version}/plugins/perl-*
+%exclude %{_libdir}/%{name}/%{version}/plugins/gdaif
+%exclude %{_libdir}/%{name}/%{version}/plugins/psiconv
+%{_datadir}/glib-2.0/schemas/org.gnome.gnumeric.*
+%{_datadir}/pixmaps/%{name}
+%{_datadir}/icons/hicolor/*/apps/%{name}.png
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/%{version}
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/appdata/%{name}.appdata.xml
+%{_mandir}/man1/*
+
+%files devel
+%{_libdir}/libspreadsheet.so
+%{_libdir}/pkgconfig/libspreadsheet-1.12.pc
+%{_includedir}/libspreadsheet-1.12
+
+%files plugins-extras
+%{_libdir}/%{name}/%{version}/plugins/perl-*
+%{_libdir}/%{name}/%{version}/plugins/gdaif
+%{_libdir}/%{name}/%{version}/plugins/psiconv
+%{_libdir}/goffice/*/plugins/gnumeric/gnumeric.so
+%{_libdir}/goffice/*/plugins/gnumeric/plugin.xml
+
+
+%changelog
+* Fri Apr 23 2021  HAL <notes2@gmx.de> - 1:1.12.47-1
+- builds on Irix 6.5 with sgug-rse gcc 9.2.
+
+* Mon May 11 2020 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.47-1
+- Update to 1.12.47
+
+* Wed Nov 13 2019 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.46-1
+- Update to 1.12.46
+- Drop upstreamed patch
+
+* Thu Aug 22 2019 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.45-3
+- Disable python support (RH #1737993)
+
+* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.45-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Tue Jun 04 2019 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.45-1
+- Update to 1.12.45
+- Update python2 patch
+- Drop obsolete .spec sections
+
+* Sat Jun 01 2019 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.12.44-6
+- Perl 5.30 rebuild
+
+* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.44-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Mon Jan 14 2019 Björn Esser <besser82@fedoraproject.org> - 1:1.12.44-4
+- Rebuilt for libcrypt.so.2 (#1666033)
+
+* Fri Jan 11 2019 Miro Hrončok <mhroncok@redhat.com> - 1:1.12.44-3
+- Move Python 2 plugins to gnumeric-plugins-extras to avoid unnecessary Python 2 dependency
+- Drop pygtk2-devel BuildRequires
+
+* Sat Jan 05 2019 Björn Esser <besser82@fedoraproject.org> - 1:1.12.44-2
+- Add patch to explicitly use python2 shebangs, fixes FTBFS
+
+* Mon Dec 24 2018 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.44-1
+- Update to 1.12.44
+- Drop included patches
+
+* Sun Aug 12 2018 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.42-2
+- Patched the install location of tools and widget headers using an upstream
+  patch
+
+* Sat Aug 11 2018 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.42-1
+- Updated to 1.12.42
+- Fixed build failure using a patch from upstream git
+
+* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.41-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
+* Fri Jun 29 2018 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.12.41-2
+- Perl 5.28 rebuild
+
+* Thu May 10 2018 Julian Sikorski <belegdol@fedoraproject.org> - 0:1.12.41-2
+- Updated to 1.12.41
+- Ensured python2 is called explicitly as per https://fedoraproject.org/wiki/Changes/Avoid_usr_bin_python_in_RPM_Build
+
+* Sun May 06 2018 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.40-1
+- Updated to 1.12.40
+
+* Sat Mar 17 2018 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.39-1
+- Updated to 1.10.39
+- Removed and/or updated obsolete scriptlets
+
+* Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.38-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Sat Jan 20 2018 Björn Esser <besser82@fedoraproject.org> - 1:1.12.38-2
+- Rebuilt for switch to libxcrypt
+
+* Sun Dec 31 2017 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.38-1
+- Updated to 1.12.38
+
+* Tue Nov 21 2017 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.36-1
+- Updated to 1.12.36
+
+* Wed Aug 02 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.35-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
+
+* Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.35-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
+* Tue Jul 11 2017 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.35-1
+- Updated to 1.12.35
+- Corrected -plugins-extras subpackage summary (RH #1464742)
+
+* Sun Jun 04 2017 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.12.34-2
+- Perl 5.26 rebuild
+
+* Mon Mar 27 2017 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.34-1
+- Updated to 1.12.34
+- Dropped upstreamed patches
+
+* Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.33-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
+* Tue Jan 31 2017 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.33-1
+- Updated to 1.12.33
+- Fixed missing $DESTDIR in doc/Makefile.{in,am}
+- Added docbook-dtds and itstool to BuildRequires, removed rarian-compat
+- Patched to use xml-dtd-4.5 instead of xmlcharent
+
+* Sat Aug 27 2016 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.32-1
+- Updated to 1.12.32
+
+* Mon Jul 04 2016 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.31-1
+- Updated to 1.12.31
+
+* Mon Jun 20 2016 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.30-1
+- Updated to 1.12.30
+- Dropped upstreamed patches
+- Spec file cleanups
+
+* Tue May 17 2016 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.12.29-3
+- Perl 5.24 rebuild
+
+* Sun May 15 2016 Hans de Goede <hdegoede@redhat.com> - 1:1.12.29-2
+- Fix "usage of MIME type "zz-application/zz-winassoc-xls" is discouraged"
+  warning showing every time a rpm transaction runs update-desktop-database
+- Prune spec-file changelog
+
+* Sat May 07 2016 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.29-1
+- Updated to 1.12.29
+
+* Wed Mar 23 2016 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.28-1
+- Updated to 1.12.28
+
+* Sun Feb 07 2016 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.27-1
+- Updated to 1.12.27
+- Added bison to BuildRequires
+
+* Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.26-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
+* Thu Dec 31 2015 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.26-1
+- Updated to 1.12.26
+
+* Mon Dec 28 2015 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.25-1
+- Updated to 1.12.25
+
+* Mon Oct 26 2015 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.24-1
+- Updated to 1.12.24
+
+* Thu Jul 30 2015 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.23-1
+- Updated to 1.12.23
+
+* Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.12.22-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
+* Sat Jun 06 2015 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.12.22-2
+- Perl 5.22 rebuild
+
+* Thu May 28 2015 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.22-1
+- Updated to 1.12.22
+
+* Tue Apr 07 2015 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.21-1
+- Updated to 1.12.21
+
+* Mon Mar 30 2015 Richard Hughes <rhughes@redhat.com> - 1:1.12.20-2
+- Use better AppData screenshots
+
+* Fri Feb 06 2015 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.20-1
+- Updated to 1.12.20
+
+* Thu Jan 29 2015 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.19-1
+- Updated to 1.12.19
+
+* Sat Sep 27 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.18-1
+- Updated to 1.12.18
+
+* Thu Aug 28 2014 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.12.17-3
+- Perl 5.20 rebuild
+
+* Sat Aug 16 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.12.17-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
+* Thu Jun 12 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.17-1
+- Updated to 1.12.17
+
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.12.16-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
+* Wed May 28 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.16-1
+- Updated to 1.12.16
+
+* Sun May 04 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.15-1
+- Updated to 1.12.15
+
+* Mon Apr 21 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.14-1
+- Updated to 1.12.14
+
+* Fri Mar 21 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.13-1
+- Updated to 1.12.13
+
+* Mon Mar 17 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.12-2
+- Fixed crash on strange .xls files (RH #1076912)
+
+* Tue Mar 04 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.12-1
+- Updated to 1.12.12
+
+* Wed Feb 19 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.11-1
+- Updated to 1.12.11
+
+* Sun Feb 16 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.10-1
+- Updated to 1.12.10
+
+* Wed Jan 01 2014 Julian Sikorski <belegdol@fedoraproject.org> - 1:1.12.9-1
+- Updated to 1.12.9
