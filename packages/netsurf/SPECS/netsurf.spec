@@ -72,7 +72,7 @@ cd libcss
         NETSURF_FB_FONT_CURSIVE=DejaVuSerif-Italic.ttf \\\
         NETSURF_FB_FONTPATH=/usr/share/fonts/dejavu
 
-%global gtk_make_opts %{common_make_opts} TARGET=gtk3 \\\
+%global gtk_make_opts %{common_make_opts} TARGET=gtk2 V=1 \\\
         NETSURF_USE_RSVG=YES \\\
         NETSURF_USE_WEBP=YES \\\
         NETSURF_USE_NSSVG=NO \\\
@@ -96,10 +96,10 @@ export LDFLAGS="-ldicl-0.1 -liconv $RPM_LD_FLAGS"
 export GDK_PIXBUF_MODULE_FILE=/tmp/loaders.cache
 #make PREFIX=%{_prefix} NETSURF_USE_HARU_PDF=NO NETSURF_GTK_MAJOR=3 %{?_smp_mflags}
 #make PREFIX=%{_prefix} NETSURF_USE_HARU_PDF=NO TARGET=gtk3 NETSURF_GTK_MAJOR=3 %{?_smp_mflags}
-make %{?_smp_mflags} %{gtk_make_opts}
+make %{?_smp_mflags} %{gtk_make_opts} NETSURF_LOG_LEVEL=DEEPDEBUG 
 
 %install
-%make_install PREFIX=%{_prefix} TARGET=gtk3 NETSURF_GTK_MAJOR=3
+%make_install PREFIX=%{_prefix} TARGET=gtk2 NETSURF_GTK_MAJOR=2 NETSURF_LOG_LEVEL=DEEPDEBUG LDFLAGS="-ldicl-0.1 -liconv $RPM_LD_FLAGS"
 desktop-file-install --dir=$RPM_BUILD_ROOT%{_datadir}/applications %{SOURCE1}
 install -D -m0644 netsurf/frontends/gtk/res/netsurf.xpm $RPM_BUILD_ROOT%{_datadir}/pixmaps/netsurf.xpm
 
