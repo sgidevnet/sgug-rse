@@ -1,0 +1,699 @@
+diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.clang netsurf-all-3.10/buildsystem/makefiles/Makefile.clang
+--- netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.clang	2020-05-24 17:35:19.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.clang	2021-05-12 18:13:14.000906000 +0000
+@@ -3,8 +3,10 @@
+ # as clang being mostly GCC-compatible on the command line
+ 
+ CCDEF := -D
+-CCOPT := -O2
+-CCNOOPT := -O0
++#CCOPT := -O2
++#CCNOOPT := -O0
++CCOPT := -ONOPE
++CCNOOPT := -ONOPE
+ CCDBG := -g
+ CCINC := -I
+ CCLIB := -L
+@@ -12,8 +14,10 @@
+ CCSHR := -fPIC
+ 
+ CXXDEF := -D
+-CXXOPT := -O2
+-CXXNOOPT := -O0
++#CXXOPT := -O2
++#CXXNOOPT := -O0
++CXXOPT := -ONOPE
++CXXNOOPT := -ONOPE
+ CXXDBG := -g
+ CXXINC := -I
+ CXXLIB := -L
+diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.gcc netsurf-all-3.10/buildsystem/makefiles/Makefile.gcc
+--- netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.gcc	2020-05-24 17:35:19.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.gcc	2021-05-12 18:13:54.020515600 +0000
+@@ -2,8 +2,10 @@
+ # We assume that we're using a standard GCC/binutils environment
+ 
+ CCDEF := -D
+-CCOPT := -O2
+-CCNOOPT := -O0
++#CCOPT := -O2
++#CCNOOPT := -O0
++CCOPT :=
++CCNOOPT :=
+ CCDBG := -g
+ CCINC := -I
+ CCLIB := -L
+@@ -11,8 +13,10 @@
+ CCSHR := -fPIC
+ 
+ CXXDEF := -D
+-CXXOPT := -O2
+-CXXNOOPT := -O0
++#CXXOPT := -O2
++#CXXNOOPT := -O0
++CXXOPT :=
++CXXNOOPT :=
+ CXXDBG := -g
+ CXXINC := -I
+ CXXLIB := -L
+diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.norcroft netsurf-all-3.10/buildsystem/makefiles/Makefile.norcroft
+--- netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.norcroft	2020-05-24 17:35:19.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.norcroft	2021-05-12 18:15:09.927833200 +0000
+@@ -1,8 +1,9 @@
+ # Norcroft specific toolchain setup
+ 
+ CCDEF := -D
+-CCOPT := -Otime
+-CCNOOPT :=
++#CCOPT := -Otime
++#CCNOOPT :=
++CCOPT := -ONOPE
+ CCDBG := -g
+ CCINC := -I
+ CCLIB := -L
+@@ -11,8 +12,10 @@
+ CCSHR :=
+ 
+ CXXDEF := -D
+-CXXOPT := -O2
+-CXXNOOPT := -O0
++#CXXOPT := -O2
++#CXXNOOPT := -O0
++CXXOPT := -ONOPE
++CXXNOOPT := -ONOPE
+ CXXDBG := -g
+ CXXINC := -I
+ CXXLIB := -L
+diff -Naur netsurf-all-3.10.orig/libcss/Makefile netsurf-all-3.10/libcss/Makefile
+--- netsurf-all-3.10.orig/libcss/Makefile	2020-05-24 17:35:19.000000000 +0000
++++ netsurf-all-3.10/libcss/Makefile	2021-05-12 18:16:12.824040400 +0000
+@@ -28,7 +28,7 @@
+   endif
+ endif
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+diff -Naur netsurf-all-3.10.orig/libdom/Makefile netsurf-all-3.10/libdom/Makefile
+--- netsurf-all-3.10.orig/libdom/Makefile	2020-05-24 17:35:20.000000000 +0000
++++ netsurf-all-3.10/libdom/Makefile	2021-05-12 18:16:44.994635600 +0000
+@@ -30,7 +30,7 @@
+ ifeq ($(findstring amigaos,$(HOST)),amigaos)
+   CFLAGS := -U__STRICT_ANSI__ $(CFLAGS)
+ endif
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src -I$(CURDIR)/binding \
+ 	$(WARNFLAGS) $(CFLAGS)
+ # Some gcc2 versions choke on -std=c99, and it doesn't know about it anyway
+diff -Naur netsurf-all-3.10.orig/libdom/bindings/xml/Makefile netsurf-all-3.10/libdom/bindings/xml/Makefile
+--- netsurf-all-3.10.orig/libdom/bindings/xml/Makefile	2020-05-24 17:35:20.000000000 +0000
++++ netsurf-all-3.10/libdom/bindings/xml/Makefile	2021-05-12 18:17:19.424492400 +0000
+@@ -12,7 +12,7 @@
+ 
+   # LibXML 2.6.26 has a bug in its headers that expects _POSIX_C_SOURCE to be 
+   # defined. Define it here, even though we don't need it.
+-  CFLAGS := $(CFLAGS) -D_POSIX_C_SOURCE
++  CFLAGS := $(CFLAGS)
+ 
+   DO_XML_INSTALL := yes
+ endif
+diff -Naur netsurf-all-3.10.orig/libhubbub/Makefile netsurf-all-3.10/libhubbub/Makefile
+--- netsurf-all-3.10.orig/libhubbub/Makefile	2020-05-24 17:35:20.000000000 +0000
++++ netsurf-all-3.10/libhubbub/Makefile	2021-05-12 18:17:45.046798000 +0000
+@@ -28,7 +28,7 @@
+   endif
+ endif
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	 -I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+diff -Naur netsurf-all-3.10.orig/libnsfb/Makefile netsurf-all-3.10/libnsfb/Makefile
+--- netsurf-all-3.10.orig/libnsfb/Makefile	2020-05-24 17:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsfb/Makefile	2021-05-12 18:18:10.509617200 +0000
+@@ -29,7 +29,7 @@
+ # would like these flags but gcc earlier than 4.4 fail
+ #-pedantic -Wno-overlength-strings # For nsglobe.c
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200112L \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ # Cope with gcc 2
+diff -Naur netsurf-all-3.10.orig/libnsfb/src/surface/x.c netsurf-all-3.10/libnsfb/src/surface/x.c
+--- netsurf-all-3.10.orig/libnsfb/src/surface/x.c	2020-05-24 17:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsfb/src/surface/x.c	2021-05-12 18:19:00.685506800 +0000
+@@ -5,8 +5,9 @@
+  * Licenced under the MIT License,
+  *                http://www.opensource.org/licenses/mit-license.php
+  */
+-
++#if !defined(__sgi)
+ #define _XOPEN_SOURCE 500
++#endif
+ 
+ #include <stdbool.h>
+ #include <stdlib.h>
+diff -Naur netsurf-all-3.10.orig/libnsgif/Makefile netsurf-all-3.10/libnsgif/Makefile
+--- netsurf-all-3.10.orig/libnsgif/Makefile	2020-05-24 17:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsgif/Makefile	2021-05-12 18:20:07.287422800 +0000
+@@ -27,7 +27,7 @@
+   WARNFLAGS := $(WARNFLAGS) -Werror
+ endif
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+diff -Naur netsurf-all-3.10.orig/libnslog/Makefile netsurf-all-3.10/libnslog/Makefile
+--- netsurf-all-3.10.orig/libnslog/Makefile	2020-05-24 17:35:21.000000000 +0000
++++ netsurf-all-3.10/libnslog/Makefile	2021-05-12 18:20:52.553242800 +0000
+@@ -24,7 +24,7 @@
+ 	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
+ 	-Wmissing-declarations -Wnested-externs
+ 
+-CFLAGS := -D_GNU_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src $(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+   CFLAGS := $(CFLAGS) -std=c99
+@@ -32,7 +32,7 @@
+   # __inline__ is a GCCism
+   CFLAGS := $(CFLAGS) -Dinline="__inline__"
+ endif
+-CFLAGS := $(CFLAGS) -D_POSIX_C_SOURCE=200809L -g
++CFLAGS := $(CFLAGS)
+ 
+ REQUIRED_LIBS := nslog
+ 
+diff -Naur netsurf-all-3.10.orig/libnslog/src/core.c netsurf-all-3.10/libnslog/src/core.c
+--- netsurf-all-3.10.orig/libnslog/src/core.c	2020-05-24 17:35:21.000000000 +0000
++++ netsurf-all-3.10/libnslog/src/core.c	2021-05-12 18:24:48.977378800 +0000
+@@ -134,7 +134,8 @@
+ 	if (nslog__corked) {
+ 		va_list ap2;
+ 		va_copy(ap2, ap);
+-		int slen = vsnprintf(NULL, 0, pattern, ap);
++		/* int slen = vsnprintf(NULL, 0, pattern, ap); */
++        int slen = 8192;
+ 		va_end(ap);
+ 		nslog__log_corked(ctx, slen, pattern, ap2);
+ 		va_end(ap2);
+diff -Naur netsurf-all-3.10.orig/libnspsl/Makefile netsurf-all-3.10/libnspsl/Makefile
+--- netsurf-all-3.10.orig/libnspsl/Makefile	2020-05-24 17:35:21.000000000 +0000
++++ netsurf-all-3.10/libnspsl/Makefile	2021-05-12 18:25:30.723898800 +0000
+@@ -23,7 +23,7 @@
+ 	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
+ 	-Wmissing-declarations -Wnested-externs
+ 
+-CFLAGS := -D_GNU_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+@@ -32,7 +32,7 @@
+   # __inline__ is a GCCism
+   CFLAGS := $(CFLAGS) -Dinline="__inline__"
+ endif
+-CFLAGS := $(CFLAGS) -D_POSIX_C_SOURCE=200809L
++CFLAGS := $(CFLAGS)
+ 
+ REQUIRED_LIBS := nspsl
+ 
+diff -Naur netsurf-all-3.10.orig/libnsutils/Makefile netsurf-all-3.10/libnsutils/Makefile
+--- netsurf-all-3.10.orig/libnsutils/Makefile	2020-05-24 17:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsutils/Makefile	2021-05-12 18:26:09.086853200 +0000
+@@ -23,7 +23,7 @@
+ 	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
+ 	-Wmissing-declarations -Wnested-externs
+ 
+-CFLAGS := -D_GNU_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src $(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+   CFLAGS := $(CFLAGS) -std=c99
+@@ -31,7 +31,7 @@
+   # __inline__ is a GCCism
+   CFLAGS := $(CFLAGS) -Dinline="__inline__"
+ endif
+-CFLAGS := $(CFLAGS) -D_POSIX_C_SOURCE=200809L
++CFLAGS := $(CFLAGS)
+ 
+ REQUIRED_LIBS := nsutils
+ 
+diff -Naur netsurf-all-3.10.orig/libparserutils/Makefile netsurf-all-3.10/libparserutils/Makefile
+--- netsurf-all-3.10.orig/libparserutils/Makefile	2020-05-24 17:35:21.000000000 +0000
++++ netsurf-all-3.10/libparserutils/Makefile	2021-05-12 18:26:43.603020400 +0000
+@@ -26,7 +26,7 @@
+   WARNFLAGS := $(WARNFLAGS) -Werror
+ endif
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+diff -Naur netsurf-all-3.10.orig/libsvgtiny/Makefile netsurf-all-3.10/libsvgtiny/Makefile
+--- netsurf-all-3.10.orig/libsvgtiny/Makefile	2020-05-24 17:35:22.000000000 +0000
++++ netsurf-all-3.10/libsvgtiny/Makefile	2021-05-12 18:27:44.965898000 +0000
+@@ -29,7 +29,7 @@
+   endif
+ endif
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+diff -Naur netsurf-all-3.10.orig/libsvgtiny/src/svgtiny_internal.h netsurf-all-3.10/libsvgtiny/src/svgtiny_internal.h
+--- netsurf-all-3.10.orig/libsvgtiny/src/svgtiny_internal.h	2020-05-24 17:35:22.000000000 +0000
++++ netsurf-all-3.10/libsvgtiny/src/svgtiny_internal.h	2021-05-12 18:28:36.086093200 +0000
+@@ -77,7 +77,7 @@
+ struct svgtiny_shape *svgtiny_add_shape(struct svgtiny_parse_state *state);
+ void svgtiny_transform_path(float *p, unsigned int n,
+ 		struct svgtiny_parse_state *state);
+-#if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)))
++#if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__sgi) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)))
+ #define HAVE_STRNDUP
+ #else
+ #undef HAVE_STRNDUP
+diff -Naur netsurf-all-3.10.orig/libutf8proc/CMakeLists.txt netsurf-all-3.10/libutf8proc/CMakeLists.txt
+--- netsurf-all-3.10.orig/libutf8proc/CMakeLists.txt	2020-05-24 17:35:22.000000000 +0000
++++ netsurf-all-3.10/libutf8proc/CMakeLists.txt	2021-05-12 18:29:27.980830000 +0000
+@@ -38,7 +38,7 @@
+ if (NOT MSVC)
+   set_target_properties(
+     utf8proc PROPERTIES
+-    COMPILE_FLAGS "-O2 -std=c99 -pedantic -Wall"
++    COMPILE_FLAGS "-std=c99 -pedantic -Wall"
+   )
+ endif ()
+ 
+diff -Naur netsurf-all-3.10.orig/libwapcaplet/Makefile netsurf-all-3.10/libwapcaplet/Makefile
+--- netsurf-all-3.10.orig/libwapcaplet/Makefile	2020-05-24 17:35:22.000000000 +0000
++++ netsurf-all-3.10/libwapcaplet/Makefile	2021-05-12 18:30:01.921177200 +0000
+@@ -27,7 +27,7 @@
+   WARNFLAGS := $(WARNFLAGS) -Werror
+ endif
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+diff -Naur netsurf-all-3.10.orig/netsurf/Makefile netsurf-all-3.10/netsurf/Makefile
+--- netsurf-all-3.10.orig/netsurf/Makefile	2020-05-24 17:35:22.000000000 +0000
++++ netsurf-all-3.10/netsurf/Makefile	2021-05-16 22:06:20.190184400 +0000
+@@ -522,8 +522,8 @@
+ 
+ # Common libraries with pkgconfig
+ $(eval $(call pkg_config_find_and_add,libcss,CSS))
+-$(eval $(call pkg_config_find_and_add,libdom,DOM))
+-$(eval $(call pkg_config_find_and_add,libnsutils,nsutils))
++#$(eval $(call pkg_config_find_and_add,libdom,DOM))
++#$(eval $(call pkg_config_find_and_add,libnsutils,nsutils))
+ 
+ # Common libraries without pkg-config support
+ LDFLAGS += -lz
+diff -Naur netsurf-all-3.10.orig/netsurf/Makefile.config netsurf-all-3.10/netsurf/Makefile.config
+--- netsurf-all-3.10.orig/netsurf/Makefile.config	1969-12-31 19:00:00.000000000 +0000
++++ netsurf-all-3.10/netsurf/Makefile.config	2021-05-13 17:58:11.227799600 +0000
+@@ -0,0 +1,53 @@
++#
++# NetSurf build configuration example
++#
++#
++# To configure NetSurf's build options create a Makefile.config file. This is
++# an example Makefile.config.
++#
++# To see the available config options, look at Makefile.defaults, but make any
++# alterations in your Makefile.config
++
++### To enable/disable PNG support, uncomment the appropriate line below.
++# override NETSURF_USE_PNG := YES
++# override NETSURF_USE_PNG := NO
++
++### To enable/disable SVGTiny support, uncomment the appropriate line below.
++# override NETSURF_USE_NSSVG := YES
++override NETSURF_USE_NSSVG := NO
++
++### To enable/disable RSVG support, uncomment the appropriate line below.
++override NETSURF_USE_RSVG := YES
++# override NETSURF_USE_RSVG := NO
++
++### To enable/disable BMP support, uncomment the appropriate line below.
++# override NETSURF_USE_BMP := YES
++# override NETSURF_USE_BMP := NO
++
++### To make the framebuffer front end use freetype for text, uncomment the
++### following line
++# override NETSURF_FB_FONTLIB := freetype
++
++### To disable JavaScript support, uncomment the appropriate line below.
++override NETSURF_USE_DUKTAPE := NO
++
++### To change flags to javascript binding generator
++# GBFLAGS:=-g
++
++### To enable ASAN and UBSAN support in builds regardless of target
++# override NETSURF_USE_SANITIZER := YES
++
++### If you're using the sanitizers and you want it to stop on failure...
++# override NETSURF_RECOVER_SANITIZERS := NO
++
++### To change the compiled in log level, alter this.
++# Valid options are: DEEPDEBUG, DEBUG, VERBOSE, INFO, WARNING, ERROR, CRITICAL
++# override NETSURF_LOG_LEVEL := DEBUG
++
++### To change the compiled in default log, change this
++# override NETSURF_BUILTIN_LOG_FILTER := "(level:WARNING || cat:jserrors)"
++
++### To change the compiled in *verbose* log, change this
++# override NETSURF_BUILTIN_VERBOSE_FILTER := "(level:VERBOSE || cat:jserrors)"
++override NETSURF_USE_VIDEO := NO
++override NETSURF_USE_IPV6 := NO
+diff -Naur netsurf-all-3.10.orig/netsurf/content/fetchers/curl.c netsurf-all-3.10/netsurf/content/fetchers/curl.c
+--- netsurf-all-3.10.orig/netsurf/content/fetchers/curl.c	2020-05-24 17:35:22.000000000 +0000
++++ netsurf-all-3.10/netsurf/content/fetchers/curl.c	2021-05-12 18:33:38.666096400 +0000
+@@ -1185,6 +1185,7 @@
+  */
+ static bool fetch_curl_process_headers(struct curl_fetch_info *f)
+ {
++    NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+ 	long http_code;
+ 	CURLcode code;
+ 	fetch_msg msg;
+@@ -1232,6 +1233,7 @@
+ 		fetch_send_callback(&msg, f->fetch_handle);
+ 		return true;
+ 	}
++    NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+ 
+ 	if (f->abort)
+ 		return true;
+@@ -1276,6 +1278,7 @@
+ 		 * object will be truncated in this case and leave it to
+ 		 * the content handlers to cope.
+ 		 */
++        NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+ 		if (f->stopped ||
+ 		    (!f->had_headers &&	fetch_curl_process_headers(f))) {
+ 			; /* redirect with no body or similar */
+@@ -1287,6 +1290,7 @@
+ 		 * response is smaller than that specified in the
+ 		 * Content-Length header.
+ 		 */
++        NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+ 		if (!f->had_headers && fetch_curl_process_headers(f))
+ 			; /* redirect with partial body, or similar */
+ 		else {
+@@ -1530,9 +1534,11 @@
+ 		f->http_code = 0;
+ 		return size * nmemb;
+ 	}
++    NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+ 
+ 	if (f->abort || (!f->had_headers && fetch_curl_process_headers(f))) {
+ 		f->stopped = true;
++        NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+ 		return 0;
+ 	}
+ 
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/framebuffer/fetch.c netsurf-all-3.10/netsurf/frontends/framebuffer/fetch.c
+--- netsurf-all-3.10.orig/netsurf/frontends/framebuffer/fetch.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/framebuffer/fetch.c	2021-05-15 16:38:36.594694800 +0000
+@@ -48,6 +48,9 @@
+  */
+ static nsurl *get_resource_url(const char *path)
+ {
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
+ 	char buf[PATH_MAX];
+ 	nsurl *url = NULL;
+ 
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile netsurf-all-3.10/netsurf/frontends/gtk/Makefile
+--- netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/Makefile	2021-05-12 18:36:22.235729200 +0000
+@@ -35,11 +35,6 @@
+ 
+ GTKCFLAGS := -std=c99 -Dgtk -Dnsgtk -g \
+ 		$(GTKDEPFLAGS) \
+-		-D_BSD_SOURCE \
+-		-D_DEFAULT_SOURCE \
+-		-D_XOPEN_SOURCE=700 \
+-		-D_POSIX_C_SOURCE=200809L \
+-		-D_NETBSD_SOURCE \
+ 		-DGTK_RESPATH=\"$(NETSURF_GTK_RES_PATH)\"
+ 
+ # non optional pkg-configed libs
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile.defaults netsurf-all-3.10/netsurf/frontends/gtk/Makefile.defaults
+--- netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile.defaults	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/Makefile.defaults	2021-05-12 18:37:16.088354000 +0000
+@@ -39,4 +39,4 @@
+ NETSURF_GTK_MAJOR ?= 2
+ 
+ # Optimisation levels
+-CFLAGS += -O2
++#CFLAGS += -O2
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/corewindow.c netsurf-all-3.10/netsurf/frontends/gtk/corewindow.c
+--- netsurf-all-3.10.orig/netsurf/frontends/gtk/corewindow.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/corewindow.c	2021-05-13 11:07:17.281776400 +0000
+@@ -62,9 +62,10 @@
+ 
+ 	if (event->type == GDK_2BUTTON_PRESS) {
+ 		ms = BROWSER_MOUSE_DOUBLE_CLICK;
+-	} else {
++	/* } else {
+ 		ms = BROWSER_MOUSE_HOVER;
+-	}
++	*/
++    }
+ 
+ 	/* button state */
+ 	switch (event->button) {
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/fetch.c netsurf-all-3.10/netsurf/frontends/gtk/fetch.c
+--- netsurf-all-3.10.orig/netsurf/frontends/gtk/fetch.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/fetch.c	2021-05-15 15:55:55.254590000 +0000
+@@ -246,6 +246,9 @@
+ 	return type;
+ }
+ 
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
+ 
+ static nsurl *nsgtk_get_resource_url(const char *path)
+ {
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/gui.c netsurf-all-3.10/netsurf/frontends/gtk/gui.c
+--- netsurf-all-3.10.orig/netsurf/frontends/gtk/gui.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/gui.c	2021-05-15 16:39:00.671222800 +0000
+@@ -115,10 +115,13 @@
+ 	char **respath; /* resource paths vector */
+ 
+ 	if (config_home != NULL) {
++        /*
+ 		resource_path_len = snprintf(NULL, 0,
+ 					     "%s:${NETSURFRES}:%s",
+ 					     config_home,
+ 					     GTK_RESPATH);
++        */
++        resource_path_len = 8192;
+ 		resource_path = malloc(resource_path_len + 1);
+ 		if (resource_path == NULL) {
+ 			return NULL;
+@@ -128,10 +131,13 @@
+ 			 config_home,
+ 			 GTK_RESPATH);
+ 	} else {
++        /*
+ 		resource_path_len = snprintf(NULL, 0,
+ 					     "${NETSURFRES}:%s",
+ 					     GTK_RESPATH);
+ 		resource_path = malloc(resource_path_len + 1);
++        */
++        resource_path_len = 8192;
+ 		if (resource_path == NULL) {
+ 			return NULL;
+ 		}
+@@ -335,6 +341,9 @@
+  */
+ static nserror nsgtk_init(int argc, char** argv, char **respath)
+ {
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
+ 	char buf[PATH_MAX];
+ 	char *resource_filename;
+ 	char *addr = NULL;
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/plotters.c netsurf-all-3.10/netsurf/frontends/gtk/plotters.c
+--- netsurf-all-3.10.orig/netsurf/frontends/gtk/plotters.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/plotters.c	2021-05-15 20:13:38.315374000 +0000
+@@ -39,6 +39,10 @@
+ #include "gtk/scaffolding.h"
+ #include "gtk/bitmap.h"
+ 
++#ifndef M_PI
++#define M_PI         3.14159265358979323846
++#endif
++
+ cairo_t *current_cr;
+ 
+ static GdkRectangle cliprect;
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/print.c netsurf-all-3.10/netsurf/frontends/gtk/print.c
+--- netsurf-all-3.10.orig/netsurf/frontends/gtk/print.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/print.c	2021-05-15 20:13:55.437186800 +0000
+@@ -45,6 +45,10 @@
+ #include "gtk/print.h"
+ #include "gtk/scaffolding.h"
+ 
++#ifndef M_PI
++#define M_PI         3.14159265358979323846
++#endif
++
+ /* Globals */
+ cairo_t *gtk_print_current_cr;
+ static struct print_settings* settings;
+diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/resources.c netsurf-all-3.10/netsurf/frontends/gtk/resources.c
+--- netsurf-all-3.10.orig/netsurf/frontends/gtk/resources.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/resources.c	2021-05-12 18:47:26.532546800 +0000
+@@ -191,10 +191,13 @@
+ 	/* look for resource under per language paths */
+ 	while (langv[langc] != NULL) {
+ 		/* allocate and fill a full resource name path buffer */
++        /*
+ 		resnamelen = snprintf(NULL, 0,
+ 				      "/org/netsurf/%s/%s",
+ 				      langv[langc], resource->name);
+ 		resname = malloc(resnamelen + 1);
++        */
++        resname = 8192;
+ 		if (resname == NULL) {
+ 			return NSERROR_NOMEM;
+ 		}
+diff -Naur netsurf-all-3.10.orig/netsurf/include/netsurf/inttypes.h netsurf-all-3.10/netsurf/include/netsurf/inttypes.h
+--- netsurf-all-3.10.orig/netsurf/include/netsurf/inttypes.h	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/include/netsurf/inttypes.h	2021-05-12 18:48:54.391222000 +0000
+@@ -46,6 +46,13 @@
+ 
+ /** windows printf formatting for ssize_t type */
+ #define PRIssizet "Id"
++#elif defined(__sgi)
++
++/** Irix printf formatting for size_t type */
++#define PRIsizet "d"
++
++/** Irix printf formatting for size_t type */
++#define PRIssizet "d"
+ 
+ #else
+ 
+diff -Naur netsurf-all-3.10.orig/netsurf/utils/config.h netsurf-all-3.10/netsurf/utils/config.h
+--- netsurf-all-3.10.orig/netsurf/utils/config.h	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/config.h	2021-05-12 18:49:52.548622000 +0000
+@@ -30,12 +30,7 @@
+ 
+ /* Try to detect which features the target OS supports */
+ 
+-#if (defined(_GNU_SOURCE) && \
+-     !defined(__APPLE__) || \
+-     defined(__amigaos4__) || \
+-     defined(__HAIKU__) || \
+-     (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)) && \
+-     !defined(__riscos__))
++#if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__sgi) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)) && !defined(__riscos__))
+ #define HAVE_STRNDUP
+ #else
+ #undef HAVE_STRNDUP
+diff -Naur netsurf-all-3.10.orig/netsurf/utils/file.c netsurf-all-3.10/netsurf/utils/file.c
+--- netsurf-all-3.10.orig/netsurf/utils/file.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/file.c	2021-05-15 16:39:44.286878000 +0000
+@@ -42,6 +42,10 @@
+ #include "frontends/amiga/os3support.h"
+ #endif
+ 
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
++
+ /**
+  * Generate a posix path from one or more component elemnts.
+  *
+diff -Naur netsurf-all-3.10.orig/netsurf/utils/filepath.c netsurf-all-3.10/netsurf/utils/filepath.c
+--- netsurf-all-3.10.orig/netsurf/utils/filepath.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/filepath.c	2021-05-15 20:45:59.939874800 +0000
+@@ -41,6 +41,10 @@
+ /** maximum number of elements in the resource vector */
+ #define MAX_RESPATH 128
+ 
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
++
+ /* exported interface documented in filepath.h */
+ char *filepath_vsfindfile(char *str, const char *format, va_list ap)
+ {
+@@ -200,11 +204,14 @@
+ 			/* path element exists and is a directory */
+ 			langc = 0;
+ 			while (langv[langc] != NULL) {
++                /*
+ 				tmppathlen = snprintf(NULL,
+ 						      0,
+ 						      "%s/%s",
+ 						      pathv[pathc],
+ 						      langv[langc]);
++                */
++                tmppathlen = 8192;
+ 				tmppath = malloc(tmppathlen + 1);
+ 				if (tmppath == NULL) {
+ 					break;
+diff -Naur netsurf-all-3.10.orig/netsurf/utils/useragent.c netsurf-all-3.10/netsurf/utils/useragent.c
+--- netsurf-all-3.10.orig/netsurf/utils/useragent.c	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/useragent.c	2021-05-12 18:53:14.264341200 +0000
+@@ -48,10 +48,12 @@
+                 sysname = un.sysname;
+         }
+ 
+-        len = snprintf(NULL, 0, NETSURF_UA_FORMAT_STRING,
++        /* len = snprintf(NULL, 0, NETSURF_UA_FORMAT_STRING,
+                        netsurf_version_major,
+                        netsurf_version_minor,
+                        sysname);
++        */
++        len = 8192;
+         ua_string = malloc(len + 1);
+         if (!ua_string) {
+                 /** \todo this needs handling better */
+diff -Naur netsurf-all-3.10.orig/nsgenbind/Makefile netsurf-all-3.10/nsgenbind/Makefile
+--- netsurf-all-3.10.orig/nsgenbind/Makefile	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/nsgenbind/Makefile	2021-05-12 18:53:40.831402000 +0000
+@@ -32,7 +32,7 @@
+   endif
+ endif
+ 
+-CFLAGS := -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L \
++CFLAGS := \
+ 	-I$(CURDIR)/include/ -I$(CURDIR)/src \
+ 	$(WARNFLAGS) $(CFLAGS)
+ ifneq ($(GCCVER),2)
+diff -Naur netsurf-all-3.10.orig/nsgenbind/src/nsgenbind-parser.y netsurf-all-3.10/nsgenbind/src/nsgenbind-parser.y
+--- netsurf-all-3.10.orig/nsgenbind/src/nsgenbind-parser.y	2020-05-24 17:35:23.000000000 +0000
++++ netsurf-all-3.10/nsgenbind/src/nsgenbind-parser.y	2021-05-12 18:54:45.506885200 +0000
+@@ -103,8 +103,11 @@
+         UNUSED(genbind_ast);
+         UNUSED(filename);
+ 
++        /*
+         errlen = snprintf(NULL, 0, "%s:%d:%s",
+                           locp->filename, locp->first_line, str);
++        */
++        errlen = 8192;
+         errtxt = malloc(errlen + 1);
+         snprintf(errtxt, errlen + 1, "%s:%d:%s",
+                           locp->filename, locp->first_line, str);
