@@ -1,0 +1,133 @@
+%global fontname cjkuni-ukai
+#%global fontconf2 25-ttf-arphic-ukai-render.conf
+%global fontconf3 90-ttf-arphic-ukai-embolden.conf
+
+%define catalogue        %{_sysconfdir}/X11/fontpath.d
+
+%define common_desc \
+CJK Unifonts are Unicode TrueType fonts derived from original fonts made \
+available by Arphic Technology under "Arphic Public License" and extended by \
+the CJK Unifonts project.
+
+%define ukaibuilddir %{name}-%{version}
+
+Name:           %{fontname}-fonts
+Version:        0.2.20080216.1
+Release:        60%{?dist}
+Summary:        Chinese Unicode TrueType font in Kai face
+
+License:        Arphic
+URL:            http://www.freedesktop.org/wiki/Software/CJKUnifonts
+Source0:        http://ftp.debian.org/debian/pool/main/t/ttf-arphic-ukai/ttf-arphic-ukai_%{version}.orig.tar.gz
+#Source2:        %{fontconf2}
+Source3:        %{fontconf3}
+
+BuildArch:      noarch
+BuildRequires:  fontpackages-devel
+Requires:       fontpackages-filesystem
+Obsoletes:      cjkuni-fonts-common < 0.2.20080216.1-42
+
+%description
+%common_desc
+
+CJK Unifonts in Kai face.
+
+%prep
+%setup -q -c -n %{name}-%{version}
+
+
+%build
+%{nil}
+
+%install
+install -m 0755 -d %{buildroot}%{_fontdir}
+install -m 0644 -p *.ttc %{buildroot}%{_fontdir}
+
+install -m 0755 -d %{buildroot}%{_fontconfig_templatedir} \
+                   %{buildroot}%{_fontconfig_confdir}
+
+#install -m 0644 -p %{SOURCE2} \
+#        %{buildroot}%{_fontconfig_templatedir}/%{fontconf2}
+#ln -s %{_fontconfig_templatedir}/%{fontconf2} \
+#      %{buildroot}%{_fontconfig_confdir}/%{fontconf2}
+
+install -m 0644 -p %{SOURCE3} \
+        %{buildroot}%{_fontconfig_templatedir}/%{fontconf3}
+ln -s %{_fontconfig_templatedir}/%{fontconf3} \
+      %{buildroot}%{_fontconfig_confdir}/%{fontconf3}
+
+# catalogue
+install -m 0755 -d %{buildroot}%{catalogue}
+ln -s %{_fontdir}/ %{buildroot}%{catalogue}/%{name}
+
+
+%_font_pkg -f *.conf *.ttc
+
+%defattr(-,root,root,-)
+%doc ../%{ukaibuilddir}/license
+%doc ../%{ukaibuilddir}/CONTRIBUTERS
+%doc ../%{ukaibuilddir}/FONTLOG
+%doc ../%{ukaibuilddir}/KNOWN_ISSUES
+%doc ../%{ukaibuilddir}/NEWS
+%doc ../%{ukaibuilddir}/README
+%doc ../%{ukaibuilddir}/TODO
+%{catalogue}/%{name}
+
+
+%changelog
+* Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.2.20080216.1-60
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.2.20080216.1-59
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Thu Jul 12 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.2.20080216.1-58
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
+* Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.2.20080216.1-57
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 0.2.20080216.1-56
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
+* Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 0.2.20080216.1-55
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
+* Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 0.2.20080216.1-54
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
+* Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.2.20080216.1-53
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.2.20080216.1-52
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.2.20080216.1-51
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
+* Wed Feb 13 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.2.20080216.1-50
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
+
+* Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.2.20080216.1-49
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Thu Jan 12 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.2.20080216.1-48
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
+* Wed Mar 16 2011  Peng Wu <pwu@redhat.com> - 0.2.20080216.1-47
+- Clean up spec.
+  Remove fonts.dir, fonts.scale and 25-ttf-arphic-ukai-render.conf.
+
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.2.20080216.1-46
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Tue Jul 20 2010  Peng Wu <pwu@redhat.com> - 0.2.20080216.1-45
+- Fixes font_pkg macro usage.
+
+* Mon Jul 19 2010  Peng Wu <pwu@redhat.com> - 0.2.20080216.1-44
+- Clean up the spec.
+
+* Tue Jul 13 2010  Peng Wu <pwu@redhat.com> - 0.2.20080216.1-43
+- The Initial Version.
+  Split from cjkuni-fonts.
+
