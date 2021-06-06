@@ -59,6 +59,9 @@ ctest .
 
 
 %changelog
+* Tue May 04 2021  HAL <notes2@gmx.de> - 3.7.1-1
+- builds on Irix 6.5 with sgug-rse gcc 9.2.
+
 * Mon May 18 2020 Filipe Rosset <rosset.filipe@gmail.com> - 3.7.1-1
 - Update to 3.7.1 fixes rhbz#1832482
 
