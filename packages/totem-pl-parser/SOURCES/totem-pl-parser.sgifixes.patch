@@ -1,0 +1,8 @@
+diff -Naur totem-pl-parser-3.26.5.orig/lib/asprintf.c totem-pl-parser-3.26.5/lib/asprintf.c
+--- totem-pl-parser-3.26.5.orig/lib/asprintf.c	2020-02-28 17:16:58.963869000 +0000
++++ totem-pl-parser-3.26.5/lib/asprintf.c	2021-06-06 17:43:00.045654442 +0000
+@@ -1,4 +1,3 @@
+-#include "config.h"
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <stdarg.h>

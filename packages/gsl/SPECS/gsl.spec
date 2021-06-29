@@ -56,7 +56,8 @@ rm -f %{buildroot}%{_libdir}/*.la
 # remove static libraries
 rm -r %{buildroot}%{_libdir}/*.a
 
-#%%ldconfig_scriptlets
+
+%ldconfig_scriptlets
 
 %files
 %license COPYING
