@@ -1,0 +1,35 @@
+diff -ur mercurial-4.9.orig/contrib/chg/hgclient.c mercurial-4.9/contrib/chg/hgclient.c
+--- mercurial-4.9.orig/contrib/chg/hgclient.c	2021-06-30 22:28:17.950641600 +0000
++++ mercurial-4.9/contrib/chg/hgclient.c	2021-06-30 22:44:07.883744000 +0000
+@@ -26,6 +26,10 @@
+ #include "procutil.h"
+ #include "util.h"
+ 
++#ifdef __sgi
++#define SCM_RIGHTS      0x01
++#endif
++
+ enum { CAP_GETENCODING = 0x0001,
+        CAP_RUNCOMMAND = 0x0002,
+        /* cHg extension: */
+@@ -360,7 +364,7 @@
+ 		}
+ 		s = u + 1;
+ 	}
+-	debugmsg("capflags=0x%04x, pid=%d", hgc->capflags, hgc->pid);
++	debugmsg("capflags=0x%04x, pid=%ld", hgc->capflags, hgc->pid);
+ }
+ 
+ static void updateprocname(hgclient_t *hgc)
+@@ -463,7 +467,11 @@
+ 			memcpy(sockdir, sockname, len);
+ 			sockdir[len] = '\0';
+ 
++#ifndef __sgi
+ 			bakfd = open(".", O_DIRECTORY);
++#else
++			bakfd = open(".", 0);
++#endif
+ 			if (bakfd == -1)
+ 				abortmsgerrno("cannot open cwd");
+ 
