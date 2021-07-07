@@ -42,9 +42,6 @@ make DESTDIR=%{buildroot} INSTALL="install -p" install
 %{_datadir}/aclocal/*
 
 %changelog
-* Sat Nov 28 2020  HAL <notes2@gmx.de> - 3.18.0-8
-- compiles on Irix 6.5 with sgug-rse gcc 9.2.
-
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.18.0-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
