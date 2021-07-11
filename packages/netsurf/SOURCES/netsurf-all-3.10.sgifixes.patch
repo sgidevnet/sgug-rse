@@ -1,6 +1,6 @@
-diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.clang netsurf-all-3.10/buildsystem/makefiles/Makefile.clang
---- netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.clang	2020-05-24 17:35:19.000000000 +0000
-+++ netsurf-all-3.10/buildsystem/makefiles/Makefile.clang	2021-06-28 19:30:53.929553200 +0000
+diff -Naur netsurf-all-3.10-original/buildsystem/makefiles/Makefile.clang netsurf-all-3.10/buildsystem/makefiles/Makefile.clang
+--- netsurf-all-3.10-original/buildsystem/makefiles/Makefile.clang	2020-05-24 15:35:19.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.clang	2021-07-04 14:44:30.302218000 +0000
 @@ -3,8 +3,10 @@
  # as clang being mostly GCC-compatible on the command line
  
@@ -27,9 +27,78 @@ diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.clang netsurf-al
  CXXDBG := -g
  CXXINC := -I
  CXXLIB := -L
-diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.gcc netsurf-all-3.10/buildsystem/makefiles/Makefile.gcc
---- netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.gcc	2020-05-24 17:35:19.000000000 +0000
-+++ netsurf-all-3.10/buildsystem/makefiles/Makefile.gcc	2021-06-28 19:30:53.931939600 +0000
+diff -Naur netsurf-all-3.10-original/buildsystem/makefiles/Makefile.clang.orig netsurf-all-3.10/buildsystem/makefiles/Makefile.clang.orig
+--- netsurf-all-3.10-original/buildsystem/makefiles/Makefile.clang.orig	1969-12-31 17:00:00.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.clang.orig	2021-07-04 14:44:30.275700480 +0000
+@@ -0,0 +1,65 @@
++# Clang-specific toolchain setup
++# We assume that we're using a standard GCC/binutils environment, as well
++# as clang being mostly GCC-compatible on the command line
++
++CCDEF := -D
++#CCOPT := -O2
++#CCNOOPT := -O0
++CCOPT := -ONOPE
++CCNOOPT := -ONOPE
++CCDBG := -g
++CCINC := -I
++CCLIB := -L
++CCAS := -xassembler-with-cpp
++CCSHR := -fPIC
++
++CXXDEF := -D
++#CXXOPT := -O2
++#CXXNOOPT := -O0
++CXXOPT := -ONOPE
++CXXNOOPT := -ONOPE
++CXXDBG := -g
++CXXINC := -I
++CXXLIB := -L
++CXXSHR := -fPIC
++
++LDDBG := -g
++# Reevaluation is required here
++LDSHR = -shared -Wl,-soname,$(SONAME)
++
++ARFLG := cru
++
++# Definitions of various attributes
++CFLAGS := $(CFLAGS) -D_ALIGNED="__attribute__((aligned))" -DSTMTEXPR=1
++
++# Extensions for sanitize target
++ifeq ($(MAKECMDGOALS),sanitize)
++  SANCFLAGS ?= -fsanitize=address -fsanitize=undefined -fno-sanitize-recover
++  SANCXXFLAGS ?= -fsanitize=address -fsanitize=undefined -fno-sanitize-recover
++  SANLDFLAGS ?= -fsanitize=address -fsanitize=undefined -fno-sanitize-recover
++
++  CFLAGS := $(CFLAGS) $(SANCFLAGS)
++  CXXFLAGS := $(CXXFLAGS) $(SANCXXFLAGS)
++  LDFLAGS := $(LDFLAGS) $(SANLDFLAGS)
++endif
++
++###############################################################################
++# Mac OS X Universal Binaries
++###############################################################################
++
++ifeq ($(findstring darwin,$(HOST)),darwin)
++	ifneq ($(UNIVERSAL),)
++		UNIVERSAL_FLAGS := $(foreach arch,$(UNIVERSAL),-arch $(arch) )
++		
++		CFLAGS := $(CFLAGS) $(UNIVERSAL_FLAGS)
++		LDFLAGS := $(LDFLAGS) $(UNIVERSAL_FLAGS)
++		CXXFLAGS := $(CXXFLAGS) $(UNIVERSAL_FLAGS)
++		ARFLAGS := $(ARFLAGS) -s 
++	endif
++endif
++
++###############################################################################
++# Other settings
++###############################################################################
++
++CC_CAN_BUILD_AND_DEP ?= yes
+diff -Naur netsurf-all-3.10-original/buildsystem/makefiles/Makefile.gcc netsurf-all-3.10/buildsystem/makefiles/Makefile.gcc
+--- netsurf-all-3.10-original/buildsystem/makefiles/Makefile.gcc	2020-05-24 15:35:19.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.gcc	2021-07-04 14:44:30.357089440 +0000
 @@ -2,8 +2,10 @@
  # We assume that we're using a standard GCC/binutils environment
  
@@ -56,9 +125,123 @@ diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.gcc netsurf-all-
  CXXDBG := -g
  CXXINC := -I
  CXXLIB := -L
-diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.norcroft netsurf-all-3.10/buildsystem/makefiles/Makefile.norcroft
---- netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.norcroft	2020-05-24 17:35:19.000000000 +0000
-+++ netsurf-all-3.10/buildsystem/makefiles/Makefile.norcroft	2021-06-28 19:30:53.933718000 +0000
+diff -Naur netsurf-all-3.10-original/buildsystem/makefiles/Makefile.gcc.orig netsurf-all-3.10/buildsystem/makefiles/Makefile.gcc.orig
+--- netsurf-all-3.10-original/buildsystem/makefiles/Makefile.gcc.orig	1969-12-31 17:00:00.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.gcc.orig	2021-07-04 14:44:30.329893040 +0000
+@@ -0,0 +1,110 @@
++# GCC specific toolchain setup
++# We assume that we're using a standard GCC/binutils environment
++
++CCDEF := -D
++#CCOPT := -ONOPE
++#CCNOOPT := -ONOPE
++CCOPT :=
++CCNOOPT :=
++CCDBG := -g
++CCINC := -I
++CCLIB := -L
++CCAS := -xassembler-with-cpp
++CCSHR := -fPIC
++
++CXXDEF := -D
++#CXXOPT := -ONOPE
++#CXXNOOPT := -ONOPE
++CXXOPT :=
++CXXNOOPT :=
++CXXDBG := -g
++CXXINC := -I
++CXXLIB := -L
++CXXSHR := -fPIC
++
++LDDBG := -g
++# Reevaluation is required here
++LDSHR = -shared -Wl,-soname,$(SONAME)
++
++ARFLG := cru
++
++# Definitions for various attributes
++CFLAGS := $(CFLAGS) -D_ALIGNED="__attribute__((aligned))" -DSTMTEXPR=1
++
++# Extensions for coverage target
++ifeq ($(MAKECMDGOALS),coverage)
++  COVCFLAGS ?= -fprofile-arcs -ftest-coverage
++  COVCXXFLAGS ?= -fprofile-arcs -ftest-coverage
++  COVLDFLAGS ?= -lgcov
++
++  CFLAGS := $(CFLAGS) $(COVCFLAGS)
++  CXXFLAGS := $(CXXFLAGS) $(COVCXXFLAGS)
++  LDFLAGS := $(LDFLAGS) $(COVLDFLAGS)
++endif
++
++# Extensions for profile target
++ifeq ($(MAKECMDGOALS),profile)
++  PROFCFLAGS ?= -pg
++  PROFCXXFLAGS ?= -pg
++  PROFLDFLAGS ?= -pg
++
++  CFLAGS := $(CFLAGS) $(PROFCFLAGS)
++  CXXFLAGS := $(CXXFLAGS) $(PROFCXXFLAGS)
++  LDFLAGS := $(LDFLAGS) $(PROFLDFLAGS)
++endif
++
++# Extensions for sanitize target
++ifeq ($(MAKECMDGOALS),sanitize)
++  SANCFLAGS ?= -fsanitize=address -fsanitize=undefined -fno-sanitize-recover
++  SANCXXFLAGS ?= -fsanitize=address -fsanitize=undefined -fno-sanitize-recover
++  SANLDFLAGS ?= -fsanitize=address -fsanitize=undefined -fno-sanitize-recover
++
++  CFLAGS := $(CFLAGS) $(SANCFLAGS)
++  CXXFLAGS := $(CXXFLAGS) $(SANCXXFLAGS)
++  LDFLAGS := $(LDFLAGS) $(SANLDFLAGS)
++endif
++
++# RISC OS module extensions
++ifeq ($(COMPONENT_TYPE),riscos-module)
++  ifneq ($(HOST),arm-unknown-riscos)
++    $(error Attempting to build a RISC OS module for a non-RISC OS target)
++  endif
++
++  CFLAGS := $(CFLAGS) -mmodule
++  CXXFLAGS := $(CXXFLAGS) -mmodule
++  LDFLAGS := $(LDFLAGS) -mmodule
++endif
++
++###############################################################################
++# Mac OS X Universal Binaries
++###############################################################################
++
++ifeq ($(findstring darwin,$(HOST)),darwin)
++	ifneq ($(UNIVERSAL),)
++		UNIVERSAL_FLAGS := $(foreach arch,$(UNIVERSAL),-arch $(arch) )
++		CC_CAN_BUILD_AND_DEP := no
++		CC_CANNOT_DEP := yes
++		
++		CFLAGS := $(CFLAGS) $(UNIVERSAL_FLAGS)
++		LDFLAGS := $(LDFLAGS) $(UNIVERSAL_FLAGS)
++		CXXFLAGS := $(CXXFLAGS) $(UNIVERSAL_FLAGS)
++		ARFLAGS := $(ARFLAGS) -s 
++	endif
++endif
++
++###############################################################################
++# Other settings
++###############################################################################
++
++# Determine if the compiler supports simultaneous build & dep.
++ccvsn := $(shell $(CC) -dumpversion -dumpfullversion)
++# ccvsn = x.y.z
++GCCVER := $(word 1,$(subst ., ,$(ccvsn)))
++# GCCVER = x
++
++# If the major version (x, above) is not 2, then assume build & dep.
++# This will break if using a version of GCC < 2, but that's unlikely.
++ifneq ($(GCCVER),2)
++  CC_CAN_BUILD_AND_DEP ?= yes
++endif
++
+diff -Naur netsurf-all-3.10-original/buildsystem/makefiles/Makefile.norcroft netsurf-all-3.10/buildsystem/makefiles/Makefile.norcroft
+--- netsurf-all-3.10-original/buildsystem/makefiles/Makefile.norcroft	2020-05-24 15:35:19.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.norcroft	2021-07-04 14:44:30.078405840 +0000
 @@ -1,7 +1,9 @@
  # Norcroft specific toolchain setup
  
@@ -83,9 +266,9 @@ diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.norcroft netsurf
  CXXDBG := -g
  CXXINC := -I
  CXXLIB := -L
-diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.tools netsurf-all-3.10/buildsystem/makefiles/Makefile.tools
---- netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.tools	2020-05-24 17:35:19.000000000 +0000
-+++ netsurf-all-3.10/buildsystem/makefiles/Makefile.tools	2021-06-28 19:30:53.939003600 +0000
+diff -Naur netsurf-all-3.10-original/buildsystem/makefiles/Makefile.tools netsurf-all-3.10/buildsystem/makefiles/Makefile.tools
+--- netsurf-all-3.10-original/buildsystem/makefiles/Makefile.tools	2020-05-24 15:35:19.000000000 +0000
++++ netsurf-all-3.10/buildsystem/makefiles/Makefile.tools	2021-07-04 14:44:30.203040400 +0000
 @@ -135,7 +135,8 @@
    endif
  
@@ -96,9 +279,9 @@ diff -Naur netsurf-all-3.10.orig/buildsystem/makefiles/Makefile.tools netsurf-al
    ifeq ($(toolpath_),)
      toolpath_ := /opt/netsurf/$(HOST)/cross/bin/
      CC__  := $(toolpath_)$(HOST)-gcc
-diff -Naur netsurf-all-3.10.orig/libcss/Makefile netsurf-all-3.10/libcss/Makefile
---- netsurf-all-3.10.orig/libcss/Makefile	2020-05-24 17:35:19.000000000 +0000
-+++ netsurf-all-3.10/libcss/Makefile	2021-06-28 19:30:53.940576400 +0000
+diff -Naur netsurf-all-3.10-original/libcss/Makefile netsurf-all-3.10/libcss/Makefile
+--- netsurf-all-3.10-original/libcss/Makefile	2020-05-24 15:35:19.000000000 +0000
++++ netsurf-all-3.10/libcss/Makefile	2021-07-04 14:44:30.446977840 +0000
 @@ -28,7 +28,7 @@
    endif
  endif
@@ -108,9 +291,48 @@ diff -Naur netsurf-all-3.10.orig/libcss/Makefile netsurf-all-3.10/libcss/Makefil
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
-diff -Naur netsurf-all-3.10.orig/libdom/Makefile netsurf-all-3.10/libdom/Makefile
---- netsurf-all-3.10.orig/libdom/Makefile	2020-05-24 17:35:20.000000000 +0000
-+++ netsurf-all-3.10/libdom/Makefile	2021-06-28 19:30:53.950558800 +0000
+diff -Naur netsurf-all-3.10-original/libcss/build/mkprops.pl netsurf-all-3.10/libcss/build/mkprops.pl
+--- netsurf-all-3.10-original/libcss/build/mkprops.pl	2020-05-24 15:35:19.000000000 +0000
++++ netsurf-all-3.10/libcss/build/mkprops.pl	2021-07-04 14:44:30.526971200 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ 
+ use warnings;
+ use strict;
+diff -Naur netsurf-all-3.10-original/libcss/docs/Doxyfile netsurf-all-3.10/libcss/docs/Doxyfile
+--- netsurf-all-3.10-original/libcss/docs/Doxyfile	2020-05-24 15:35:19.000000000 +0000
++++ netsurf-all-3.10/libcss/docs/Doxyfile	2021-07-04 14:44:30.787185520 +0000
+@@ -1565,7 +1565,7 @@
+ # The PERL_PATH should be the absolute path and name of the perl script
+ # interpreter (i.e. the result of `which perl').
+ 
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
+ 
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool
+diff -Naur netsurf-all-3.10-original/libcss/test/data/parse/makefixed.pl netsurf-all-3.10/libcss/test/data/parse/makefixed.pl
+--- netsurf-all-3.10-original/libcss/test/data/parse/makefixed.pl	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libcss/test/data/parse/makefixed.pl	2021-07-04 14:44:41.026862080 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ 
+ use warnings;
+ use strict;
+diff -Naur netsurf-all-3.10-original/libcss/test/data/parse/makeopv.pl netsurf-all-3.10/libcss/test/data/parse/makeopv.pl
+--- netsurf-all-3.10-original/libcss/test/data/parse/makeopv.pl	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libcss/test/data/parse/makeopv.pl	2021-07-04 14:44:41.051804080 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ 
+ use warnings;
+ use strict;
+diff -Naur netsurf-all-3.10-original/libdom/Makefile netsurf-all-3.10/libdom/Makefile
+--- netsurf-all-3.10-original/libdom/Makefile	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libdom/Makefile	2021-07-04 14:44:43.589932720 +0000
 @@ -30,7 +30,7 @@
  ifeq ($(findstring amigaos,$(HOST)),amigaos)
    CFLAGS := -U__STRICT_ANSI__ $(CFLAGS)
@@ -120,9 +342,9 @@ diff -Naur netsurf-all-3.10.orig/libdom/Makefile netsurf-all-3.10/libdom/Makefil
  	-I$(CURDIR)/include/ -I$(CURDIR)/src -I$(CURDIR)/binding \
  	$(WARNFLAGS) $(CFLAGS)
  # Some gcc2 versions choke on -std=c99, and it doesn't know about it anyway
-diff -Naur netsurf-all-3.10.orig/libdom/bindings/xml/Makefile netsurf-all-3.10/libdom/bindings/xml/Makefile
---- netsurf-all-3.10.orig/libdom/bindings/xml/Makefile	2020-05-24 17:35:20.000000000 +0000
-+++ netsurf-all-3.10/libdom/bindings/xml/Makefile	2021-06-28 19:30:53.961815600 +0000
+diff -Naur netsurf-all-3.10-original/libdom/bindings/xml/Makefile netsurf-all-3.10/libdom/bindings/xml/Makefile
+--- netsurf-all-3.10-original/libdom/bindings/xml/Makefile	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libdom/bindings/xml/Makefile	2021-07-04 14:44:43.882444240 +0000
 @@ -12,7 +12,7 @@
  
    # LibXML 2.6.26 has a bug in its headers that expects _POSIX_C_SOURCE to be 
@@ -132,9 +354,30 @@ diff -Naur netsurf-all-3.10.orig/libdom/bindings/xml/Makefile netsurf-all-3.10/l
  
    DO_XML_INSTALL := yes
  endif
-diff -Naur netsurf-all-3.10.orig/libhubbub/Makefile netsurf-all-3.10/libhubbub/Makefile
---- netsurf-all-3.10.orig/libhubbub/Makefile	2020-05-24 17:35:20.000000000 +0000
-+++ netsurf-all-3.10/libhubbub/Makefile	2021-06-28 19:30:53.963455600 +0000
+diff -Naur netsurf-all-3.10-original/libdom/docs/Doxyfile netsurf-all-3.10/libdom/docs/Doxyfile
+--- netsurf-all-3.10-original/libdom/docs/Doxyfile	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libdom/docs/Doxyfile	2021-07-04 14:44:44.185745360 +0000
+@@ -1565,7 +1565,7 @@
+ # The PERL_PATH should be the absolute path and name of the perl script
+ # interpreter (i.e. the result of `which perl').
+ 
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
+ 
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool
+diff -Naur netsurf-all-3.10-original/libdom/test/transform.pl netsurf-all-3.10/libdom/test/transform.pl
+--- netsurf-all-3.10-original/libdom/test/transform.pl	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libdom/test/transform.pl	2021-07-04 14:46:16.073860240 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ # This file is part of libdom.
+ # It is used to generate libdom test files from the W3C DOMTS.
+ #
+diff -Naur netsurf-all-3.10-original/libhubbub/Makefile netsurf-all-3.10/libhubbub/Makefile
+--- netsurf-all-3.10-original/libhubbub/Makefile	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libhubbub/Makefile	2021-07-04 14:46:16.125724480 +0000
 @@ -28,7 +28,7 @@
    endif
  endif
@@ -144,9 +387,64 @@ diff -Naur netsurf-all-3.10.orig/libhubbub/Makefile netsurf-all-3.10/libhubbub/M
  	 -I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
-diff -Naur netsurf-all-3.10.orig/libnsbmp/Makefile netsurf-all-3.10/libnsbmp/Makefile
---- netsurf-all-3.10.orig/libnsbmp/Makefile	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libnsbmp/Makefile	2021-06-28 19:30:53.965006800 +0000
+diff -Naur netsurf-all-3.10-original/libhubbub/build/make-entities.pl netsurf-all-3.10/libhubbub/build/make-entities.pl
+--- netsurf-all-3.10-original/libhubbub/build/make-entities.pl	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libhubbub/build/make-entities.pl	2021-07-04 14:46:16.355408080 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/usr/sgug/bin/perl -w
+ # This file is part of Hubbub.
+ # Licensed under the MIT License,
+ #                http://www.opensource.org/licenses/mit-license.php
+diff -Naur netsurf-all-3.10-original/libhubbub/docs/Doxyfile netsurf-all-3.10/libhubbub/docs/Doxyfile
+--- netsurf-all-3.10-original/libhubbub/docs/Doxyfile	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libhubbub/docs/Doxyfile	2021-07-04 14:46:16.480263600 +0000
+@@ -1570,7 +1570,7 @@
+ # The PERL_PATH should be the absolute path and name of the perl script
+ # interpreter (i.e. the result of `which perl').
+ 
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
+ 
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool
+diff -Naur netsurf-all-3.10-original/libhubbub/src/treebuilder/in_body.c netsurf-all-3.10/libhubbub/src/treebuilder/in_body.c
+--- netsurf-all-3.10-original/libhubbub/src/treebuilder/in_body.c	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libhubbub/src/treebuilder/in_body.c	2021-07-04 14:46:17.774230080 +0000
+@@ -14,6 +14,7 @@
+ #include "utils/utils.h"
+ 
+ #undef DEBUG_IN_BODY
++#define NDEBUG
+ 
+ /**
+  * Bookmark for formatting list. Used in adoption agency
+diff -Naur netsurf-all-3.10-original/libhubbub/src/treebuilder/internal.h netsurf-all-3.10/libhubbub/src/treebuilder/internal.h
+--- netsurf-all-3.10-original/libhubbub/src/treebuilder/internal.h	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libhubbub/src/treebuilder/internal.h	2021-07-04 14:46:18.198861280 +0000
+@@ -10,6 +10,8 @@
+ 
+ #include "treebuilder/treebuilder.h"
+ 
++#define NDEBUG
++
+ typedef enum
+ {
+ /* Special */
+diff -Naur netsurf-all-3.10-original/libhubbub/src/treebuilder/treebuilder.c netsurf-all-3.10/libhubbub/src/treebuilder/treebuilder.c
+--- netsurf-all-3.10-original/libhubbub/src/treebuilder/treebuilder.c	2020-05-24 15:35:20.000000000 +0000
++++ netsurf-all-3.10/libhubbub/src/treebuilder/treebuilder.c	2021-07-04 14:46:18.303537760 +0000
+@@ -19,6 +19,7 @@
+ 
+ 
+ #define S(x)   x, SLEN(x)
++#define NDEBUG
+ 
+ static const struct {
+ 	const char *name;
+diff -Naur netsurf-all-3.10-original/libnsbmp/Makefile netsurf-all-3.10/libnsbmp/Makefile
+--- netsurf-all-3.10-original/libnsbmp/Makefile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsbmp/Makefile	2021-07-04 14:46:26.249026400 +0000
 @@ -27,7 +27,7 @@
    WARNFLAGS := $(WARNFLAGS) -Werror
  endif
@@ -156,9 +454,9 @@ diff -Naur netsurf-all-3.10.orig/libnsbmp/Makefile netsurf-all-3.10/libnsbmp/Mak
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
-diff -Naur netsurf-all-3.10.orig/libnsfb/Makefile netsurf-all-3.10/libnsfb/Makefile
---- netsurf-all-3.10.orig/libnsfb/Makefile	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libnsfb/Makefile	2021-06-28 19:30:53.977250800 +0000
+diff -Naur netsurf-all-3.10-original/libnsfb/Makefile netsurf-all-3.10/libnsfb/Makefile
+--- netsurf-all-3.10-original/libnsfb/Makefile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsfb/Makefile	2021-07-04 14:47:09.014874880 +0000
 @@ -29,7 +29,7 @@
  # would like these flags but gcc earlier than 4.4 fail
  #-pedantic -Wno-overlength-strings # For nsglobe.c
@@ -168,9 +466,9 @@ diff -Naur netsurf-all-3.10.orig/libnsfb/Makefile netsurf-all-3.10/libnsfb/Makef
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  # Cope with gcc 2
-diff -Naur netsurf-all-3.10.orig/libnsfb/src/surface/x.c netsurf-all-3.10/libnsfb/src/surface/x.c
---- netsurf-all-3.10.orig/libnsfb/src/surface/x.c	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libnsfb/src/surface/x.c	2021-06-28 19:30:53.993695600 +0000
+diff -Naur netsurf-all-3.10-original/libnsfb/src/surface/x.c netsurf-all-3.10/libnsfb/src/surface/x.c
+--- netsurf-all-3.10-original/libnsfb/src/surface/x.c	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsfb/src/surface/x.c	2021-07-04 14:47:10.259937840 +0000
 @@ -6,7 +6,9 @@
   *                http://www.opensource.org/licenses/mit-license.php
   */
@@ -181,9 +479,9 @@ diff -Naur netsurf-all-3.10.orig/libnsfb/src/surface/x.c netsurf-all-3.10/libnsf
  
  #include <stdbool.h>
  #include <stdlib.h>
-diff -Naur netsurf-all-3.10.orig/libnsgif/Makefile netsurf-all-3.10/libnsgif/Makefile
---- netsurf-all-3.10.orig/libnsgif/Makefile	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libnsgif/Makefile	2021-06-28 19:30:53.995186800 +0000
+diff -Naur netsurf-all-3.10-original/libnsgif/Makefile netsurf-all-3.10/libnsgif/Makefile
+--- netsurf-all-3.10-original/libnsgif/Makefile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsgif/Makefile	2021-07-04 14:47:10.832475680 +0000
 @@ -27,7 +27,7 @@
    WARNFLAGS := $(WARNFLAGS) -Werror
  endif
@@ -193,9 +491,30 @@ diff -Naur netsurf-all-3.10.orig/libnsgif/Makefile netsurf-all-3.10/libnsgif/Mak
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
-diff -Naur netsurf-all-3.10.orig/libnslog/Makefile netsurf-all-3.10/libnslog/Makefile
---- netsurf-all-3.10.orig/libnslog/Makefile	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libnslog/Makefile	2021-06-28 19:30:54.003593200 +0000
+diff -Naur netsurf-all-3.10-original/libnsgif/docs/Doxyfile netsurf-all-3.10/libnsgif/docs/Doxyfile
+--- netsurf-all-3.10-original/libnsgif/docs/Doxyfile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsgif/docs/Doxyfile	2021-07-04 14:47:10.945139520 +0000
+@@ -1565,7 +1565,7 @@
+ # The PERL_PATH should be the absolute path and name of the perl script
+ # interpreter (i.e. the result of `which perl').
+ 
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
+ 
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool
+diff -Naur netsurf-all-3.10-original/libnsgif/examples/disassemble_gif.pl netsurf-all-3.10/libnsgif/examples/disassemble_gif.pl
+--- netsurf-all-3.10-original/libnsgif/examples/disassemble_gif.pl	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsgif/examples/disassemble_gif.pl	2021-07-04 14:47:10.973904240 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ #
+ # Disassemble a GIF file and display the sections and chunks within.
+ #
+diff -Naur netsurf-all-3.10-original/libnslog/Makefile netsurf-all-3.10/libnslog/Makefile
+--- netsurf-all-3.10-original/libnslog/Makefile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnslog/Makefile	2021-07-04 14:47:18.640094720 +0000
 @@ -24,7 +24,7 @@
  	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
  	-Wmissing-declarations -Wnested-externs
@@ -214,9 +533,24 @@ diff -Naur netsurf-all-3.10.orig/libnslog/Makefile netsurf-all-3.10/libnslog/Mak
  
  REQUIRED_LIBS := nslog
  
-diff -Naur netsurf-all-3.10.orig/libnslog/src/core.c netsurf-all-3.10/libnslog/src/core.c
---- netsurf-all-3.10.orig/libnslog/src/core.c	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libnslog/src/core.c	2021-06-28 19:30:54.017228400 +0000
+diff -Naur netsurf-all-3.10-original/libnslog/docs/Doxyfile netsurf-all-3.10/libnslog/docs/Doxyfile
+--- netsurf-all-3.10-original/libnslog/docs/Doxyfile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnslog/docs/Doxyfile	2021-07-04 14:47:18.790797680 +0000
+@@ -2116,9 +2116,9 @@
+ 
+ # The PERL_PATH should be the absolute path and name of the perl script
+ # interpreter (i.e. the result of 'which perl').
+-# The default file (with absolute path) is: /usr/bin/perl.
++# The default file (with absolute path) is: /usr/sgug/bin/perl.
+ 
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
+ 
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool
+diff -Naur netsurf-all-3.10-original/libnslog/src/core.c netsurf-all-3.10/libnslog/src/core.c
+--- netsurf-all-3.10-original/libnslog/src/core.c	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnslog/src/core.c	2021-07-04 14:47:18.994821440 +0000
 @@ -134,7 +134,8 @@
  	if (nslog__corked) {
  		va_list ap2;
@@ -227,9 +561,9 @@ diff -Naur netsurf-all-3.10.orig/libnslog/src/core.c netsurf-all-3.10/libnslog/s
  		va_end(ap);
  		nslog__log_corked(ctx, slen, pattern, ap2);
  		va_end(ap2);
-diff -Naur netsurf-all-3.10.orig/libnspsl/Makefile netsurf-all-3.10/libnspsl/Makefile
---- netsurf-all-3.10.orig/libnspsl/Makefile	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libnspsl/Makefile	2021-06-28 19:30:54.033566800 +0000
+diff -Naur netsurf-all-3.10-original/libnspsl/Makefile netsurf-all-3.10/libnspsl/Makefile
+--- netsurf-all-3.10-original/libnspsl/Makefile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnspsl/Makefile	2021-07-04 14:47:19.360113440 +0000
 @@ -23,7 +23,7 @@
  	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
  	-Wmissing-declarations -Wnested-externs
@@ -248,9 +582,9 @@ diff -Naur netsurf-all-3.10.orig/libnspsl/Makefile netsurf-all-3.10/libnspsl/Mak
  
  REQUIRED_LIBS := nspsl
  
-diff -Naur netsurf-all-3.10.orig/libnsutils/Makefile netsurf-all-3.10/libnsutils/Makefile
---- netsurf-all-3.10.orig/libnsutils/Makefile	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libnsutils/Makefile	2021-06-28 19:30:54.046263600 +0000
+diff -Naur netsurf-all-3.10-original/libnsutils/Makefile netsurf-all-3.10/libnsutils/Makefile
+--- netsurf-all-3.10-original/libnsutils/Makefile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libnsutils/Makefile	2021-07-04 14:47:21.968785520 +0000
 @@ -23,7 +23,7 @@
  	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
  	-Wmissing-declarations -Wnested-externs
@@ -269,9 +603,9 @@ diff -Naur netsurf-all-3.10.orig/libnsutils/Makefile netsurf-all-3.10/libnsutils
  
  REQUIRED_LIBS := nsutils
  
-diff -Naur netsurf-all-3.10.orig/libparserutils/Makefile netsurf-all-3.10/libparserutils/Makefile
---- netsurf-all-3.10.orig/libparserutils/Makefile	2020-05-24 17:35:21.000000000 +0000
-+++ netsurf-all-3.10/libparserutils/Makefile	2021-06-28 19:30:54.047971600 +0000
+diff -Naur netsurf-all-3.10-original/libparserutils/Makefile netsurf-all-3.10/libparserutils/Makefile
+--- netsurf-all-3.10-original/libparserutils/Makefile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libparserutils/Makefile	2021-07-04 14:47:22.514239840 +0000
 @@ -26,7 +26,7 @@
    WARNFLAGS := $(WARNFLAGS) -Werror
  endif
@@ -281,9 +615,60 @@ diff -Naur netsurf-all-3.10.orig/libparserutils/Makefile netsurf-all-3.10/libpar
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
-diff -Naur netsurf-all-3.10.orig/libsvgtiny/Makefile netsurf-all-3.10/libsvgtiny/Makefile
---- netsurf-all-3.10.orig/libsvgtiny/Makefile	2020-05-24 17:35:22.000000000 +0000
-+++ netsurf-all-3.10/libsvgtiny/Makefile	2021-06-28 19:30:54.054343600 +0000
+diff -Naur netsurf-all-3.10-original/libparserutils/build/Doxyfile netsurf-all-3.10/libparserutils/build/Doxyfile
+--- netsurf-all-3.10-original/libparserutils/build/Doxyfile	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libparserutils/build/Doxyfile	2021-07-04 14:47:22.741235760 +0000
+@@ -1063,7 +1063,7 @@
+ # The PERL_PATH should be the absolute path and name of the perl script 
+ # interpreter (i.e. the result of `which perl').
+ 
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
+ 
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool   
+diff -Naur netsurf-all-3.10-original/libparserutils/build/conv.pl netsurf-all-3.10/libparserutils/build/conv.pl
+--- netsurf-all-3.10-original/libparserutils/build/conv.pl	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libparserutils/build/conv.pl	2021-07-04 14:47:22.768864480 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ 
+ use warnings;
+ use strict;
+diff -Naur netsurf-all-3.10-original/libparserutils/build/make-aliases.pl netsurf-all-3.10/libparserutils/build/make-aliases.pl
+--- netsurf-all-3.10-original/libparserutils/build/make-aliases.pl	2020-05-24 15:35:21.000000000 +0000
++++ netsurf-all-3.10/libparserutils/build/make-aliases.pl	2021-07-04 14:47:22.798138560 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/usr/sgug/bin/perl -w
+ # This file is part of LibParserUtils.
+ # Licensed under the MIT License,
+ #                http://www.opensource.org/licenses/mit-license.php
+diff -Naur netsurf-all-3.10-original/librosprite/Doxyfile netsurf-all-3.10/librosprite/Doxyfile
+--- netsurf-all-3.10-original/librosprite/Doxyfile	2020-05-24 15:35:22.000000000 +0000
++++ netsurf-all-3.10/librosprite/Doxyfile	2021-07-04 14:47:26.368586240 +0000
+@@ -1070,7 +1070,7 @@
+ # The PERL_PATH should be the absolute path and name of the perl script 
+ # interpreter (i.e. the result of `which perl').
+ 
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
+ 
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool   
+diff -Naur netsurf-all-3.10-original/librufl/tools/makeglyphs netsurf-all-3.10/librufl/tools/makeglyphs
+--- netsurf-all-3.10-original/librufl/tools/makeglyphs	2020-05-24 15:35:22.000000000 +0000
++++ netsurf-all-3.10/librufl/tools/makeglyphs	2021-07-04 14:47:27.930364960 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -W
++#!/usr/sgug/bin/perl -W
+ 
+ %name = ();
+ 
+diff -Naur netsurf-all-3.10-original/libsvgtiny/Makefile netsurf-all-3.10/libsvgtiny/Makefile
+--- netsurf-all-3.10-original/libsvgtiny/Makefile	2020-05-24 15:35:22.000000000 +0000
++++ netsurf-all-3.10/libsvgtiny/Makefile	2021-07-04 14:47:27.989154720 +0000
 @@ -29,7 +29,7 @@
    endif
  endif
@@ -293,9 +678,9 @@ diff -Naur netsurf-all-3.10.orig/libsvgtiny/Makefile netsurf-all-3.10/libsvgtiny
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
-diff -Naur netsurf-all-3.10.orig/libsvgtiny/src/svgtiny_internal.h netsurf-all-3.10/libsvgtiny/src/svgtiny_internal.h
---- netsurf-all-3.10.orig/libsvgtiny/src/svgtiny_internal.h	2020-05-24 17:35:22.000000000 +0000
-+++ netsurf-all-3.10/libsvgtiny/src/svgtiny_internal.h	2021-06-28 19:30:54.062615600 +0000
+diff -Naur netsurf-all-3.10-original/libsvgtiny/src/svgtiny_internal.h netsurf-all-3.10/libsvgtiny/src/svgtiny_internal.h
+--- netsurf-all-3.10-original/libsvgtiny/src/svgtiny_internal.h	2020-05-24 15:35:22.000000000 +0000
++++ netsurf-all-3.10/libsvgtiny/src/svgtiny_internal.h	2021-07-04 14:47:28.430134720 +0000
 @@ -77,7 +77,7 @@
  struct svgtiny_shape *svgtiny_add_shape(struct svgtiny_parse_state *state);
  void svgtiny_transform_path(float *p, unsigned int n,
@@ -305,9 +690,9 @@ diff -Naur netsurf-all-3.10.orig/libsvgtiny/src/svgtiny_internal.h netsurf-all-3
  #define HAVE_STRNDUP
  #else
  #undef HAVE_STRNDUP
-diff -Naur netsurf-all-3.10.orig/libutf8proc/CMakeLists.txt netsurf-all-3.10/libutf8proc/CMakeLists.txt
---- netsurf-all-3.10.orig/libutf8proc/CMakeLists.txt	2020-05-24 17:35:22.000000000 +0000
-+++ netsurf-all-3.10/libutf8proc/CMakeLists.txt	2021-06-28 19:30:54.064281200 +0000
+diff -Naur netsurf-all-3.10-original/libutf8proc/CMakeLists.txt netsurf-all-3.10/libutf8proc/CMakeLists.txt
+--- netsurf-all-3.10-original/libutf8proc/CMakeLists.txt	2020-05-24 15:35:22.000000000 +0000
++++ netsurf-all-3.10/libutf8proc/CMakeLists.txt	2021-07-04 14:48:51.410565760 +0000
 @@ -38,7 +38,7 @@
  if (NOT MSVC)
    set_target_properties(
@@ -317,9 +702,9 @@ diff -Naur netsurf-all-3.10.orig/libutf8proc/CMakeLists.txt netsurf-all-3.10/lib
    )
  endif ()
  
-diff -Naur netsurf-all-3.10.orig/libwapcaplet/Makefile netsurf-all-3.10/libwapcaplet/Makefile
---- netsurf-all-3.10.orig/libwapcaplet/Makefile	2020-05-24 17:35:22.000000000 +0000
-+++ netsurf-all-3.10/libwapcaplet/Makefile	2021-06-28 19:30:54.073141200 +0000
+diff -Naur netsurf-all-3.10-original/libwapcaplet/Makefile netsurf-all-3.10/libwapcaplet/Makefile
+--- netsurf-all-3.10-original/libwapcaplet/Makefile	2020-05-24 15:35:22.000000000 +0000
++++ netsurf-all-3.10/libwapcaplet/Makefile	2021-07-04 14:48:53.233175120 +0000
 @@ -27,7 +27,7 @@
    WARNFLAGS := $(WARNFLAGS) -Werror
  endif
@@ -329,63 +714,22 @@ diff -Naur netsurf-all-3.10.orig/libwapcaplet/Makefile netsurf-all-3.10/libwapca
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
-diff -Naur netsurf-all-3.10.orig/netsurf/content/fetchers/curl.c netsurf-all-3.10/netsurf/content/fetchers/curl.c
---- netsurf-all-3.10.orig/netsurf/content/fetchers/curl.c	2020-05-24 17:35:22.000000000 +0000
-+++ netsurf-all-3.10/netsurf/content/fetchers/curl.c	2021-06-28 19:30:54.092027600 +0000
-@@ -1185,6 +1185,7 @@
-  */
- static bool fetch_curl_process_headers(struct curl_fetch_info *f)
- {
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
- 	long http_code;
- 	CURLcode code;
- 	fetch_msg msg;
-@@ -1233,6 +1234,8 @@
- 		return true;
- 	}
+diff -Naur netsurf-all-3.10-original/libwapcaplet/docs/Doxyfile netsurf-all-3.10/libwapcaplet/docs/Doxyfile
+--- netsurf-all-3.10-original/libwapcaplet/docs/Doxyfile	2020-05-24 15:35:22.000000000 +0000
++++ netsurf-all-3.10/libwapcaplet/docs/Doxyfile	2021-07-04 14:48:53.355665840 +0000
+@@ -1565,7 +1565,7 @@
+ # The PERL_PATH should be the absolute path and name of the perl script
+ # interpreter (i.e. the result of `which perl').
  
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	if (f->abort)
- 		return true;
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
  
-@@ -1276,6 +1279,7 @@
- 		 * object will be truncated in this case and leave it to
- 		 * the content handlers to cope.
- 		 */
-+		NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
- 		if (f->stopped ||
- 		    (!f->had_headers &&	fetch_curl_process_headers(f))) {
- 			; /* redirect with no body or similar */
-@@ -1287,6 +1291,7 @@
- 		 * response is smaller than that specified in the
- 		 * Content-Length header.
- 		 */
-+		NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
- 		if (!f->had_headers && fetch_curl_process_headers(f))
- 			; /* redirect with partial body, or similar */
- 		else {
-diff -Naur netsurf-all-3.10.orig/netsurf/content/fs_backing_store.c netsurf-all-3.10/netsurf/content/fs_backing_store.c
---- netsurf-all-3.10.orig/netsurf/content/fs_backing_store.c	2020-05-24 17:35:22.000000000 +0000
-+++ netsurf-all-3.10/netsurf/content/fs_backing_store.c	2021-06-28 19:30:54.107958800 +0000
-@@ -1694,6 +1694,8 @@
-       uint8_t *data,
-       const size_t datalen)
- {
-+
-+	NSLOG(netsurf, INFO, "ZZZDBG Now we're in that weird store function");
- 	nserror ret;
- 	struct store_entry *bse;
- 	int elem_idx;
-@@ -1720,6 +1722,7 @@
- 	if (bse->elem[elem_idx].block != 0) {
- 		/* small block storage */
- 		ret = store_write_block(storestate, bse, elem_idx);
-+		NSLOG(netsurf, INFO, "ZZZDBG Stored Write Block fc_backing_store 1800, ret %d", ret);
- 	} else {
- 		/* separate file in backing store */
- 		ret = store_write_file(storestate, bse, elem_idx);
-@@ -1951,6 +1954,7 @@
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool
+diff -Naur netsurf-all-3.10-original/netsurf/content/fs_backing_store.c netsurf-all-3.10/netsurf/content/fs_backing_store.c
+--- netsurf-all-3.10-original/netsurf/content/fs_backing_store.c	2020-05-24 15:35:22.000000000 +0000
++++ netsurf-all-3.10/netsurf/content/fs_backing_store.c	2021-07-04 14:48:55.090071120 +0000
+@@ -1951,6 +1951,7 @@
   */
  static nserror release(nsurl *url, enum backing_store_flags bsflags)
  {
@@ -393,9 +737,9 @@ diff -Naur netsurf-all-3.10.orig/netsurf/content/fs_backing_store.c netsurf-all-
  	nserror ret;
  	struct store_entry *bse;
  	struct store_entry_element *elem;
-diff -Naur netsurf-all-3.10.orig/netsurf/content/llcache.c netsurf-all-3.10/netsurf/content/llcache.c
---- netsurf-all-3.10.orig/netsurf/content/llcache.c	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/content/llcache.c	2021-06-28 19:30:54.128830000 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/content/llcache.c netsurf-all-3.10/netsurf/content/llcache.c
+--- netsurf-all-3.10-original/netsurf/content/llcache.c	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/content/llcache.c	2021-07-04 14:49:06.011682080 +0000
 @@ -54,6 +54,7 @@
  #include "content/backing_store.h"
  #include "content/urldb.h"
@@ -404,142 +748,7 @@ diff -Naur netsurf-all-3.10.orig/netsurf/content/llcache.c netsurf-all-3.10/nets
  /**
   * State of a low-level cache object fetch.
   */
-@@ -1244,6 +1245,8 @@
- 		cert_chain_depth = 0;
- 	}
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	allocsize = 10 + 1; /* object length */
- 
- 	allocsize += 10 + 1; /* request time */
-@@ -1254,6 +1257,8 @@
- 
- 	allocsize += 10 + 1; /* space for number of header entries */
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	for (hloop = 0 ; hloop < object->num_headers ; hloop++) {
- 		allocsize += strlen(object->headers[hloop].name) + 1;
- 		allocsize += strlen(object->headers[hloop].value) + 1;
-@@ -1277,6 +1282,8 @@
- 	op = (char *)data;
- 	datasize = allocsize;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	/* the url, used for checking for collisions */
- 	use = snprintf(op, datasize, "%s", nsurl_access(object->url));
- 	if (use < 0) {
-@@ -1289,6 +1296,8 @@
- 	op += use;
- 	datasize -= use;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	/* object size */
- 	use = snprintf(op, datasize, "%" PRIsizet, object->source_len);
- 	if (use < 0) {
-@@ -1300,6 +1309,8 @@
- 	op += use;
- 	datasize -= use;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	/* Time of request */
- 	use = nsc_sntimet(op, datasize, &object->cache.req_time);
- 	if (use == 0)
-@@ -1308,6 +1319,8 @@
- 	op += use;
- 	datasize -= use;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	/* Time of response */
- 	use = nsc_sntimet(op, datasize, &object->cache.res_time);
- 	if (use == 0)
-@@ -1316,6 +1329,8 @@
- 	op += use;
- 	datasize -= use;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	/* Time of completion */
- 	use = nsc_sntimet(op, datasize, &object->cache.fin_time);
- 	if (use == 0)
-@@ -1324,6 +1339,8 @@
- 	op += use;
- 	datasize -= use;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	/* number of headers */
- 	use = snprintf(op, datasize, "%" PRIsizet, object->num_headers);
- 	if (use < 0) {
-@@ -1335,6 +1352,8 @@
- 	op += use;
- 	datasize -= use;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	/* headers */
- 	for (hloop = 0 ; hloop < object->num_headers ; hloop++) {
- 		use = snprintf(op, datasize,
-@@ -1406,8 +1425,12 @@
- 	*data_out = data;
- 	*datasize_out = allocsize - datasize;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	return NSERROR_OK;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- overflow:
- 	/* somehow we overflowed the buffer - hth? */
- 	NSLOG(llcache, INFO, "Overflowed metadata buffer");
-@@ -2748,6 +2771,8 @@
- 
- 	nsu_getmonotonic_ms(&startms);
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG Hey look we're in write_backing_store, ret: %d", ret);
-+
- 	/* put object data in backing store */
- 	ret = guit->llcache->store(object->url,
- 				   BACKING_STORE_NONE,
-@@ -2758,6 +2783,9 @@
- 		return ret;
- 	}
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG We got past the first thing, ret: %d", ret);
-+
-+
- 	ret = llcache_serialise_metadata(object, &metadata, &metadatasize);
- 	if (ret != NSERROR_OK) {
- 		/* There has been a metadata serialisation error. Ensure the
-@@ -2767,6 +2795,8 @@
- 		return ret;
- 	}
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG We got past the second thing, ret: %d", ret);
-+
- 	ret = guit->llcache->store(object->url,
- 				   BACKING_STORE_META,
- 				   metadata,
-@@ -2781,8 +2811,12 @@
- 	}
- 	nsu_getmonotonic_ms(&endms);
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG We got past the third thing, ret: %d", ret);
-+
- 	object->store_state = LLCACHE_STATE_DISC;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG We got past the fourth thing, ret: %d", ret);
-+
- 	*written_out = object->source_len + metadatasize;
- 
- 	/* by ignoring the overflow this assumes the writeout took
-@@ -2797,6 +2831,7 @@
+@@ -2797,6 +2798,7 @@
  		*elapsed = 1;
  	}
  
@@ -547,95 +756,51 @@ diff -Naur netsurf-all-3.10.orig/netsurf/content/llcache.c netsurf-all-3.10/nets
  	return NSERROR_OK;
  }
  
-diff -Naur netsurf-all-3.10.orig/netsurf/content/urldb.c netsurf-all-3.10/netsurf/content/urldb.c
---- netsurf-all-3.10.orig/netsurf/content/urldb.c	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/content/urldb.c	2021-06-28 19:30:54.142540400 +0000
-@@ -679,6 +679,9 @@
- 	 * -- rjek - 2010-11-04
- 	 */
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
-+
- 	slash = strchr(host, '/');
- 	if (slash == NULL) {
- 		sane_host = host;
-@@ -694,6 +697,8 @@
- 	if (strspn(sane_host, "0123456789abcdefABCDEF[].:") < host_len)
- 		goto out_false;
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
-+
- 	if (inet_aton(sane_host, &ipv4) != 0) {
- 		/* This can only be a sane IPv4 address if it contains 3 dots.
- 		 * Helpfully, inet_aton is happy to treat "a", "a.b", "a.b.c",
-@@ -756,6 +761,7 @@
- 
- 	assert(a && a != &db_root && b);
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
- 	if (urldb__host_is_ip_address(b)) {
- 		/* IP address */
- 		return strncasecmp(a->part, b, strlen(b));
-@@ -1179,6 +1185,7 @@
+diff -Naur netsurf-all-3.10-original/netsurf/content/urldb.c netsurf-all-3.10/netsurf/content/urldb.c
+--- netsurf-all-3.10-original/netsurf/content/urldb.c	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/content/urldb.c	2021-07-04 14:49:06.445669680 +0000
+@@ -1178,7 +1178,6 @@
+ static struct search_node **urldb_get_search_tree_direct(const char *host)
  {
  	assert(host);
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+-
  	if (urldb__host_is_ip_address(host)) {
  		return &search_trees[ST_IP];
  	} else if (ascii_is_alpha(*host)) {
-@@ -1214,6 +1221,7 @@
+@@ -1213,7 +1212,6 @@
+ 	int plen, ret;
  
  	assert(a && a != &db_root && b);
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+-
  	if (urldb__host_is_ip_address(b)) {
  		/* IP address */
  		return strcasecmp(a->part, b);
-@@ -2174,6 +2182,7 @@
+@@ -2173,7 +2171,6 @@
+ 	char *part;
  
  	assert(host);
- 
-+	NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
+-
  	if (urldb__host_is_ip_address(host)) {
  		/* Host is an IP, so simply add as TLD */
  
-@@ -3516,6 +3525,7 @@
+diff -Naur netsurf-all-3.10-original/netsurf/docs/Doxyfile netsurf-all-3.10/netsurf/docs/Doxyfile
+--- netsurf-all-3.10-original/netsurf/docs/Doxyfile	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/docs/Doxyfile	2021-07-04 14:49:09.659598720 +0000
+@@ -2199,9 +2199,9 @@
  
- 	host = nsurl_get_component(url, NSURL_HOST);
- 	if (host != NULL) {
-+		NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
- 		if (urldb__host_is_ip_address(lwc_string_data(host))) {
- 			/* Host is IP: ignore */
- 			lwc_string_unref(host);
-@@ -3584,6 +3594,7 @@
+ # The PERL_PATH should be the absolute path and name of the perl script
+ # interpreter (i.e. the result of 'which perl').
+-# The default file (with absolute path) is: /usr/bin/perl.
++# The default file (with absolute path) is: /usr/sgug/bin/perl.
  
- 	host = nsurl_get_component(url, NSURL_HOST);
- 	if (host != NULL) {
-+		NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
- 		if (urldb__host_is_ip_address(lwc_string_data(host))) {
- 			/* Host is IP: not enabled */
- 			lwc_string_unref(host);
-@@ -3788,6 +3799,7 @@
- 			const char *rhost_data = lwc_string_data(rhost);
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
  
- 			/* Ensure neither host nor rhost are IP addresses */
-+			NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
- 			if (urldb__host_is_ip_address(host_data) ||
- 			    urldb__host_is_ip_address(rhost_data)) {
- 				/* IP address, so no partial match */
-@@ -3922,6 +3934,7 @@
- 			 */
- 			assert(c->domain[0] == '.');
- 
-+			NSLOG(netsurf, INFO, "ZZZDBG %s %s %d", __FILE__, __FUNCTION__, __LINE__);
- 			/* 4.3.2:iii */
- 			if (urldb__host_is_ip_address(lwc_string_data(host))) {
- 				/* IP address, so no partial match */
-diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile netsurf-all-3.10/netsurf/frontends/gtk/Makefile
---- netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/frontends/gtk/Makefile	2021-06-28 19:30:54.155576400 +0000
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool
+diff -Naur netsurf-all-3.10-original/netsurf/frontends/gtk/Makefile netsurf-all-3.10/netsurf/frontends/gtk/Makefile
+--- netsurf-all-3.10-original/netsurf/frontends/gtk/Makefile	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/Makefile	2021-07-04 14:49:26.399903040 +0000
 @@ -35,11 +35,6 @@
  
  GTKCFLAGS := -std=c99 -Dgtk -Dnsgtk -g \
@@ -648,18 +813,18 @@ diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile netsurf-all-3.10
  		-DGTK_RESPATH=\"$(NETSURF_GTK_RES_PATH)\"
  
  # non optional pkg-configed libs
-diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile.defaults netsurf-all-3.10/netsurf/frontends/gtk/Makefile.defaults
---- netsurf-all-3.10.orig/netsurf/frontends/gtk/Makefile.defaults	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/frontends/gtk/Makefile.defaults	2021-06-28 19:30:54.167033200 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/frontends/gtk/Makefile.defaults netsurf-all-3.10/netsurf/frontends/gtk/Makefile.defaults
+--- netsurf-all-3.10-original/netsurf/frontends/gtk/Makefile.defaults	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/Makefile.defaults	2021-07-04 14:49:26.430834320 +0000
 @@ -39,4 +39,4 @@
  NETSURF_GTK_MAJOR ?= 2
  
  # Optimisation levels
 -CFLAGS += -O2
 +#CFLAGS += -O2
-diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/corewindow.c netsurf-all-3.10/netsurf/frontends/gtk/corewindow.c
---- netsurf-all-3.10.orig/netsurf/frontends/gtk/corewindow.c	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/frontends/gtk/corewindow.c	2021-06-28 19:30:54.182394800 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/frontends/gtk/corewindow.c netsurf-all-3.10/netsurf/frontends/gtk/corewindow.c
+--- netsurf-all-3.10-original/netsurf/frontends/gtk/corewindow.c	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/corewindow.c	2021-07-04 14:49:26.945672560 +0000
 @@ -62,9 +62,9 @@
  
  	if (event->type == GDK_2BUTTON_PRESS) {
@@ -672,9 +837,9 @@ diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/corewindow.c netsurf-all-
  
  	/* button state */
  	switch (event->button) {
-diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/gui.c netsurf-all-3.10/netsurf/frontends/gtk/gui.c
---- netsurf-all-3.10.orig/netsurf/frontends/gtk/gui.c	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/frontends/gtk/gui.c	2021-06-28 19:30:54.191977200 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/frontends/gtk/gui.c netsurf-all-3.10/netsurf/frontends/gtk/gui.c
+--- netsurf-all-3.10-original/netsurf/frontends/gtk/gui.c	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/gui.c	2021-07-04 14:49:27.388079280 +0000
 @@ -115,10 +115,14 @@
  	char **respath; /* resource paths vector */
  
@@ -704,9 +869,9 @@ diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/gui.c netsurf-all-3.10/ne
  		resource_path = malloc(resource_path_len + 1);
  		if (resource_path == NULL) {
  			return NULL;
-diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/resources.c netsurf-all-3.10/netsurf/frontends/gtk/resources.c
---- netsurf-all-3.10.orig/netsurf/frontends/gtk/resources.c	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/frontends/gtk/resources.c	2021-06-28 19:30:54.206494000 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/frontends/gtk/resources.c netsurf-all-3.10/netsurf/frontends/gtk/resources.c
+--- netsurf-all-3.10-original/netsurf/frontends/gtk/resources.c	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/frontends/gtk/resources.c	2021-07-04 14:49:29.986645280 +0000
 @@ -191,9 +191,13 @@
  	/* look for resource under per language paths */
  	while (langv[langc] != NULL) {
@@ -732,9 +897,9 @@ diff -Naur netsurf-all-3.10.orig/netsurf/frontends/gtk/resources.c netsurf-all-3
  	resname = malloc(resnamelen + 1);
  	if (resname == NULL) {
  		return NSERROR_NOMEM;
-diff -Naur netsurf-all-3.10.orig/netsurf/include/netsurf/inttypes.h netsurf-all-3.10/netsurf/include/netsurf/inttypes.h
---- netsurf-all-3.10.orig/netsurf/include/netsurf/inttypes.h	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/include/netsurf/inttypes.h	2021-06-28 19:30:54.216106000 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/include/netsurf/inttypes.h netsurf-all-3.10/netsurf/include/netsurf/inttypes.h
+--- netsurf-all-3.10-original/netsurf/include/netsurf/inttypes.h	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/include/netsurf/inttypes.h	2021-07-04 14:49:45.630414240 +0000
 @@ -47,6 +47,14 @@
  /** windows printf formatting for ssize_t type */
  #define PRIssizet "Id"
@@ -750,9 +915,9 @@ diff -Naur netsurf-all-3.10.orig/netsurf/include/netsurf/inttypes.h netsurf-all-
  #else
  
  /** c99 standard printf formatting for size_t type */
-diff -Naur netsurf-all-3.10.orig/netsurf/utils/config.h netsurf-all-3.10/netsurf/utils/config.h
---- netsurf-all-3.10.orig/netsurf/utils/config.h	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/utils/config.h	2021-06-28 19:30:54.225026000 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/utils/config.h netsurf-all-3.10/netsurf/utils/config.h
+--- netsurf-all-3.10-original/netsurf/utils/config.h	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/config.h	2021-07-04 14:49:52.050729760 +0000
 @@ -32,6 +32,7 @@
  
  #if (defined(_GNU_SOURCE) && \
@@ -777,9 +942,18 @@ diff -Naur netsurf-all-3.10.orig/netsurf/utils/config.h netsurf-all-3.10/netsurf
       defined(NetBSD_v8))
  #define HAVE_STRCHRNUL
  #else
-diff -Naur netsurf-all-3.10.orig/netsurf/utils/filepath.c netsurf-all-3.10/netsurf/utils/filepath.c
---- netsurf-all-3.10.orig/netsurf/utils/filepath.c	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/utils/filepath.c	2021-06-28 19:30:54.239506000 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/utils/fetch-transifex.pl netsurf-all-3.10/netsurf/utils/fetch-transifex.pl
+--- netsurf-all-3.10-original/netsurf/utils/fetch-transifex.pl	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/fetch-transifex.pl	2021-07-04 14:49:52.274712800 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ #
+ # Copyright © 2013 Vincent Sanders <vince@netsurf-browser.org>
+ #
+diff -Naur netsurf-all-3.10-original/netsurf/utils/filepath.c netsurf-all-3.10/netsurf/utils/filepath.c
+--- netsurf-all-3.10-original/netsurf/utils/filepath.c	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/filepath.c	2021-07-04 14:49:52.476817920 +0000
 @@ -200,11 +200,14 @@
  			/* path element exists and is a directory */
  			langc = 0;
@@ -795,9 +969,42 @@ diff -Naur netsurf-all-3.10.orig/netsurf/utils/filepath.c netsurf-all-3.10/netsu
  				tmppath = malloc(tmppathlen + 1);
  				if (tmppath == NULL) {
  					break;
-diff -Naur netsurf-all-3.10.orig/netsurf/utils/split-messages.pl netsurf-all-3.10/netsurf/utils/split-messages.pl
---- netsurf-all-3.10.orig/netsurf/utils/split-messages.pl	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/utils/split-messages.pl	2021-06-28 19:30:54.257042000 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/utils/git-testament.pl netsurf-all-3.10/netsurf/utils/git-testament.pl
+--- netsurf-all-3.10-original/netsurf/utils/git-testament.pl	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/git-testament.pl	2021-07-04 14:49:52.577936320 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/usr/sgug/bin/perl -w
+ 
+ use strict;
+ 
+diff -Naur netsurf-all-3.10-original/netsurf/utils/idna-derived-props-gen.pl netsurf-all-3.10/netsurf/utils/idna-derived-props-gen.pl
+--- netsurf-all-3.10-original/netsurf/utils/idna-derived-props-gen.pl	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/idna-derived-props-gen.pl	2021-07-04 14:49:53.419772160 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ #
+ # Copyright 2014 Chris Young <chris@unsatisfactorysoftware.co.uk>
+ #
+diff -Naur netsurf-all-3.10-original/netsurf/utils/import-messages.pl netsurf-all-3.10/netsurf/utils/import-messages.pl
+--- netsurf-all-3.10-original/netsurf/utils/import-messages.pl	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/import-messages.pl	2021-07-04 14:49:53.830999920 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ #
+ # Copyright © 2013 Vivek Dasmohapatra <vivek@collabora.co.uk>
+ #
+diff -Naur netsurf-all-3.10-original/netsurf/utils/split-messages.pl netsurf-all-3.10/netsurf/utils/split-messages.pl
+--- netsurf-all-3.10-original/netsurf/utils/split-messages.pl	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/split-messages.pl	2021-07-04 14:49:54.799609680 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/sgug/bin/perl
+ #
+ # Copyright 2013 Vivek Dasmohapatra <vivek@collabora.co.uk>
+ #
 @@ -311,7 +311,7 @@
      sub footer { qq|</resources>| }
      sub format
@@ -807,9 +1014,9 @@ diff -Naur netsurf-all-3.10.orig/netsurf/utils/split-messages.pl netsurf-all-3.1
  	my $escaped = encode_entities( $_[1], '<>&"' );
  	qq|  <string name="$_[0]">$escaped</string>\n|;
      }
-diff -Naur netsurf-all-3.10.orig/netsurf/utils/useragent.c netsurf-all-3.10/netsurf/utils/useragent.c
---- netsurf-all-3.10.orig/netsurf/utils/useragent.c	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/netsurf/utils/useragent.c	2021-06-28 19:30:54.270345200 +0000
+diff -Naur netsurf-all-3.10-original/netsurf/utils/useragent.c netsurf-all-3.10/netsurf/utils/useragent.c
+--- netsurf-all-3.10-original/netsurf/utils/useragent.c	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/netsurf/utils/useragent.c	2021-07-04 14:49:55.224413440 +0000
 @@ -48,10 +48,11 @@
                  sysname = un.sysname;
          }
@@ -824,9 +1031,9 @@ diff -Naur netsurf-all-3.10.orig/netsurf/utils/useragent.c netsurf-all-3.10/nets
          ua_string = malloc(len + 1);
          if (!ua_string) {
                  /** \todo this needs handling better */
-diff -Naur netsurf-all-3.10.orig/nsgenbind/Makefile netsurf-all-3.10/nsgenbind/Makefile
---- netsurf-all-3.10.orig/nsgenbind/Makefile	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/nsgenbind/Makefile	2021-06-28 19:30:54.278623600 +0000
+diff -Naur netsurf-all-3.10-original/nsgenbind/Makefile netsurf-all-3.10/nsgenbind/Makefile
+--- netsurf-all-3.10-original/nsgenbind/Makefile	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/nsgenbind/Makefile	2021-07-04 14:49:55.553339920 +0000
 @@ -32,7 +32,7 @@
    endif
  endif
@@ -836,9 +1043,24 @@ diff -Naur netsurf-all-3.10.orig/nsgenbind/Makefile netsurf-all-3.10/nsgenbind/M
  	-I$(CURDIR)/include/ -I$(CURDIR)/src \
  	$(WARNFLAGS) $(CFLAGS)
  ifneq ($(GCCVER),2)
-diff -Naur netsurf-all-3.10.orig/nsgenbind/src/duk-libdom-generated.c netsurf-all-3.10/nsgenbind/src/duk-libdom-generated.c
---- netsurf-all-3.10.orig/nsgenbind/src/duk-libdom-generated.c	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/nsgenbind/src/duk-libdom-generated.c	2021-06-29 10:40:01.110130351 +0000
+diff -Naur netsurf-all-3.10-original/nsgenbind/docs/Doxyfile netsurf-all-3.10/nsgenbind/docs/Doxyfile
+--- netsurf-all-3.10-original/nsgenbind/docs/Doxyfile	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/nsgenbind/docs/Doxyfile	2021-07-04 14:49:55.728427840 +0000
+@@ -2115,9 +2115,9 @@
+ 
+ # The PERL_PATH should be the absolute path and name of the perl script
+ # interpreter (i.e. the result of 'which perl').
+-# The default file (with absolute path) is: /usr/bin/perl.
++# The default file (with absolute path) is: /usr/sgug/bin/perl.
+ 
+-PERL_PATH              = /usr/bin/perl
++PERL_PATH              = /usr/sgug/bin/perl
+ 
+ #---------------------------------------------------------------------------
+ # Configuration options related to the dot tool
+diff -Naur netsurf-all-3.10-original/nsgenbind/src/duk-libdom-generated.c netsurf-all-3.10/nsgenbind/src/duk-libdom-generated.c
+--- netsurf-all-3.10-original/nsgenbind/src/duk-libdom-generated.c	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/nsgenbind/src/duk-libdom-generated.c	2021-07-04 14:49:55.955081520 +0000
 @@ -244,26 +244,53 @@
                                  "\tdom_element *et = (dom_element *)(((node_private_t *)priv)->node);\n");
                  }
@@ -913,9 +1135,9 @@ diff -Naur netsurf-all-3.10.orig/nsgenbind/src/duk-libdom-generated.c netsurf-al
                  return 0;
          }
          return -1;
-diff -Naur netsurf-all-3.10.orig/nsgenbind/src/nsgenbind-parser.y netsurf-all-3.10/nsgenbind/src/nsgenbind-parser.y
---- netsurf-all-3.10.orig/nsgenbind/src/nsgenbind-parser.y	2020-05-24 17:35:23.000000000 +0000
-+++ netsurf-all-3.10/nsgenbind/src/nsgenbind-parser.y	2021-06-28 19:30:54.296102000 +0000
+diff -Naur netsurf-all-3.10-original/nsgenbind/src/nsgenbind-parser.y netsurf-all-3.10/nsgenbind/src/nsgenbind-parser.y
+--- netsurf-all-3.10-original/nsgenbind/src/nsgenbind-parser.y	2020-05-24 15:35:23.000000000 +0000
++++ netsurf-all-3.10/nsgenbind/src/nsgenbind-parser.y	2021-07-04 14:49:56.430754800 +0000
 @@ -102,9 +102,11 @@
  
          UNUSED(genbind_ast);
