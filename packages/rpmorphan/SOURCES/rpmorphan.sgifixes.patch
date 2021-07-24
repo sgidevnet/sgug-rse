@@ -1,0 +1,30 @@
+diff -Naur rpmorphan-1.17.orig/Makefile rpmorphan-1.17/Makefile
+--- rpmorphan-1.17.orig/Makefile	2017-07-15 02:55:36.000000000 +0000
++++ rpmorphan-1.17/Makefile	2021-07-24 09:08:49.267217200 +0000
+@@ -7,19 +7,19 @@
+ SHELL = /bin/sh
+ VERSION = $(shell grep Version rpmorphan.lsm | awk '{print $$2}')
+ 
+-BINDIR = $(DESTDIR)/usr/bin
+-LIBDIR = $(DESTDIR)/usr/lib/rpmorphan/
+-LOGETC = $(DESTDIR)/etc/
++BINDIR = $(DESTDIR)/usr/sgug/bin
++LIBDIR = $(DESTDIR)/usr/sgug/lib/rpmorphan/
++LOGETC = $(DESTDIR)/usr/sgug/etc/
+ LOGROT = $(LOGETC)/logrotate.d/
+-MANDIR = $(DESTDIR)/usr/share/man
++MANDIR = $(DESTDIR)/usr/sgug/share/man
+ MAN1DIR = $(MANDIR)/man1
+ # on some distribution it is $(PACKAGE)-$(VERSION) (fedora), on others $(PACKAGE) (mandriva)
+ # we force it with a define in rpm target to be able to build on any host the same way
+-DOCDIR = $(DESTDIR)/usr/share/doc/$(PACKAGE)-$(VERSION)
++DOCDIR = $(DESTDIR)/usr/sgug/share/doc/$(PACKAGE)-$(VERSION)
+ # for keep file 
+-DATADIR = $(DESTDIR)/var/lib/rpmorphan
++DATADIR = $(DESTDIR)/usr/sgug/var/lib/rpmorphan
+ # locales
+-TARGET_LOCALE = $(DESTDIR)/usr/lib/rpmorphan/locale
++TARGET_LOCALE = $(DESTDIR)/usr/sgug/lib/rpmorphan/locale
+ 
+ # log
+ LOGDIR  = $(DESTDIR)/var/log
