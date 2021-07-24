@@ -3,7 +3,7 @@
 
 Name:           netsurf
 Version:        3.10
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Lightweight Web Browser with its own layout and rendering engine
 License:        GPL-2.0 and MIT
 Group:          Productivity/Networking/Web/Browsers
@@ -134,6 +134,10 @@ fi
 %{_datadir}/pixmaps/netsurf.xpm
 
 %changelog
+* Sun July 04 2021 jenna16bit - 3.10-2
+- Minor log removal on SGUG version
+
+
 * Mon Nov 02 2020 josef radinger <cheese@nosuchhost.net> - 3.10-2
 - BuildRequires on expat-devel
 
