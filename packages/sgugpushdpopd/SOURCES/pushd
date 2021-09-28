@@ -1,0 +1,5 @@
+#!/usr/sgug/bin/bash
+dirname=$1
+export DIR_STACK="$dirname ${DIR_STACK:-$PWD' '}"
+cd ${dirname:?"missing directory name."}
+echo "$DIR_STACK"
