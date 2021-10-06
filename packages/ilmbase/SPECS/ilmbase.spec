@@ -57,6 +57,7 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 
 
 %build
+export CONFIG_SHELL=/usr/sgug/bin/mksh
 %configure --disable-static
 
 # manually set PTHREAD_LIBS to include -lpthread until libtool bogosity is fixed,
