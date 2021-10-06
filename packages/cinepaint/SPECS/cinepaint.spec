@@ -11,6 +11,12 @@ BuildRoot: %{_tmppath}/%{name}-root
 Prefix:    %{_prefix}
 Patch100: cinepaint.sgifixes.patch
 
+Requires: gtk+
+Requires: mesa-libGLU
+Requires: ilmbase
+Requires: lcms
+Requires: OpenEXR
+
 %description
 CinePaint is a painting and retouching tool primarily used for motion
 picture frame-by-frame retouching and dust-busting. It was used on THE
