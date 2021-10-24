@@ -109,7 +109,7 @@ autoreconf -vfi
 #configure --enable-modules=yes --with-default-audio=alsa \
 #	--with-audio=alsa,%{?enable_jack:jack},pulse,oss,%{?enable_portaudio:portaudio}
 
-%configure --enable-modules=yes
+%configure --enable-modules=yes --with-audio=sgi
 
 %make_build
 #cd doc
@@ -166,6 +166,9 @@ rm %{buildroot}%{_libdir}/*.la
 %{_libdir}/pkgconfig/lib%{out}.pc
 
 %changelog
+* Sun Oct 24 2021 Ole Weidner <ole.weidner@protonmail.ch> - 1.25.10-2
+- Enable SGI audio output module
+
 * Fri Apr 10 2020 Daniel Hams <daniel.hams@gmail.com> - 1.25.10-2
 - Remove bashisms
 
