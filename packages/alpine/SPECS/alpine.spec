@@ -34,21 +34,21 @@ Provides: re-alpine = %{version}-%{release}
 
 #BuildRequires: automake libtool
 BuildRequires: gettext
-BuildRequires: hunspell
+#BuildRequires: hunspell
 ## passing --with-npa=/usr/bin/inews
 #BuildRequires: inews
-BuildRequires: krb5-devel
+#BuildRequires: krb5-devel
 BuildRequires: ncurses-devel 
-BuildRequires: openldap-devel
+#BuildRequires: openldap-devel
 BuildRequires: openssl-devel
-BuildRequires: pam-devel
-BuildRequires: passwd
+#BuildRequires: pam-devel
+#BuildRequires: passwd
 # passing --with-smtp-msa=/usr/sbin/sendmail instead
 #BuildRequires: /usr/sbin/sendmail 
 
-Requires: hunspell
-Requires: mailcap
-Requires: /usr/sbin/sendmail
+#Requires: hunspell
+#Requires: mailcap
+#Requires: /usr/sbin/sendmail
 
 BuildRequires: gcc
 
@@ -91,15 +91,19 @@ touch imap/ip6
 %configure \
   --enable-debug=no \
   --without-tcl \
-  --without-x509 \
-  --with-c-client-target=lfd \
-  --with-smtp-msa=/usr/sbin/sendmail \
-  --with-npa=/usr/bin/inews \
-  --with-passfile=.alpine.passfile \
-  --with-simple-spellcheck=hunspell \
-  --with-interactive-spellcheck=hunspell \
-  --with-system-pinerc=%{_sysconfdir}/pine.conf \
-  --with-system-fixed-pinerc=%{_sysconfdir}/pine.conf.fixed
+  --without-krb5 \
+  --without-ldap \
+  --with-c-client-target=gsg \
+  --with-ssl-include-dir=/usr/sgug/include/openssl \
+  --with-ssl-lib-dir=/usr/sgug/lib32 \
+  --with-ssl-certs-dir=/usr/sgug/etc/ssl/certs/ 
+#  --with-smtp-msa=/usr/sbin/sendmail \
+#  --with-npa=/usr/bin/inews \
+#  --with-passfile=.alpine.passfile \
+#  --with-simple-spellcheck=hunspell \
+#  --with-interactive-spellcheck=hunspell \
+#  --with-system-pinerc=%{_sysconfdir}/pine.conf \
+#  --with-system-fixed-pinerc=%{_sysconfdir}/pine.conf.fixed
 
 %make_build EXTRACFLAGS="$RPM_OPT_FLAGS"
 
