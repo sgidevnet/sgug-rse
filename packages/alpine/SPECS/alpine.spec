@@ -46,9 +46,12 @@ BuildRequires: openssl-devel
 # passing --with-smtp-msa=/usr/sbin/sendmail instead
 #BuildRequires: /usr/sbin/sendmail 
 
+BuildRequires: libdicl-devel
+
 #Requires: hunspell
 #Requires: mailcap
 #Requires: /usr/sbin/sendmail
+Requires: libdicl
 
 BuildRequires: gcc
 
@@ -87,7 +90,9 @@ autoheader
 
 %build
 touch imap/ip6
-# --without-tcl disables the TCL-based CGI "Web Alpine"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %configure \
   --enable-debug=no \
   --without-tcl \
