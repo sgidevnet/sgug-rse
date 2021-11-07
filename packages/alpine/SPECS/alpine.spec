@@ -90,8 +90,8 @@ autoheader
 
 %build
 touch imap/ip6
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
-export CXXFLAGS="$CFLAGS"
+#export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+#export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 %configure \
   --enable-debug=no \
