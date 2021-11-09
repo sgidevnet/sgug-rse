@@ -1,0 +1,101 @@
+#!/bin/sh
+##
+## Start or stop the sshd daemon, new version from SGUG
+##
+
+IS_ON=/etc/chkconfig
+SSHD=/usr/sgug/sbin/sshd
+KEYGEN=/usr/sgug/bin/ssh-keygen
+
+
+RSA_KEY=/usr/sgug/etc/ssh/ssh_host_rsa_key
+ECDSA_KEY=/usr/sgug/etc/ssh/ssh_host_ecdsa_key
+DSA_KEY=/usr/sgug/etc/ssh/ssh_host_ed25519_key
+
+# At some point fix privilege separation
+USE_PRIV_SEP=
+CSU="/sbin/suattr"
+CAP_SSH="CAP_DAC_READ_SEARCH,CAP_DEVICE_MGT,CAP_PRIV_PORT,CAP_DAC_WRITE,CAP_SETUID,CAP_SETGID,CAP_FOWNER,CAP_AUDIT_CONTROL,CAP_CHROOT,CAP_MAC_WRITE+ep CAP_NETWORK_MGT,CAP_MAC_UPGRADE,CAP_MAC_RELABEL_SUBJ,CAP_SETPCAP,CAP_AUDIT_WRITE,CAP_MAC_DOWNGRADE,CAP_MAC_RELABEL_OPEN,CAP_MAC_MLD+p"
+
+if $IS_ON verbose; then
+    ECHO=echo
+else
+    ECHO=:
+fi
+
+do_hostkeygen()
+{
+	# Always be verbose here
+	if [ ! -s $ECDSA_KEY ]; then
+		"Generating $ECDSA_KEY: "
+		$KEYGEN -t ecdsa -f $ECDSA_KEY -N '' > /dev/null 2>&1
+	fi
+	if [ ! -s $RSA_KEY ]; then
+		"Generating $RSA_KEY: "
+		$KEYGEN -t rsa -b 1024 -f $RSA_KEY -N '' > /dev/null 2>&1
+	fi
+	if [ ! -s $DSA_KEY ]; then
+		"Generating $DSA_KEY: "
+		$KEYGEN -t ed25519 -f $DSA_KEY -N '' > /dev/null 2>&1
+	fi
+}
+
+kill_sshd()
+{
+	if [ -r /var/run/sshd.pid ]; then
+	    sshd_pid=`cat /var/run/sshd.pid`
+	    ps -p $sshd_pid | grep sshd > /dev/null
+	    if [ $? -eq 0 ]; then
+		/usr/bin/kill -15 -$sshd_pid
+	    fi
+	fi
+}
+
+start_sshd()
+{
+	if $IS_ON sshd; then
+	    echo "sgug-sshd: can't have both sshd and sgug-sshd enabled due to both wanting pid file"
+	    exit 1
+	fi
+	if $IS_ON sgug-sshd && test -x $SSHD; then
+	    $ECHO "Starting sshd:\c"
+	    do_hostkeygen
+
+	    if [ "$USE_PRIV_SEP" != "" ] ; then
+		$CSU -C "$CAP_SSH" -c $SSHD
+	    else
+		$SSHD
+	    fi
+	    $ECHO "."
+	fi
+}
+
+case "$1" in
+    start)
+	kill_sshd
+	start_sshd
+	;;
+
+    restart)
+	kill_sshd
+	start_sshd
+	;;
+
+    stop)
+	$ECHO "Stopping sshd."
+	kill_sshd
+	exit 0
+	;;
+
+    stop-all)
+	$ECHO "Stopping sshd and logins."
+	kill_sshd
+	killall -15 sshd
+	exit 0
+	;;
+
+    *)
+	echo "usage: $0 {start|stop|stop-all|restart}"
+	;;
+esac
+
