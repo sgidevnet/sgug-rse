@@ -656,6 +656,9 @@ grep "sshd:x:74:74" /etc/passwd >/dev/null || \
 /etc/chkconfig sshd && echo "WARNING: Non-SGUG sshd is enabled.  Run chkconfig sshd off, followed by /etc/init.d/sgug-sshd restart"
 # set up the init.d script
 ln -sf %{_sysconfdir}/init.d/sgug-sshd /etc/init.d/sgug-sshd
+ln -sf ../init.d/sgug-sshd /etc/rc2.d/S85sgug-sshd
+ln -sf ../init.d/sgug-sshd /etc/rc0.d/K15sgug-sshd
+
 # restart -- will not do anything if the user chkconfigd off
 /etc/init.d/sgug-sshd restart
 
@@ -663,7 +666,7 @@ ln -sf %{_sysconfdir}/init.d/sgug-sshd /etc/init.d/sgug-sshd
 /etc/init.d/sgug-sshd stop
 
 %postun server
-rm -f /etc/init.d/sgug-sshd /etc/config/sgug-sshd
+rm -f /etc/init.d/sgug-sshd /etc/config/sgug-sshd /etc/rc2.d/S85sgug-sshd /etc/rc0.d/K15sgug-sshd
 
 %files
 %license LICENCE
