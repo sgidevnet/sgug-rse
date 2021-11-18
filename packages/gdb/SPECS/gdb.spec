@@ -17,6 +17,7 @@ URL: http://ftp.gnu.org/gnu/gdb/
 Source: http://ftp.gnu.org/gnu/gdb/gdb-%{version}.tar.gz
 
 Patch0: gdb762.sgifixups.patch
+Patch1: gdb.elfirix.patch
 
 BuildRequires: gcc, binutils
 BuildRequires: automake, autoconf, libtool, pkgconfig
@@ -33,6 +34,7 @@ The gnu debugger.
 %setup
 
 %patch0 -p1 -b .sgifixups
+%patch1 -p1 -b .elfirix
 
 # A place to generate our patch
 #exit 1
