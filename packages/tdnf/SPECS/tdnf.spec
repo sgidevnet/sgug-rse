@@ -136,11 +136,11 @@ cd build && make %{?_smp_mflags} check
 %install
 cd build && make DESTDIR=%{buildroot} install
 find %{buildroot} -name '*.a' -delete
-mkdir -p %{buildroot}/var/cache/tdnf
+mkdir -p %{buildroot}%{_prefix}/var/cache/tdnf
 mkdir -p %{buildroot}/%{_libdir}/systemd/system/
 ln -sf %{_bindir}/tdnf %{buildroot}%{_bindir}/tyum
 ln -sf %{_bindir}/tdnf %{buildroot}%{_bindir}/yum
-mv %{buildroot}/usr/lib/pkgconfig/tdnfcli.pc %{buildroot}/usr/lib/pkgconfig/tdnf-cli-libs.pc
+mv %{buildroot}%{_libdir}/pkgconfig/tdnfcli.pc %{buildroot}%{_libdir}/pkgconfig/tdnf-cli-libs.pc
 mkdir -p %{buildroot}/%{_tdnfpluginsdir}/tdnfrepogpgcheck
 mv %{buildroot}/%{_tdnfpluginsdir}/libtdnfrepogpgcheck.so %{buildroot}/%{_tdnfpluginsdir}/tdnfrepogpgcheck/libtdnfrepogpgcheck.so
 mv %{buildroot}/lib/systemd/system/ %{buildroot}/%{_libdir}/systemd/
@@ -150,43 +150,43 @@ python3 setup.py install --skip-build --prefix=%{_prefix} --root=%{buildroot}
 popd
 find %{buildroot} -name '*.pyc' -delete
 
-# Pre-install
-%pre
+# # Pre-install
+# %pre
 
-    # First argument is 1 => New Installation
-    # First argument is 2 => Upgrade
+#     # First argument is 1 => New Installation
+#     # First argument is 2 => Upgrade
 
-# Post-install
-%post
+# # Post-install
+# %post
 
-    # First argument is 1 => New Installation
-    # First argument is 2 => Upgrade
+#     # First argument is 1 => New Installation
+#     # First argument is 2 => Upgrade
 
-    /sbin/ldconfig
+#     /sbin/ldconfig
 
-%triggerin -- motd
-[ $2 -eq 1 ] || exit 0
-if [ $1 -eq 1 ]; then
-    echo "detected install of tdnf/motd, enabling tdnf-cache-updateinfo.timer" >&2
-    systemctl enable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-    systemctl start tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-elif [ $1 -eq 2 ]; then
-    echo "detected upgrade of tdnf, daemon-reload" >&2
-    systemctl daemon-reload >/dev/null 2>&1 || :
-fi
+# %triggerin -- motd
+# [ $2 -eq 1 ] || exit 0
+# if [ $1 -eq 1 ]; then
+#     echo "detected install of tdnf/motd, enabling tdnf-cache-updateinfo.timer" >&2
+#     systemctl enable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+#     systemctl start tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+# elif [ $1 -eq 2 ]; then
+#     echo "detected upgrade of tdnf, daemon-reload" >&2
+#     systemctl daemon-reload >/dev/null 2>&1 || :
+# fi
 
-# Pre-uninstall
-%preun
+# # Pre-uninstall
+# %preun
 
-    # First argument is 0 => Uninstall
-    # First argument is 1 => Upgrade
+#     # First argument is 0 => Uninstall
+#     # First argument is 1 => Upgrade
 
-%triggerun -- motd
-[ $1 -eq 1 ] && [ $2 -eq 1 ] && exit 0
-echo "detected uninstall of tdnf/motd, disabling tdnf-cache-updateinfo.timer" >&2
-systemctl --no-reload disable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-systemctl stop tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-rm -rf /var/cache/tdnf/cached-updateinfo.txt
+# %triggerun -- motd
+# [ $1 -eq 1 ] && [ $2 -eq 1 ] && exit 0
+# echo "detected uninstall of tdnf/motd, disabling tdnf-cache-updateinfo.timer" >&2
+# systemctl --no-reload disable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+# systemctl stop tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+# rm -rf /var/cache/tdnf/cached-updateinfo.txt
 
 # Post-uninstall
 # %postun
@@ -241,7 +241,7 @@ rm -rf /var/cache/tdnf/cached-updateinfo.txt
     %config %{_libdir}/systemd/system/tdnf-cache-updateinfo.service
     %config(noreplace) %{_libdir}/systemd/system/tdnf-cache-updateinfo.timer
     %config %{_sysconfdir}/motdgen.d/02-tdnf-updateinfo.sh
-    %dir /var/cache/tdnf
+    %dir %{_prefix}/var/cache/tdnf
     %{_datadir}/bash-completion/completions/tdnf
 
 %files devel
