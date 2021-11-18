@@ -1,49 +1,57 @@
 %{!?python3_sitelib: %define python3_sitelib %(python3 -c "from distutils.sysconfig import get_python_lib;print(get_python_lib())")}
-#
-# tdnf spec file
-#
+
 Summary:        dnf/yum equivalent using C libs
 Name:           tdnf
-Version:        3.0.0
-Release:        5%{?dist}
+Version:        3.1.5
+Release:        2%{?dist}
 Vendor:         VMware, Inc.
 Distribution:   Photon
 License:        LGPLv2.1,GPLv2
-URL:            http://www.vmware.com
+URL:            https://github.com/vmware/%{name}
 Group:          Applications/RPM
+Source0:        %{name}-%{version}.tar.gz
+%define sha1    %{name}=48bc98b57a50a580a56d00988bf3955be5d749a4
+
+# Patch0:         pool_flag_noinstalledobsoletes.patch
+Patch100:		cmakelist-paths.sgifixes.patch
+Patch101:		client-defines.sgifixes.patch
+Patch102: 	    tdnf-conf.sgifixes.patch
+Patch103:		tdnf-pool.sgifixes.patch
+Patch104:		tdnf-client.sgifixes.patch
+Patch105:		tdnf-common-utils.sgifixes.patch
+Patch106:       cli-termios.sgifixes.patch
+# mach's crappy interpolation patch
+# Patch106:		tdnf-client-rpmtrans.sgifixes.patch
+# Patch107:		tdnf-printfprecision.sgifixes.patch
+
 Requires:       rpm-libs
-Requires:       curl
+Requires:       curl-libs
 Requires:       tdnf-cli-libs = %{version}-%{release}
 Requires:       libsolv
 Requires:       libmetalink
+
 BuildRequires:  popt-devel
 BuildRequires:  rpm-devel
 BuildRequires:  openssl-devel >= 1.1.1
-BuildRequires:  libsolv-devel
+BuildRequires:  libsolv-devel >= 0.7.14
+# this definitely won't do anything bad at all
+# BuildRequires:  libsolv-devel >= 0.7.19
 BuildRequires:  curl-devel
 BuildRequires:  libmetalink-devel
+# BuildRequires:  systemd
 #plugin repogpgcheck
 BuildRequires:  gpgme-devel
 BuildRequires:  cmake
 BuildRequires:  python3-devel
-#%if %{with_check}
-#BuildRequires:  createrepo_c
-#BuildRequires:  glib
-#BuildRequires:  libxml2
-#%endif
-#Obsoletes:      yum
+
+# %if %{with_check}
+# BuildRequires:  createrepo_c
+# BuildRequires:  glib
+# BuildRequires:  libxml2
+# %endif
+
+Obsoletes:      yum
 Provides:       yum
-Source0:        %{name}-%{version}-beta.tar.gz
-%define sha1    tdnf=ccde34eb3c75afcd1d672fae05a0dd2aae7feaa1
-Patch0:         fix-coverity-issues.patch
-Patch100:		cmakelist-paths.sgifixes.patch
-Patch101:		client-defines.sgifixes.patch
-Patch102: 		tdnf-conf.sgifixes.patch
-Patch103:		tdnf-pool.sgifixes.patch
-Patch104:		tdnf-client.sgifixes.patch
-Patch105:		tdnf-common-utils.sgifixes.patch
-Patch106:		tdnf-client-rpmtrans.sgifixes.patch
-Patch107:		tdnf-printfprecision.sgifixes.patch
 
 %description
 tdnf is a yum/dnf equivalent which uses libsolv and libcurl
@@ -66,18 +74,18 @@ Group:		Development/Libraries
 %description cli-libs
 Library providing cli libs for tdnf like clients.
 
-%package	plugin-repogpgcheck
-Summary:	tdnf plugin providign gpg verification for repository metadata
-Group:		Development/Libraries
-Requires:       gpgme
+%package    plugin-repogpgcheck
+Summary:    tdnf plugin providign gpg verification for repository metadata
+Group:      Development/Libraries
+Requires:   gpgme
 
 %description plugin-repogpgcheck
 tdnf plugin providign gpg verification for repository metadata
 
-%package	python
-Summary:	python bindings for tdnf
-Group:		Development/Libraries
-Requires:       python3
+%package    python
+Summary:    python bindings for tdnf
+Group:      Development/Libraries
+Requires:   python3
 
 %description python
 python bindings for tdnf
@@ -86,12 +94,13 @@ python bindings for tdnf
 Summary:   %{name} - automated upgrades
 Group:     Development/Libraries
 Requires:  %{name} = %{version}-%{release}
+%{?systemd_requires}
 
 %description automatic
 Systemd units that can periodically download package upgrades and apply them.
 
 %prep
-%autosetup -n %{name}-%{version}-beta -p1
+%autosetup -p1 -n %{name}-%{version}
 
 # Rewrite some hardcoded paths (just in case used in tests etc)
 perl -pi -e "s|/var/cache/tdnf|%{_prefix}/var/cache/tdnf|g" etc/motdgen.d/02-tdnf-updateinfo.sh
@@ -127,83 +136,99 @@ cd build && make %{?_smp_mflags} check
 %install
 cd build && make DESTDIR=%{buildroot} install
 find %{buildroot} -name '*.a' -delete
-mkdir -p %{buildroot}%{_prefix}/var/cache/tdnf
+mkdir -p %{buildroot}/var/cache/tdnf
+mkdir -p %{buildroot}/%{_libdir}/systemd/system/
 ln -sf %{_bindir}/tdnf %{buildroot}%{_bindir}/tyum
 ln -sf %{_bindir}/tdnf %{buildroot}%{_bindir}/yum
-mv %{buildroot}%{_libdir}/pkgconfig/tdnfcli.pc %{buildroot}%{_libdir}/pkgconfig/tdnf-cli-libs.pc
+mv %{buildroot}/usr/lib/pkgconfig/tdnfcli.pc %{buildroot}/usr/lib/pkgconfig/tdnf-cli-libs.pc
 mkdir -p %{buildroot}/%{_tdnfpluginsdir}/tdnfrepogpgcheck
 mv %{buildroot}/%{_tdnfpluginsdir}/libtdnfrepogpgcheck.so %{buildroot}/%{_tdnfpluginsdir}/tdnfrepogpgcheck/libtdnfrepogpgcheck.so
-cd python
-python3 setup.py install --skip-build --prefix=%{_prefix} --root=%{buildroot}
-cd ..
-find %{buildroot} -name '*.pyc' -delete
-rm -rf %{buildroot}%{_prefix}/lib/systemd
+mv %{buildroot}/lib/systemd/system/ %{buildroot}/%{_libdir}/systemd/
 
-## Pre-install
-#%pre
-#
-#    # First argument is 1 => New Installation
-#    # First argument is 2 => Upgrade
-#
-## Post-install
-#%post
-#
-#    # First argument is 1 => New Installation
-#    # First argument is 2 => Upgrade
-#
-#    /sbin/ldconfig
-#
-#%triggerin -- motd
-#[ $2 -eq 1 ] || exit 0
-#if [ $1 -eq 1 ]; then
-#    echo "detected install of tdnf/motd, enabling tdnf-cache-updateinfo.timer" >&2
-#    systemctl enable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-#    systemctl start tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-#elif [ $1 -eq 2 ]; then
-#    echo "detected upgrade of tdnf, daemon-reload" >&2
-#    systemctl daemon-reload >/dev/null 2>&1 || :
-#fi
-#
-#
-## Pre-uninstall
-#%preun
-#
-#    # First argument is 0 => Uninstall
-#    # First argument is 1 => Upgrade
-#
-#%triggerun -- motd
-#[ $1 -eq 1 ] && [ $2 -eq 1 ] && exit 0
-#echo "detected uninstall of tdnf/motd, disabling tdnf-cache-updateinfo.timer" >&2
-#systemctl --no-reload disable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-#systemctl stop tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-#rm -rf /var/cache/tdnf/cached-updateinfo.txt
-#
-## Post-uninstall
-#%postun
-#
-#    /sbin/ldconfig
-#
-#    # First argument is 0 => Uninstall
-#    # First argument is 1 => Upgrade
-#
-#%triggerpostun -- motd
-#[ $1 -eq 1 ] && [ $2 -eq 1 ] || exit 0
-#echo "detected upgrade of tdnf/motd, restarting tdnf-cache-updateinfo.timer" >&2
-#systemctl try-restart tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-#
-#%post cli-libs
-#
-#    # First argument is 1 => New Installation
-#    # First argument is 2 => Upgrade
-#
-#    /sbin/ldconfig
-#
-#%postun cli-libs
-#
-#    /sbin/ldconfig
-#
-#    # First argument is 0 => Uninstall
-#    # First argument is 1 => Upgrade
+pushd python
+python3 setup.py install --skip-build --prefix=%{_prefix} --root=%{buildroot}
+popd
+find %{buildroot} -name '*.pyc' -delete
+
+# Pre-install
+%pre
+
+    # First argument is 1 => New Installation
+    # First argument is 2 => Upgrade
+
+# Post-install
+%post
+
+    # First argument is 1 => New Installation
+    # First argument is 2 => Upgrade
+
+    /sbin/ldconfig
+
+%triggerin -- motd
+[ $2 -eq 1 ] || exit 0
+if [ $1 -eq 1 ]; then
+    echo "detected install of tdnf/motd, enabling tdnf-cache-updateinfo.timer" >&2
+    systemctl enable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+    systemctl start tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+elif [ $1 -eq 2 ]; then
+    echo "detected upgrade of tdnf, daemon-reload" >&2
+    systemctl daemon-reload >/dev/null 2>&1 || :
+fi
+
+# Pre-uninstall
+%preun
+
+    # First argument is 0 => Uninstall
+    # First argument is 1 => Upgrade
+
+%triggerun -- motd
+[ $1 -eq 1 ] && [ $2 -eq 1 ] && exit 0
+echo "detected uninstall of tdnf/motd, disabling tdnf-cache-updateinfo.timer" >&2
+systemctl --no-reload disable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+systemctl stop tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+rm -rf /var/cache/tdnf/cached-updateinfo.txt
+
+# Post-uninstall
+# %postun
+
+#     /sbin/ldconfig
+
+#     # First argument is 0 => Uninstall
+#     # First argument is 1 => Upgrade
+
+# %triggerpostun -- motd
+# [ $1 -eq 1 ] && [ $2 -eq 1 ] || exit 0
+# echo "detected upgrade of tdnf/motd, restarting tdnf-cache-updateinfo.timer" >&2
+# systemctl try-restart tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
+
+# %post cli-libs
+
+#     # First argument is 1 => New Installation
+#     # First argument is 2 => Upgrade
+
+#     /sbin/ldconfig
+
+# %postun cli-libs
+
+#     /sbin/ldconfig
+
+#     # First argument is 0 => Uninstall
+#     # First argument is 1 => Upgrade
+
+# %post automatic
+# %systemd_post %{name}-automatic.timer
+# %systemd_post %{name}-automatic-notifyonly.timer
+# %systemd_post %{name}-automatic-install.timer
+
+# %preun automatic
+# %systemd_preun %{name}-automatic.timer
+# %systemd_preun %{name}-automatic-notifyonly.timer
+# %systemd_preun %{name}-automatic-install.timer
+
+# %postun automatic
+# %systemd_postun_with_restart %{name}-automatic.timer
+# %systemd_postun_with_restart %{name}-automatic-notifyonly.timer
+# %systemd_postun_with_restart %{name}-automatic-install.timer
 
 %files
     %defattr(-,root,root,0755)
@@ -213,8 +238,10 @@ rm -rf %{buildroot}%{_prefix}/lib/systemd
     %{_bindir}/tdnf-cache-updateinfo
     %{_libdir}/libtdnf.so.*
     %config(noreplace) %{_sysconfdir}/tdnf/tdnf.conf
+    %config %{_libdir}/systemd/system/tdnf-cache-updateinfo.service
+    %config(noreplace) %{_libdir}/systemd/system/tdnf-cache-updateinfo.timer
     %config %{_sysconfdir}/motdgen.d/02-tdnf-updateinfo.sh
-    %dir %{_prefix}/var/cache/tdnf
+    %dir /var/cache/tdnf
     %{_datadir}/bash-completion/completions/tdnf
 
 %files devel
@@ -244,15 +271,42 @@ rm -rf %{buildroot}%{_prefix}/lib/systemd
     %defattr(-,root,root,0755)
     %{_bindir}/%{name}-automatic
     %config(noreplace) %{_sysconfdir}/%{name}/automatic.conf
+    %{_libdir}/systemd/system/%{name}-automatic.timer
+    %{_libdir}/systemd/system/%{name}-automatic.service
+    %{_libdir}/systemd/system/%{name}-automatic-install.timer
+    %{_libdir}/systemd/system/%{name}-automatic-install.service
+    %{_libdir}/systemd/system/%{name}-automatic-notifyonly.timer
+    %{_libdir}/systemd/system/%{name}-automatic-notifyonly.service
 
 %changelog
-* Sun Dec 20 2020 Daniel Hams <daniel.hams@gmail.com> 3.0.0-5
-- Little cleanups (paths, RPATH, printf precision, bad SSL discovery, use RSE OPT flags)
-*	Sat Dec 19 2020 David Stancu <dstancu@nyu.edu> 3.0.0-4
--	Make TDNFNormalizePath a no-op (since it is only used with the cache dir, which is already normalized)
+*   Wed Nov 17 2021 David Stancu <dstancu@nyu.edu> - 3.1.5-2
+-   rse update to 3.1.5
+*   Wed Oct 06 2021 Oliver Kurth <okurth@vmware.com> 3.1.5-1
+-   update to 3.1.5
+-   add minversions config option
+-   make pytests arch independent (does not affect functionality)
+*   Mon Aug 2 2021 Oliver Kurth <okurth@vmware.com> 3.1.4-1
+-   update to 3.1.4
+-   fix configreader key reading logic
+*   Tue Jun 29 2021 Oliver Kurth <okurth@vmware.com> 3.1.3-1
+-   update to 3.1.3
+*   Wed Jun 23 2021 Oliver Kurth <okurth@vmware.com> 3.1.2-1
+-   update to 3.1.2
+*   Fri Jun 11 2021 Oliver Kurth <okurth@vmware.com> 3.1.0-3
+-   rebuild with libsolv 0.7.19
+*   Thu Jun 03 2021 Shreenidhi Shedi <sshedi@vmware.com> 3.1.0-2
+-   fix segfaulting when gpgcheck is enabled & no key configured
+*   Tue Jun 01 2021 Oliver Kurth <okurth@vmware.com> 3.1.0-1
+-   update to 3.1.0
+*   Tue Apr 06 2021 Oliver Kurth <okurth@vmware.com> 3.0.2-1
+-   update to 3.0.2
+*   Sun Dec 20 2020 Daniel Hams <daniel.hams@gmail.com> 3.0.0-5
+-   Little cleanups (paths, RPATH, printf precision, bad SSL discovery, use RSE OPT flags)
+*  	Sat Dec 19 2020 David Stancu <dstancu@nyu.edu> 3.0.0-4
+-	  Make TDNFNormalizePath a no-op (since it is only used with the cache dir, which is already normalized)
 -   Expand $releasever and $basearch in GPG urls
 *   Thu Dec 03 2020 David Stancu <dstancu@nyu.edu> 3.0.0-3
--	Built for sgug-rse!
+-	  Built for sgug-rse!
 *   Thu Oct 29 2020 Keerthana K <keerthanak@vmware.com> 3.0.0-2
 -   Fix coverity scan issues and fedora pytest issue.
 *   Tue Oct 27 2020 Keerthana K <keerthanak@vmware.com> 3.0.0-1
@@ -362,4 +416,3 @@ rm -rf %{buildroot}%{_prefix}/lib/systemd
 -   Proxy support, keepcache fix, valgrind leaks fix
 *   Fri Jan 23 2015 Priyesh Padmavilasom <ppadmavilasom@vmware.com> 1.0
 -   Initial build.  First version
-

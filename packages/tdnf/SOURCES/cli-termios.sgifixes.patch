@@ -1,0 +1,10 @@
+--- tdnf-3.1.5-orig/tools/cli/lib/output.c	2021-10-06 18:39:26.000000000 +0000
++++ tdnf-3.1.5/tools/cli/lib/output.c	2021-11-17 21:14:29.710175680 +0000
+@@ -20,6 +20,7 @@
+  */
+ 
+ #include "includes.h"
++#include <sys/termios.h>
+ 
+ void
+ ShowConsoleProps(

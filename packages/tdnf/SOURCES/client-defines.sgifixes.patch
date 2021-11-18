@@ -1,5 +1,5 @@
---- tdnf-3.0.0-beta-orig/client/defines.h	2020-10-27 01:14:06.000000000 +0000
-+++ tdnf-3.0.0/client/defines.h	2020-12-19 20:43:27.407203760 +0000
+--- tdnf-3.1.5-orig/client/defines.h	2021-10-06 18:39:26.000000000 +0000
++++ tdnf-3.1.5/client/defines.h	2021-11-17 20:39:21.042920320 +0000
 @@ -59,7 +59,7 @@
  
  //Repo defines
@@ -9,10 +9,10 @@
  #define TDNF_CONF_GROUP                   "main"
  //Conf file key names
  #define TDNF_CONF_KEY_GPGCHECK            "gpgcheck"
-@@ -103,10 +103,10 @@
- #define TDNF_REPO_METALINK_FILE_NAME      "metalink"
+@@ -110,10 +110,10 @@
  #define TDNF_REPO_BASEURL_FILE_NAME       "baseurl"
- //Repo defaults
+ 
+ // repo defaults
 -#define TDNF_DEFAULT_REPO_LOCATION        "/etc/yum.repos.d"
 -#define TDNF_DEFAULT_CACHE_LOCATION       "/var/cache/tdnf"
 -#define TDNF_DEFAULT_DISTROVERPKG         "system-release"
@@ -24,7 +24,7 @@
  #define TDNF_RPM_CACHE_DIR_NAME           "rpms"
  #define TDNF_REPODATA_DIR_NAME            "repodata"
  #define TDNF_SOLVCACHE_DIR_NAME           "solvcache"
-@@ -121,7 +121,7 @@
+@@ -140,7 +140,7 @@
  /* plugin defines */
  #define TDNF_DEFAULT_PLUGINS_ENABLED      0
  #define TDNF_DEFAULT_PLUGIN_PATH          SYSTEM_LIBDIR"/tdnf-plugins"
