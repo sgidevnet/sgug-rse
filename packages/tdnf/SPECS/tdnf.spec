@@ -25,7 +25,7 @@ Patch106:       cli-termios.sgifixes.patch
 # Patch107:		tdnf-printfprecision.sgifixes.patch
 
 Requires:       rpm-libs
-Requires:       curl-libs
+Requires:       libcurl
 Requires:       tdnf-cli-libs = %{version}-%{release}
 Requires:       libsolv
 Requires:       libmetalink
@@ -50,7 +50,7 @@ BuildRequires:  python3-devel
 # BuildRequires:  libxml2
 # %endif
 
-Obsoletes:      yum
+# Obsoletes:      yum
 Provides:       yum
 
 %description
@@ -143,92 +143,12 @@ ln -sf %{_bindir}/tdnf %{buildroot}%{_bindir}/yum
 mv %{buildroot}%{_libdir}/pkgconfig/tdnfcli.pc %{buildroot}%{_libdir}/pkgconfig/tdnf-cli-libs.pc
 mkdir -p %{buildroot}/%{_tdnfpluginsdir}/tdnfrepogpgcheck
 mv %{buildroot}/%{_tdnfpluginsdir}/libtdnfrepogpgcheck.so %{buildroot}/%{_tdnfpluginsdir}/tdnfrepogpgcheck/libtdnfrepogpgcheck.so
-mv %{buildroot}/lib/systemd/system/ %{buildroot}/%{_libdir}/systemd/
+rm -rf %{buildroot}%{_prefix}/lib/systemd/system/
 
-pushd python
+cd python
 python3 setup.py install --skip-build --prefix=%{_prefix} --root=%{buildroot}
-popd
+cd ..
 find %{buildroot} -name '*.pyc' -delete
-
-# # Pre-install
-# %pre
-
-#     # First argument is 1 => New Installation
-#     # First argument is 2 => Upgrade
-
-# # Post-install
-# %post
-
-#     # First argument is 1 => New Installation
-#     # First argument is 2 => Upgrade
-
-#     /sbin/ldconfig
-
-# %triggerin -- motd
-# [ $2 -eq 1 ] || exit 0
-# if [ $1 -eq 1 ]; then
-#     echo "detected install of tdnf/motd, enabling tdnf-cache-updateinfo.timer" >&2
-#     systemctl enable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-#     systemctl start tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-# elif [ $1 -eq 2 ]; then
-#     echo "detected upgrade of tdnf, daemon-reload" >&2
-#     systemctl daemon-reload >/dev/null 2>&1 || :
-# fi
-
-# # Pre-uninstall
-# %preun
-
-#     # First argument is 0 => Uninstall
-#     # First argument is 1 => Upgrade
-
-# %triggerun -- motd
-# [ $1 -eq 1 ] && [ $2 -eq 1 ] && exit 0
-# echo "detected uninstall of tdnf/motd, disabling tdnf-cache-updateinfo.timer" >&2
-# systemctl --no-reload disable tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-# systemctl stop tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-# rm -rf /var/cache/tdnf/cached-updateinfo.txt
-
-# Post-uninstall
-# %postun
-
-#     /sbin/ldconfig
-
-#     # First argument is 0 => Uninstall
-#     # First argument is 1 => Upgrade
-
-# %triggerpostun -- motd
-# [ $1 -eq 1 ] && [ $2 -eq 1 ] || exit 0
-# echo "detected upgrade of tdnf/motd, restarting tdnf-cache-updateinfo.timer" >&2
-# systemctl try-restart tdnf-cache-updateinfo.timer >/dev/null 2>&1 || :
-
-# %post cli-libs
-
-#     # First argument is 1 => New Installation
-#     # First argument is 2 => Upgrade
-
-#     /sbin/ldconfig
-
-# %postun cli-libs
-
-#     /sbin/ldconfig
-
-#     # First argument is 0 => Uninstall
-#     # First argument is 1 => Upgrade
-
-# %post automatic
-# %systemd_post %{name}-automatic.timer
-# %systemd_post %{name}-automatic-notifyonly.timer
-# %systemd_post %{name}-automatic-install.timer
-
-# %preun automatic
-# %systemd_preun %{name}-automatic.timer
-# %systemd_preun %{name}-automatic-notifyonly.timer
-# %systemd_preun %{name}-automatic-install.timer
-
-# %postun automatic
-# %systemd_postun_with_restart %{name}-automatic.timer
-# %systemd_postun_with_restart %{name}-automatic-notifyonly.timer
-# %systemd_postun_with_restart %{name}-automatic-install.timer
 
 %files
     %defattr(-,root,root,0755)
@@ -238,8 +158,6 @@ find %{buildroot} -name '*.pyc' -delete
     %{_bindir}/tdnf-cache-updateinfo
     %{_libdir}/libtdnf.so.*
     %config(noreplace) %{_sysconfdir}/tdnf/tdnf.conf
-    %config %{_libdir}/systemd/system/tdnf-cache-updateinfo.service
-    %config(noreplace) %{_libdir}/systemd/system/tdnf-cache-updateinfo.timer
     %config %{_sysconfdir}/motdgen.d/02-tdnf-updateinfo.sh
     %dir %{_prefix}/var/cache/tdnf
     %{_datadir}/bash-completion/completions/tdnf
@@ -249,7 +167,6 @@ find %{buildroot} -name '*.pyc' -delete
     %{_includedir}/tdnf/*.h
     %{_libdir}/libtdnf.so
     %{_libdir}/libtdnfcli.so
-    %exclude %{_libdir}/debug
     %{_libdir}/pkgconfig/tdnf.pc
     %{_libdir}/pkgconfig/tdnf-cli-libs.pc
 
@@ -271,12 +188,6 @@ find %{buildroot} -name '*.pyc' -delete
     %defattr(-,root,root,0755)
     %{_bindir}/%{name}-automatic
     %config(noreplace) %{_sysconfdir}/%{name}/automatic.conf
-    %{_libdir}/systemd/system/%{name}-automatic.timer
-    %{_libdir}/systemd/system/%{name}-automatic.service
-    %{_libdir}/systemd/system/%{name}-automatic-install.timer
-    %{_libdir}/systemd/system/%{name}-automatic-install.service
-    %{_libdir}/systemd/system/%{name}-automatic-notifyonly.timer
-    %{_libdir}/systemd/system/%{name}-automatic-notifyonly.service
 
 %changelog
 *   Wed Nov 17 2021 David Stancu <dstancu@nyu.edu> - 3.1.5-2
