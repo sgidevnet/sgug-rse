@@ -3,7 +3,7 @@
 Summary:        dnf/yum equivalent using C libs
 Name:           tdnf
 Version:        3.1.5
-Release:        2%{?dist}
+Release:        3%{?dist}
 Vendor:         VMware, Inc.
 Distribution:   Photon
 License:        LGPLv2.1,GPLv2
@@ -23,6 +23,7 @@ Patch106:       cli-termios.sgifixes.patch
 # mach's crappy interpolation patch
 # Patch106:		tdnf-client-rpmtrans.sgifixes.patch
 # Patch107:		tdnf-printfprecision.sgifixes.patch
+Patch108:		tdnf-no-dlclose-plugins.patch
 
 Requires:       rpm-libs
 Requires:       libcurl
@@ -116,7 +117,7 @@ rm cmake/FindOpenSSL.cmake
 
 %build
 mkdir build && cd build
-export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT $RPM_OPT_FLAGS"
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -DLIBDICL_NEED_GETOPT $RPM_OPT_FLAGS -g"
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS"
 cmake \
 -DCMAKE_INSTALL_PREFIX=%{_prefix} \
@@ -190,7 +191,7 @@ find %{buildroot} -name '*.pyc' -delete
     %config(noreplace) %{_sysconfdir}/%{name}/automatic.conf
 
 %changelog
-*   Wed Nov 17 2021 David Stancu <dstancu@nyu.edu> - 3.1.5-2
+*   Wed Nov 17 2021 David Stancu <dstancu@nyu.edu> - 3.1.5-3
 -   rse update to 3.1.5
 *   Wed Oct 06 2021 Oliver Kurth <okurth@vmware.com> 3.1.5-1
 -   update to 3.1.5
