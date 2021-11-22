@@ -1,11 +1,20 @@
---- tdnf-3.0.0-beta/client/plugins.c.orig	2021-11-19 14:57:30.307988836 +0000
-+++ tdnf-3.0.0-beta/client/plugins.c	2021-11-19 14:57:15.299176437 +0000
+--- tdnf-3.1.5-orig/client/plugins.c	2021-10-06 18:39:26.000000000 +0000
++++ tdnf-3.1.5/client/plugins.c	2021-11-21 22:02:46.471605920 +0000
 @@ -197,7 +197,7 @@
      }
      if (pPlugin->pModule)
      {
 -        dlclose(pPlugin->pModule);
-+        //dlclose(pPlugin->pModule);
++        // dlclose(pPlugin->pModule);
      }
  }
  
+@@ -519,7 +519,7 @@
+     {
+         if (pPlugin->pModule)
+         {
+-            dlclose(pPlugin->pModule);
++            // dlclose(pPlugin->pModule);
+             pPlugin->pModule = NULL;
+         }
+         pPlugin->nEnabled = 0;
