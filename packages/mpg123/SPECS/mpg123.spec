@@ -20,14 +20,8 @@ BuildRequires:  automake
 BuildRequires:  libtool
 
 BuildRequires:  gcc
-#BuildRequires:  pkgconfig(alsa)
 
 Requires:       %{name}-libs%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
-
-#%if 0%{?fedora}
-#%global enable_jack 1
-#%global enable_portaudio 1
-#%endif
 
 %global _summary %{summary}
 
@@ -37,47 +31,6 @@ commonly MPEG 1.0 layer 3 aka MP3), as well as re-usable decoding and output\
 libraries.
 
 %description %{_description}
-
-#%package plugins-pulseaudio
-#Summary:        Pulseaudio output plug-in for %{name}
-#BuildRequires:  pkgconfig(libpulse-simple)
-#Requires:       %{name}%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
-#%if 0%{?fedora} || 0%{?rhel} >= 8
-#Supplements:    (mpg123%{?_isa} and pulseaudio%{?_isa})
-#%endif
-
-#%description plugins-pulseaudio %{_description}
-#
-#Pulseaudio output plug-in.
-
-#%if 0%{?enable_jack}
-#%package plugins-jack
-#Summary:        JACK output plug-in for %{name}
-#BuildRequires:  pkgconfig(jack)
-#Requires:       %{name}%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
-#%if 0%{?fedora} || 0%{?rhel} >= 8
-#Supplements:    (mpg123%{?_isa} and jack-audio-connection-kit%{?_isa})
-#%endif
-#Obsoletes:      %{name}-plugins-extras < 1.23.4-1
-
-#%description plugins-jack %{_description}
-#
-#JACK output plug-in.
-#%endif
-
-#%if 0%{?enable_portaudio}
-#%package plugins-portaudio
-#Summary:        PortAudio output plug-in for %{name}
-#BuildRequires:  pkgconfig(portaudio-2.0)
-#Requires:       %{name}%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
-#%if 0%{?fedora} || 0%{?rhel} >= 8
-#Supplements:    (mpg123%{?_isa} and portaudio%{?_isa})
-#%endif
-
-#%description plugins-portaudio %{_description}
-#
-#PortAudio output plug-in.
-#%endif
 
 %package libs
 Summary:        %{_summary}
@@ -106,8 +59,6 @@ Development files for decoding and output libraries.
 
 %build
 autoreconf -vfi
-#configure --enable-modules=yes --with-default-audio=alsa \
-#	--with-audio=alsa,%{?enable_jack:jack},pulse,oss,%{?enable_portaudio:portaudio}
 
 %configure --enable-modules=yes --with-audio=sgi
 
@@ -131,22 +82,8 @@ rm %{buildroot}%{_libdir}/*.la
 %doc %{_mandir}/man1/%{name}.1*
 %doc %{_mandir}/man1/%{out}.1*
 %dir %{_libdir}/%{name}/
-#%{_libdir}/%{name}/output_alsa.*
 %{_libdir}/%{name}/output_dummy.*
-#%{_libdir}/%{name}/output_oss.*
-
-#%files plugins-pulseaudio
-#%{_libdir}/%{name}/output_pulse.*
-
-#%if 0%{?enable_jack}
-#%files plugins-jack
-#%{_libdir}/%{name}/output_jack.*
-#%endif
-
-#%if 0%{?enable_portaudio}
-#%files plugins-portaudio
-#%{_libdir}/%{name}/output_portaudio.*
-#%endif
+%{_libdir}/%{name}/output_sgi.*
 
 %files libs
 %license COPYING
@@ -166,6 +103,9 @@ rm %{buildroot}%{_libdir}/*.la
 %{_libdir}/pkgconfig/lib%{out}.pc
 
 %changelog
+* Sat Nov 27 2021 Ole Weidner <ole.weidner@protonmail.ch> - 1.25.10-2
+- Fixed missing output_sgi plug-in
+
 * Sun Oct 24 2021 Ole Weidner <ole.weidner@protonmail.ch> - 1.25.10-2
 - Enable SGI audio output module
 
