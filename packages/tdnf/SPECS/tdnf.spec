@@ -5,7 +5,7 @@
 Summary:        dnf/yum equivalent using C libs
 Name:           tdnf
 Version:        3.0.0
-Release:        5%{?dist}
+Release:        6%{?dist}
 Vendor:         VMware, Inc.
 Distribution:   Photon
 License:        LGPLv2.1,GPLv2
@@ -44,6 +44,7 @@ Patch104:		tdnf-client.sgifixes.patch
 Patch105:		tdnf-common-utils.sgifixes.patch
 Patch106:		tdnf-client-rpmtrans.sgifixes.patch
 Patch107:		tdnf-printfprecision.sgifixes.patch
+Patch108:		tdnf-no-dlclose-plugins.patch
 
 %description
 tdnf is a yum/dnf equivalent which uses libsolv and libcurl

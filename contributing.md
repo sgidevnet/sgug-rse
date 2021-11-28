@@ -29,9 +29,9 @@ At the next point-in-time release of sgug-rse, our tooling then works through th
 
 ## Packages - Adding/Porting A New Package
 
-1) You may choose to port your package outside of rpmbuild, it can easier to do the patching there before tackling the `.spec` build file
+1) You may choose to port your package outside of rpmbuild, it can be easier to do the patching there before tackling the `.spec` build file
 
-2) Check fedora fc31 if the package exists, pull the latest source RPM
+2) Check fedora fc31 if the package exists and pull the latest source RPM. Fedora source RPMs can be searched and downloaded here: <https://koji.fedoraproject.org/koji/packages>.
 
 3) Install srpm, copy .spec into rse packages/PACKAGENAME/SPECS/PACKAGENAME.spec.origfedora
 

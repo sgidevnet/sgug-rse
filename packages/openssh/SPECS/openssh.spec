@@ -66,7 +66,7 @@
 
 # Do not forget to bump pam_ssh_agent_auth release if you rewind the main package release to 1
 %global openssh_ver 8.1p1
-%global openssh_rel 11
+%global openssh_rel 12
 %global pam_ssh_agent_ver 0.10.3
 %global pam_ssh_agent_rel 7
 
@@ -83,14 +83,16 @@ Source3: DJM-GPG-KEY.gpg
 #Source4: http://prdownloads.sourceforge.net/pamsshagentauth/pam_ssh_agent_auth/pam_ssh_agent_auth-%{pam_ssh_agent_ver}.tar.bz2
 #Source5: pam_ssh_agent-rmheaders
 #Source6: ssh-keycat.pam
-Source7: sshd.sysconfig
+#Source7: sshd.sysconfig
 #Source9: sshd@.service
 #Source10: sshd.socket
 #Source11: sshd.service
 #Source12: sshd-keygen@.service
-Source13: sshd-keygen
+#Source13: sshd-keygen
 #Source14: sshd.tmpfiles
-Source15: sshd-keygen.target
+#Source15: sshd-keygen.target
+
+Source80: sgug-sshd
 
 #https://bugzilla.mindrot.org/show_bug.cgi?id=2581
 #Patch100: openssh-6.7p1-coverity.patch
@@ -218,6 +220,7 @@ Patch964: openssh-8.0p1-openssl-kdf.patch
 #Patch966: openssh-8.0p1-agent-certs-sha2.patch
 
 Patch1000: openssh.sgifixes.patch
+Patch1001: openssh.sgifixes2.patch
 
 License: BSD
 #Requires: /sbin/nologin
@@ -430,6 +433,8 @@ cd ..
 
 #%patch100 -p1 -b .coverity
 
+%patch1001 -p1 -b .sgi1
+
 autoreconf
 %if %{pam_ssh_agent}
 cd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
@@ -450,7 +455,7 @@ CFLAGS="$CFLAGS -fPIC"
 %else
 CFLAGS="$CFLAGS -fpic"
 %endif
-LDFLAGS="$RPM_LD_FLAGS"
+LDFLAGS="$LDFLAGS $RPM_LD_FLAGS"
 SAVE_LDFLAGS="$LDFLAGS"
 LDFLAGS="$LDFLAGS -pie -z relro -z now"
 
@@ -478,7 +483,8 @@ fi
 export ac_cv_func___b64_pton=no
 export ac_cv_func___b64_ntop=no
 
-export CPPFLAGS="-D_SGI_MP_SOURCE"
+CPPFLAGS="$CPPFLAGS -D_SGI_MP_SOURCE"
+export CPPFLAGS
 
 %configure \
 	--sysconfdir=%{_sysconfdir}/ssh \
@@ -493,8 +499,8 @@ export CPPFLAGS="-D_SGI_MP_SOURCE"
 	--with-ipaddr-display \
 	--with-pie=no \
 	--without-hardening `# The hardening flags are configured by system` \
-	--with-systemd \
 %if 0
+	--with-systemd \
 	--with-default-pkcs11-provider=yes \
 %endif
 %if %{ldap}
@@ -575,6 +581,7 @@ make tests
 
 %install
 rm -rf $RPM_BUILD_ROOT
+mkdir -p -m755 $RPM_BUILD_ROOT%{_sysconfdir}/init.d
 mkdir -p -m755 $RPM_BUILD_ROOT%{_sysconfdir}/ssh
 mkdir -p -m755 $RPM_BUILD_ROOT%{_sysconfdir}/ssh/ssh_config.d
 mkdir -p -m755 $RPM_BUILD_ROOT%{_libexecdir}/openssh
@@ -588,7 +595,7 @@ install -d $RPM_BUILD_ROOT%{_libexecdir}/openssh
 install -d $RPM_BUILD_ROOT%{_libdir}/fipscheck
 #install -m644 %{SOURCE2} $RPM_BUILD_ROOT/etc/pam.d/sshd
 #install -m644 %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/ssh-keycat
-install -m644 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sshd
+#install -m644 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sshd
 #install -m644 ssh_config_redhat $RPM_BUILD_ROOT%{_sysconfdir}/ssh/ssh_config.d/05-redhat.conf
 #install -d -m755 $RPM_BUILD_ROOT/%{_unitdir}
 #install -m644 %{SOURCE9} $RPM_BUILD_ROOT/%{_unitdir}/sshd@.service
@@ -596,7 +603,7 @@ install -m644 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sshd
 #install -m644 %{SOURCE11} $RPM_BUILD_ROOT/%{_unitdir}/sshd.service
 #install -m644 %{SOURCE12} $RPM_BUILD_ROOT/%{_unitdir}/sshd-keygen@.service
 #install -m644 %{SOURCE15} $RPM_BUILD_ROOT/%{_unitdir}/sshd-keygen.target
-install -m744 %{SOURCE13} $RPM_BUILD_ROOT/%{_libexecdir}/openssh/sshd-keygen
+#install -m744 %{SOURCE13} $RPM_BUILD_ROOT/%{_libexecdir}/openssh/sshd-keygen
 install -m755 contrib/ssh-copy-id $RPM_BUILD_ROOT%{_bindir}/
 install contrib/ssh-copy-id.1 $RPM_BUILD_ROOT%{_mandir}/man1/
 #install -m644 -D %{SOURCE14} $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
@@ -619,9 +626,12 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man8/ssh-pkcs11*
 rm -f $RPM_BUILD_ROOT/etc/profile.d/gnome-ssh-askpass.*
 %endif
 
+# put the init script in place
+install -m755 %{SOURCE80} $RPM_BUILD_ROOT%{_sysconfdir}/init.d/
+
 # Rewrite some things
 perl -pi -e "s|$RPM_BUILD_ROOT||g" $RPM_BUILD_ROOT%{_mandir}/man*/*
-perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_libexecdir}/%{name}/sshd-keygen
+#perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_libexecdir}/%{name}/sshd-keygen
 
 #%if %{pam_ssh_agent}
 #cd pam_ssh_agent_auth-%{pam_ssh_agent_ver}
@@ -633,26 +643,30 @@ perl -pi -e "s|/bin/bash|%{_bindir}/bash|g" $RPM_BUILD_ROOT%{_libexecdir}/%{name
 #getent group ssh_keys >/dev/null || groupadd -r ssh_keys || :
 
 %pre server
-#IRIX has no getent nor groupadd
-#getent group sshd >/dev/null || groupadd -g %{sshd_uid} -r sshd || :
-#getent passwd sshd >/dev/null || \
+# add group and user for privilege separation
 grep "sshd:x:%{sshd_uid}:" /etc/group >/dev/null || echo "sshd:x:%{sshd_uid}:" >> /etc/group || :
 grep "sshd:x:74:74" /etc/passwd >/dev/null || \
-#  useradd -c "Privilege-separated SSH" -u %{sshd_uid} -g sshd \
-#  -s /sbin/nologin -r -d /var/empty/sshd sshd 2> /dev/null || :
   /usr/sysadm/privbin/addUserAccount -l sshd -u %{sshd_uid} \
   -g %{sshd_gid} -G "Privilege-separated SSH" -S /bin/false \
   -H /var/empty/sshd 2> /dev/null || :
 
+[ -f /var/config/sgug-sshd ] || /sbin/chkconfig -f sgug-sshd on
 
-#%post server
-#%systemd_post sshd.service sshd.socket
+%post server
+/etc/chkconfig sshd && echo "WARNING: Non-SGUG sshd is enabled.  Run chkconfig sshd off, followed by /etc/init.d/sgug-sshd restart"
+# set up the init.d script
+ln -sf %{_sysconfdir}/init.d/sgug-sshd /etc/init.d/sgug-sshd
+ln -sf ../init.d/sgug-sshd /etc/rc2.d/S85sgug-sshd
+ln -sf ../init.d/sgug-sshd /etc/rc0.d/K15sgug-sshd
 
-#%preun server
-#%systemd_preun sshd.service sshd.socket
+# restart -- will not do anything if the user chkconfigd off
+/etc/init.d/sgug-sshd restart
 
-#%postun server
-#%systemd_postun_with_restart sshd.service
+%preun server
+/etc/init.d/sgug-sshd stop
+
+%postun server
+rm -f /etc/init.d/sgug-sshd /etc/config/sgug-sshd /etc/rc2.d/S85sgug-sshd /etc/rc0.d/K15sgug-sshd
 
 %files
 %license LICENCE
@@ -702,20 +716,21 @@ grep "sshd:x:74:74" /etc/passwd >/dev/null || \
 %attr(0755,root,root) %{_sbindir}/sshd
 #%attr(0644,root,root) %{_libdir}/fipscheck/sshd.hmac
 %attr(0755,root,root) %{_libexecdir}/openssh/sftp-server
-%attr(0755,root,root) %{_libexecdir}/openssh/sshd-keygen
+#%attr(0755,root,root) %{_libexecdir}/openssh/sshd-keygen
 %attr(0644,root,root) %{_mandir}/man5/sshd_config.5*
 %attr(0644,root,root) %{_mandir}/man5/moduli.5*
 %attr(0644,root,root) %{_mandir}/man8/sshd.8*
 %attr(0644,root,root) %{_mandir}/man8/sftp-server.8*
 %attr(0600,root,root) %config(noreplace) %{_sysconfdir}/ssh/sshd_config
 #%attr(0644,root,root) %config(noreplace) /etc/pam.d/sshd
-%attr(0640,root,root) %config(noreplace) %{_sysconfdir}/sshd
+#%attr(0640,root,root) %config(noreplace) %{_sysconfdir}/sshd
 #%attr(0644,root,root) %{_unitdir}/sshd.service
 #%attr(0644,root,root) %{_unitdir}/sshd@.service
 #%attr(0644,root,root) %{_unitdir}/sshd.socket
 #%attr(0644,root,root) %{_unitdir}/sshd-keygen@.service
 #%attr(0644,root,root) %{_unitdir}/sshd-keygen.target
 #%attr(0644,root,root) %{_tmpfilesdir}/openssh.conf
+%attr(0755,root,root) %config(noreplace) %{_sysconfdir}/init.d/sgug-sshd
 %endif
 
 %if %{ldap}
@@ -753,6 +768,9 @@ grep "sshd:x:74:74" /etc/passwd >/dev/null || \
 %endif
 
 %changelog
+* Sun Nov 07 2021 Vladimir Vukicevic <vladimir@pobox.com> - 8.1p1-12
+- Add IRIX init file and chkconfig, fix sshd_config
+
 * Tue Jun 16 2020 Daniel Hams <daniel.hams@gmail.com> - 8.1p1-11
 - Stop installing the redhat config that doesn''t work, fix the broken key reading
 
