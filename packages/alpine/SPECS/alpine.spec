@@ -15,6 +15,7 @@ Source1: README.fedora
 
 Patch1: alpine-2.24-useragent.patch
 Patch2: alpine-2.23-gcc10.patch
+Patch3: alpine-2.24-sgifixes.patch
 
 # Using "Conflicts" instead of Obsoletes because while alpine is substantially
 # compatible with pine the change to Unicode breaks important user
@@ -73,6 +74,7 @@ GNU Build System's autotools.
 %setup -q -n alpine-%{version}
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 install -m644 -p %{SOURCE1} .
 
@@ -89,6 +91,7 @@ touch imap/ip6
 %configure \
   --enable-debug=no \
   --without-tcl \
+  --without-x509 \
   --with-c-client-target=lfd \
   --with-smtp-msa=/usr/sbin/sendmail \
   --with-npa=/usr/bin/inews \

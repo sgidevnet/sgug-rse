@@ -1,0 +1,16 @@
+--- BUILD/alpine-2.24/configure.ac      2020-10-10 08:24:28.180553000 +0000
++++ /home/oweidner/configure.ac 2021-11-04 11:20:44.060805855 +0000
+@@ -1337,6 +1337,13 @@
+     alpine_c_client_target="bso"
+     LIBS="$LIBS $LIBINTL"
+     ;;
++  *-*-irix*)
++    systype="IRX"
++    alpine_path_delim="/"
++    alpine_mode_readonly="(0600)"
++    alpine_c_client_target="irx"
++    LIBS="$LIBS $LIBINTL"
++    ;;
+   *-*-aix5*)
+     systype="A52"
+     alpine_path_delim="/"
