@@ -76,6 +76,12 @@ GNU Build System's autotools.
 
 install -m644 -p %{SOURCE1} .
 
+# Regenerate configure after patching configure.ac
+libtoolize --force  --copy
+aclocal -I . -I m4
+automake --add-missing --copy
+autoconf
+autoheader
 
 %build
 touch imap/ip6
