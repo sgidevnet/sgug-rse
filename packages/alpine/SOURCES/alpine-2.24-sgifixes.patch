@@ -9,7 +9,7 @@ diff -r -u -w alpine-2.24/configure.ac alpine-2.24-patched/configure.ac
 +    systype="IRX"
 +    alpine_path_delim="/"
 +    alpine_mode_readonly="(0600)"
-+    alpine_c_client_target="irx"
++    alpine_c_client_target="gsg"
 +    LIBS="$LIBS $LIBINTL"
 +    ;;
    *-*-aix5*)
