@@ -141,7 +141,7 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/pine.conf.fixed
 
 
 %changelog
-* Sun Oct 24 2021 Ole Weidner <ole.weidner@protonmail.ch> - 2.24-1
+* Thu Dec 02 2021 Ole Weidner <ole.weidner@protonmail.ch> - 2.24-1
 - Import into sgug-rse.
 
 * Sun Oct 11 2020 josef radinger <cheese@nosuchhost.net> - 2.24-1
