@@ -1,0 +1,26 @@
+diff -r -u -w mutt-1.14.6/getdomain.c mutt-1.14.6-patched/getdomain.c
+--- mutt-1.14.6/getdomain.c     2020-05-03 00:37:43.000000000 +0000
++++ mutt-1.14.6-patched/getdomain.c     2021-12-02 14:52:14.945661714 +0000
+@@ -28,6 +28,11 @@
+
+ #include "mutt.h"
+
++#ifdef __sgi
++#include <sys/param.h>
++#define _SC_HOST_NAME_MAX MAXHOSTNAMELEN
++#endif
++
+
+ int getdnsdomainname (BUFFER *d)
+ {
+diff -r -u -w mutt-1.14.6/hcache.c mutt-1.14.6-patched/hcache.c
+--- mutt-1.14.6/hcache.c      2020-05-03 00:37:43.000000000 +0000
++++ mutt-1.14.6-patched/hcache.c        2021-12-02 15:47:55.403683803 +0000
+@@ -1499,7 +1499,7 @@
+     REPLACE_LIST *spam;
+     RX_LIST *nospam;
+
+-    hcachever = HCACHEVER;
++    /*hcachever = HCACHEVER;*/
+
+     md5_init_ctx(&ctx);
