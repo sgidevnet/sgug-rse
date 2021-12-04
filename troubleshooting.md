@@ -20,44 +20,35 @@ Don't worry, we can set your use up in the sudoers file quickly and easily with 
 
 Why sudo? Many things in UNIX require you to do things as your user, not root. Sudo is a program that allows you to more easily execute commands as the root user without having to invoke a root shell via `su`.
 
-You already have sudo installed, we just need to add your username on IRIX to the `sys` group on the system.
+You already have sudo installed, we just need to authorize your username on IRIX to use it.
 
-If you are comfortable editing files with vi and you know what to do then go a head and become root (using su) and edit the /etc/group file with vi like this:
+If you are comfortable editing files with vi and you know what to do then go a head and become root (using su) and edit a new file called `/usr/sgug/etc/sudoers.d/USER` where USER is the username that should have access to sudo.
 
 ```
 $ su -
 [root password]
-# vi /etc/group
+# vi /usr/sgug/etc/sudoers.d/USER
 ```
 
-The `sys` group should be the first line. It will look like this:
+Add the following in the file, but replace USER by the actual username:
 
 ```
-sys::0:root,bin,sys,adm
+# Don't ask a password for USER for 10 minutes once one is entered
+Defaults:USER timestamp_timeout=600
+USER    ALL=(ALL)       ALL
 ```
-
-You need add a comma and your username at the end, like this:
-
-```
-sys::0:root,bin,sys,adm,dillera
-```
-
-[dillera is my username, use yours]
 
 And save the file.
 
-If you don't know how to use vi, or are uncomfortable editing the file there are some commands to use to do this for you without using vi (or ed if you are into that).
-
-
-Here are the four commands you need to use, as root. I'll go over each in turn.
+If you don't know how to use vi, you can type the following instead as root, replacing USER by your username:
 
 ```
-
-# /usr/sgug/bin/bash
-# sudo_user=`awk -F: 'END {print $1 } ' /etc/passwd` && echo $sudo_user
-# fixed_line=`awk -v name="$sudo_user" '/sys::/{print $0 "," name } ' /etc/group`
-# sed -i.bak "/^sys::/c ${fixed_line}" /etc/group
-
+NAME=USER
+cat << EOF > /usr/sgug/etc/sudoers.d/$NAME
+# Don't ask a password for $NAME for 10 minutes once one is entered
+Defaults:$NAME timestamp_timeout=600
+$NAME    ALL=(ALL)       ALL
+EOF
 ```
 
 
