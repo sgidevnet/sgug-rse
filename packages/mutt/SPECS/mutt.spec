@@ -60,6 +60,7 @@ autoreconf --install
 %patch8 -p1 -b .system_certs
 %patch9 -p1 -b .ssl_ciphers
 %patch13 -p1 -b .optusegpgagent
+%patch14 -p1 -b .sgifixes
 
 sed -i -r 's/`$GPGME_CONFIG --libs`/"\0 -lgpg-error"/' configure
 
@@ -160,7 +161,7 @@ ln -sf ./muttrc.5 %{buildroot}%{_mandir}/man5/muttrc.local.5
 
 
 %changelog
-* Mon Dec 27 2021 Ole Weidner <ole.weidner@protonmail.ch> - 5:1.14.6-1
+* Sun Jan 09 2022 Ole Weidner <ole.weidner@protonmail.ch> - 5:1.14.6-1
 - Import into sgug-rse.
 
 * Wed Jul 22 2020 Fabio Alessandro Locati <fale@fedoraproject.org> - 5:1.14.6-1
