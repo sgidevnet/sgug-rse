@@ -1,6 +1,6 @@
 Name:		worker
 Version:	4.4.0
-Release:	1%{?dist}
+Release:	3%{?dist}
 Summary:	File Manager for the X11
 
 License:	GPLv2+
@@ -12,6 +12,7 @@ Patch100:       worker.sgifixes.patch
 BuildRequires:	desktop-file-utils
 BuildRequires:	gcc-c++
 BuildRequires:	libX11-devel
+BuildRequires:  avfs
 
 %description
 A X11 file-manager that features low requirements and easy to access archives.
@@ -29,7 +30,7 @@ done
 %build
 export CPPFLAGS="-I%{_includedir}/libdicl-0.1"
 export LDFLAGS="$RPM_LD_FLAGS -ldicl-0.1"
-%configure
+%configure --without-dbus
 %make_build
 
 %install
