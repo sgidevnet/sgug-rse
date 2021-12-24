@@ -57,6 +57,9 @@ desktop-file-install	\
 
 
 %changelog
+* Fri Dec 24 2021 SGI User Group <> - 4.4.0-3
+- added AVFS library support
+
 * Tue Jul 07 2020  HAL <notes2@gmx.de> - 4.4.0-1
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
