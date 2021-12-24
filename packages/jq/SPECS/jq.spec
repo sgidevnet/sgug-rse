@@ -46,19 +46,6 @@ export CXXFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUN
 export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS -lgen"
 %configure --disable-static
 make %{?_smp_mflags}
-# Docs already shipped in jq's tarball.
-# In order to build the manual page, it
-# is necessary to install rake, rubygem-ronn
-# and do the following steps:
-#
-# # yum install rake rubygem-ronn
-# $ cd docs/
-# $ curl -L https://get.rvm.io | bash -s stable --ruby=1.9.3
-# $ source $HOME/.rvm/scripts/rvm
-# $ bundle install
-# $ cd ..
-# $ ./configure
-# $ make real_docs
 
 %install
 make DESTDIR=%{buildroot} install
@@ -88,6 +75,9 @@ make check
 
 
 %changelog
+* Fri Dec 24 2021 SGI User Group
+- Rebuilt for Irix
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.6-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
