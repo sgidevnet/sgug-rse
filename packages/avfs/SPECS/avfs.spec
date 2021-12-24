@@ -69,6 +69,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/pkgconfig/avfs.pc
 
 %changelog
+* Fri Dec 24 2021 SGI User Group - 1.1.4-2
+- Rebuilt for Irix
 * Sun Oct 24 2021 Wei-Lun Chao <bluebat@member.fsf.org> - 1.1.4
 - Rebuilt for Fedora
 * Wed Aug 06 2008 J. Krebs <rpm_speedy@yahoo.com> - 0.9.8-2
