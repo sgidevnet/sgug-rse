@@ -105,6 +105,9 @@ find $RPM_BUILD_ROOT -name '*.la' \
 %{_libdir}/pkgconfig/%{name}.pc	
 
 %changelog
+* Fri Dec 24 2021 SGI User Group <> - 6.9.3-1
+- Modified for Irix
+
 * Sun Aug 11 2019 Mamoru TASAKA <mtasaka@fedoraproject.org> - 6.9.3-1
 - 6.9.3
 
