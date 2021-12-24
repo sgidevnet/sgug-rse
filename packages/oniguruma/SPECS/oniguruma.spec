@@ -50,10 +50,10 @@ done
 %endif
 
 %build
-%configure \
-	--disable-silent-rules \
-	--disable-static \
-	--with-rubydir=%{_bindir}
+export CFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export CXXFLAGS="-I%{_includedir}/libdicl-0.1 -D_SGI_SOURCE -D_SGI_REENTRANT_FUNCTIONS $RPM_OPT_FLAGS"
+export LDFLAGS="-ldicl-0.1 $RPM_LD_FLAGS -lgen"
+%configure
 %{__make} %{?_smp_mflags}
 
 
@@ -100,6 +100,7 @@ find $RPM_BUILD_ROOT -name '*.la' \
 %{_bindir}/onig-config
 
 %{_libdir}/libonig.so
+%{_libdir}/libonig.a
 %{_includedir}/onig*.h
 %{_libdir}/pkgconfig/%{name}.pc	
 
