@@ -54,6 +54,9 @@ desktop-file-install --remove-key Encoding     \
 %{_mandir}/man1/%{name}.1.*
 
 %changelog
+* Fri Dec 24 2021 SGI User Group <> - 0.40.0-6
+- Modified for Irix
+
 * Sat Jul 27 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.40.0-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
