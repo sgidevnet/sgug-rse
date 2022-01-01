@@ -1,0 +1,55 @@
+diff --git a/config.mk b/config.mk
+index 05d5a3e..554ba95 100644
+--- a/config.mk
++++ b/config.mk
+@@ -2,11 +2,11 @@
+ VERSION = 5.0
+ 
+ # paths
+-PREFIX = /usr/local
++PREFIX = /usr/sgug
+ MANPREFIX = $(PREFIX)/share/man
+ 
+-X11INC = /usr/X11R6/include
+-X11LIB = /usr/X11R6/lib
++X11INC = /usr/X11/include
++X11LIB = /usr/X11/lib
+ 
+ # Xinerama, comment if you don't want it
+ XINERAMALIBS  = -lXinerama
+@@ -14,18 +14,18 @@ XINERAMAFLAGS = -DXINERAMA
+ 
+ # freetype
+ FREETYPELIBS = -lfontconfig -lXft
+-FREETYPEINC = /usr/include/freetype2
++FREETYPEINC = /usr/sgug/include/freetype2
+ # OpenBSD (uncomment)
+ #FREETYPEINC = $(X11INC)/freetype2
+ 
+ # includes and libs
+ INCS = -I$(X11INC) -I$(FREETYPEINC)
+ LIBS = -L$(X11LIB) -lX11 $(XINERAMALIBS) $(FREETYPELIBS)
+-
+ # flags
+-CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\" $(XINERAMAFLAGS)
+-CFLAGS   = -std=c99 -pedantic -Wall -Os $(INCS) $(CPPFLAGS)
+-LDFLAGS  = $(LIBS)
++#CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\" $(XINERAMAFLAGS)
++CPPFLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\" $(XINERAMAFLAGS)
++CFLAGS   = -std=c99 -pedantic -Wall -Os $(INCS) $(CPPFLAGS) -I/usr/sgug/include/libdicl-0.1 -D_SGI_SOURCE
++LDFLAGS  = $(LIBS) -ldicl-0.1
+ 
+ # compiler and linker
+ CC = cc
+diff --git a/stest.c b/stest.c
+index e27d3a5..49a51d7 100644
+--- a/stest.c
++++ b/stest.c
+@@ -12,6 +12,7 @@
+ char *argv0;
+ 
+ #define FLAG(x)  (flag[(x)-'a'])
++#define PATH_MAX 4096
+ 
+ static void test(const char *, const char *);
+ static void usage(void);
