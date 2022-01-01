@@ -1,7 +1,7 @@
 Summary: SGUG Environment Shell
 Name: sgugshell
 Version: 0.1.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://github.com/sgidevnet/sgug-rse
 Source: sgugshell
