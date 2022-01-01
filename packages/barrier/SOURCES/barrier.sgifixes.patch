@@ -1,8 +1,7 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 18b242db..b7694414 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -342,7 +342,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+diff -Naur barrier-v2.3.2_51_g2d2e9298.orig/CMakeLists.txt barrier-v2.3.2_51_g2d2e9298/CMakeLists.txt
+--- barrier-v2.3.2_51_g2d2e9298.orig/CMakeLists.txt	2020-10-23 11:59:01.000000000 +0000
++++ barrier-v2.3.2_51_g2d2e9298/CMakeLists.txt	2021-12-18 16:05:59.213181080 +0000
+@@ -344,7 +344,7 @@
          )
      endif()
  
@@ -11,7 +10,7 @@ index 18b242db..b7694414 100644
      set (OPENSSL_LIBS ssl crypto)
  else()
      find_library (lib_ssl ssl)
-@@ -418,7 +418,7 @@ endif()
+@@ -420,7 +420,7 @@
  #
  # Linux installation
  #
@@ -20,3 +19,26 @@ index 18b242db..b7694414 100644
      configure_files (${CMAKE_CURRENT_SOURCE_DIR}/dist/rpm ${CMAKE_BINARY_DIR}/rpm)
      install(FILES res/barrier.svg DESTINATION share/icons/hicolor/scalable/apps)
      if("${VERSION_MAJOR}" STREQUAL "2") 
+diff -Naur barrier-v2.3.2_51_g2d2e9298.orig/src/lib/platform/XWindowsScreen.cpp barrier-v2.3.2_51_g2d2e9298/src/lib/platform/XWindowsScreen.cpp
+--- barrier-v2.3.2_51_g2d2e9298.orig/src/lib/platform/XWindowsScreen.cpp	2020-10-23 11:59:01.000000000 +0000
++++ barrier-v2.3.2_51_g2d2e9298/src/lib/platform/XWindowsScreen.cpp	2021-12-31 19:58:47.742182308 +0000
+@@ -795,6 +795,9 @@
+ void
+ XWindowsScreen::fakeMouseButton(ButtonID button, bool press)
+ {
++        // save errors
++        bool error = false;
++        XWindowsUtil::ErrorLock lock(m_display, &error);
+ 	const unsigned int xButton = mapButtonToX(button);
+ 	if (xButton > 0 && xButton < 11) {
+         m_impl->XTestFakeButtonEvent(m_display, xButton,
+@@ -832,6 +835,9 @@
+ void
+ XWindowsScreen::fakeMouseWheel(SInt32 xDelta, SInt32 yDelta) const
+ {
++    // save errors
++    bool error = false;
++    XWindowsUtil::ErrorLock lock(m_display, &error);
+     int numEvents;
+ 
+     if ((!xDelta && !yDelta) || (xDelta && yDelta)) {
