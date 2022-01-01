@@ -61,5 +61,5 @@ if [[ $# -eq 0 ]] ; then
 else
 	# If ~/.sgug_bashrc exists, source it for our executable
 	[ -e $HOME/.sgug_bashrc ] && source $HOME/.sgug_bashrc
-	exec $1 "${@: -1}"
+	exec $1 ${@: 2}
 fi
