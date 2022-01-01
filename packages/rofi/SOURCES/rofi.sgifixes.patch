@@ -1,0 +1,15 @@
+diff -Naur rofi-1.5.4.orig/source/view.c rofi-1.5.4/source/view.c
+--- rofi-1.5.4.orig/source/view.c	2022-01-01 08:44:54.906333000 +0000
++++ rofi-1.5.4/source/view.c	2022-01-01 09:27:42.797005000 +0000
+@@ -1854,7 +1854,11 @@
+     TICK_N ( "Setup Threadpool, start" );
+     if ( config.threads == 0 ) {
+         config.threads = 1;
++#if !defined(__sgi)
+         long procs = sysconf ( _SC_NPROCESSORS_CONF );
++#else
++		long procs = sysconf ( _SC_NPROC_CONF );
++#endif
+         if ( procs > 0 ) {
+             config.threads = MIN ( procs, 128l );
+         }
