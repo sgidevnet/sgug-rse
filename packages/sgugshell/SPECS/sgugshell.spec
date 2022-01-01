@@ -1,7 +1,7 @@
 Summary: SGUG Environment Shell
 Name: sgugshell
 Version: 0.1.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://github.com/sgidevnet/sgug-rse
 Source: sgugshell
@@ -24,6 +24,9 @@ install -p -m 755 -t %{buildroot}%{_bindir} sgugshell
 %{_bindir}/sgugshell
 
 %changelog
+* Sat Jan 01 2022 J16bit <> - 0.1.0-4
+- Clean up args to calling external programs
+
 * Fri Jan 01 2020 Daniel Hams <daniel.hams@gmail.com> - 0.1.0-2
 - Unset "HOST" variable (see issue with netsurf).
 
