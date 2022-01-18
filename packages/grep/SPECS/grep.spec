@@ -31,6 +31,9 @@ Provides: %{_prefix}/bin/grep
 Provides: %{_prefix}/bin/fgrep
 Provides: %{_prefix}/bin/egrep
 
+# add --with tests option, i.e. disable tests by default
+%bcond_with tests
+
 %description
 The GNU versions of commonly used grep utilities. Grep searches through
 textual input for lines which contain a match to a specified pattern and then
@@ -78,7 +81,9 @@ install -Dpm 755 %{SOURCE4} $RPM_BUILD_ROOT%{_libexecdir}/grepconf.sh
 %find_lang %name
 
 %check
+%if %{with tests}
 make check
+%endif
 
 %files -f %{name}.lang
 %doc AUTHORS THANKS TODO NEWS README

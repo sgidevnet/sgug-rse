@@ -11,6 +11,9 @@ License: GPLv3+ and (GPLv2+ or LGPLv3+)
 
 Release: %{baserelease}%{?dist}
 
+# add --with tests option, i.e. disable tests by default
+%bcond_with tests
+
 %global provide_yama_scope	0
 
 %if 0%{?fedora} >= 22 || 0%{?rhel} >= 7
@@ -231,6 +234,7 @@ install -Dm0644 config/10-default-yama-scope.conf ${RPM_BUILD_ROOT}%{_sysctldir}
 %endif
 
 %check
+%if %{with tests} 
 # Record some build root versions in build.log
 uname -r; rpm -q glibc
 
@@ -255,6 +259,7 @@ make -s %{?_smp_mflags} check || (cat tests/test-suite.log; false)
 if [ -x /usr/lib/systemd/systemd-sysctl ] ; then
 %sysctl_apply 10-default-yama-scope.conf
 fi
+%endif
 %endif
 
 %files
