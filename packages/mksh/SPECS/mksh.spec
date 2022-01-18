@@ -32,6 +32,9 @@ shell. It includes bug fixes and feature improvements in order to produce a
 modern, robust shell good for interactive and especially script use, being a
 bourne shell replacement, pdksh successor and an alternative to the C shell.
 
+# add --with tests option, i.e. disable tests by default
+%bcond_with tests
+
 %prep
 %setup -q -n %{name}
 
@@ -112,6 +115,7 @@ then
   exit 1
 fi
 
+%if %{with tests}
 for tf in test_mksh.sh test_lksh.sh
 do
   echo > test.wait
@@ -123,6 +127,7 @@ do
     test $maxwait -lt 900 || break
   done
 done
+%endif
 
 #%post
 #%if 0%{?fedora} >= 17 || 0%{?rhel} >= 7
