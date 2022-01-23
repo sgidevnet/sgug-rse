@@ -9,11 +9,12 @@
 
 Summary: SGUG RPM Tools
 Name: sgug-rpm-tools
-Version: 0.2.2
+Version: 0.2.3
 Release: 1%{?dist}
 License: GPLv3+
 URL: https://github.com/sgidevnet/sgug-rpm-tools
 Source: https://github.com/sgidevnet/sgug-rpm-tools/releases/download/v%{version}/sgug-rpm-tools-%{version}.tar.gz
+Patch100: sgug-rpm-tools.sgifixes.patch
 
 BuildRequires: g++
 BuildRequires: automake, autoconf, libtool, pkgconfig
@@ -23,7 +24,7 @@ BuildRequires: rpm-build, rpm-devel
 Some utility programs to help with release / dependency management.
 
 %prep
-%setup -q
+%autosetup -p1
 
 %build
 %if 0%{debug}
@@ -45,6 +46,9 @@ make install DESTDIR=$RPM_BUILD_ROOT prefix=%{_prefix} INSTALL='install -p'
 %{_bindir}/sgug_world_builder
 
 %changelog
+* Sat Jan 22 2022 Eric Dodd <eric.e.dodd@gmail.com> - 0.2.3
+- Added rpmbuild dir parameter for worldrebuilder.sh for safety
+
 * Thu Dec 17 2020 Daniel Hams <daniel.hams@gmail.com> - 0.2.2
 - Upgrade to 0.2.2 with info and desktop-file-utils in minimal
 
