@@ -10,6 +10,10 @@ Group:          Productivity/Networking/Web/Browsers
 Source0:        http://download.netsurf-browser.org/netsurf/releases/source-full/netsurf-all-%{version}.tar.gz
 Source1:        nsmotiffe.tar.gz
 
+# We cannot use auto-req as this relies on Unix system files
+# None of those are RPM controlled
+AutoReq: no
+
 Patch100: 		netsurf-all-3.10.sgifixes.patch
 Patch101: 		netsurf-motif.patch
 URL:            http://www.netsurf-browser.org/
@@ -44,7 +48,7 @@ of the web standards in use today.
 %setup -q -n netsurf-all-%{version}
 %patch100 -p1 -b .sgifixes
 %patch101 -p1 -b .motiffixes
-tar xzf ../../SOURCES/nsmotiffe.tar.gz
+tar xzf %{SOURCE1}
 
 %global common_make_opts \\\
         V=1 \\\
