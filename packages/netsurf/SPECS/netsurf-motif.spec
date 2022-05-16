@@ -1,7 +1,7 @@
 # i get problems with references to eg Console.bnd on wrong paths
 %global debug_package %{nil}
 
-Name:           netsurf
+Name:           netsurf-motif
 Version:        3.10
 Release:        3%{?dist}
 Summary:        Lightweight Web Browser with its own layout and rendering engine
@@ -91,12 +91,12 @@ export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-ldicl-0.1 -liconv"
 export PATH="$PATH:/usr/sgug/bin:/usr/sgug/sbin:/usr/bin/X11:/usr/bin:/bin:/usr/sbin:/usr/bsd"
 %make_install PREFIX=%{_prefix} %{motif_make_opts}
-install -D -m0644 netsurf/frontends/gtk/res/netsurf.xpm $RPM_BUILD_ROOT%{_datadir}/pixmaps/netsurf.xpm
+#install -D -m0644 netsurf/frontends/gtk/res/netsurf.xpm $RPM_BUILD_ROOT%{_datadir}/pixmaps/netsurf.xpm
 
 %files
-%{_bindir}/%{name}-motif
-%{_datadir}/%{name}
-%{_datadir}/pixmaps/netsurf.xpm
+%{_bindir}/netsurf-motif
+%{_datadir}/netsurf/motif
+#%%{_datadir}/pixmaps/netsurf.xpm
 
 %changelog
 * Sat Apr 27 2022 drmadison 3.10-3
