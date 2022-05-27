@@ -3,7 +3,7 @@
 
 Name:           netsurf-motif
 Version:        3.10
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Lightweight Web Browser with its own layout and rendering engine
 License:        GPL-2.0 and MIT
 Group:          Productivity/Networking/Web/Browsers
