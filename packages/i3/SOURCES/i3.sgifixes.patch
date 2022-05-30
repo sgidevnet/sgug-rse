@@ -1,0 +1,451 @@
+diff -Naur i3-4.18.2.orig/Makefile.am i3-4.18.2/Makefile.am
+--- i3-4.18.2.orig/Makefile.am	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/Makefile.am	2021-12-30 13:33:08.322768200 +0000
+@@ -394,6 +394,7 @@
+ 	$(YAJL_LIBS)
+ 
+ i3bar_i3bar_SOURCES = \
++    i3bar/include/sgi.h \
+ 	i3bar/include/child.h \
+ 	i3bar/include/common.h \
+ 	i3bar/include/configuration.h \
+@@ -406,6 +407,7 @@
+ 	i3bar/include/workspaces.h \
+ 	i3bar/include/xcb_atoms.def \
+ 	i3bar/include/xcb.h \
++    i3bar/src/sgi.c \
+ 	i3bar/src/child.c \
+ 	i3bar/src/config.c \
+ 	i3bar/src/ipc.c \
+diff -Naur i3-4.18.2.orig/i3-config-wizard/main.c i3-4.18.2/i3-config-wizard/main.c
+--- i3-4.18.2.orig/i3-config-wizard/main.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3-config-wizard/main.c	2021-12-28 20:07:28.481094600 +0000
+@@ -31,7 +31,10 @@
+ #include <string.h>
+ #include <ctype.h>
+ #include <errno.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ #include <stdint.h>
+ #include <getopt.h>
+ #include <limits.h>
+diff -Naur i3-4.18.2.orig/i3-dump-log/main.c i3-4.18.2/i3-dump-log/main.c
+--- i3-4.18.2.orig/i3-dump-log/main.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3-dump-log/main.c	2021-12-28 20:08:03.276880200 +0000
+@@ -18,7 +18,10 @@
+ #include <unistd.h>
+ #include <string.h>
+ #include <errno.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ #include <stdint.h>
+ #include <getopt.h>
+ #include <limits.h>
+diff -Naur i3-4.18.2.orig/i3-input/i3-input.h i3-4.18.2/i3-input/i3-input.h
+--- i3-4.18.2.orig/i3-input/i3-input.h	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3-input/i3-input.h	2021-12-28 20:11:55.335750600 +0000
+@@ -2,7 +2,10 @@
+ 
+ #include <config.h>
+ 
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ 
+ #define die(...) errx(EXIT_FAILURE, __VA_ARGS__);
+ #define FREE(pointer)   \
+diff -Naur i3-4.18.2.orig/i3-input/main.c i3-4.18.2/i3-input/main.c
+--- i3-4.18.2.orig/i3-input/main.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3-input/main.c	2021-12-28 20:12:23.246613000 +0000
+@@ -15,7 +15,10 @@
+ #include <unistd.h>
+ #include <string.h>
+ #include <errno.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ #include <stdint.h>
+ #include <getopt.h>
+ #include <limits.h>
+diff -Naur i3-4.18.2.orig/i3-msg/main.c i3-4.18.2/i3-msg/main.c
+--- i3-4.18.2.orig/i3-msg/main.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3-msg/main.c	2021-12-28 20:12:45.254920200 +0000
+@@ -25,7 +25,10 @@
+ #include <unistd.h>
+ #include <string.h>
+ #include <errno.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ #include <stdint.h>
+ #include <getopt.h>
+ #include <limits.h>
+diff -Naur i3-4.18.2.orig/i3-nagbar/i3-nagbar.h i3-4.18.2/i3-nagbar/i3-nagbar.h
+--- i3-4.18.2.orig/i3-nagbar/i3-nagbar.h	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3-nagbar/i3-nagbar.h	2021-12-29 14:19:53.700506600 +0000
+@@ -2,7 +2,10 @@
+ 
+ #include <config.h>
+ 
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ 
+ #define die(...) errx(EXIT_FAILURE, __VA_ARGS__);
+ #define FREE(pointer)   \
+diff -Naur i3-4.18.2.orig/i3-nagbar/main.c i3-4.18.2/i3-nagbar/main.c
+--- i3-4.18.2.orig/i3-nagbar/main.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3-nagbar/main.c	2021-12-29 14:20:12.438112200 +0000
+@@ -17,7 +17,10 @@
+ #include <unistd.h>
+ #include <string.h>
+ #include <errno.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ #include <stdint.h>
+ #include <getopt.h>
+ #include <limits.h>
+diff -Naur i3-4.18.2.orig/i3bar/include/sgi.h i3-4.18.2/i3bar/include/sgi.h
+--- i3-4.18.2.orig/i3bar/include/sgi.h	1969-12-31 19:00:00.000000000 +0000
++++ i3-4.18.2/i3bar/include/sgi.h	2021-12-30 13:57:24.729428200 +0000
+@@ -0,0 +1,10 @@
++#ifndef HAVE_SGI
++
++#define err(E, ...) errmsg(1, E, 1, __VA_ARGS__)
++#define errx(E, ...) errmsg(1, E, 1, __VA_ARGS__)
++#define warn(...) errmsg(0, 0, 1, __VA_ARGS__)
++
++void errmsg(char doexit, int excode, char adderr, const char *fmt, ...) ;
++#define HAVE_SGI 1
++
++#endif
+diff -Naur i3-4.18.2.orig/i3bar/src/child.c i3-4.18.2/i3bar/src/child.c
+--- i3-4.18.2.orig/i3bar/src/child.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3bar/src/child.c	2021-12-30 13:31:31.319688200 +0000
+@@ -9,6 +9,7 @@
+  */
+ #include "common.h"
+ #include "yajl_utils.h"
++#include "sgi.h"
+ 
+ #include <stdlib.h>
+ #include <unistd.h>
+@@ -20,7 +21,10 @@
+ #include <fcntl.h>
+ #include <string.h>
+ #include <errno.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ #include <ev.h>
+ #include <yajl/yajl_common.h>
+ #include <yajl/yajl_parse.h>
+diff -Naur i3-4.18.2.orig/i3bar/src/parse_json_header.c i3-4.18.2/i3bar/src/parse_json_header.c
+--- i3-4.18.2.orig/i3bar/src/parse_json_header.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3bar/src/parse_json_header.c	2021-12-30 07:46:11.792400200 +0000
+@@ -19,7 +19,10 @@
+ #include <fcntl.h>
+ #include <string.h>
+ #include <errno.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ #include <ev.h>
+ #include <stdbool.h>
+ #include <stdint.h>
+diff -Naur i3-4.18.2.orig/i3bar/src/sgi.c i3-4.18.2/i3bar/src/sgi.c
+--- i3-4.18.2.orig/i3bar/src/sgi.c	1969-12-31 19:00:00.000000000 +0000
++++ i3-4.18.2/i3bar/src/sgi.c	2021-12-30 13:57:52.107973800 +0000
+@@ -0,0 +1,73 @@
++#include <libgen.h>
++#include <string.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++void errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
++{
++    fprintf(stderr, "error placeholder: ");
++    if (fmt != NULL) {
++        va_list argp;
++        va_start(argp, fmt);
++        vfprintf(stderr, fmt, argp);
++        va_end(argp);
++        if (adderr)
++            fprintf(stderr, ": ");
++    }
++    if (adderr)
++        fprintf(stderr, "%m");
++    fprintf(stderr, "\n");
++    if (doexit)
++        exit(excode);
++}
++
++
++char *
++dirname (char *path)
++{
++  static const char dot[] = ".";
++  char *last_slash;
++  /* Find last '/'.  */
++  last_slash = path != NULL ? strrchr (path, '/') : NULL;
++  if (last_slash != NULL && last_slash != path && last_slash[1] == '\0')
++    {
++      /* Determine whether all remaining characters are slashes.  */
++      char *runp;
++      for (runp = last_slash; runp != path; --runp)
++        if (runp[-1] != '/')
++          break;
++      /* The '/' is the last character, we have to look further.  */
++      if (runp != path)
++        //last_slash = __memrchr (path, '/', runp - path);
++        last_slash = memchr (path, '/', runp - path);
++    }
++  if (last_slash != NULL)
++    {
++      /* Determine whether all remaining characters are slashes.  */
++      char *runp;
++      for (runp = last_slash; runp != path; --runp)
++        if (runp[-1] != '/')
++          break;
++      /* Terminate the path.  */
++      if (runp == path)
++        {
++          /* The last slash is the first character in the string.  We have to
++             return "/".  As a special case we have to return "//" if there
++             are exactly two slashes at the beginning of the string.  See
++             XBD 4.10 Path Name Resolution for more information.  */
++          if (last_slash == path + 1)
++            ++last_slash;
++          else
++            last_slash = path + 1;
++        }
++      else
++        last_slash = runp;
++      last_slash[0] = '\0';
++    }
++  else
++    /* This assignment is ill-designed but the XPG specs require to
++       return a string containing "." in any case no directory part is
++       found and so a static and constant string is required.  */
++    path = (char *) dot;
++  return path;
++}
+diff -Naur i3-4.18.2.orig/i3bar/src/xcb.c i3-4.18.2/i3bar/src/xcb.c
+--- i3-4.18.2.orig/i3bar/src/xcb.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/i3bar/src/xcb.c	2021-12-30 07:46:26.373457000 +0000
+@@ -24,7 +24,10 @@
+ #include <ev.h>
+ #include <errno.h>
+ #include <limits.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ 
+ #include <X11/Xlib.h>
+ #include <X11/XKBlib.h>
+diff -Naur i3-4.18.2.orig/include/all.h i3-4.18.2/include/all.h
+--- i3-4.18.2.orig/include/all.h	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/include/all.h	2021-12-28 11:18:52.338078600 +0000
+@@ -26,7 +26,12 @@
+ #include <sys/types.h>
+ #include <glob.h>
+ #include <errno.h>
++
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
++
+ #include <stdint.h>
+ #include <inttypes.h>
+ #include <math.h>
+diff -Naur i3-4.18.2.orig/include/libi3.h i3-4.18.2/include/libi3.h
+--- i3-4.18.2.orig/include/libi3.h	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/include/libi3.h	2021-12-29 15:38:22.996696200 +0000
+@@ -34,6 +34,9 @@
+ #define XCB_BUTTON_SCROLL_LEFT 6
+ #define XCB_BUTTON_SCROLL_RIGHT 7
+ 
++
++
++
+ /**
+  * XCB connection and root screen
+  *
+diff -Naur i3-4.18.2.orig/include/util.h i3-4.18.2/include/util.h
+--- i3-4.18.2.orig/include/util.h	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/include/util.h	2021-12-28 16:08:36.252416200 +0000
+@@ -12,7 +12,10 @@
+ 
+ #include <config.h>
+ 
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ 
+ #include "data.h"
+ 
+diff -Naur i3-4.18.2.orig/libi3/draw_util.c i3-4.18.2/libi3/draw_util.c
+--- i3-4.18.2.orig/libi3/draw_util.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/libi3/draw_util.c	2021-12-28 19:57:21.075253000 +0000
+@@ -9,7 +9,10 @@
+ #include "libi3.h"
+ 
+ #include <stdlib.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ #include <string.h>
+ #include <xcb/xcb.h>
+ #include <xcb/xcb_aux.h>
+diff -Naur i3-4.18.2.orig/libi3/font.c i3-4.18.2/libi3/font.c
+--- i3-4.18.2.orig/libi3/font.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/libi3/font.c	2021-12-28 19:57:43.619561000 +0000
+@@ -12,7 +12,10 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdbool.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
+ 
+ #include <cairo/cairo-xcb.h>
+ #include <pango/pangocairo.h>
+diff -Naur i3-4.18.2.orig/libi3/get_process_filename.c i3-4.18.2/libi3/get_process_filename.c
+--- i3-4.18.2.orig/libi3/get_process_filename.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/libi3/get_process_filename.c	2021-12-28 20:14:18.240229000 +0000
+@@ -12,12 +12,15 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdbool.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
++
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ #include <pwd.h>
+ #include <unistd.h>
+-#include <err.h>
+ 
+ /*
+  * Returns the name of a temporary file with the specified prefix.
+diff -Naur i3-4.18.2.orig/libi3/ipc_connect.c i3-4.18.2/libi3/ipc_connect.c
+--- i3-4.18.2.orig/libi3/ipc_connect.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/libi3/ipc_connect.c	2021-12-28 20:14:50.941043400 +0000
+@@ -11,7 +11,11 @@
+ #include <sys/socket.h>
+ #include <sys/un.h>
+ #include <string.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
++
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+diff -Naur i3-4.18.2.orig/libi3/ipc_send_message.c i3-4.18.2/libi3/ipc_send_message.c
+--- i3-4.18.2.orig/libi3/ipc_send_message.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/libi3/ipc_send_message.c	2021-12-28 20:15:13.085587400 +0000
+@@ -11,7 +11,11 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <stdint.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
++
+ #include <errno.h>
+ 
+ #include <i3/ipc.h>
+diff -Naur i3-4.18.2.orig/libi3/resolve_tilde.c i3-4.18.2/libi3/resolve_tilde.c
+--- i3-4.18.2.orig/libi3/resolve_tilde.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/libi3/resolve_tilde.c	2021-12-28 20:15:38.277391400 +0000
+@@ -6,8 +6,11 @@
+  *
+  */
+ #include "libi3.h"
+-
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
++
+ #include <glob.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff -Naur i3-4.18.2.orig/libi3/safewrappers.c i3-4.18.2/libi3/safewrappers.c
+--- i3-4.18.2.orig/libi3/safewrappers.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/libi3/safewrappers.c	2021-12-28 20:15:59.511385800 +0000
+@@ -12,7 +12,11 @@
+ #include <stdarg.h>
+ #include <unistd.h>
+ #include <stdio.h>
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
++
+ #include <errno.h>
+ 
+ /*
+diff -Naur i3-4.18.2.orig/libi3/ucs2_conversion.c i3-4.18.2/libi3/ucs2_conversion.c
+--- i3-4.18.2.orig/libi3/ucs2_conversion.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/libi3/ucs2_conversion.c	2021-12-28 20:16:12.890213800 +0000
+@@ -7,7 +7,11 @@
+  */
+ #include "libi3.h"
+ 
++#if defined(__sgi)
++#else
+ #include <err.h>
++#endif
++
+ #include <errno.h>
+ #include <iconv.h>
+ #include <stdlib.h>
+diff -Naur i3-4.18.2.orig/src/log.c i3-4.18.2/src/log.c
+--- i3-4.18.2.orig/src/log.c	2020-07-26 04:11:37.000000000 +0000
++++ i3-4.18.2/src/log.c	2021-12-28 19:48:22.326649800 +0000
+@@ -33,6 +33,9 @@
+ #if defined(__APPLE__)
+ #include <sys/sysctl.h>
+ #endif
++#if defined(__sgi)
++#include <sys/sysmp.h>
++#endif
+ 
+ static bool debug_logging = false;
+ static bool verbose = false;
+@@ -103,6 +106,12 @@
+         int mib[2] = {CTL_HW, HW_MEMSIZE};
+         size_t length = sizeof(long long);
+         sysctl(mib, 2, &physical_mem_bytes, &length, NULL, 0);
++#elif defined(__sgi)
++        struct rminfo meminfo;
++        if (sysmp(MP_SAGET, MPSA_RMINFO, &meminfo, sizeof(meminfo)) == 0) {
++             physical_mem_bytes = meminfo.physmem;
++        }
++
+ #else
+         physical_mem_bytes = (long long)sysconf(_SC_PHYS_PAGES) *
+                              sysconf(_SC_PAGESIZE);
