@@ -285,7 +285,7 @@ autoreconf -vfi
 # Configure uses g77 by default, if present on system
 #export F77=gfortran
 
-BASEFLAGS="--enable-shared --disable-dependency-tracking --enable-threads"
+BASEFLAGS="--enable-shared --disable-dependency-tracking --enable-threads --disable-fortran"
 #BASEFLAGS+=" --enable-openmp"
 
 # Precisions to build
