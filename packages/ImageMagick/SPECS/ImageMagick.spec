@@ -10,7 +10,7 @@ Epoch:		2
 Epoch:		0
 %endif
 Version:	%{VER}.%{Patchlevel}
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	An X application for displaying and manipulating images
 
 License:	ImageMagick
@@ -186,6 +186,10 @@ cp -a www/source %{buildroot}%{_datadir}/doc/%{name}-%{VER}
 # Delete *ONLY* _libdir/*.la files! .la files used internally to handle plugins - BUG#185237!!!
 rm %{buildroot}%{_libdir}/*.la
 
+# Don't skip the actual binaries
+cp -r utilities/.libs %{buildroot}%{_bindir}/
+# utilities/.libs/
+
 # perlmagick: fix perl path of demo files
 %{__perl} -MExtUtils::MakeMaker -e 'MY->fixin(@ARGV)' PerlMagick/demo/*.pl
 
@@ -247,6 +251,8 @@ rm PerlMagick/demo/Generic.ttf
 %files
 %doc README.txt LICENSE NOTICE AUTHORS.txt NEWS.txt ChangeLog Platforms.txt
 %{_bindir}/[a-z]*
+%{_bindir}/.libs
+%{_bindir}/.libs/*
 %{_mandir}/man[145]/[a-z]*
 %{_mandir}/man1/%{name}.*
 
