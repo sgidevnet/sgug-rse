@@ -12,7 +12,9 @@ Patch100:       worker.sgifixes.patch
 BuildRequires:	desktop-file-utils
 BuildRequires:	gcc-c++
 BuildRequires:	libX11-devel
-BuildRequires:  avfs
+BuildRequires:  avfs-devel
+
+Requires:	avfs
 
 %description
 A X11 file-manager that features low requirements and easy to access archives.
