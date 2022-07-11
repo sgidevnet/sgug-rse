@@ -1,0 +1,99 @@
+diff -Naur sgug-rpm-tools-0.2.2.orig/src/sgug-rpm-tools/sgug_world_builder.cpp sgug-rpm-tools-0.2.2/src/sgug-rpm-tools/sgug_world_builder.cpp
+--- sgug-rpm-tools-0.2.2.orig/src/sgug-rpm-tools/sgug_world_builder.cpp	2020-12-09 17:07:28.000000000 +0000
++++ sgug-rpm-tools-0.2.2/src/sgug-rpm-tools/sgug_world_builder.cpp	2022-01-23 19:43:00.460553000 +0000
+@@ -304,10 +304,6 @@
+   worldrebuilderfile.open("worldrebuilder.sh");
+   worldrebuilderfile << "#!/usr/sgug/bin/bash" << endl;
+   worldrebuilderfile << "# This script should be run as your user!" << endl;
+-  worldrebuilderfile << "echo 'This script is SUPER DESTRUCTIVE.'" << endl;
+-  worldrebuilderfile << "echo 'So you must edit it which confirms you'" << endl;
+-  worldrebuilderfile << "echo 'agree with what it will do.'" << endl;
+-  worldrebuilderfile << "exit 1" << endl;
+   worldrebuilderfile << "# Some useful variables" << endl;
+   worldrebuilderfile << "build_progress_dir=" << buildprogress_p << endl;
+   worldrebuilderfile << "sgug_rse_srpm_archive_root=" << inputsrpm_p << endl;
+@@ -315,15 +311,21 @@
+   worldrebuilderfile << "sgug_rse_srpm_output_root=" << outputsrpm_p << endl;
+   worldrebuilderfile << "sgug_rse_rpm_output_root=" << outputrpm_p << endl;
+ 
++  worldrebuilderfile << "_rpmbuild=$1" << endl;
++  worldrebuilderfile << "if [[ -z $_rpmbuild ]] ; then" << endl;
++  worldrebuilderfile << "  echo 'Usage: ./worldrebuilder.sh /path/to/rpmbuild'" << endl;
++  worldrebuilderfile << "  exit 0" << endl;
++  worldrebuilderfile << "fi" << endl;
++
+   worldrebuilderfile << "ORIG_WD=`pwd`" << endl;
+   worldrebuilderfile << "cleanUpDirs () {" << endl;
+-  worldrebuilderfile << "    rm -rf ~/rpmbuild" << endl;
+-  worldrebuilderfile << "    mkdir -p ~/rpmbuild/BUILD" << endl;
+-  worldrebuilderfile << "    mkdir -p ~/rpmbuild/BUILDROOT" << endl;
+-  worldrebuilderfile << "    mkdir -p ~/rpmbuild/RPMS" << endl;
+-  worldrebuilderfile << "    mkdir -p ~/rpmbuild/SOURCES" << endl;
+-  worldrebuilderfile << "    mkdir -p ~/rpmbuild/SPECS" << endl;
+-  worldrebuilderfile << "    mkdir -p ~/rpmbuild/SRPMS" << endl;
++  worldrebuilderfile << "    rm -rf ${_rpmbuild}" << endl;
++  worldrebuilderfile << "    mkdir -p ${_rpmbuild}/BUILD" << endl;
++  worldrebuilderfile << "    mkdir -p ${_rpmbuild}/BUILDROOT" << endl;
++  worldrebuilderfile << "    mkdir -p ${_rpmbuild}/RPMS" << endl;
++  worldrebuilderfile << "    mkdir -p ${_rpmbuild}/SOURCES" << endl;
++  worldrebuilderfile << "    mkdir -p ${_rpmbuild}/SPECS" << endl;
++  worldrebuilderfile << "    mkdir -p ${_rpmbuild}/SRPMS" << endl;
+   worldrebuilderfile << "    mkdir -p $build_progress_dir" << endl;
+   worldrebuilderfile << "    mkdir -p $sgug_rse_srpm_output_root" << endl;
+   worldrebuilderfile << "    mkdir -p $sgug_rse_rpm_output_root/noarch" << endl;
+@@ -331,27 +333,27 @@
+   worldrebuilderfile << "}" << endl;
+   worldrebuilderfile << "installSrpm () {" << endl;
+   worldrebuilderfile << "    packageSrpmfile=$1" << endl;
+-  worldrebuilderfile << "    rpm -ivh $packageSrpmfile" << endl;
++  worldrebuilderfile << "    rpm --define "_topdir ${_rpmbuild}" -ivh $packageSrpmfile" << endl;
+   worldrebuilderfile << "}" << endl;
+   worldrebuilderfile << "copySgugGitPackage () {" << endl;
+   worldrebuilderfile << "    sgugGitPackageRoot=$1" << endl;
+-  worldrebuilderfile << "    cp -r $sgugGitPackageRoot/* ~/rpmbuild/" << endl;
++  worldrebuilderfile << "    cp -r $sgugGitPackageRoot/* ${_rpmbuild}/" << endl;
+   worldrebuilderfile << "}" << endl;
+   worldrebuilderfile << "rpmbuildPackage () {" << endl;
+   worldrebuilderfile << "    packageName=$1" << endl;
+-  worldrebuilderfile << "    cd ~/rpmbuild/SPECS" << endl;
+-  worldrebuilderfile << "    rpmbuild -ba \"$packageName.spec\" --nocheck 1>$build_progress_dir/$packageName.log 2>&1" << endl;
++  worldrebuilderfile << "    cd ${_rpmbuild}/SPECS" << endl;
++  worldrebuilderfile << "    rpmbuild --define "_topdir ${_rpmbuild}" -ba \"$packageName.spec\" --nocheck 1>$build_progress_dir/$packageName.log 2>&1" << endl;
+   worldrebuilderfile << "    rpmrc=$?" << endl;
+   worldrebuilderfile << "    cd $ORIG_WD" << endl;
+   worldrebuilderfile << "    return $rpmrc" << endl;
+   worldrebuilderfile << "}" << endl;
+   worldrebuilderfile << "archiveBuiltArtefacts () {" << endl;
+-  worldrebuilderfile << "    mv ~/rpmbuild/SRPMS/* $sgug_rse_srpm_output_root/" << endl;
+-  worldrebuilderfile << "    if [[ -e ~/rpmbuild/RPMS/noarch ]]; then" << endl;
+-  worldrebuilderfile << "	mv ~/rpmbuild/RPMS/noarch/* $sgug_rse_rpm_output_root/noarch/" << endl;
++  worldrebuilderfile << "    mv ${_rpmbuild}/SRPMS/* $sgug_rse_srpm_output_root/" << endl;
++  worldrebuilderfile << "    if [[ -e ${_rpmbuild}/RPMS/noarch ]]; then" << endl;
++  worldrebuilderfile << "	mv ${_rpmbuild}/RPMS/noarch/* $sgug_rse_rpm_output_root/noarch/" << endl;
+   worldrebuilderfile << "    fi" << endl;
+-  worldrebuilderfile << "    if [[ -e ~/rpmbuild/RPMS/mips ]]; then" << endl;
+-  worldrebuilderfile << "	mv ~/rpmbuild/RPMS/mips/* $sgug_rse_rpm_output_root/mips/" << endl;
++  worldrebuilderfile << "    if [[ -e ${_rpmbuild}/RPMS/mips ]]; then" << endl;
++  worldrebuilderfile << "	mv ${_rpmbuild}/RPMS/mips/* $sgug_rse_rpm_output_root/mips/" << endl;
+   worldrebuilderfile << "    fi" << endl;
+   worldrebuilderfile << "}" << endl;
+   worldrebuilderfile << "doPackageBuild () {" << endl;
+@@ -387,15 +389,15 @@
+     const string & srpm = package_to_srpm_map[name];
+     worldrebuilderfile << "doPackageBuild '" << name << "' '" <<
+       srpm << "'" << endl;
+-    //    worldrebuilderfile << "touch ~/rpmbuild/PROGRESS/" << name << ".start" <<
++    //    worldrebuilderfile << "touch ${_rpmbuild}/PROGRESS/" << name << ".start" <<
+     //      endl;
+     //    worldrebuilderfile << "rpmbuild -ba " << name << ".spec --nocheck" <<
+     //      endl;
+     //    worldrebuilderfile << "if [[ $? -ne 0 ]]; then" << endl;
+-    //    worldrebuilderfile << "  touch ~/rpmbuild/PROGRESS/" << name <<
++    //    worldrebuilderfile << "  touch ${_rpmbuild}/PROGRESS/" << name <<
+     //      ".failed" << endl;
+     //    worldrebuilderfile << "fi" << endl;
+-    //    worldrebuilderfile << "touch ~/rpmbuild/PROGRESS/" << name << ".done" <<
++    //    worldrebuilderfile << "touch ${_rpmbuild}/PROGRESS/" << name << ".done" <<
+     //      endl;
+   }
+ 
