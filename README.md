@@ -63,8 +63,33 @@ gunzip -dc /path/to/sgug-rse-localrepo-0.0.7beta.tar.gz | tar xf -
 
 **(5)** Setup SGUG environment.
 
+The SGUG selfhoster comes with a shell called `sgugshell`, which is a wrapper for bash that sets up the correct environment to use SGUG software. You can either use this shell as-is, or set up the correct paths within the shell of your choice.
+
+To use `sgugshell` as your login shell:
+
 ```shell
-TODO
+su -  #(enter root password)
+# Add sgugshell to the list of login shells
+echo /usr/sgug/bin/sgugshell >> /etc/shells
+# Modify the last field of your entry in /etc/passwd to point to /usr/sgug/bin/sgugshell
+vi /etc/passwd
+(log out of root)
+```
+
+If you'd prefer to use another shell, you'll need to modify some variables to set it up properly with sgug-rse. Here's an example for tcsh:
+
+```shell
+# Expand path to include SGUG
+set path = ( /usr/sgug/bin /usr/sgug/sbin $path )
+
+# Explicit library paths
+setenv LD_LIBRARYN32_PATH /usr/sgug/lib32:/usr/lib32:/lib32:/usr/lib:/lib
+
+# Add SGUG manuals to search path
+setenv MANPATH /usr/sgug/share/man:/usr/share/catman:/usr/share/man:/usr/catman:/usr/man:$HOME/man
+
+# Work around libiconv localisation issue
+setenv LC_ALL C
 ```
 
 **(6)** Now you can search for and install sgug RPM packages. Note that you have to be root in order for the `tdnf` tool to work:
