@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index a0a0c7d..a5862b0 100755
+--- configure
++++ configure
+@@ -112,7 +112,7 @@ case `uname` in
+ 		rmidi=no
+ 		user=sndiod
+ 		so_link="libsndio.so"
+-		defs='-D__sgi_irix'
++		defs='-D__sgi_irix -D_SGI_COMPILER_VERSION'
+ esac
+ 
+ # shell word separator (none)
