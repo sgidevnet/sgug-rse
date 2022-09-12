@@ -47,13 +47,14 @@ done
 
 # add group stuff if not exists
 grep -q "sndio" /etc/group || echo "sndio:x:$newuid:" >> /etc/group
+newgid=`grep ^sndio: /etc/group | cut -f3 -d:`
 
 # add sndio user if not exists
 id -a sndio 2>/dev/null || \
 /usr/sysadm/privbin/addUserAccount -l sndio \
   -G "privilege separated sndio user" -S /bin/false \
   -H /var/empty/sndio \
-  -u $newuid -g $newuid
+  -u $newuid -g $newgid
   2> /dev/null
 
 
