@@ -4,17 +4,18 @@ Version: 1.8.1
 Release: 1
 License: BSD
 Group: System
-Source0: https://gitea.irixce.org/TruHobbyist/sndio/sndio.tar.gz
-# Note: cloned locally, moved to "sndiod-1.8.1" tar'd & gzipped and named sndio.tar.gz
-# put that in $rpmbuild/SOURCES
-Patch0: sndio-sgug-fix.patch
+Source0: https://sndio.org/sndio-1.8.1.tar.gz
+# put that in $rpmbuild/SOURCES and smoke it
+# First patch applies TruHobbyist's changes, second makes it compile with GCC
+Patch0: sndio.th.patchdiff
+Patch1: sndio-sgug-fix.patch
 
 %description
 Audio daemon from the BSD folks, modified to be compatible with SGI/Irix systems.
 
 %prep
 %setup -q
-%autopatch -p0
+%autopatch -p1
 
 %build
 # Not using Macro as it passes flags that get rejected, these are otherwise the same as defaults
