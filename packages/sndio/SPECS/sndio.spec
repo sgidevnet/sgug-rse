@@ -40,7 +40,8 @@ rm -rf %{buildroot}
 
 %pre
 # I am not bothering being field specific, that way I leave the inside loop less
-newuid=$((1 + $RANDOM % 100)); grep -q $newuid /etc/passwd
+# Note - this could hang forever if ever ID from 1-5000 is in use. You psycopath.
+newuid=$((1 + $RANDOM % 5000)); grep -q $newuid /etc/passwd
 while [ $? -eq 0 ]; do grep -q $newuid /etc/group
     while [ $? -eq 0 ]; do newuid=$((1 + $RANDOM % 100)); grep -q $newuid /etc/passwd; done
 done
