@@ -1,0 +1,15 @@
+--- fossil-2.8.orig/src/cgi.c	2019-02-20 08:01:32.000000000 +0000
++++ fossil-2.8.new/src/cgi.c	2022-11-01 18:44:45.928923840 +0000
+@@ -1939,10 +1939,12 @@
+         int iStatus = 0;
+         pid_t x = waitpid(-1, &iStatus, WNOHANG);
+         if( x<=0 ) break;
++#ifndef sgi
+         if( WIFSIGNALED(iStatus) && g.fAnyTrace ){
+           fprintf(stderr, "/***** Child %d exited on signal %d (%s) *****/\n",
+                   x, WTERMSIG(iStatus), strsignal(WTERMSIG(iStatus)));
+         }
++#endif
+         nchildren--;
+       }
+     }  
