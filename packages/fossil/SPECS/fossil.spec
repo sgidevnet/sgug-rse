@@ -54,6 +54,9 @@ cp /usr/sgug/lib/rpm/config.* autosetup
 %doc www
 
 %changelog
+* Tue Nov 8 2022 Jenna16bit
+- Port for Irix / sgug-rse
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.8-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
