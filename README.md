@@ -1,3 +1,9 @@
+
+[Please Read the Wiki as well!] (https://github.com/sgidevnet/sgug-rse/wiki)
+
+
+
+
 # sgug-rse
 
 Silicon Graphics User Group RPM Software Environment
