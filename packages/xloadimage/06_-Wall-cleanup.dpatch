@@ -1,0 +1,1361 @@
+#! /bin/sh -e
+## 06_-Wall-cleanup.dpatch by James Troup <james@nocrew.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Make the code -Wall clean.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+diff -urNad 06.xloadimage.tmp/bright.c 06.xloadimage/bright.c
+--- 06.xloadimage.tmp/bright.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/bright.c	2003-04-02 23:27:50.000000000 +0100
+@@ -10,6 +10,7 @@
+ 
+ #include "copyright.h"
+ #include "image.h"
++#include "rlelib.h"
+ 
+ /* alter an image's brightness by a given percentage
+  */
+@@ -150,6 +151,8 @@
+   byte         *srcptr, *destptr;
+   byte          array[256];
+ 
++  newimage = NULL;
++
+   goodImage(image, "normalize");
+   if (BITMAPP(image))
+     return(image);
+@@ -194,11 +197,11 @@
+       for (x= 0; x < image->width; x++) {
+ 	pixval= memToVal(srcptr, image->pixlen);
+ 	*destptr= array[image->rgb.red[pixval] >> 8];
+-	*destptr++;
++	destptr++;
+ 	*destptr= array[image->rgb.green[pixval] >> 8];
+-	*destptr++;
++	destptr++;
+ 	*destptr= array[image->rgb.blue[pixval] >> 8];
+-	*destptr++;
++	destptr++;
+ 	srcptr += image->pixlen;
+       }
+     break;
+diff -urNad 06.xloadimage.tmp/cmuwmraster.c 06.xloadimage/cmuwmraster.c
+--- 06.xloadimage.tmp/cmuwmraster.c	1993-10-21 22:28:36.000000000 +0100
++++ 06.xloadimage/cmuwmraster.c	2003-04-02 23:27:50.000000000 +0100
+@@ -16,11 +16,11 @@
+ 
+ /* SUPPRESS 558 */
+ 
+-int babble(name, headerp)
++void babble(name, headerp)
+ char *name;
+ struct cmuwm_header *headerp;
+ {
+-    printf("%s is a %dx%d %d plane CMU WM raster\n",
++    printf("%s is a %ldx%ld %ld plane CMU WM raster\n",
+ 	   name,
+ 	   memToVal(headerp->width, sizeof(long)),
+ 	   memToVal(headerp->height, sizeof(long)),
+@@ -108,7 +108,7 @@
+       {
+ 	  fprintf(stderr,"CMU WM raster %s is of depth %d, must be 1",
+ 		  name,
+-		  header.depth);
++		  (int) header.depth);
+ 	  return(NULL);
+       }
+ 
+diff -urNad 06.xloadimage.tmp/compress.c 06.xloadimage/compress.c
+--- 06.xloadimage.tmp/compress.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/compress.c	2003-04-02 23:27:50.000000000 +0100
+@@ -136,12 +136,13 @@
+   lfree((byte *)pixel_table);
+   lfree((byte *)pixel_map);
+ 
+-  if (badcount)
++  if (badcount) {
+     if (verbose)
+       printf("%d out-of-range pixels, ", badcount);
+     else
+       fprintf(stderr, "Warning: %d out-of-range pixels were seen\n",
+ 	      badcount);
++  }
+   if (verbose) {
+     if ((rgb.used == image->rgb.used) && !badcount)
+       printf("no improvment\n");
+diff -urNad 06.xloadimage.tmp/copyright.h 06.xloadimage/copyright.h
+--- 06.xloadimage.tmp/copyright.h	1993-10-21 22:28:36.000000000 +0100
++++ 06.xloadimage/copyright.h	2003-04-02 23:27:50.000000000 +0100
+@@ -20,7 +20,9 @@
+  */
+ 
+ #ifndef __SABER__
++#ifndef LINT
+ static char *Copyright= "Copyright 1989, 1993 Jim Frost";
++#endif /* LINT */
+ #endif
+ #define _JIM_COPYRIGHT_
+ #endif
+diff -urNad 06.xloadimage.tmp/faces.c 06.xloadimage/faces.c
+--- 06.xloadimage.tmp/faces.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/faces.c	2003-04-02 23:27:50.000000000 +0100
+@@ -178,7 +178,7 @@
+      char *fullname, *name;
+ { Image *image;
+ 
+-  if (image= facesLoad(fullname, name, 1)) {
++  if ((image= facesLoad(fullname, name, 1))) {
+     freeImage(image);
+     return(1);
+   }
+diff -urNad 06.xloadimage.tmp/fbm.c 06.xloadimage/fbm.c
+--- 06.xloadimage.tmp/fbm.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/fbm.c	2003-04-02 23:27:50.000000000 +0100
+@@ -204,7 +204,6 @@
+   register int    x, y, j, k, rowlen, plnlen;
+   unsigned char *pixptr, *cm;
+   unsigned int map_size;
+-  extern int Scrn;
+   unsigned char *r, *g, *b;
+ 
+   if (! (zf= zopen(fullname)))
+diff -urNad 06.xloadimage.tmp/gif.c 06.xloadimage/gif.c
+--- 06.xloadimage.tmp/gif.c	1993-10-21 22:28:37.000000000 +0100
++++ 06.xloadimage/gif.c	2003-04-02 23:27:50.000000000 +0100
+@@ -468,7 +468,7 @@
+  * add a new string to the string table
+  */
+ 
+-static gifin_add_string(p, e)
++static void gifin_add_string(p, e)
+      int p;
+      int e;
+ {
+@@ -488,7 +488,7 @@
+  * semi-graceful fatal error mechanism
+  */
+ 
+-static gifin_fatal(msg)
++static void gifin_fatal(msg)
+      char *msg;
+ {
+   printf("Error reading GIF file: %s\n", msg);
+diff -urNad 06.xloadimage.tmp/gif.h 06.xloadimage/gif.h
+--- 06.xloadimage.tmp/gif.h	1993-10-21 22:28:37.000000000 +0100
++++ 06.xloadimage/gif.h	2003-04-02 23:27:50.000000000 +0100
+@@ -50,8 +50,8 @@
+ static int gifin_skip_extension();
+ static int gifin_read_data_block();
+ static int gifin_push_string();
+-static int gifin_add_string();
+-static int gifin_fatal();
++static void gifin_add_string();
++static void gifin_fatal();
+ 
+ /* #defines, typedefs, and such
+  */
+diff -urNad 06.xloadimage.tmp/halftone.c 06.xloadimage/halftone.c
+--- 06.xloadimage.tmp/halftone.c	1993-10-21 22:28:37.000000000 +0100
++++ 06.xloadimage/halftone.c	2003-04-02 23:27:50.000000000 +0100
+@@ -130,23 +130,23 @@
+ #define GRAYSTEP ((unsigned long)(65536 / GRAYS))
+ 
+ static byte DitherBits[GRAYS][4] = {
+-  0xf, 0xf, 0xf, 0xf,
+-  0xe, 0xf, 0xf, 0xf,
+-  0xe, 0xf, 0xb, 0xf,
+-  0xa, 0xf, 0xb, 0xf,
+-  0xa, 0xf, 0xa, 0xf,
+-  0xa, 0xd, 0xa, 0xf,
+-  0xa, 0xd, 0xa, 0x7,
+-  0xa, 0x5, 0xa, 0x7,
+-  0xa, 0x5, 0xa, 0x5,
+-  0x8, 0x5, 0xa, 0x5,
+-  0x8, 0x5, 0x2, 0x5,
+-  0x0, 0x5, 0x2, 0x5,
+-  0x0, 0x5, 0x0, 0x5,
+-  0x0, 0x4, 0x0, 0x5,
+-  0x0, 0x4, 0x0, 0x1,
+-  0x0, 0x0, 0x0, 0x1,
+-  0x0, 0x0, 0x0, 0x0
++  {0xf, 0xf, 0xf, 0xf},
++  {0xe, 0xf, 0xf, 0xf},
++  {0xe, 0xf, 0xb, 0xf},
++  {0xa, 0xf, 0xb, 0xf},
++  {0xa, 0xf, 0xa, 0xf},
++  {0xa, 0xd, 0xa, 0xf},
++  {0xa, 0xd, 0xa, 0x7},
++  {0xa, 0x5, 0xa, 0x7},
++  {0xa, 0x5, 0xa, 0x5},
++  {0x8, 0x5, 0xa, 0x5},
++  {0x8, 0x5, 0x2, 0x5},
++  {0x0, 0x5, 0x2, 0x5},
++  {0x0, 0x5, 0x0, 0x5},
++  {0x0, 0x4, 0x0, 0x5},
++  {0x0, 0x4, 0x0, 0x1},
++  {0x0, 0x0, 0x0, 0x1},
++  {0x0, 0x0, 0x0, 0x0}
+ };
+ 
+ /* simple dithering algorithm, really optimized for the 4x4 array
+diff -urNad 06.xloadimage.tmp/image.h 06.xloadimage/image.h
+--- 06.xloadimage.tmp/image.h	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/image.h	2003-04-02 23:27:50.000000000 +0100
+@@ -8,6 +8,9 @@
+  * copyright information.
+  */
+ 
++#ifndef __IMAGE_H__
++#define __IMAGE_H__
++
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #endif
+@@ -320,3 +323,5 @@
+ #else /* !DEBUG */
+ #define debug(ARGS)
+ #endif /* !DEBUG */
++
++#endif /* __IMAGE_H__ */
+diff -urNad 06.xloadimage.tmp/imagetypes.c 06.xloadimage/imagetypes.c
+--- 06.xloadimage.tmp/imagetypes.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/imagetypes.c	2003-04-02 23:27:50.000000000 +0100
+@@ -47,7 +47,7 @@
+   if (opt) {
+     for (a= 0; ImageTypes[a].loader; a++)
+       if (!strncmp(ImageTypes[a].type, opt->info.type, strlen(opt->info.type))) {
+-	if (image= ImageTypes[a].loader(fullname, name, verbose)) {
++	if ((image= ImageTypes[a].loader(fullname, name, verbose))) {
+ 	  zreset(NULL);
+ 
+ 	  /* this converts a 1-bit RGB image to a bitmap prior to blitting
+@@ -80,7 +80,7 @@
+    */
+   for (a= 0; ImageTypes[a].loader; a++) {
+     debug(("Checking %s against loader for %s\n", fullname, ImageTypes[a].name));
+-    if (image= ImageTypes[a].loader(fullname, name, verbose)) {
++    if ((image= ImageTypes[a].loader(fullname, name, verbose))) {
+       zreset(NULL);
+ 
+       /* this does the 1-bit conversion as above.
+diff -urNad 06.xloadimage.tmp/imagetypes.h 06.xloadimage/imagetypes.h
+--- 06.xloadimage.tmp/imagetypes.h	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/imagetypes.h	2003-04-02 23:27:50.000000000 +0100
+@@ -7,6 +7,9 @@
+  * jim frost 10.15.89
+  */
+ 
++#ifndef __IMAGETYPES_H__
++#define __IMAGETYPES_H__
++
+ Image *niffLoad();
+ Image *facesLoad();
+ Image *pbmLoad();
+@@ -88,35 +91,39 @@
+   char  *type;            /* image type name */
+   char  *name;            /* name of this image format */
+ } ImageTypes[] = {
+-  niffIdent,      niffLoad,      niffDump,    "niff",      "Native Image File Format (NIFF)",
+-  sunRasterIdent, sunRasterLoad, NULL,        "sunraster", "Sun Rasterfile",
+-  gifIdent,       gifLoad,       NULL,        "gif",       "GIF Image",
++  {niffIdent,      niffLoad,      niffDump,    "niff",      "Native Image File Format (NIFF)"},
++  {sunRasterIdent, sunRasterLoad, NULL,        "sunraster", "Sun Rasterfile"},
++  {gifIdent,       gifLoad,       NULL,        "gif",       "GIF Image"},
+ #ifdef HAVE_LIBJPEG
+-  jpegIdent,      jpegLoad,      jpegDump,    "jpeg",      "JFIF-style JPEG Image",
++  {jpegIdent,      jpegLoad,      jpegDump,    "jpeg",      "JFIF-style JPEG Image"},
+ #endif
+ #ifdef HAVE_LIBTIFF
+-  tiffIdent,      tiffLoad,      tiffDump,    "tiff",      "TIFF image",
++  {tiffIdent,      tiffLoad,      tiffDump,    "tiff",      "TIFF image"},
+ #endif
+ #ifdef HAVE_LIBPNG
+-  pngIdent,       pngLoad,       NULL,        "png",       "PNG image",
++  {pngIdent,       pngLoad,       NULL,        "png",       "PNG image"},
+ #endif
+-  fbmIdent,       fbmLoad,       NULL,        "fbm",       "FBM Image",
+-  cmuwmIdent,     cmuwmLoad,     NULL,        "cmuraster", "CMU WM Raster",
+-  pbmIdent,       pbmLoad,       pbmDump,     "pbm",       "Portable Bit Map (PBM, PGM, PPM)",
+-  facesIdent,     facesLoad,     NULL,        "faces",     "Faces Project",
+-  rleIdent,       rleLoad,       NULL,        "rle",       "Utah RLE Image",
+-  xwdIdent,       xwdLoad,       NULL,        "xwd",       "X Window Dump",
+-  vffIdent,       vffLoad,       NULL,        "vff",       "Sun Visualization File Format",
+-  mcidasIdent,    mcidasLoad,    NULL,        "mcidas",    "McIDAS areafile",
++  {fbmIdent,       fbmLoad,       NULL,        "fbm",       "FBM Image"},
++  {cmuwmIdent,     cmuwmLoad,     NULL,        "cmuraster", "CMU WM Raster"},
++  {pbmIdent,       pbmLoad,       pbmDump,     "pbm",       "Portable Bit Map (PBM, PGM, PPM)"},
++  {facesIdent,     facesLoad,     NULL,        "faces",     "Faces Project"},
++  {rleIdent,       rleLoad,       NULL,        "rle",       "Utah RLE Image"},
++  {xwdIdent,       xwdLoad,       NULL,        "xwd",       "X Window Dump"},
++  {vffIdent,       vffLoad,       NULL,        "vff",       "Sun Visualization File Format"},
++  {mcidasIdent,    mcidasLoad,    NULL,        "mcidas",    "McIDAS areafile"},
+ #if 0
+-  pdsIdent,       pdsLoad,       NULL,        "pds",       "PDS/VICAR Image",
++  {pdsIdent,       pdsLoad,       NULL,        "pds",       "PDS/VICAR Image"},
+ #else
+-  vicarIdent,     vicarLoad,     NULL,        "vicar",     "VICAR Image",
++  {vicarIdent,     vicarLoad,     NULL,        "vicar",     "VICAR Image"},
+ #endif
+-  pcxIdent,       pcxLoad,       NULL,        "pcx",       "PC Paintbrush Image",
+-  imgIdent,       imgLoad,       NULL,        "gem",       "GEM Bit Image",
+-  macIdent,       macLoad,       NULL,        "macpaint",  "MacPaint Image",
+-  xpixmapIdent,   xpixmapLoad,   NULL,        "xpm",       "X Pixmap",
+-  xbitmapIdent,   xbitmapLoad,   NULL,        "xbm",       "X Bitmap",
+-  NULL,           NULL,          NULL,         NULL,        NULL
++  {pcxIdent,       pcxLoad,       NULL,        "pcx",       "PC Paintbrush Image"},
++  {imgIdent,       imgLoad,       NULL,        "gem",       "GEM Bit Image"},
++  {macIdent,       macLoad,       NULL,        "macpaint",  "MacPaint Image"},
++  {xpixmapIdent,   xpixmapLoad,   NULL,        "xpm",       "X Pixmap"},
++  {xbitmapIdent,   xbitmapLoad,   NULL,        "xbm",       "X Bitmap"},
++  {NULL,           NULL,          NULL,         NULL,        NULL}
+ };
++
++void dumpImage (Image *image, char *type, char *filename, int verbose);
++
++#endif /* __IMAGETYPES_H__ */
+diff -urNad 06.xloadimage.tmp/img.c 06.xloadimage/img.c
+--- 06.xloadimage.tmp/img.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/img.c	2003-04-02 23:27:50.000000000 +0100
+@@ -71,11 +71,15 @@
+ void (*transf)    ();
+ 
+ static int vdi2pli();
++#ifdef UNUSED_FUNCTIONS
+ static int pli2vdi();
++#endif /* UNUSED_FUNCTIONS */
+ 
+ static void   transf0    ();
+ static void   transf1    ();
++#ifdef UNUSED_FUNCTIONS
+ static void   transf2    ();
++#endif /* UNUSED_FUNCTIONS */
+ static void   transf3    ();
+ static void   xread_img  ();
+ static void   xread_line ();
+@@ -89,8 +93,9 @@
+ unsigned int            ScanByteBreite, max_planes,
+                         pattern_len, plane, x, y, ByteNr, height;
+ unsigned char           *ptr, Muster[ALL_PLANES][BUFSIZ], tmp[BUFSIZ];
++#ifdef UNUSED_FUNCTIONS
+ static unsigned char    *bitplane[ALL_PLANES], *lastbitplane;
+-
++#endif /* UNUSED_FUNCTIONS */
+ 
+ 
+ static void transf0(bitimage, plane, value, planes)
+@@ -128,7 +133,7 @@
+ }
+ 
+ 
+-
++#ifdef UNUSED_FUNCTIONS
+ static void transf2(bitimage, plane, value, planes)
+      unsigned char *bitimage;
+      unsigned int   plane;
+@@ -146,6 +151,7 @@
+   bitplane[plane][x] = value;
+   x++;
+ }
++#endif /* UNUSED_FUNCTIONS */
+ 
+ static void transf3(bitimage, plane, value, planes)
+      unsigned char *bitimage;
+@@ -367,9 +373,10 @@
+   ZFILE   *file;
+   long    size = 0;
+   int     w, h, nplanes;
+-  char    extention[5];
+ 
+ #if 0
++  char    extention[5];
++
+   strncpy (extention, name+strlen(name)-4, 4);
+   extention[4] = '\0';
+   if (strcmp(extention, ".IMG") != 0 && strcmp(extention, ".img") != 0)
+@@ -402,7 +409,7 @@
+     printf("%s is a %dx%d monochrome IMG-file\n",name , w, h);
+   else
+     if (nplanes != 24)
+-      printf("%s is a %dx%d IMG-file with %ld colors\n",name , w, h,
++      printf("%s is a %dx%d IMG-file with %d colors\n",name , w, h,
+ 	     (1 << nplanes));
+     else
+       printf("%s is a %dx%d %d-bit IMG-file\n",name , w, h, nplanes);
+@@ -564,7 +571,6 @@
+   ZFILE  *file;
+   long    size = 0;
+   int     w, h, nplanes;
+-  char    extention[5];
+ 
+   if ((file = zopen(name)) == NULL)
+   {
+@@ -593,7 +599,7 @@
+ 
+   printf("%s\n  is a %dx%d ",name, w, h);
+   if (nplanes != 24)
+-    printf("RGB XIMG-file with %ld colors\n", 1<<nplanes);
++    printf("RGB XIMG-file with %d colors\n", 1<<nplanes);
+   else
+     printf("24-bit XIMG-file\n");
+   return (1);
+@@ -602,8 +608,6 @@
+ static int vdi2pli(vdi, plimax)
+      int vdi, plimax;
+ {
+-  extern unsigned char indexToCode[];
+-  extern int           work_ext[];
+   static char          vdi2pli[] = {0, 15, 1, 2, 4, 6, 3, 5, 7, 8, 9, 10, 12, 14, 11, 13 };
+   
+   if (vdi == 1)
+@@ -614,7 +618,7 @@
+ }
+ 
+ 
+-
++#ifdef UNUSED_FUNCTIONS
+ static int pli2vdi(pli, plimax)
+      int pli, plimax;
+ {
+@@ -626,6 +630,7 @@
+     return(pli);
+   return(pli2vdi[pli]);
+ }
++#endif /* UNUSED_FUNCTIONS */
+ 
+ static Image *load_ximg(name)
+      char *name;
+diff -urNad 06.xloadimage.tmp/kljcpyrght.h 06.xloadimage/kljcpyrght.h
+--- 06.xloadimage.tmp/kljcpyrght.h	1993-10-21 22:28:38.000000000 +0100
++++ 06.xloadimage/kljcpyrght.h	2003-04-02 23:27:50.000000000 +0100
+@@ -22,7 +22,9 @@
+ ****/
+ 
+ #ifndef __SABER__
++#ifndef LINT
+ static char *KLJCopyright = "Copyright 1989, 1990 Kirk L. Johnson";
++#endif /* LINT */
+ #endif
+ #define _KLJ_COPYRIGHT_
+ #endif
+diff -urNad 06.xloadimage.tmp/mcidas.c 06.xloadimage/mcidas.c
+--- 06.xloadimage.tmp/mcidas.c	1993-10-21 22:28:39.000000000 +0100
++++ 06.xloadimage/mcidas.c	2003-04-02 23:27:50.000000000 +0100
+@@ -94,7 +94,7 @@
+      char *name;
+      struct area_dir *dir;
+ {
+-  printf("%s is a %dx%d McIDAS areafile from %s at %s (%d, %d) (%d, %d)\n",
++  printf("%s is a %ldx%ld McIDAS areafile from %s at %s (%ld, %ld) (%ld, %ld)\n",
+ 	 name,
+ 	 dir->esiz, dir->lsiz,
+ 	 mc_sensor(dir->satid),
+@@ -163,7 +163,6 @@
+   struct navigation  nav;
+   Image          *image;
+   unsigned int    y;
+-  int doswap = 0 ;
+ 
+   if (! (zf= zopen(fullname))) {
+     perror("mcidasLoad");
+@@ -218,7 +217,7 @@
+    */
+   zread(zf, image->data, dir.esiz * dir.lsiz * dir.zsiz) ;
+   if (dir.bands > 1)
+-      printf("Warning: Only showing first of %d bands\n", dir.bands);
++      printf("Warning: Only showing first of %ld bands\n", dir.bands);
+ 
+   zclose(zf);
+   image->title= dupString(name);
+diff -urNad 06.xloadimage.tmp/misc.c 06.xloadimage/misc.c
+--- 06.xloadimage.tmp/misc.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/misc.c	2003-04-02 23:27:50.000000000 +0100
+@@ -10,6 +10,7 @@
+ 
+ #include "copyright.h"
+ #include "xloadimage.h"
++#include "misc.h"
+ #ifdef VMS
+ #include "patchlevel."
+ #else
+@@ -151,7 +152,7 @@
+ { char errortext[BUFSIZ];
+ 
+   XGetErrorText(disp, error->error_code, errortext, BUFSIZ);
+-  fprintf(stderr, "xloadimage: X Error: %s on 0x%x\n",
++  fprintf(stderr, "xloadimage: X Error: %s on 0x%lx\n",
+ 	  errortext, error->resourceid);
+   if (_Xdebug) /* if -debug mode is enabled, dump a core when we hit this */
+     abort();
+diff -urNad 06.xloadimage.tmp/misc.h 06.xloadimage/misc.h
+--- 06.xloadimage.tmp/misc.h	1970-01-01 01:00:00.000000000 +0100
++++ 06.xloadimage/misc.h	2003-04-02 23:27:50.000000000 +0100
+@@ -0,0 +1 @@
++void usageHelp() __attribute__ ((noreturn));
+diff -urNad 06.xloadimage.tmp/mit.cpyrght 06.xloadimage/mit.cpyrght
+--- 06.xloadimage.tmp/mit.cpyrght	1993-10-21 22:29:06.000000000 +0100
++++ 06.xloadimage/mit.cpyrght	2003-04-02 23:27:50.000000000 +0100
+@@ -21,8 +21,10 @@
+  */
+ 
+ #ifndef __SABER__
++#ifndef LINT
+ static char *MitCopyright=
+   "Copyright 1989 Massachusetts Institute of Technology";
++#endif /* LINT */
+ #endif
+ #define _MIT_COPYRIGHT_
+ #endif
+diff -urNad 06.xloadimage.tmp/new.c 06.xloadimage/new.c
+--- 06.xloadimage.tmp/new.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/new.c	2003-04-02 23:27:50.000000000 +0100
+@@ -51,8 +51,8 @@
+   /* 28 */ 268435456,
+   /* 29 */ 536870912,
+   /* 30 */ 1073741824,
+-  /* 31 */ 2147483648,
+-  /* 32 */ 2147483648 /* bigger than unsigned int; this is good enough */
++  /* 31 */ 2147483648UL,
++  /* 32 */ 2147483648UL /* bigger than unsigned int; this is good enough */
+ };
+ 
+ unsigned long colorsToDepth(ncolors)
+diff -urNad 06.xloadimage.tmp/niff.c 06.xloadimage/niff.c
+--- 06.xloadimage.tmp/niff.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/niff.c	2003-04-02 23:27:50.000000000 +0100
+@@ -15,25 +15,26 @@
+ #include "niff.h"
+ 
+ static void babble(name, header, title)
++     char *name;
+      struct niff_header *header;
+      char *title;
+ {
+-  printf("%s is a %dx%d ", name,
++  printf("%s is a %ldx%ld ", name,
+ 	 memToVal(header->width, 4),
+ 	 memToVal(header->height, 4));
+   if (memToVal(header->version, 4) != NIFF_VERSION)
+-    printf("version %d ", memToVal(header->version, 4));
++    printf("version %ld ", memToVal(header->version, 4));
+   printf("NIFF ");
+   switch (header->type) {
+   case NIFF_BITMAP:
+     printf("bitmap image");
+     break;
+   case NIFF_RGB:
+-    printf("%d-bit RGB image with %d colors",
++    printf("%ld-bit RGB image with %ld colors",
+ 	   memToVal(header->depth, 4), memToVal(header->cmap_size, 4));
+     break;
+   case NIFF_TRUE:
+-    printf("%d-bit true color image", memToVal(header->depth, 4));
++    printf("%ld-bit true color image", memToVal(header->depth, 4));
+     break;
+   default:
+     printf("image with an unknown type");
+diff -urNad 06.xloadimage.tmp/options.c 06.xloadimage/options.c
+--- 06.xloadimage.tmp/options.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/options.c	2003-04-02 23:27:50.000000000 +0100
+@@ -12,6 +12,8 @@
+ #include <stdio.h>
+ #include "image.h"
+ #include "options.h"
++#include "misc.h"
++#include "xloadimage.h"
+ 
+ #undef  MIN
+ #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+diff -urNad 06.xloadimage.tmp/options.h 06.xloadimage/options.h
+--- 06.xloadimage.tmp/options.h	1993-10-28 17:01:00.000000000 +0000
++++ 06.xloadimage/options.h	2003-04-02 23:27:50.000000000 +0100
+@@ -8,6 +8,9 @@
+  * copyright information.
+  */
+ 
++#ifndef __OPTIONS_H__
++#define __OPTIONS_H__
++
+ /* enum with the options in it.  If you add one to this you also have to
+  * add its information to Options[] in options.c before it becomes available.
+  */
+@@ -98,3 +101,8 @@
+ Image *loadImage _ArgProto((OptionSet *globalopts, OptionSet *options,
+ 			    char *name, unsigned int verbose));
+ void   identifyImage _ArgProto((char *name));
++
++void processOptions (int argc, char *argv[], OptionSet **rglobal, OptionSet **rimage);
++void addOption (OptionSet *optset, Option *newopt);
++
++#endif /* __OPTIONS_H__ */
+diff -urNad 06.xloadimage.tmp/pcx.c 06.xloadimage/pcx.c
+--- 06.xloadimage.tmp/pcx.c	1993-10-28 16:22:12.000000000 +0000
++++ 06.xloadimage/pcx.c	2003-04-02 23:27:50.000000000 +0100
+@@ -259,7 +259,6 @@
+ 	ZFILE *zf;
+ 	Image *image;
+ {
+-	int pl;
+ 	switch (PCXH->Zbpp) {	/* What kind of plane do we have ?	*/
+ 	    case 1 :			/* Bit planes			*/
+ 		if (PCXH->Znplanes == 1)	/* Only one : Read it	*/
+@@ -298,7 +297,7 @@
+ 	unsigned int verbose;
+ {
+ 	ZFILE *zf;
+-	unsigned int i, ret;
++	unsigned int i;
+ 	int xmin;
+ 	int xmax;
+ 	int ymin;
+diff -urNad 06.xloadimage.tmp/pdsuncomp.c 06.xloadimage/pdsuncomp.c
+--- 06.xloadimage.tmp/pdsuncomp.c	1993-10-28 16:20:18.000000000 +0000
++++ 06.xloadimage/pdsuncomp.c	2003-04-02 23:27:50.000000000 +0100
+@@ -78,7 +78,6 @@
+   register NODE **np;           /* Node list pointer */
+ 
+   register long int num_freq;   /* Number non-zero frequencies in histogram */
+-  long int sum;                 /* Sum of all frequencies */
+ 
+   register short int num_nodes; /* Counter for DN initialization */
+   register short int cnt;       /* Miscellaneous counter */
+@@ -114,6 +113,7 @@
+     unsigned char *cp = (unsigned char *) hist++;
+     unsigned long int j;
+     short int i;
++    j = 0;
+     for (i=4 ; --i >= 0 ; j = (j << 8) | *(cp+i))
+       ;
+ 
+@@ -242,6 +242,7 @@
+  * 16-AUG-89 Kris Becker   USGS, Flagstaff Original Version
+  */
+ 
++#ifdef UNUSED_FUNCTIONS
+ static void free_tree(nfreed)
+      long int   *nfreed;  /* Return of total count of nodes freed. */
+ {
+@@ -253,6 +254,7 @@
+   *nfreed = free_node(tree,total_free);
+   return;
+ }
++#endif /* UNUSED_FUNCTIONS */
+ 
+ /* free_node - deallocates an allocated NODE pointer
+  *
+@@ -351,7 +353,6 @@
+      char  *ibuf;
+ {
+   int   length,result,nlen;
+-  unsigned int value;
+   unsigned char buf[2];
+ 
+   length = 0;
+@@ -361,7 +362,7 @@
+   return(length);
+ }
+ 
+-skip_record(zf)
++void skip_record(zf)
+      ZFILE *zf;
+ {
+   unsigned int value;
+@@ -384,9 +385,6 @@
+      int type;
+ {
+   if (type == PDSVARIABLE) {
+-    char buf[2];
+-    int len;
+-    char *dummy;
+ 
+     Decompressing= 1; /* flag pdsRead() to do decompressions */
+ 
+diff -urNad 06.xloadimage.tmp/reduce.c 06.xloadimage/reduce.c
+--- 06.xloadimage.tmp/reduce.c	1993-10-21 22:28:40.000000000 +0100
++++ 06.xloadimage/reduce.c	2003-04-02 23:27:50.000000000 +0100
+@@ -88,7 +88,7 @@
+ /* predicate functions for qsort
+  */
+ 
+-static sortRGB(p1, p2)
++static int sortRGB(p1, p2)
+      unsigned short *p1, *p2;
+ { unsigned int red1, green1, blue1, red2, green2, blue2;
+ 
+@@ -115,7 +115,7 @@
+     return(1);
+ }
+ 
+-static sortRBG(p1, p2)
++static int sortRBG(p1, p2)
+      unsigned short *p1, *p2;
+ { unsigned int red1, green1, blue1, red2, green2, blue2;
+ 
+@@ -142,7 +142,7 @@
+     return(1);
+ }
+ 
+-static sortGRB(p1, p2)
++static int sortGRB(p1, p2)
+      unsigned short *p1, *p2;
+ { unsigned int red1, green1, blue1, red2, green2, blue2;
+ 
+@@ -169,7 +169,7 @@
+     return(1);
+ }
+ 
+-static sortGBR(p1, p2)
++static int sortGBR(p1, p2)
+      unsigned short *p1, *p2;
+ { unsigned int red1, green1, blue1, red2, green2, blue2;
+ 
+@@ -196,7 +196,7 @@
+     return(1);
+ }
+ 
+-static sortBRG(p1, p2)
++static int sortBRG(p1, p2)
+      unsigned short *p1, *p2;
+ { unsigned int red1, green1, blue1, red2, green2, blue2;
+ 
+@@ -223,7 +223,7 @@
+     return(1);
+ }
+ 
+-static sortBGR(p1, p2)
++static int sortBGR(p1, p2)
+      unsigned short *p1, *p2;
+ { unsigned int red1, green1, blue1, red2, green2, blue2;
+ 
+@@ -254,7 +254,7 @@
+  * the color area in the list of color areas.
+  */
+ 
+-static insertColorArea(pixel_counts, rlargest, rsmallest, area)
++static void insertColorArea(pixel_counts, rlargest, rsmallest, area)
+      unsigned long *pixel_counts;
+      struct color_area **rlargest, **rsmallest, *area;
+ { int a;
+@@ -368,7 +368,7 @@
+ { unsigned long pixel_counts[32768]; /* pixel occurrance histogram */
+   unsigned short pixel_array[32768];
+   unsigned long count, midpoint;
+-  int x, y, num_pixels, allocated, depth, ncolors;
++  int x, y, num_pixels, allocated, depth;
+   byte *pixel, *dpixel;
+   struct color_area *areas, *largest_area, *smallest_area;
+   struct color_area *new_area, *old_area;
+diff -urNad 06.xloadimage.tmp/rle.c 06.xloadimage/rle.c
+--- 06.xloadimage.tmp/rle.c	1993-11-08 21:04:56.000000000 +0000
++++ 06.xloadimage/rle.c	2003-04-02 23:27:50.000000000 +0100
+@@ -14,6 +14,7 @@
+ #include <stdio.h>
+ #include "image.h"
+ #include "rle.h"
++#include "rlelib.h"
+ 
+ #undef  DEBUG
+ #undef  debug
+@@ -394,7 +395,7 @@
+ #define DMAP(v,x,y)	(modN[v]>magic[x][y] ? divN[v] + 1 : divN[v])
+ 
+ /* run the black and white through its map */
+-bw_m_line(dp,number)
++void bw_m_line(dp,number)
+      int number;
+      register unsigned char *dp;
+ {
+@@ -408,7 +409,7 @@
+ }
+ 
+ /* convert a colour line with map to 8 bits per pixel */
+-c_m_line(dp,number,line)
++void c_m_line(dp,number,line)
+      int number,line;
+      register unsigned char *dp;
+ {
+diff -urNad 06.xloadimage.tmp/rle.h 06.xloadimage/rle.h
+--- 06.xloadimage.tmp/rle.h	1993-10-21 22:28:40.000000000 +0100
++++ 06.xloadimage/rle.h	2003-04-02 23:27:50.000000000 +0100
+@@ -29,6 +29,9 @@
+  * 88/07/13 Graeme W. Gill
+  */
+ 
++#ifndef __RLE_H__
++#define __RLE_H__
++
+ enum sv_dispatch {
+     RUN_DISPATCH
+ };
+@@ -182,3 +185,7 @@
+ extern int dith_np2;	/* set non-zero to use non-power_of_2 matrix size */
+ extern int dith_size;	/* effective size of the dither matrix chosen */
+ 
++void bw_m_line (unsigned char *dp, int number);
++void c_m_line(unsigned char *dp, int number, int line);
++
++#endif /* __RLE_H__ */
+diff -urNad 06.xloadimage.tmp/rlelib.c 06.xloadimage/rlelib.c
+--- 06.xloadimage.tmp/rlelib.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/rlelib.c	2003-04-02 23:27:50.000000000 +0100
+@@ -17,6 +17,7 @@
+ 
+ #include "image.h"		/* need ZFILE definition */
+ #include "rle.h"
++#include "rlelib.h"
+ 
+ /* SUPPRESS 530 */
+ /* SUPPRESS 558 */
+@@ -710,11 +711,12 @@
+ {
+     for ( ; *n != '\0' && *n != '=' && *n == *v; n++, v++ )
+ 	;
+-    if (*n == '\0' || *n == '=')
++    if (*n == '\0' || *n == '=') {
+ 	if ( *v == '\0' )
+ 	    return v;
+ 	else if ( *v == '=' )
+ 	    return ++v;
++    }
+ 
+     return NULL;
+ }
+@@ -820,7 +822,7 @@
+  * Algorithm:
+  * 	Read in the setup info and fill in sv_globals.
+  */
+-rle_get_setup( globals )
++int rle_get_setup( globals )
+ struct sv_globals * globals;
+ {
+     struct XtndRsetup setup;
+@@ -1100,7 +1102,7 @@
+  *	decoding the instructions into scanline data.
+  */
+ 
+-rle_getrow( globals, scanline )
++int rle_getrow( globals, scanline )
+ struct sv_globals * globals;
+ rle_pixel *scanline[];
+ {
+@@ -1230,7 +1232,7 @@
+ 
+ 	    scanc += nc;
+ 	    scan_x += nc;
+-	    if ( debug_f )
++	    if ( debug_f ) {
+ 		if ( SV_BIT( *globals, channel ) )
+ 		{
+ 		    rle_pixel * cp = scanc - nc;
+@@ -1241,6 +1243,7 @@
+ 		}
+ 	    else
+ 		fprintf( stderr, "Pixel data %d (to %d)\n", nc, scan_x );
++	    }
+ 	    break;
+ 
+ 	case RRunDataOp:
+@@ -1586,7 +1589,7 @@
+  * Algorithm:
+  * 	Chose sub cell of 16 by 16 magic square
+      */
+-make_magic( size, magic )
++void make_magic( size, magic )
+ int size;
+ int magic[16][16];
+ {
+@@ -1630,7 +1633,7 @@
+  * Outputs:
+  *  Changes gamma array entries.
+  */
+-make_gamma( gamma, gammamap )
++void make_gamma( gamma, gammamap )
+ double gamma;
+ int gammamap[256];
+ {
+@@ -1667,7 +1670,7 @@
+  * Algorithm:
+  * 	see "Note:" in dithermap comment.
+  */
+-dithergb( x, y, r, g, b, levels, divN, modN, magic )
++int dithergb( x, y, r, g, b, levels, divN, modN, magic )
+ int divN[256];
+ int modN[256];
+ int magic[16][16];
+@@ -1697,7 +1700,7 @@
+  * Algorithm:
+  * 	see "Note:" in bwdithermap comment.
+  */
+-ditherbw( x, y, val, divN, modN, magic )
++int ditherbw( x, y, val, divN, modN, magic )
+ int divN[256];
+ int modN[256];
+ int magic[16][16];
+diff -urNad 06.xloadimage.tmp/rlelib.h 06.xloadimage/rlelib.h
+--- 06.xloadimage.tmp/rlelib.h	1970-01-01 01:00:00.000000000 +0100
++++ 06.xloadimage/rlelib.h	2003-04-02 23:27:50.000000000 +0100
+@@ -0,0 +1,6 @@
++#include "rle.h"
++
++int rle_get_setup (struct sv_globals *globals);
++int rle_getrow (struct sv_globals *globals, rle_pixel *scanline[]);
++void make_gamma (double gamma, int gammamap[256]);
++void make_magic (int size, int magic[16][16]);
+diff -urNad 06.xloadimage.tmp/root.c 06.xloadimage/root.c
+--- 06.xloadimage.tmp/root.c	1993-11-08 21:05:20.000000000 +0000
++++ 06.xloadimage/root.c	2003-04-02 23:27:50.000000000 +0100
+@@ -78,7 +78,7 @@
+   if ((XGetWindowProperty(dpy, w, atom, 0, 1, 1/*delete*/,
+ 			  AnyPropertyType, &actual_type, &format, (unsigned long *)&nitems,
+ 			  (unsigned long *)&bytes_after, (unsigned char **)&pm) == Success) &&
+-      nitems == 1) 
++      nitems == 1) {
+     if ((actual_type == XA_PIXMAP) && (format == 32) &&
+ 	(nitems == 1) && (bytes_after == 0)) {
+       /* blast it away */
+@@ -90,6 +90,7 @@
+ 	      "%s: warning: invalid format encountered for property %s\n",
+ 	      RETAIN_PROP_NAME, "xloadimage");
+     }
++  }
+ }
+ 
+ #if FIND_DEC_ROOTWINDOW
+@@ -151,9 +152,11 @@
+   Window        root, rootReturn, parentReturn, *children;
+   unsigned int  numChildren;
+   int           i;
++#ifdef FIND_DEC_ROOTWINDOW
+   char         *s;
++#endif /* FIND_DEC_ROOTWINDOW */
+ 
+-  if (opt= getOption(options, WINDOWID))
++  if ((opt= getOption(options, WINDOWID)))
+     root= opt->info.windowid;
+   else {
+     root = RootWindow(disp, scrn);
+diff -urNad 06.xloadimage.tmp/rotate.c 06.xloadimage/rotate.c
+--- 06.xloadimage.tmp/rotate.c	1993-10-21 22:28:41.000000000 +0100
++++ 06.xloadimage/rotate.c	2003-04-02 23:27:50.000000000 +0100
+@@ -52,7 +52,6 @@
+   int       bit[8];			/* Array of hex values         */
+   int         x, y;
+   int         i, b;
+-  int   newx, newy;
+   int   newi, newb;
+   byte      **yptr;
+ 
+@@ -74,6 +73,7 @@
+   sprintf(buf, "%s (rotated by %d degrees)", simage->title, degrees);
+ 
+   image1 = simage;
++  image2 = NULL;
+   do {
+     degrees -= 90;
+     switch (image1->type) {
+diff -urNad 06.xloadimage.tmp/send.c 06.xloadimage/send.c
+--- 06.xloadimage.tmp/send.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/send.c	2003-04-02 23:27:50.000000000 +0100
+@@ -21,7 +21,7 @@
+     char buf[MAXERRORLEN+1];
+     GotError = 1;
+     XGetErrorText(disp, pErrorEvent->error_code, buf, MAXERRORLEN);
+-    printf("serial #%d (request code %d) Got Error %s\n",
++    printf("serial #%ld (request code %d) Got Error %s\n",
+ 	pErrorEvent->serial,
+ 	pErrorEvent->request_code,
+ 	buf);
+@@ -166,6 +166,8 @@
+       unsigned int redbottom, greenbottom, bluebottom;
+       unsigned int redtop, greentop, bluetop;
+ 
++      redtop = greentop = bluetop = 0;
++
+       redvalue= (Pixel *)lmalloc(sizeof(Pixel) * 256);
+       greenvalue= (Pixel *)lmalloc(sizeof(Pixel) * 256);
+       bluevalue= (Pixel *)lmalloc(sizeof(Pixel) * 256);
+@@ -300,7 +302,7 @@
+ 	xcolor.red= *(image->rgb.red + a);
+ 	xcolor.green= *(image->rgb.green + a);
+ 	xcolor.blue= *(image->rgb.blue + a);
+-	if (! XAllocColor(disp, ximageinfo->cmap, &xcolor))
++	if (! XAllocColor(disp, ximageinfo->cmap, &xcolor)) {
+ 	  if ((visual->class == StaticColor) ||
+ 	      (visual->class == StaticGray) ||
+ 	      (visual->class == TrueColor) ||
+@@ -319,6 +321,7 @@
+ 	    newmap= 1;
+ 	    break;
+ 	  }
++	}
+ 	*(index + a)= xcolor.pixel;
+       }
+     }
+@@ -602,8 +605,6 @@
+      int          src_x, src_y, dst_x, dst_y;
+      unsigned int w, h;
+ { XGCValues gcv;
+-  int a, orig_depth;
+-  char *orig_data;
+ 
+   /* build and cache the GC
+    */
+diff -urNad 06.xloadimage.tmp/sunraster.c 06.xloadimage/sunraster.c
+--- 06.xloadimage.tmp/sunraster.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/sunraster.c	2003-04-02 23:27:50.000000000 +0100
+@@ -42,7 +42,7 @@
+   default:
+     printf(" unknown-type");
+   }
+-  printf(" %dx%d", memToVal(header->width, 4), memToVal(header->height, 4));
++  printf(" %ldx%ld", memToVal(header->width, 4), memToVal(header->height, 4));
+ 
+   switch (memToVal(header->depth, 4)) {
+   case 1:
+@@ -256,7 +256,7 @@
+   /*
+    *  Handle color...
+    */
+-  if (mapsize= memToVal(header.maplen, 4)) {
++  if ((mapsize= memToVal(header.maplen, 4))) {
+     map= lmalloc(mapsize);
+     if (zread(zf, map, mapsize) < mapsize) {
+       printf("sunRasterLoad: Bad read on colormap\n");
+diff -urNad 06.xloadimage.tmp/tgncpyrght.h 06.xloadimage/tgncpyrght.h
+--- 06.xloadimage.tmp/tgncpyrght.h	1993-10-21 22:28:42.000000000 +0100
++++ 06.xloadimage/tgncpyrght.h	2003-04-02 23:27:50.000000000 +0100
+@@ -22,7 +22,9 @@
+ ****/
+ 
+ #ifndef __SABER__
++#ifndef LINT
+ static char *TGNCopyright = "Copyright (C) 1991 Tim Northrup";
++#endif /* LINT */
+ #endif
+ #define _TGN_COPYRIGHT_
+ #endif
+diff -urNad 06.xloadimage.tmp/tiff.c 06.xloadimage/tiff.c
+--- 06.xloadimage.tmp/tiff.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/tiff.c	2003-04-02 23:27:50.000000000 +0100
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include "image.h"
++#include "options.h"
+ #ifdef HAVE_LIBTIFF
+ 
+ #include <tiffio.h>
+diff -urNad 06.xloadimage.tmp/uufilter.c 06.xloadimage/uufilter.c
+--- 06.xloadimage.tmp/uufilter.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/uufilter.c	2003-04-02 23:27:50.000000000 +0100
+@@ -163,6 +163,7 @@
+      */
+     bp = &buf[1];
+     phase = 0;
++    outchar = 0;
+     while (len > 0) {
+       unsigned char c;
+ 
+diff -urNad 06.xloadimage.tmp/vff.c 06.xloadimage/vff.c
+--- 06.xloadimage.tmp/vff.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/vff.c	2003-04-02 23:27:50.000000000 +0100
+@@ -361,7 +361,7 @@
+      return(0); /* so that we try and see what was wrong */
+ }
+ 
+-vffIdent(fullname, name)
++int vffIdent(fullname, name)
+ char *fullname, *name;
+ {
+ 
+diff -urNad 06.xloadimage.tmp/vicar.c 06.xloadimage/vicar.c
+--- 06.xloadimage.tmp/vicar.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/vicar.c	2003-04-02 23:27:51.000000000 +0100
+@@ -107,14 +107,12 @@
+      char *fullname, *name;
+      unsigned int verbose;
+ {
+-  char         c;
+-  int          i,j;
++  int          i;
+   unsigned int mapsize, size;
+   Image        *image;
+   byte         *lineptr;
+   byte         *map;
+   byte         *mapred,*mapgreen,*mapblue;
+-  byte         *buf;
+   ZFILE        *zf;
+  
+   if ( vicarIdent(fullname,name,verbose) == 0 )
+diff -urNad 06.xloadimage.tmp/window.c 06.xloadimage/window.c
+--- 06.xloadimage.tmp/window.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/window.c	2003-04-02 23:27:51.000000000 +0100
+@@ -227,7 +227,7 @@
+      int scrn;
+      Visual *visual;
+ { XSetWindowAttributes swa;
+-  static cmap_atom= None;
++  static Atom cmap_atom= None;
+   Window cmap_windows[2];
+ 
+   if (cmap_atom == None)
+@@ -278,7 +278,7 @@
+    * want to change this.
+    */
+ 
+-  if (t= rindex(buf, '/')) {
++  if ((t= rindex(buf, '/'))) {
+     for (s= buf, t++; *t; s++, t++)
+       *s= *t;
+     *s= '\0';
+@@ -296,14 +296,14 @@
+   int   class; /* numerical value of class */
+   char *name;  /* actual name of class */
+ } VisualClassName[] = {
+-  TrueColor,   "TrueColor",
+-  DirectColor, "DirectColor",
+-  PseudoColor, "PseudoColor",
+-  StaticColor, "StaticColor",
+-  GrayScale,   "GrayScale",
+-  StaticGray,  "StaticGray",
+-  StaticGray,  "StaticGrey",
+-  -1,          NULL
++  {TrueColor,   "TrueColor"},
++  {DirectColor, "DirectColor"},
++  {PseudoColor, "PseudoColor"},
++  {StaticColor, "StaticColor"},
++  {GrayScale,   "GrayScale"},
++  {StaticGray,  "StaticGray"},
++  {StaticGray,  "StaticGrey"},
++  {-1,          NULL}
+ };
+ 
+ int visualClassFromName(name)
+@@ -393,6 +393,7 @@
+    * have no visuals that support that depth.  seems silly to me....
+    */
+ 
++  visual = NULL;
+   depth= 0;
+   screen= ScreenOfDisplay(disp, scrn);
+   for (a= 0; a < screen->ndepths; a++) {
+@@ -575,19 +576,21 @@
+   unsigned int          private_cmap;
+   int                   visual_class;
+ 
++  oldcmap = 0;
++  lastx = 0;
+   /* get values from options that we'll use a lot
+    */
+   fit= (getOption(global_options, FIT) != NULL);
+   fullscreen= (getOption(global_options, FULLSCREEN) != NULL);
+   install= (getOption(global_options, INSTALL) != NULL);
+   private_cmap= (getOption(global_options, PRIVATE) != NULL);
+-  if (opt= getOption(image_options, DELAY))
++  if ((opt= getOption(image_options, DELAY)))
+     delay= opt->info.delay;
+-  else if (opt= getOption(global_options, DELAY))
++  else if ((opt= getOption(global_options, DELAY)))
+     delay= opt->info.delay;
+   else
+     delay= 0;
+-  if (opt= getOption(image_options, VISUAL))
++  if ((opt= getOption(image_options, VISUAL)))
+     visual_class= opt->info.visual;
+   else
+     visual_class= -1;
+diff -urNad 06.xloadimage.tmp/xbitmap.c 06.xloadimage/xbitmap.c
+--- 06.xloadimage.tmp/xbitmap.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/xbitmap.c	2003-04-02 23:27:51.000000000 +0100
+@@ -247,7 +247,7 @@
+      char         *fullname, *name;
+ { Image *image;
+ 
+-  if (image= xbitmapLoad(fullname, name, (unsigned int)1)) {
++  if ((image= xbitmapLoad(fullname, name, (unsigned int)1))) {
+     freeImage(image);
+     return(1);
+   }
+diff -urNad 06.xloadimage.tmp/xloadimage.c 06.xloadimage/xloadimage.c
+--- 06.xloadimage.tmp/xloadimage.c	2003-04-02 23:28:23.000000000 +0100
++++ 06.xloadimage/xloadimage.c	2003-04-02 23:27:51.000000000 +0100
+@@ -10,6 +10,8 @@
+ 
+ #include "copyright.h"
+ #include "xloadimage.h"
++#include "options.h"
++#include "misc.h"
+ #ifdef VMS
+ #include "patchlevel."
+ #define NO_FORK
+@@ -121,6 +123,10 @@
+   case ZOOM:
+     retimage= zoom(image, option->info.zoom.x, option->info.zoom.y, verbose);
+     break;
++
++  default:
++    /* Nothing to do */
++    break;
+   }
+   return(retimage);
+ }
+@@ -167,7 +173,7 @@
+ /* the real thing
+  */
+ 
+-main(argc, argv)
++int main(argc, argv)
+      int argc;
+      char *argv[];
+ { Option *opt;
+@@ -233,7 +239,7 @@
+ 
+   if (getOption(global_options, IDENTIFY)) {
+     for (optset= image_options; optset; optset= optset->next) {
+-      if (opt= getOption(optset, NAME))
++      if ((opt= getOption(optset, NAME)))
+ 	identifyImage(opt->info.name);
+     }
+     exit(0);
+@@ -272,7 +278,7 @@
+   onroot= (getOption(global_options, ONROOT) != NULL);
+   fullscreen= (getOption(global_options, FULLSCREEN) != NULL);
+   shrinktofit= (getOption(global_options, SHRINKTOFIT) != NULL);
+-  if (opt= getOption(global_options, GEOMETRY)) {
++  if ((opt= getOption(global_options, GEOMETRY))) {
+     winwidth= opt->info.geometry.w;
+     winheight= opt->info.geometry.h;
+   }
+@@ -354,7 +360,7 @@
+ 
+     /* retitle the image if we were asked to
+      */
+-    if (opt= getOption(optset, TITLE)) {
++    if ((opt= getOption(optset, TITLE))) {
+       if (newimage->title)
+ 	lfree((byte *)newimage->title);
+       newimage->title= dupString(opt->info.title);
+@@ -428,7 +434,7 @@
+ 
+       /* handle -at
+        */
+-      if (opt= getOption(optset, AT))
++      if ((opt= getOption(optset, AT)))
+ 	tmpimage= merge(dispimage, newimage,
+ 			opt->info.at.x, opt->info.at.y, verbose);
+       else
+@@ -470,7 +476,7 @@
+       exit(0);
+     case ' ':
+     case 'n':  /* next image */
+-      if (opt= getOption(optset->next, GOTO)) {
++      if ((opt= getOption(optset->next, GOTO))) {
+ 	char *tag= opt->info.go_to;
+ 
+ 	for (tmpset= image_options; tmpset; tmpset= tmpset->next) {
+@@ -539,7 +545,7 @@
+     for (optset= image_options; optset && optset->next; optset= optset->next)
+       /* EMPTY */
+       ;
+-    if (opt= getOption(optset, NAME)) {
++    if ((opt= getOption(optset, NAME))) {
+       if (dispimage->title)
+ 	lfree((byte *)dispimage->title);
+       dispimage->title= dupString(opt->info.title);
+diff -urNad 06.xloadimage.tmp/xloadimage.h 06.xloadimage/xloadimage.h
+--- 06.xloadimage.tmp/xloadimage.h	1993-10-28 16:26:55.000000000 +0000
++++ 06.xloadimage/xloadimage.h	2003-04-02 23:27:51.000000000 +0100
+@@ -38,6 +38,7 @@
+  */
+ 
+ void supportedImageTypes(); /* imagetypes.c */
++void dumpImage();
+ 
+ char *tail(); /* misc.c */
+ void memoryExhausted();
+@@ -47,6 +48,9 @@
+ void goodImage();
+ int errorHandler();
+ 
++void showConfiguration(); /* config.c */
++void listImages();
++
+ char *expandPath(); /* path.c */
+ int findImage();
+ void listImages();
+diff -urNad 06.xloadimage.tmp/xpixmap.c 06.xloadimage/xpixmap.c
+--- 06.xloadimage.tmp/xpixmap.c	1993-10-21 22:28:44.000000000 +0100
++++ 06.xloadimage/xpixmap.c	2003-04-02 23:27:51.000000000 +0100
+@@ -54,6 +54,8 @@
+   int            c;
+   byte          *dptr;
+ 
++  cpp = 0;
++
+   if (! (zf= zopen(fullname)))
+     return(NULL);
+ 
+@@ -112,7 +114,7 @@
+     return(NULL);
+   }
+ 
+-  if (p= rindex(what, '_')) {     /* get the name in the image if there is */
++  if ((p= rindex(what, '_'))) {     /* get the name in the image if there is */
+     *p= '\0';                     /* one */
+     imagetitle= dupString(what);
+   }
+@@ -190,7 +192,7 @@
+       break;
+   }
+ 
+-  if (p= rindex(what, '_'))
++  if ((p= rindex(what, '_')))
+     p++;
+   else
+     p= what;
+@@ -234,7 +236,7 @@
+      char *fullname, *name;
+ { Image *image;
+ 
+-  if (image= xpixmapLoad(fullname, name, (unsigned int)1)) {
++  if ((image= xpixmapLoad(fullname, name, (unsigned int)1))) {
+     freeImage(image);
+     return(1);
+   }
+diff -urNad 06.xloadimage.tmp/xwd.c 06.xloadimage/xwd.c
+--- 06.xloadimage.tmp/xwd.c	1993-10-21 22:28:44.000000000 +0100
++++ 06.xloadimage/xwd.c	2003-04-02 23:27:51.000000000 +0100
+@@ -418,6 +418,8 @@
+   Image     *image;
+   int        a;
+ 
++  image = NULL;
++
+   if (! (zf= zopen(fullname)))
+     return(NULL);
+   if (! isXWD(name, zf, &header, verbose)) {
+diff -urNad 06.xloadimage.tmp/zoom.c 06.xloadimage/zoom.c
+--- 06.xloadimage.tmp/zoom.c	1993-10-21 22:28:44.000000000 +0100
++++ 06.xloadimage/zoom.c	2003-04-02 23:27:51.000000000 +0100
+@@ -53,6 +53,8 @@
+   byte          srcmask, destmask, bit;
+   Pixel         value;
+ 
++  image = NULL;
++
+   goodImage(oimage, "zoom");
+ 
+   if (!xzoom && !yzoom) /* stupid user */

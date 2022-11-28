@@ -1,0 +1,28 @@
+From 9dfe0a3438ae69872b71b98e4fb4f4bef084983d Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Mon, 3 Jun 2019 14:34:17 +1000
+Subject: [PATCH 2/2] (perl #134008) an alternative test
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ t/op/sprintf2.t | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/t/op/sprintf2.t b/t/op/sprintf2.t
+index 569bd8053d..84259a4afd 100644
+--- a/t/op/sprintf2.t
++++ b/t/op/sprintf2.t
+@@ -840,6 +840,7 @@ SKIP: {
+ 
+     # [rt.perl.org #134008]
+     is(sprintf("%.*a", -99999, 1.03125), "0x1.08p+0", "[rt.perl.org #134008]");
++    is(sprintf("%.*a", -100000,0), "0x0p+0", "negative precision ignored by format_hexfp");
+ 
+     # [rt.perl.org #128890]
+     is(sprintf("%a", 0x1.18p+0), "0x1.18p+0");
+-- 
+2.20.1
+

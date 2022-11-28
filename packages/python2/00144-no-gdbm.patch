@@ -1,0 +1,12 @@
+diff -up Python-2.7.2/Modules/Setup.dist.no-gdbm Python-2.7.2/Modules/Setup.dist
+--- Python-2.7.2/Modules/Setup.dist.no-gdbm	2011-09-13 14:25:43.496095926 -0400
++++ Python-2.7.2/Modules/Setup.dist	2011-09-13 14:25:46.491095724 -0400
+@@ -396,7 +396,7 @@ dl dlmodule.c
+ #
+ # First, look at Setup.config; configure may have set this for you.
+ 
+-gdbm gdbmmodule.c -lgdbm
++# gdbm gdbmmodule.c -lgdbm
+ 
+ 
+ # Sleepycat Berkeley DB interface.

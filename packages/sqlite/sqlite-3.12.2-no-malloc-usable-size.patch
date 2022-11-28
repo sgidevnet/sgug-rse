@@ -1,0 +1,24 @@
+diff -up sqlite-src-3120200/configure.ac.malloc_usable_size sqlite-src-3120200/configure.ac
+--- sqlite-src-3120200/configure.ac.malloc_usable_size	2016-04-25 09:46:48.134690570 +0200
++++ sqlite-src-3120200/configure.ac	2016-04-25 09:48:41.622637181 +0200
+@@ -108,7 +108,7 @@ AC_CHECK_HEADERS([sys/types.h stdlib.h s
+ #########
+ # Figure out whether or not we have these functions
+ #
+-AC_CHECK_FUNCS([fdatasync gmtime_r isnan localtime_r localtime_s malloc_usable_size strchrnul usleep utime pread pread64 pwrite pwrite64])
++AC_CHECK_FUNCS([fdatasync gmtime_r isnan localtime_r localtime_s strchrnul usleep utime pread pread64 pwrite pwrite64])
+ 
+ #########
+ # By default, we use the amalgamation (this may be changed below...)
+diff -up sqlite-src-3120200/configure.malloc_usable_size sqlite-src-3120200/configure
+--- sqlite-src-3120200/configure.malloc_usable_size	2016-04-25 09:47:12.594679063 +0200
++++ sqlite-src-3120200/configure	2016-04-25 09:49:28.684615042 +0200
+@@ -10275,7 +10275,7 @@ done
+ #########
+ # Figure out whether or not we have these functions
+ #
+-for ac_func in fdatasync gmtime_r isnan localtime_r localtime_s malloc_usable_size strchrnul usleep utime pread pread64 pwrite pwrite64
++for ac_func in fdatasync gmtime_r isnan localtime_r localtime_s strchrnul usleep utime pread pread64 pwrite pwrite64
+ do :
+   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"

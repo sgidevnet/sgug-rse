@@ -1,0 +1,46 @@
+diff --git a/Lib/distutils/command/install.py b/Lib/distutils/command/install.py
+index 0258d3d..4ebf50a 100644
+--- a/Lib/distutils/command/install.py
++++ b/Lib/distutils/command/install.py
+@@ -418,8 +418,19 @@ class install(Command):
+                     raise DistutilsOptionError(
+                           "must not supply exec-prefix without prefix")
+
+-                self.prefix = os.path.normpath(sys.prefix)
+-                self.exec_prefix = os.path.normpath(sys.exec_prefix)
++                # self.prefix is set to sys.prefix + /local/
++                # if neither RPM build nor virtual environment is
++                # detected to make pip and distutils install packages
++                # into the separate location.
++                if (not (hasattr(sys, 'real_prefix') or
++                    sys.prefix != sys.base_prefix) and
++                    'RPM_BUILD_ROOT' not in os.environ):
++                    addition = "/local"
++                else:
++                    addition = ""
++
++                self.prefix = os.path.normpath(sys.prefix) + addition
++                self.exec_prefix = os.path.normpath(sys.exec_prefix) + addition
+
+             else:
+                 if self.exec_prefix is None:
+diff --git a/Lib/site.py b/Lib/site.py
+index 0fc9200..c95202e 100644
+--- a/Lib/site.py
++++ b/Lib/site.py
+@@ -322,7 +322,14 @@ def getsitepackages(prefixes=None):
+     return sitepackages
+
+ def addsitepackages(known_paths, prefixes=None):
+-    """Add site-packages to sys.path"""
++    """Add site-packages to sys.path
++
++    '/usr/local' is included in PREFIXES if RPM build is not detected
++    to make packages installed into this location visible.
++
++    """
++    if ENABLE_USER_SITE and 'RPM_BUILD_ROOT' not in os.environ:
++        PREFIXES.insert(0, "/usr/local")
+     for sitedir in getsitepackages(prefixes):
+         if os.path.isdir(sitedir):
+             addsitedir(sitedir, known_paths)

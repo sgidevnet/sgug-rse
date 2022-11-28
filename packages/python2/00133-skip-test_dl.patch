@@ -1,0 +1,13 @@
+diff -up Python-2.7.2/Lib/test/test_dl.py.skip-test_dl Python-2.7.2/Lib/test/test_dl.py
+--- Python-2.7.2/Lib/test/test_dl.py.skip-test_dl	2011-09-08 15:18:40.529034289 -0400
++++ Python-2.7.2/Lib/test/test_dl.py	2011-09-08 16:29:45.184742670 -0400
+@@ -13,6 +13,9 @@ sharedlibs = [
+     ('/usr/lib/libc.dylib', 'getpid'),
+     ]
+ 
++# (also, "dl" is deprecated in favor of ctypes)
++@unittest._skipInRpmBuild('fails on 64-bit builds: '
++    'module dl requires sizeof(int) == sizeof(long) == sizeof(char*)')
+ def test_main():
+     for s, func in sharedlibs:
+         try:

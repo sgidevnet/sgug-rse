@@ -1,0 +1,192 @@
+diff -ur libAfterImage-1.20.orig/afterimage-config.in libAfterImage-1.20/afterimage-config.in
+--- libAfterImage-1.20.orig/afterimage-config.in	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/afterimage-config.in	2019-05-12 10:42:18.960928116 +0200
+@@ -111,23 +111,13 @@
+ if test "$echo_libs" = "yes" ; then
+  libs="$AFTERIMAGE_LIBS_EXTERNAL"
+  if test "$echo_external_only" != "yes"; then 
+- 	if test "@have_afterbase@" = "yes" ; then
+-        	libs="-lAfterBase $libs"
+- 	fi
+- 	libs="-lAfterImage $libs" 
+-	if test "@libdir@" != "/usr/lib" ; then
+-  		echo -L@libdir@ $libs
+- 	else
+-  		echo $libs
+- 	fi
+- else
+-        echo $libs
++  libs="-lAfterImage"
+  fi
++ echo $libs
+ fi
+ 
+ if test "$echo_libtool" = "yes" ; then
+- convlib="libAfterImage.la"
+- echo @libdir@/$convlib
++ echo "No libtool archive available"
+ fi
+ 
+ if test "$echo_have_afterbase" = "yes" ; then
+diff -ur libAfterImage-1.20.orig/afterimage-libs.in libAfterImage-1.20/afterimage-libs.in
+--- libAfterImage-1.20.orig/afterimage-libs.in	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/afterimage-libs.in	2019-05-12 10:41:25.686493076 +0200
+@@ -20,7 +20,7 @@
+         if test "x$1" = "x--preferred-image-format" ; then
+                 echo $AFTERIMAGE_PREF_FORMAT
+         else
+-                echo $AFTERIMAGE_LIBS
++                echo -lAfterImage
+         fi
+   fi
+ fi
+diff -ur libAfterImage-1.20.orig/apps/Makefile.in libAfterImage-1.20/apps/Makefile.in
+--- libAfterImage-1.20.orig/apps/Makefile.in	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/apps/Makefile.in	2019-05-10 20:22:14.406322708 +0200
+@@ -160,7 +160,7 @@
+ 		$(CC) ascheckttf.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascheckttf
+ 
+ ascompose: ascompose.o common.o @LIBPROG@
+-		$(CC) ascompose.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascompose
++		$(CC) ascompose.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -lXext -o ascompose
+ 
+ asvector: asvector.o common.o $(LIB_STATIC)
+ 		$(CC) asvector.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asvector
+diff -ur libAfterImage-1.20.orig/configure.in libAfterImage-1.20/configure.in
+--- libAfterImage-1.20.orig/configure.in	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/configure.in	2019-05-12 10:52:31.417475165 +0200
+@@ -268,7 +268,7 @@
+ user_ldflags=$LDFLAGS
+ 
+ if test "x$have_x" = "xyes"; then
+-  x_libs="$X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
++  x_libs=
+   if test "x$user_ldflags" = "x"; then
+   	full_x_libs=$x_libs
+   else
+@@ -318,7 +318,7 @@
+ 
+ 
+ if test "x$have_xext_lib" = "xyes"; then
+-    x_libs="$x_libs -lXext"
++    x_libs="$x_libs"
+ fi
+ 
+ dnl# Check for graphics libraries :
+@@ -685,18 +685,18 @@
+     	AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
+     fi
+     if test -r "../libAfterBase/astypes.h"; then
+-    	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
+-    	AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
++    	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage"
++    	AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage"
+     	AFTERIMAGE_LIB_LIBS="-L./ -L../libAfterBase $AFTERIMAGE_LIBS"
+     else
+-    	AFTERIMAGE_APPS_LIBS="-L../ -L$libdir -lAfterImage $AFTERIMAGE_LIBS"
+-    	AFTERIMAGE_TEST_LIBS="-L./ -L$libdir -lAfterImage $AFTERIMAGE_LIBS"
+-    	AFTERIMAGE_LIB_LIBS="-L./ -L$libdir $AFTERIMAGE_LIBS"
++    	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage"
++    	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage"
++    	AFTERIMAGE_LIB_LIBS="-L./ $AFTERIMAGE_LIBS"
+     fi
+     AC_DEFINE(HAVE_AFTERBASE,1,[Define if libAfterBase is available])
+ else
+-	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
+-	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
++	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage"
++	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage"
+ 	AFTERIMAGE_LIB_LIBS="-L./ $AFTERIMAGE_LIBS_EXTERNAL"
+ 	if test "$with_afterbase" = "no"; then
+ 	    AC_MSG_RESULT(disabled)
+@@ -722,7 +722,7 @@
+ 	  CLEAN_AFTERIMAGE_LIBS="$CLEAN_AFTERIMAGE_LIBS $L"
+   fi
+ done
+-AFTERIMAGE_LIBS="-L$libdir -lAfterImage $CLEAN_AFTERIMAGE_LIBS"
++AFTERIMAGE_LIBS="-lAfterImage $CLEAN_AFTERIMAGE_LIBS"
+ AC_SUBST(AFTERIMAGE_LIBS)
+ 
+ if test "x$enable_staticlibs" = "xyes"; then
+@@ -797,3 +797,4 @@
+ afterimage-config)
+ 
+ chmod 755 afterimage-libs
++chmod 755 afterimage-config
+diff -ur libAfterImage-1.20.orig/configure libAfterImage-1.20/configure
+--- libAfterImage-1.20.orig/configure	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/configure	2019-05-12 10:52:30.417485653 +0200
+@@ -4948,7 +4948,7 @@
+ user_ldflags=$LDFLAGS
+ 
+ if test "x$have_x" = "xyes"; then
+-  x_libs="$X_LIBS $X_EXTRA_LIBS $X_PRE_LIBS"
++  x_libs=
+   if test "x$user_ldflags" = "x"; then
+   	full_x_libs=$x_libs
+   else
+@@ -6380,7 +6380,7 @@
+ 
+ 
+ if test "x$have_xext_lib" = "xyes"; then
+-    x_libs="$x_libs -lXext"
++    x_libs="$x_libs"
+ fi
+ 
+ 
+@@ -8801,13 +8801,13 @@
+     	AFTERIMAGE_LIBS="-lAfterBase $AFTERIMAGE_LIBS"
+     fi
+     if test -r "../libAfterBase/astypes.h"; then
+-    	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
+-    	AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage $AFTERIMAGE_LIBS"
++    	AFTERIMAGE_APPS_LIBS="-L../ -L../../libAfterBase -lAfterImage"
++    	AFTERIMAGE_TEST_LIBS="-L./ -L../libAfterBase -lAfterImage"
+     	AFTERIMAGE_LIB_LIBS="-L./ -L../libAfterBase $AFTERIMAGE_LIBS"
+     else
+-    	AFTERIMAGE_APPS_LIBS="-L../ -L$libdir -lAfterImage $AFTERIMAGE_LIBS"
+-    	AFTERIMAGE_TEST_LIBS="-L./ -L$libdir -lAfterImage $AFTERIMAGE_LIBS"
+-    	AFTERIMAGE_LIB_LIBS="-L./ -L$libdir $AFTERIMAGE_LIBS"
++    	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage"
++    	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage"
++    	AFTERIMAGE_LIB_LIBS="-L./ $AFTERIMAGE_LIBS"
+     fi
+ 
+ cat >>confdefs.h <<\_ACEOF
+@@ -8815,8 +8815,8 @@
+ _ACEOF
+ 
+ else
+-	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
+-	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage $AFTERIMAGE_LIBS_EXTERNAL"
++	AFTERIMAGE_APPS_LIBS="-L../ -lAfterImage"
++	AFTERIMAGE_TEST_LIBS="-L./ -lAfterImage"
+ 	AFTERIMAGE_LIB_LIBS="-L./ $AFTERIMAGE_LIBS_EXTERNAL"
+ 	if test "$with_afterbase" = "no"; then
+ 	    echo "$as_me:$LINENO: result: disabled" >&5
+@@ -9314,7 +9314,7 @@
+ 	  CLEAN_AFTERIMAGE_LIBS="$CLEAN_AFTERIMAGE_LIBS $L"
+   fi
+ done
+-AFTERIMAGE_LIBS="-L$libdir -lAfterImage $CLEAN_AFTERIMAGE_LIBS"
++AFTERIMAGE_LIBS="-lAfterImage $CLEAN_AFTERIMAGE_LIBS"
+ 
+ 
+ if test "x$enable_staticlibs" = "xyes"; then
+@@ -10585,3 +10585,4 @@
+ 
+ 
+ chmod 755 afterimage-libs
++chmod 755 afterimage-config
+diff -ur libAfterImage-1.20.orig/Makefile.in libAfterImage-1.20/Makefile.in
+--- libAfterImage-1.20.orig/Makefile.in	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/Makefile.in	2019-05-10 19:54:48.706592870 +0200
+@@ -398,7 +398,7 @@
+ 
+ $(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
+ 	$(CC) -shared -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
+-	 $(LIB_OBJS)
++	 $(LIB_OBJS) $(LIBRARIES)
+ 
+ install.man:
+ 		@if [ -d doc/man ] ; then \

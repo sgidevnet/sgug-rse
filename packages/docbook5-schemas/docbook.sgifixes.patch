@@ -1,0 +1,8 @@
+--- docbook-5.0/tools/db4-entities.pl~	2008-02-06 14:13:23.000000000 +0000
++++ docbook-5.0/tools/db4-entities.pl	2019-12-10 07:33:29.371420360 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -- # -*- Perl -*-
++#!/usr/bin/env perl
+ 
+ # This script attempts to replace external parsed entities with
+ # XInclude elements.

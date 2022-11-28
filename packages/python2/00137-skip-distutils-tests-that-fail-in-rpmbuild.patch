@@ -1,0 +1,12 @@
+diff -up Python-2.7.3/Lib/distutils/tests/test_bdist_rpm.py.mark-tests-that-fail-in-rpmbuild Python-2.7.3/Lib/distutils/tests/test_bdist_rpm.py
+--- Python-2.7.3/Lib/distutils/tests/test_bdist_rpm.py.mark-tests-that-fail-in-rpmbuild	2012-04-09 19:07:29.000000000 -0400
++++ Python-2.7.3/Lib/distutils/tests/test_bdist_rpm.py	2012-04-13 00:20:08.223819263 -0400
+@@ -24,6 +24,7 @@ setup(name='foo', version='0.1', py_modu
+ 
+ """
+ 
++@unittest._skipInRpmBuild("don't try to nest one rpm build inside another rpm build")
+ class BuildRpmTestCase(support.TempdirManager,
+                        support.EnvironGuard,
+                        support.LoggingSilencer,
+diff -up Python-2.7.3/Lib/distutils/tests/test_build_ext.py.mark-tests-that-fail-in-rpmbuild Python-2.7.3/Lib/distutils/tests/test_build_ext.py

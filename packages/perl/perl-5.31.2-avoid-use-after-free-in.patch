@@ -1,0 +1,110 @@
+From 1d48e83dd8863e78e8422ed502d9b2f3199193f5 Mon Sep 17 00:00:00 2001
+From: David Mitchell <davem@iabyn.com>
+Date: Wed, 19 Jun 2019 13:03:22 +0100
+Subject: [PATCH] avoid use-after free in /(?{...})/
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+RT #134208
+
+In something like
+
+    eval { sub { " " }->() =~ /(?{ die })/ }
+
+When the match string gets aliased to $_, the SAVE_DEFSV is done after the
+SAVEDESTRUCTOR_X(S_cleanup_regmatch_info_aux).  So if croaking, the SV
+gets SvREFCNT_dec()ed by the SAVE_DEFSV, then S_cleanup_regmatch_info_aux()
+manipulates the SV's magic.
+
+This doesn't cause a problem unless the match string is temporary, in
+which case the only other reference keeping it alive will be removed
+by the FREETMPs during the croak.
+
+The fix is to make sure an extra ref to the sv is held.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ regexec.c          |  4 ++++
+ regexp.h           |  1 +
+ t/re/pat_re_eval.t | 16 +++++++++++++++-
+ 3 files changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/regexec.c b/regexec.c
+index e4ec07e89e..c390bff72e 100644
+--- a/regexec.c
++++ b/regexec.c
+@@ -10233,6 +10233,7 @@ S_setup_eval_state(pTHX_ regmatch_info *const reginfo)
+     regmatch_info_aux_eval *eval_state = reginfo->info_aux_eval;
+ 
+     eval_state->rex = rex;
++    eval_state->sv  = reginfo->sv;
+ 
+     if (reginfo->sv) {
+         /* Make $_ available to executed code. */
+@@ -10240,6 +10241,8 @@ S_setup_eval_state(pTHX_ regmatch_info *const reginfo)
+             SAVE_DEFSV;
+             DEFSV_set(reginfo->sv);
+         }
++        /* will be dec'd by S_cleanup_regmatch_info_aux */
++        SvREFCNT_inc_NN(reginfo->sv);
+ 
+         if (!(mg = mg_find_mglob(reginfo->sv))) {
+             /* prepare for quick setting of pos */
+@@ -10331,6 +10334,7 @@ S_cleanup_regmatch_info_aux(pTHX_ void *arg)
+         }
+ 
+         PL_curpm = eval_state->curpm;
++        SvREFCNT_dec(eval_state->sv);
+     }
+ 
+     PL_regmatch_state = aux->old_regmatch_state;
+diff --git a/regexp.h b/regexp.h
+index 0f35205e1a..ccbc64a009 100644
+--- a/regexp.h
++++ b/regexp.h
+@@ -658,6 +658,7 @@ typedef struct {
+     STRLEN  sublen;     /* saved sublen     field from rex */
+     STRLEN  suboffset;  /* saved suboffset  field from rex */
+     STRLEN  subcoffset; /* saved subcoffset field from rex */
++    SV      *sv;        /* $_  during (?{}) */
+     MAGIC   *pos_magic; /* pos() magic attached to $_ */
+     SSize_t pos;        /* the original value of pos() in pos_magic */
+     U8      pos_flags;  /* flags to be restored; currently only MGf_BYTES*/
+diff --git a/t/re/pat_re_eval.t b/t/re/pat_re_eval.t
+index 8325451377..696b6a3fb5 100644
+--- a/t/re/pat_re_eval.t
++++ b/t/re/pat_re_eval.t
+@@ -23,7 +23,7 @@ BEGIN {
+ 
+ our @global;
+ 
+-plan tests => 504;  # Update this when adding/deleting tests.
++plan tests => 506;  # Update this when adding/deleting tests.
+ 
+ run_tests() unless caller;
+ 
+@@ -1317,6 +1317,20 @@ sub run_tests {
+         ok "ABC" =~ /^ $runtime_re (?(?{ 0; })xy|BC) $/x, 'RT #133687 yes|no';
+     }
+ 
++    # RT #134208
++    # when the string being matched was an SvTEMP and the re_eval died,
++    # the SV's magic was being restored after the SV was freed.
++    # Give ASan something to play with.
++
++    {
++        my $a;
++        no warnings 'uninitialized';
++        eval { "$a $1" =~ /(?{ die })/ };
++        pass("SvTEMP 1");
++        eval { sub { " " }->() =~ /(?{ die })/ };
++        pass("SvTEMP 2");
++    }
++
+ } # End of sub run_tests
+ 
+ 1;
+-- 
+2.20.1
+

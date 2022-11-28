@@ -1,0 +1,57 @@
+From 14d26b44a1d7eee67837ec0ea8fb0368ac6fe33e Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Tue, 20 Aug 2019 15:43:05 +1000
+Subject: [PATCH] (perl #134230) don't interpret 0x, 0b when numifying strings
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ numeric.c  | 9 +++++++++
+ t/op/int.t | 5 ++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/numeric.c b/numeric.c
+index f5eadc8173..fae2eb3c6d 100644
+--- a/numeric.c
++++ b/numeric.c
+@@ -1551,6 +1551,15 @@ Perl_my_atof3(pTHX_ const char* orig, NV* value, const STRLEN len)
+         if ((endp = S_my_atof_infnan(aTHX_ s, negative, send, value)))
+             return endp;
+ 
++        /* strtold() accepts 0x-prefixed hex and in POSIX implementations,
++           0b-prefixed binary numbers, which is backward incompatible
++        */
++        if ((len == 0 || len >= 2) && *s == '0' &&
++            (isALPHA_FOLD_EQ(s[1], 'x') || isALPHA_FOLD_EQ(s[1], 'b'))) {
++            *value = 0;
++            return (char *)s+1;
++        }
++
+         /* If the length is passed in, the input string isn't NUL-terminated,
+          * and in it turns out the function below assumes it is; therefore we
+          * create a copy and NUL-terminate that */
+diff --git a/t/op/int.t b/t/op/int.t
+index 7e936da68d..b730ab2672 100644
+--- a/t/op/int.t
++++ b/t/op/int.t
+@@ -7,7 +7,7 @@ BEGIN {
+     require Config;
+ }
+ 
+-plan 17;
++plan 19;
+ 
+ # compile time evaluation
+ 
+@@ -83,3 +83,6 @@ SKIP:
+         cmp_ok($x, "==", int($x), "check $x == int($x)");
+     }
+ }
++
++is(1+"0x10", 1, "check string '0x' prefix not treated as hex");
++is(1+"0b10", 1, "check string '0b' prefix not treated as binary");
+-- 
+2.21.0
+

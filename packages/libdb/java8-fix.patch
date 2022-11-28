@@ -1,0 +1,23 @@
+diff -up db-5.3.28/lang/java/src/com/sleepycat/asm/ClassReader.java.fix db-5.3.28/lang/java/src/com/sleepycat/asm/ClassReader.java
+--- db-5.3.28/lang/java/src/com/sleepycat/asm/ClassReader.java.fix	2013-09-09 17:35:04.000000000 +0200
++++ db-5.3.28/lang/java/src/com/sleepycat/asm/ClassReader.java	2014-07-14 11:51:27.584432754 +0200
+@@ -163,7 +163,7 @@ public class ClassReader {
+     public ClassReader(final byte[] b, final int off, final int len) {
+         this.b = b;
+         // checks the class version
+-        if (readShort(6) > Opcodes.V1_7) {
++        if (readShort(6) > Opcodes.V1_8) {
+             throw new IllegalArgumentException();
+         }
+         // parses the constant pool
+diff -up db-5.3.28/lang/java/src/com/sleepycat/asm/Opcodes.java.fix db-5.3.28/lang/java/src/com/sleepycat/asm/Opcodes.java
+--- db-5.3.28/lang/java/src/com/sleepycat/asm/Opcodes.java.fix	2014-07-14 11:50:50.432336160 +0200
++++ db-5.3.28/lang/java/src/com/sleepycat/asm/Opcodes.java	2014-07-14 11:51:36.781456666 +0200
+@@ -56,6 +56,7 @@ public interface Opcodes {
+     int V1_5 = 0 << 16 | 49;
+     int V1_6 = 0 << 16 | 50;
+     int V1_7 = 0 << 16 | 51;
++    int V1_8 = 0 << 16 | 52;
+
+     // access flags
+

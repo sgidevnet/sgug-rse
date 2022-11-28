@@ -1,0 +1,30 @@
+From 3e6113276be174602666020d809503f5f7acba37 Mon Sep 17 00:00:00 2001
+From: Mike DePaulo <mikedep333@gmail.com>
+Date: Thu, 9 Feb 2017 08:07:14 -0500
+Subject: [PATCH] Forwardport Fedora's nedit-5.6-makefiles.patch to NEdit 5.7.
+
+---
+ makefiles/Makefile.linux | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/makefiles/Makefile.linux b/makefiles/Makefile.linux
+index 32d3f04..2058653 100644
+--- a/makefiles/Makefile.linux
++++ b/makefiles/Makefile.linux
+@@ -17,11 +17,11 @@ AR=ar
+ # To test if the Motif library exports the runtime version
+ # add -DHAVE__XMVERSIONSTRING to CFLAGS
+ #
+-CFLAGS=-O -I/usr/X11R6/include -DUSE_DIRENT -DUSE_LPR_PRINT_CMD -ansi -U__STRICT_ANSI__
++CFLAGS= $(C_OPT_FLAGS) -DUSE_DIRENT -DUSE_LPR_PRINT_CMD -ansi -U__STRICT_ANSI__
+ 
+ ARFLAGS=-urs
+ 
+-LIBS=-L/usr/X11R6/lib -lXm -lXt -lX11 -lm
++LIBS=$(LD_OPT_FLAGS) -lXm -lXt -lX11 -lm
+ 
+ include Makefile.common
+ 
+-- 
+2.9.3
+

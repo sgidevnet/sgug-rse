@@ -1,0 +1,135 @@
+#! /bin/sh -e
+## 17_security-sprintf.dpatch
+##
+## DP: Description: Fix unsafe sprintf usage.  (#332524)
+## DP: Author: James Troup <james@nocrew.org>
+## DP: Upstream status: Not submitted
+## DP: URL: http://msgs.securepoint.com/cgi-bin/get/bugtraq0510/57.html
+## DP: Date: 2005-10-07
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+diff -urNad --exclude=CVS --exclude=.svn ./mcidas.c /tmp/dpep-work.5qsW5w/xloadimage-4.1/mcidas.c
+--- ./mcidas.c	2005-10-08 04:15:18.000000000 +0100
++++ /tmp/dpep-work.5qsW5w/xloadimage-4.1/mcidas.c	2005-10-08 04:15:19.000000000 +0100
+@@ -63,7 +63,7 @@
+   minute = (time % 10000) / 100;
+   second = (time % 100);
+ 
+-  sprintf(buf, "%d:%2.2d:%2.2d %s %d, %d (day %d)",
++  snprintf(buf, 29, "%d:%2.2d:%2.2d %s %d, %d (day %d)",
+ 	  hour, minute, second, month_info[month].name, day, year,
+ 	  (date % 1000));
+   return(buf);
+diff -urNad --exclude=CVS --exclude=.svn ./reduce.c /tmp/dpep-work.5qsW5w/xloadimage-4.1/reduce.c
+--- ./reduce.c	2005-10-08 04:15:18.000000000 +0100
++++ /tmp/dpep-work.5qsW5w/xloadimage-4.1/reduce.c	2005-10-08 04:15:19.000000000 +0100
+@@ -501,7 +501,7 @@
+ 
+   depth= colorsToDepth(n);
+   new_image= newRGBImage(image->width, image->height, depth);
+-  sprintf(buf, "%s (%d colors)", image->title, n);
++  snprintf(buf, BUFSIZ - 1, "%s (%d colors)", image->title, n);
+   new_image->title= dupString(buf);
+ 
+   /* calculate RGB table from each color area.  this should really calculate
+diff -urNad --exclude=CVS --exclude=.svn ./rotate.c /tmp/dpep-work.5qsW5w/xloadimage-4.1/rotate.c
+--- ./rotate.c	2005-10-08 04:15:18.000000000 +0100
++++ /tmp/dpep-work.5qsW5w/xloadimage-4.1/rotate.c	2005-10-08 04:15:19.000000000 +0100
+@@ -70,7 +70,7 @@
+     { printf("  Rotating image by %d degrees...", degrees);
+       fflush(stdout);
+     }
+-  sprintf(buf, "%s (rotated by %d degrees)", simage->title, degrees);
++  snprintf(buf, BUFSIZ - 1, "%s (rotated by %d degrees)", simage->title, degrees);
+ 
+   image1 = simage;
+   image2 = NULL;
+diff -urNad --exclude=CVS --exclude=.svn ./tiff.c /tmp/dpep-work.5qsW5w/xloadimage-4.1/tiff.c
+--- ./tiff.c	2005-10-08 04:15:18.000000000 +0100
++++ /tmp/dpep-work.5qsW5w/xloadimage-4.1/tiff.c	2005-10-08 04:15:19.000000000 +0100
+@@ -125,14 +125,14 @@
+   switch (info->photometric) {
+   case PHOTOMETRIC_MINISBLACK:
+     if (info->bitspersample > 1) {
+-      sprintf(buf, "%d-bit greyscale ", info->bitspersample);
++      snprintf(buf, 31, "%d-bit greyscale ", info->bitspersample);
+       return(buf);
+     }
+     else
+       return "white-on-black ";
+   case PHOTOMETRIC_MINISWHITE:
+     if (info->bitspersample > 1) {
+-      sprintf(buf, "%d-bit greyscale ", info->bitspersample);
++      snprintf(buf, 31, "%d-bit greyscale ", info->bitspersample);
+       return(buf);
+     }
+     else
+diff -urNad --exclude=CVS --exclude=.svn ./window.c /tmp/dpep-work.5qsW5w/xloadimage-4.1/window.c
+--- ./window.c	2005-10-08 04:15:18.000000000 +0100
++++ /tmp/dpep-work.5qsW5w/xloadimage-4.1/window.c	2005-10-08 04:15:19.000000000 +0100
+@@ -602,7 +602,7 @@
+   else {
+     char def_geom[30];
+ 
+-    sprintf(def_geom, "%ux%u+0+0", image->width, image->height);
++    snprintf(def_geom, 29, "%ux%u+0+0", image->width, image->height);
+     XGeometry(disp, scrn, opt->info.geometry.string, def_geom, 0, 1, 1, 0, 0,
+ 	      (int *)&winx, (int *)&winy, (int *)&winwidth, (int *)&winheight);
+   }
+diff -urNad --exclude=CVS --exclude=.svn ./zio.c /tmp/dpep-work.5qsW5w/xloadimage-4.1/zio.c
+--- ./zio.c	2005-10-08 04:15:18.000000000 +0100
++++ /tmp/dpep-work.5qsW5w/xloadimage-4.1/zio.c	2005-10-08 04:15:28.000000000 +0100
+@@ -232,7 +232,7 @@
+             strcpy (s, "'");
+             debug(("Filtering image through '%s'\n", filter->filter));
+             zf->type= ZPIPE;
+-            sprintf(buf, "%s %s", filter->filter, fname);
++            snprintf(buf, BUFSIZ - 1, "%s %s", filter->filter, fname);
+             lfree (fname);
+       if (! (zf->stream= popen(buf, "r"))) {
+ 	lfree((byte *)zf->filename);
+diff -urNad --exclude=CVS --exclude=.svn ./zoom.c /tmp/dpep-work.5qsW5w/xloadimage-4.1/zoom.c
+--- ./zoom.c	2005-10-08 04:15:18.000000000 +0100
++++ /tmp/dpep-work.5qsW5w/xloadimage-4.1/zoom.c	2005-10-08 04:15:19.000000000 +0100
+@@ -63,23 +63,23 @@
+   if (!xzoom) {
+     if (verbose)
+       printf("  Zooming image Y axis by %d%%...", yzoom);
+-      sprintf(buf, "%s (Y zoom %d%%)", oimage->title, yzoom);
++      snprintf(buf, BUFSIZ - 1, "%s (Y zoom %d%%)", oimage->title, yzoom);
+   }
+   else if (!yzoom) {
+     if (verbose)
+       printf("  Zooming image X axis by %d%%...", xzoom);
+-    sprintf(buf, "%s (X zoom %d%%)", oimage->title, xzoom);
++    snprintf(buf, BUFSIZ - 1, "%s (X zoom %d%%)", oimage->title, xzoom);
+   }
+   else if (xzoom == yzoom) {
+     if (verbose)
+       printf("  Zooming image by %d%%...", xzoom);
+-    sprintf(buf, "%s (%d%% zoom)", oimage->title, xzoom);
++    snprintf(buf, BUFSIZ - 1, "%s (%d%% zoom)", oimage->title, xzoom);
+   }
+   else {
+     if (verbose)
+       printf("  Zooming image X axis by %d%% and Y axis by %d%%...",
+ 	     xzoom, yzoom);
+-    sprintf(buf, "%s (X zoom %d%% Y zoom %d%%)", oimage->title,
++    snprintf(buf, BUFSIZ - 1, "%s (X zoom %d%% Y zoom %d%%)", oimage->title,
+ 	    xzoom, yzoom);
+   }
+   if (verbose)

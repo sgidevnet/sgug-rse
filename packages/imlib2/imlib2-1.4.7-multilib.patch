@@ -1,0 +1,13 @@
+diff -up imlib2-1.4.7/imlib2-config.in.multilib imlib2-1.4.7/imlib2-config.in
+--- imlib2-1.4.7/imlib2-config.in.multilib	2016-01-25 16:14:28.115088877 +0100
++++ imlib2-1.4.7/imlib2-config.in	2016-01-25 16:14:48.666279614 +0100
+@@ -45,8 +45,7 @@ while test $# -gt 0; do
+       echo $includes
+       ;;
+     --libs)
+-      libdirs=-L@libdir@
+-      echo $libdirs -lImlib2
++      echo -lImlib2
+       ;;
+     *)
+       echo "${usage}" 1>&2

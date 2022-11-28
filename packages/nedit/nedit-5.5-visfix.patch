@@ -1,0 +1,12 @@
+--- nedit-5.5/util/misc.c.visfix	2004-08-10 00:20:00.000000000 +0200
++++ nedit-5.5/util/misc.c	2006-08-30 13:06:31.000000000 +0200
+@@ -384,6 +384,9 @@
+ 	return (*visual == DefaultVisual(display, screen));
+     }
+     
++    /* Set "Default" visual to avoid crashes with the detected best ones */
++    reqID = DefaultVisual(display, screen)->visualid;
++    
+     /* Read the visualID and installColormap resources for the application.
+        visualID can be specified either as a number (the visual id as
+        shown by xdpyinfo), as a visual class name, or as Best or Default. */

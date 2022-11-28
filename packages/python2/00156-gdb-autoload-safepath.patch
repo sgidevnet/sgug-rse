@@ -1,0 +1,57 @@
+diff -up Python-2.7.3/Lib/test/test_gdb.py.gdb-autoload-safepath Python-2.7.3/Lib/test/test_gdb.py
+--- Python-2.7.3/Lib/test/test_gdb.py.gdb-autoload-safepath	2012-04-30 15:53:57.254045220 -0400
++++ Python-2.7.3/Lib/test/test_gdb.py	2012-04-30 16:19:19.569941124 -0400
+@@ -54,6 +54,19 @@ def gdb_has_frame_select():
+ 
+ HAS_PYUP_PYDOWN = gdb_has_frame_select()
+ 
++def gdb_has_autoload_safepath():
++    # Recent GDBs will only auto-load scripts from certain safe
++    # locations, so we will need to turn off this protection.
++    # However, if the GDB doesn't have it, then the following
++    # command will generate noise on stderr (rhbz#817072):
++    cmd = "--eval-command=set auto-load safe-path /"
++    p = subprocess.Popen(["gdb", "--batch", cmd],
++                         stderr=subprocess.PIPE)
++    _, stderr = p.communicate()
++    return '"on" or "off" expected.' not in stderr
++    
++HAS_AUTOLOAD_SAFEPATH = gdb_has_autoload_safepath()
++
+ class DebuggerTests(unittest.TestCase):
+ 
+     """Test that the debugger can debug Python."""
+diff -up Python-2.7.10/Lib/test/test_gdb.py.ms Python-2.7.10/Lib/test/test_gdb.py
+--- Python-2.7.10/Lib/test/test_gdb.py.ms	2015-05-25 17:00:25.028462615 +0200
++++ Python-2.7.10/Lib/test/test_gdb.py	2015-05-25 17:01:53.166359822 +0200
+@@ -153,6 +153,17 @@ class DebuggerTests(unittest.TestCase):
+ 
+                     'run']
+ 
++        if HAS_AUTOLOAD_SAFEPATH:
++            # Recent GDBs will only auto-load scripts from certain safe
++            # locations.
++            # Where necessary, turn off this protection to ensure that
++            # our -gdb.py script can be loaded - but not on earlier gdb builds
++            # as this would generate noise on stderr (rhbz#817072):
++            init_commands = ['set auto-load safe-path /']
++        else:
++            init_commands = []
++
++
+         # GDB as of 7.4 onwards can distinguish between the
+         # value of a variable at entry vs current value:
+         #   http://sourceware.org/gdb/onlinedocs/gdb/Variables.html
+@@ -167,10 +178,11 @@ class DebuggerTests(unittest.TestCase):
+         else:
+             commands += ['backtrace']
+ 
+-        # print commands
++        # print init_commands
+ 
+         # Use "commands" to generate the arguments with which to invoke "gdb":
+         args = ["gdb", "--batch", "-nx"]
++        args += ['--init-eval-command=%s' % cmd for cmd in init_commands]
+         args += ['--eval-command=%s' % cmd for cmd in commands]
+         args += ["--args",
+                  sys.executable]

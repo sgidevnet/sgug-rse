@@ -1,0 +1,56 @@
+From 4089a9d71445fbe48ce41dd5cb595dba88c18a26 Mon Sep 17 00:00:00 2001
+From: ph10 <ph10@6239d852-aaf2-0410-a92c-79f79f948069>
+Date: Mon, 29 Jun 2020 15:35:49 +0000
+Subject: [PATCH] Fix read overflow for invalid VERSION test with one
+ fractional digit at the end of a pattern. Fixes ClusterFuzz 23779.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+git-svn-id: svn://vcs.exim.org/pcre2/code/trunk@1266 6239d852-aaf2-0410-a92c-79f79f948069
+Petr Písař: Ported to 10.35.
+---
+ src/pcre2_compile.c  | 1 +
+ testdata/testinput2  | 2 ++
+ testdata/testoutput2 | 3 +++
+
+diff --git a/src/pcre2_compile.c b/src/pcre2_compile.c
+index 136d583..e811f12 100644
+--- a/src/pcre2_compile.c
++++ b/src/pcre2_compile.c
+@@ -4331,6 +4331,7 @@ while (ptr < ptrend)
+           {
+           if (++ptr >= ptrend || !IS_DIGIT(*ptr)) goto BAD_VERSION_CONDITION;
+           minor = (*ptr++ - CHAR_0) * 10;
++          if (ptr >= ptrend) goto BAD_VERSION_CONDITION;
+           if (IS_DIGIT(*ptr)) minor += *ptr++ - CHAR_0;
+           if (ptr >= ptrend || *ptr != CHAR_RIGHT_PARENTHESIS)
+             goto BAD_VERSION_CONDITION;
+diff --git a/testdata/testinput2 b/testdata/testinput2
+index c816c5f..47320eb 100644
+--- a/testdata/testinput2
++++ b/testdata/testinput2
+@@ -5864,4 +5864,6 @@ a)"xI
+ /"(*MARK:>" 00 "<).(?C1)."/hex,mark,no_start_optimize
+     AB
+ 
++/(?(VERSION=0.0/
++
+ # End of testinput2
+diff --git a/testdata/testoutput2 b/testdata/testoutput2
+index c90efef..c06363a 100644
+--- a/testdata/testoutput2
++++ b/testdata/testoutput2
+@@ -17621,6 +17621,9 @@ Latest Mark: >\x00<
+  0: AB
+ MK: >\x00<
+ 
++/(?(VERSION=0.0/
++Failed: error 179 at offset 14: syntax error or number too big in (?(VERSION condition
++
+ # End of testinput2
+ Error -70: PCRE2_ERROR_BADDATA (unknown error number)
+ Error -62: bad serialized data
+-- 
+2.25.4
+

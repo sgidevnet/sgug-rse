@@ -1,0 +1,11 @@
+--- a/include/libssh/libssh.h	2020-04-15 13:38:32.899177005 +0200
++++ b/include/libssh/libssh.h	2020-04-15 13:38:57.406454427 +0200
+@@ -79,7 +79,7 @@
+ /* libssh version */
+ #define LIBSSH_VERSION_MAJOR  0
+ #define LIBSSH_VERSION_MINOR  9
+-#define LIBSSH_VERSION_MICRO  3
++#define LIBSSH_VERSION_MICRO  4
+ 
+ #define LIBSSH_VERSION_INT SSH_VERSION_INT(LIBSSH_VERSION_MAJOR, \
+                                            LIBSSH_VERSION_MINOR, \

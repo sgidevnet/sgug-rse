@@ -1,0 +1,83 @@
+diff -up vim81/src/config.h.in.crypto vim81/src/config.h.in
+--- vim81/src/config.h.in.crypto	2019-07-26 07:58:51.000000000 +0200
++++ vim81/src/config.h.in	2019-09-16 14:18:32.994110646 +0200
+@@ -490,3 +490,12 @@
+ 
+ /* Define to inline symbol or empty */
+ #undef inline
++
++/* Do we need FIPS warning? */
++#undef HAVE_FIPS_WARNING
++
++/* Link to system-fips file */
++#undef SYSTEM_FIPS_FILE_LINK
++
++/* Link to fips_enabled file */
++#undef FIPS_ENABLED_FILE_LINK
+diff -up vim81/src/configure.ac.crypto vim81/src/configure.ac
+--- vim81/src/configure.ac.crypto	2019-09-16 14:18:32.990110675 +0200
++++ vim81/src/configure.ac	2019-09-16 14:18:32.996110631 +0200
+@@ -534,6 +534,38 @@ else
+   AC_MSG_RESULT(yes)
+ fi
+ 
++dnl Checking if we want FIPS warning
++
++AC_MSG_CHECKING(--enable-fips-warning)
++AC_ARG_ENABLE([fips-warning],
++              AS_HELP_STRING([--enable-fips-warning], [Enable FIPS warning]),
++              ,[enable_fips_warning="no"])
++
++if test "$enable_fips_warning" = "yes"; then
++  AC_MSG_RESULT(yes)
++  AC_DEFINE([HAVE_FIPS_WARNING])
++
++  dnl Setting path for system-fips file
++
++  AC_MSG_CHECKING(--with-system-fips-file argument)
++  AC_ARG_WITH([system-fips-file], [  --with-system-fips-file=PATH       Link to system-fips file (default: /etc/system-fips)],
++	with_system_fips_file=$withval,
++       with_system_fips_file="/etc/system-fips")
++  AC_MSG_RESULT([$with_system_fips_file])
++  AC_DEFINE_UNQUOTED([SYSTEM_FIPS_FILE_LINK], ["$with_system_fips_file"])
++
++  dnl Setting link to fips_enabled file
++
++  AC_MSG_CHECKING(--with-fips-enabled-file argument)
++  AC_ARG_WITH([fips-enabled-file], [  --with-fips-enabled-file=PATH       Link to fibs_enabled file (default: /proc/sys/crypto/fips_enabled)],
++	with_fips_enabled_file=$withval,
++       with_fips_enabled_file="/proc/sys/crypto/fips_enabled")
++  AC_MSG_RESULT([$with_fips_enabled_file])
++  AC_DEFINE_UNQUOTED([FIPS_ENABLED_FILE_LINK], ["$with_fips_enabled_file"])
++else
++  AC_MSG_RESULT(no)
++fi
++
+ dnl Check for Lua feature.
+ AC_MSG_CHECKING(--enable-luainterp argument)
+ AC_ARG_ENABLE(luainterp,
+diff -up vim81/src/crypt.c.crypto vim81/src/crypt.c
+--- vim81/src/crypt.c.crypto	2019-09-16 14:18:32.996110631 +0200
++++ vim81/src/crypt.c	2019-09-16 14:19:48.953550617 +0200
+@@ -524,6 +524,21 @@ crypt_check_method(int method)
+ 	msg_scroll = TRUE;
+ 	msg(_("Warning: Using a weak encryption method; see :help 'cm'"));
+     }
++#ifdef HAVE_FIPS_WARNING
++    FILE *fips_enable_fd = fopen(FIPS_ENABLED_FILE_LINK, "r");
++    if (fips_enable_fd == NULL)
++      return;
++
++    int enabled = fgetc(fips_enable_fd);
++
++    if ( access(SYSTEM_FIPS_FILE_LINK, F_OK) != -1 && enabled == '1')
++    {
++	msg_scroll = TRUE;
++	msg(_("Warning: This cryptography is not FIPS 140-2 compliant."));
++    }
++
++    fclose(fips_enable_fd);
++#endif
+ }
+ 
+     void

@@ -1,0 +1,103 @@
+--- libxslt-1.1.26/ChangeLog.utf8	2009-07-24 10:16:49.000000000 +0200
++++ libxslt-1.1.26/ChangeLog	2011-03-20 03:28:28.142684293 +0100
+@@ -284,7 +284,7 @@
+ 	
+ Thu Aug 23 11:47:20 CEST 2007 Daniel Veillard <daniel@veillard.com>
+ 
+-	* libexslt/date.c: apply patch from Björn Wiberg fixing build on AIX
++	* libexslt/date.c: apply patch from BjÃ¶rn Wiberg fixing build on AIX
+ 	  and closing bug #332173
+ 
+ Fri Aug  3 15:49:26 CEST 2007 Daniel Veillard <daniel@veillard.com>
+@@ -2112,7 +2112,7 @@
+ Tue Feb 17 11:29:15 CET 2004 Daniel Veillard <daniel@veillard.com>
+ 
+ 	* libxslt/templates.c: applied patch from #134588 provided by
+-	  Mariano Suárez-Alvarez, attribute text node without doc.
++	  Mariano SuÃ¡rez-Alvarez, attribute text node without doc.
+ 
+ Mon Feb 16 15:55:57 CET 2004 Daniel Veillard <daniel@veillard.com>
+ 
+@@ -3121,7 +3121,7 @@
+ 	* python/generator.py: fixed a problem in the generator where
+ 	  the way functions are remapped as methods on classes was
+ 	  not symetric and dependant on python internal hash order,
+-	  as reported by Stéphane Bidoul
++	  as reported by StÃ©phane Bidoul
+ 	* libexslt/strings.c: attempt at fixing an object type pbm
+ 	* libxslt/triodef.h: update for OpenVMS from libxml2
+ 
+@@ -3497,7 +3497,7 @@
+ 
+ Thu Jan  2 23:23:30 CET 2003 Daniel Veillard <daniel@veillard.com>
+ 
+-	* libexslt/strings.c: applied patch from Jörg Walter to provide
++	* libexslt/strings.c: applied patch from JÃ¶rg Walter to provide
+ 	  URI escaping and unescaping functions.
+ 
+ Thu Dec 26 15:43:31 CET 2002 Daniel Veillard <daniel@veillard.com>
+@@ -3507,7 +3507,7 @@
+ 
+ Mon Dec 23 15:43:59 CET 2002 Daniel Veillard <daniel@veillard.com>
+ 
+-	* python/libxslt.c: patch from Stéphane Bidoul for Python 2.1
++	* python/libxslt.c: patch from StÃ©phane Bidoul for Python 2.1
+ 
+ Sun Dec 22 22:54:04 CET 2002 Daniel Veillard <daniel@veillard.com>
+ 
+@@ -3648,7 +3648,7 @@
+ 
+ Sun Nov 24 13:58:48 CET 2002 Daniel Veillard <daniel@veillard.com>
+ 
+-	* python/libxsl.py: updated with new version from Stéphane Bidoul
++	* python/libxsl.py: updated with new version from StÃ©phane Bidoul
+ 
+ Sat Nov 23 22:49:08 CET 2002 Igor Zlatkovic <igor@stud.fh-frankfurt.de>
+ 
+@@ -5036,7 +5036,7 @@
+ 
+ Mon Nov 26 11:21:27 CET 2001 Daniel Veillard <daniel@veillard.com>
+ 
+-	* libxslt/pattern.c: fixing bug #64044 reported by Gero Meißner,
++	* libxslt/pattern.c: fixing bug #64044 reported by Gero MeiÃŸner,
+ 	  template matches compilation was failing to skip blanks bewteen
+ 	  consecutive predicates
+ 
+@@ -5119,7 +5119,7 @@
+ 
+ Tue Oct 30 19:32:08 CET 2001 Daniel Veillard <daniel@veillard.com>
+ 
+-	* configure.in: applied patches from David Härdeman closing
++	* configure.in: applied patches from David HÃ¤rdeman closing
+ 	  bug #62891
+ 
+ Tue Oct 30 15:25:19 CET 2001 Daniel Veillard <daniel@veillard.com>
+--- libxslt-1.1.26/NEWS.utf8	2009-09-24 16:38:20.000000000 +0200
++++ libxslt-1.1.26/NEWS	2011-03-20 03:27:37.440684281 +0100
+@@ -312,7 +312,7 @@
+ 
+ 
+ 1.1.4: Feb 23 2004:
+-   - bugfixes: attributes without doc (Mariano Suárez-Alvarez), problem with
++   - bugfixes: attributes without doc (Mariano SuÃ¡rez-Alvarez), problem with
+     Yelp, extension problem
+    - display extension modules (Steve Little)
+    - Windows compilation patch (Mark Vadoc), Mingw (Mikhail Grushinskiy)
+@@ -472,7 +472,7 @@
+ 
+ 
+ 1.0.24: Jan 14 2003:
+-   - bug fixes: imported global varables, python bindings (Stéphane Bidoul),
++   - bug fixes: imported global varables, python bindings (StÃ©phane Bidoul),
+     EXSLT memory leak (Charles Bozeman), namespace generation on
+     xsl:attribute, space handling with imports (Daniel Stodden),
+     extension-element-prefixes (Josh Parsons), comments within xsl:text (Matt
+@@ -485,7 +485,7 @@
+    - fix the API generation scripts
+    - API to provide the sorting routines (Richard Jinks)
+    - added XML description of the EXSLT API
+-   - added ESXLT URI (un)escaping (Jörg Walter)
++   - added ESXLT URI (un)escaping (JÃ¶rg Walter)
+    - Some memory leaks have been found and fixed
+    - document() now support fragment identifiers in URIs
+ 

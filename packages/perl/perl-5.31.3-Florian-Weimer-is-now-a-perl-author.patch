@@ -1,0 +1,28 @@
+From da006e4432402cea01c9018743467314377e3c1e Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Tue, 10 Sep 2019 10:44:10 +1000
+Subject: [PATCH 2/2] Florian Weimer is now a perl author
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ AUTHORS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/AUTHORS b/AUTHORS
+index a2b6d8c15a..a554cfc045 100644
+--- a/AUTHORS
++++ b/AUTHORS
+@@ -418,6 +418,7 @@ Fergal Daly			<fergal@esatclear.ie>
+ Fingle Nark			<finglenark@gmail.com>
+ Florent Guillaume
+ Florian Ragwitz			<rafl@debian.org>
++Florian Weimer			<fweimer@redhat.com>
+ François Désarménien		<desar@club-internet.fr>
+ François Perrad			<francois.perrad@gadz.org>
+ Frank Crawford
+-- 
+2.21.0
+

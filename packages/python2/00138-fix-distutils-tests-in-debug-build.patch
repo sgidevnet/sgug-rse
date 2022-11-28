@@ -1,0 +1,68 @@
+diff -up Python-2.7.2/Lib/distutils/tests/test_build_ext.py.mark-tests-that-fail-in-rpmbuild Python-2.7.2/Lib/distutils/tests/test_build_ext.py
+--- Python-2.7.2/Lib/distutils/tests/test_build_ext.py.mark-tests-that-fail-in-rpmbuild	2011-09-08 16:07:25.033834312 -0400
++++ Python-2.7.2/Lib/distutils/tests/test_build_ext.py	2011-09-08 17:43:15.656441082 -0400
+@@ -330,6 +332,7 @@ class BuildExtTestCase(support.TempdirMa
+         self.assertEqual(lastdir, 'bar')
+ 
+     def test_ext_fullpath(self):
++        debug_ext = sysconfig.get_config_var("DEBUG_EXT")
+         ext = sysconfig.get_config_vars()['SO']
+         dist = Distribution()
+         cmd = build_ext(dist)
+@@ -337,14 +340,14 @@ class BuildExtTestCase(support.TempdirMa
+         cmd.distribution.package_dir = {'': 'src'}
+         cmd.distribution.packages = ['lxml', 'lxml.html']
+         curdir = os.getcwd()
+-        wanted = os.path.join(curdir, 'src', 'lxml', 'etree' + ext)
++        wanted = os.path.join(curdir, 'src', 'lxml', 'etree' + debug_ext + ext)
+         path = cmd.get_ext_fullpath('lxml.etree')
+         self.assertEqual(wanted, path)
+ 
+         # building lxml.etree not inplace
+         cmd.inplace = 0
+         cmd.build_lib = os.path.join(curdir, 'tmpdir')
+-        wanted = os.path.join(curdir, 'tmpdir', 'lxml', 'etree' + ext)
++        wanted = os.path.join(curdir, 'tmpdir', 'lxml', 'etree' + debug_ext + ext)
+         path = cmd.get_ext_fullpath('lxml.etree')
+         self.assertEqual(wanted, path)
+ 
+@@ -354,13 +357,13 @@ class BuildExtTestCase(support.TempdirMa
+         cmd.distribution.packages = ['twisted', 'twisted.runner.portmap']
+         path = cmd.get_ext_fullpath('twisted.runner.portmap')
+         wanted = os.path.join(curdir, 'tmpdir', 'twisted', 'runner',
+-                              'portmap' + ext)
++                              'portmap' + debug_ext + ext)
+         self.assertEqual(wanted, path)
+ 
+         # building twisted.runner.portmap inplace
+         cmd.inplace = 1
+         path = cmd.get_ext_fullpath('twisted.runner.portmap')
+-        wanted = os.path.join(curdir, 'twisted', 'runner', 'portmap' + ext)
++        wanted = os.path.join(curdir, 'twisted', 'runner', 'portmap' + debug_ext + ext)
+         self.assertEqual(wanted, path)
+ 
+     def test_build_ext_inplace(self):
+@@ -373,8 +376,9 @@ class BuildExtTestCase(support.TempdirMa
+         cmd.distribution.package_dir = {'': 'src'}
+         cmd.distribution.packages = ['lxml', 'lxml.html']
+         curdir = os.getcwd()
++        debug_ext = sysconfig.get_config_var("DEBUG_EXT")
+         ext = sysconfig.get_config_var("SO")
+-        wanted = os.path.join(curdir, 'src', 'lxml', 'etree' + ext)
++        wanted = os.path.join(curdir, 'src', 'lxml', 'etree' + debug_ext + ext)
+         path = cmd.get_ext_fullpath('lxml.etree')
+         self.assertEqual(wanted, path)
+ 
+@@ -412,10 +416,11 @@ class BuildExtTestCase(support.TempdirMa
+         dist = Distribution({'name': 'UpdateManager'})
+         cmd = build_ext(dist)
+         cmd.ensure_finalized()
++        debug_ext = sysconfig.get_config_var("DEBUG_EXT")
+         ext = sysconfig.get_config_var("SO")
+         ext_name = os.path.join('UpdateManager', 'fdsend')
+         ext_path = cmd.get_ext_fullpath(ext_name)
+-        wanted = os.path.join(cmd.build_lib, 'UpdateManager', 'fdsend' + ext)
++        wanted = os.path.join(cmd.build_lib, 'UpdateManager', 'fdsend' + debug_ext + ext)
+         self.assertEqual(ext_path, wanted)
+ 
+     @unittest.skipUnless(sys.platform == 'win32', 'these tests require Windows')

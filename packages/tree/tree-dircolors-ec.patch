@@ -1,0 +1,16 @@
+ color.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/color.c b/color.c
+index 67dedbe..bbcc9df 100644
+--- a/color.c
++++ b/color.c
+@@ -191,7 +191,7 @@ void parse_dir_colors()
+   if (!norm_flgs) norm_flgs = scopy("00");
+   
+   if (!endcode) {
+-    sprintf(buf,"%s%s%s",leftcode,norm_flgs,rightcode);
++    sprintf(buf,"%s0%s",leftcode,rightcode);
+     endcode = scopy(buf);
+   }
+   

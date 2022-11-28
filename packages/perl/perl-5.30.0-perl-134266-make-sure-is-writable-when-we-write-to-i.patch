@@ -1,0 +1,102 @@
+From 3f8dbf40138bd2bcb569b23c88888a41ede9c355 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Mon, 5 Aug 2019 15:23:45 +1000
+Subject: [PATCH] (perl #134266) make sure $@ is writable when we write to it
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+when unwinding.
+
+Since except_sv might be ERRSV we try to preserve it's value,
+if not the actual SV (which we have an extra refcount on if it is
+except_sv).
+
+Petr Písař: Ported to 5.30.0 from
+933e3e630076d4fdbe32a101eeb5f12e37ec4ac2.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ perl.h             | 17 +++++++++++++++++
+ pp_ctl.c           | 10 ++++++++--
+ t/lib/croak/pp_ctl |  8 ++++++++
+ 3 files changed, 33 insertions(+), 2 deletions(-)
+
+diff --git a/perl.h b/perl.h
+index e5a5585..383487c 100644
+--- a/perl.h
++++ b/perl.h
+@@ -1357,6 +1357,23 @@ EXTERN_C char *crypt(const char *, const char *);
+     }									\
+     } STMT_END
+ 
++/* contains inlined gv_add_by_type */
++#define SANE_ERRSV() STMT_START {					\
++    SV ** const svp = &GvSV(PL_errgv);					\
++    if (!*svp) {							\
++        *svp = newSVpvs("");                                            \
++    } else if (SvREADONLY(*svp)) {					\
++        SV *dupsv = newSVsv(*svp);					\
++	SvREFCNT_dec_NN(*svp);						\
++	*svp = dupsv;							\
++    } else {								\
++	SV *const errsv = *svp;						\
++	if (SvMAGICAL(errsv)) {						\
++	    mg_free(errsv);						\
++	}								\
++    }									\
++    } STMT_END
++
+ 
+ #ifdef PERL_CORE
+ # define DEFSV (0 + GvSVn(PL_defgv))
+diff --git a/pp_ctl.c b/pp_ctl.c
+index a38b9c1..1f2d812 100644
+--- a/pp_ctl.c
++++ b/pp_ctl.c
+@@ -1720,9 +1720,13 @@ Perl_die_unwind(pTHX_ SV *msv)
+ 	 * perls 5.13.{1..7} which had late setting of $@ without this
+ 	 * early-setting hack.
+ 	 */
+-	if (!(in_eval & EVAL_KEEPERR))
++	if (!(in_eval & EVAL_KEEPERR)) {
++            /* remove any read-only/magic from the SV, so we don't
++               get infinite recursion when setting ERRSV */
++            SANE_ERRSV();
+ 	    sv_setsv_flags(ERRSV, exceptsv,
+                         (SV_GMAGIC|SV_DO_COW_SVSETSV|SV_NOSTEAL));
++        }
+ 
+ 	if (in_eval & EVAL_KEEPERR) {
+ 	    Perl_ck_warner(aTHX_ packWARN(WARN_MISC), "\t(in cleanup) %" SVf,
+@@ -1784,8 +1788,10 @@ Perl_die_unwind(pTHX_ SV *msv)
+              */
+             S_pop_eval_context_maybe_croak(aTHX_ cx, exceptsv, 2);
+ 
+-	    if (!(in_eval & EVAL_KEEPERR))
++	    if (!(in_eval & EVAL_KEEPERR)) {
++                SANE_ERRSV();
+ 		sv_setsv(ERRSV, exceptsv);
++            }
+ 	    PL_restartjmpenv = restartjmpenv;
+ 	    PL_restartop = restartop;
+ 	    JMPENV_JUMP(3);
+diff --git a/t/lib/croak/pp_ctl b/t/lib/croak/pp_ctl
+index b1e754c..de0221b 100644
+--- a/t/lib/croak/pp_ctl
++++ b/t/lib/croak/pp_ctl
+@@ -51,3 +51,11 @@ use 5.01;
+ default{}
+ EXPECT
+ Can't "default" outside a topicalizer at - line 2.
++########
++# NAME croak with read only $@
++eval '"a" =~ /${*@=\_})/';
++die;
++# this would previously recurse infinitely in the eval
++EXPECT
++Unmatched ) in regex; marked by <-- HERE in m/_) <-- HERE / at (eval 1) line 1.
++	...propagated at - line 2.
+-- 
+2.21.0
+

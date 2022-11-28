@@ -1,0 +1,34 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index cd64a76..1d5ddbb 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -14,11 +14,23 @@ def prepare_url(value):
+     return inner
+ 
+ 
+-@pytest.fixture
+-def httpbin(httpbin):
+-    return prepare_url(httpbin)
++import sys
+ 
++if sys.version_info[0] < 3:
++    @pytest.fixture
++    def httpbin():
++        pytest.skip('No httpbin for Python 2')
+ 
+-@pytest.fixture
+-def httpbin_secure(httpbin_secure):
+-    return prepare_url(httpbin_secure)
++    @pytest.fixture
++    def httpbin_secure():
++        pytest.skip('No httpbin for Python 2')
++
++else:
++    @pytest.fixture
++    def httpbin(httpbin):
++        return prepare_url(httpbin)
++
++
++    @pytest.fixture
++    def httpbin_secure(httpbin_secure):
++        return prepare_url(httpbin_secure)

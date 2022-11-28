@@ -1,0 +1,50 @@
+From 94a2f6a3c87a0795b9b1aabd49616f90c922b835 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Wed, 24 Apr 2019 11:05:21 +1000
+Subject: [PATCH] (perl #134048) prevent an erroneous assertion on OP_SCALAR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ op.c              | 3 ++-
+ t/op/multideref.t | 4 +++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/op.c b/op.c
+index 98a438d6f2..f63eeadc36 100644
+--- a/op.c
++++ b/op.c
+@@ -14904,7 +14904,8 @@ S_maybe_multideref(pTHX_ OP *start, OP *orig_o, UV orig_action, U8 hints)
+ #ifdef DEBUGGING
+                     OP *n = o->op_next;
+                     while (n && (  n->op_type == OP_NULL
+-                                || n->op_type == OP_LIST))
++                                || n->op_type == OP_LIST
++                                || n->op_type == OP_SCALAR))
+                         n = n->op_next;
+                     assert(n && n->op_type == OP_LEAVE);
+ #endif
+diff --git a/t/op/multideref.t b/t/op/multideref.t
+index 12b04536e5..23487ca283 100644
+--- a/t/op/multideref.t
++++ b/t/op/multideref.t
+@@ -18,7 +18,7 @@ BEGIN {
+ use warnings;
+ use strict;
+ 
+-plan 64;
++plan 65;
+ 
+ 
+ # check that strict refs hint is handled
+@@ -242,3 +242,5 @@ sub defer {}
+     ::pass("S_maybe_multideref() shouldn't leak on croak");
+ }
+ 
++fresh_perl_is('0for%{scalar local$0[0]}', '', {},
++              "RT #134045 assertion on the OP_SCALAR");
+-- 
+2.20.1
+

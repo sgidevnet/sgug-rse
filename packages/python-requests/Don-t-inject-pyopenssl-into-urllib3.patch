@@ -1,0 +1,38 @@
+From 86b1fa39fdebdb7bc57131c1a198d4d18e104f95 Mon Sep 17 00:00:00 2001
+From: Jeremy Cline <jeremy@jcline.org>
+Date: Mon, 16 Apr 2018 10:35:35 -0400
+Subject: [PATCH] Don't inject pyopenssl into urllib3
+
+Fedora ships sufficiently new versions of Python 2 and 3 to make this
+unnecessary (rhbz 1567862)
+
+Signed-off-by: Jeremy Cline <jeremy@jcline.org>
+---
+ requests/__init__.py | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/requests/__init__.py b/requests/__init__.py
+index a5b3c9c3..e312d314 100644
+--- a/requests/__init__.py
++++ b/requests/__init__.py
+@@ -90,17 +90,6 @@ except (AssertionError, ValueError):
+                   "version!".format(urllib3.__version__, chardet.__version__),
+                   RequestsDependencyWarning)
+ 
+-# Attempt to enable urllib3's SNI support, if possible
+-try:
+-    from urllib3.contrib import pyopenssl
+-    pyopenssl.inject_into_urllib3()
+-
+-    # Check cryptography version
+-    from cryptography import __version__ as cryptography_version
+-    _check_cryptography(cryptography_version)
+-except ImportError:
+-    pass
+-
+ # urllib3's DependencyWarnings should be silenced.
+ from urllib3.exceptions import DependencyWarning
+ warnings.simplefilter('ignore', DependencyWarning)
+-- 
+2.17.0
+

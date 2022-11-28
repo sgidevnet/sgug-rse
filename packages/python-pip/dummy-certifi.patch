@@ -1,0 +1,12 @@
+diff --git a/src/pip/_vendor/certifi/core.py b/src/pip/_vendor/certifi/core.py
+index 7271acf..9f0dc20 100644
+--- a/src/pip/_vendor/certifi/core.py
++++ b/src/pip/_vendor/certifi/core.py
+@@ -10,6 +10,4 @@ import os
+ 
+ 
+ def where():
+-    f = os.path.dirname(__file__)
+-
+-    return os.path.join(f, 'cacert.pem')
++    return '/etc/pki/tls/certs/ca-bundle.crt'

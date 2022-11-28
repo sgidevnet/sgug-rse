@@ -1,0 +1,26 @@
+From fad95bcf352bd77e5ed42aaf20eb0e24b761c62f Mon Sep 17 00:00:00 2001
+From: rpm-build <rpm-build>
+Date: Thu, 21 Jun 2018 15:51:13 +0200
+Subject: [PATCH] configure.ac: fix build for F29+, where we use the
+ 'aclocal-1.16' now
+
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index a4817ee..736b38b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -40,7 +40,7 @@ then
+ fi
+ 
+ AC_PREREQ([2.69])
+-AM_INIT_AUTOMAKE([1.15 dist-xz dist-lzip])
++AM_INIT_AUTOMAKE([1.16 dist-xz dist-lzip])
+ 
+ AC_CONFIG_MACRO_DIR([m4])
+ 
+-- 
+2.14.4
+

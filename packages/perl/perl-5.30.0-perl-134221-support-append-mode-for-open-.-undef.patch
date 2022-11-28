@@ -1,0 +1,191 @@
+From 8e9cf86aa69cb79c91edf5ff0586f87bfe4c91bd Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Tue, 2 Jul 2019 14:16:35 +1000
+Subject: [PATCH] (perl #134221) support append mode for open .. undef
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Petr Písař: Ported to 5.30.0 from
+45b29440d38be155c5177c8d6f9a5d4e7c2c098c.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ doio.c             | 15 +++++++++++++++
+ embed.fnc          |  1 +
+ perlio.c           | 26 +++++++++++++++++++++-----
+ perlio.h           |  3 +++
+ proto.h            |  5 +++++
+ t/io/perlio_open.t | 14 ++++++++++++--
+ 6 files changed, 57 insertions(+), 7 deletions(-)
+
+diff --git a/doio.c b/doio.c
+index 05a0696..424e0e3 100644
+--- a/doio.c
++++ b/doio.c
+@@ -265,6 +265,21 @@ Perl_my_mkstemp_cloexec(char *templte)
+ #endif
+ }
+ 
++int
++Perl_my_mkostemp_cloexec(char *templte, int flags)
++{
++    dVAR;
++    PERL_ARGS_ASSERT_MY_MKOSTEMP_CLOEXEC;
++#if defined(O_CLOEXEC)
++    DO_ONEOPEN_EXPERIMENTING_CLOEXEC(
++        PL_strategy_mkstemp,
++	Perl_my_mkostemp(templte, flags | O_CLOEXEC),
++	Perl_my_mkostemp(templte, flags));
++#else
++    DO_ONEOPEN_THEN_CLOEXEC(Perl_my_mkostemp(templte, flags));
++#endif
++}
++
+ #ifdef HAS_PIPE
+ int
+ Perl_PerlProc_pipe_cloexec(pTHX_ int *pipefd)
+diff --git a/embed.fnc b/embed.fnc
+index 259affd..c977d39 100644
+--- a/embed.fnc
++++ b/embed.fnc
+@@ -476,6 +476,7 @@ p	|int	|PerlLIO_dup2_cloexec|int oldfd|int newfd
+ pR	|int	|PerlLIO_open_cloexec|NN const char *file|int flag
+ pR	|int	|PerlLIO_open3_cloexec|NN const char *file|int flag|int perm
+ pnoR	|int	|my_mkstemp_cloexec|NN char *templte
++pnoR	|int	|my_mkostemp_cloexec|NN char *templte|int flags
+ #ifdef HAS_PIPE
+ pR	|int	|PerlProc_pipe_cloexec|NN int *pipefd
+ #endif
+diff --git a/perlio.c b/perlio.c
+index 904d47a..5a0cd36 100644
+--- a/perlio.c
++++ b/perlio.c
+@@ -1490,7 +1490,9 @@ PerlIO_openn(pTHX_ const char *layers, const char *mode, int fd,
+ 	     int imode, int perm, PerlIO *f, int narg, SV **args)
+ {
+     if (!f && narg == 1 && *args == &PL_sv_undef) {
+-	if ((f = PerlIO_tmpfile())) {
++        int imode = PerlIOUnix_oflags(mode);
++
++	if (imode != -1 && (f = PerlIO_tmpfile_flags(imode))) {
+ 	    if (!layers || !*layers)
+ 		layers = Perl_PerlIO_context_layers(aTHX_ mode);
+ 	    if (layers && *layers)
+@@ -5048,6 +5050,15 @@ PerlIO_stdoutf(const char *fmt, ...)
+ #undef PerlIO_tmpfile
+ PerlIO *
+ PerlIO_tmpfile(void)
++{
++    return PerlIO_tmpfile_flags(0);
++}
++
++#define MKOSTEMP_MODES ( O_RDWR | O_CREAT | O_EXCL )
++#define MKOSTEMP_MODE_MASK ( O_ACCMODE | O_CREAT | O_EXCL | O_TRUNC )
++
++PerlIO *
++PerlIO_tmpfile_flags(int imode)
+ {
+ #ifndef WIN32
+      dTHX;
+@@ -5063,27 +5074,32 @@ PerlIO_tmpfile(void)
+      const char * const tmpdir = TAINTING_get ? NULL : PerlEnv_getenv("TMPDIR");
+      SV * sv = NULL;
+      int old_umask = umask(0177);
++     imode &= ~MKOSTEMP_MODE_MASK;
+      if (tmpdir && *tmpdir) {
+ 	 /* if TMPDIR is set and not empty, we try that first */
+ 	 sv = newSVpv(tmpdir, 0);
+ 	 sv_catpv(sv, tempname + 4);
+-	 fd = Perl_my_mkstemp_cloexec(SvPVX(sv));
++	 fd = Perl_my_mkostemp_cloexec(SvPVX(sv), imode);
+      }
+      if (fd < 0) {
+ 	 SvREFCNT_dec(sv);
+ 	 sv = NULL;
+ 	 /* else we try /tmp */
+-	 fd = Perl_my_mkstemp_cloexec(tempname);
++	 fd = Perl_my_mkostemp_cloexec(tempname, imode);
+      }
+      if (fd < 0) {
+          /* Try cwd */
+          sv = newSVpvs(".");
+          sv_catpv(sv, tempname + 4);
+-         fd = Perl_my_mkstemp_cloexec(SvPVX(sv));
++         fd = Perl_my_mkostemp_cloexec(SvPVX(sv), imode);
+      }
+      umask(old_umask);
+      if (fd >= 0) {
+-	  f = PerlIO_fdopen(fd, "w+");
++         /* fdopen() with a numeric mode */
++         char mode[8];
++         int writing = 1;
++         (void)PerlIO_intmode2str(imode | MKOSTEMP_MODES, mode, &writing);
++         f = PerlIO_fdopen(fd, mode);
+ 	  if (f)
+ 	       PerlIOBase(f)->flags |= PERLIO_F_TEMP;
+ 	  PerlLIO_unlink(sv ? SvPVX_const(sv) : tempname);
+diff --git a/perlio.h b/perlio.h
+index d515020..ee16ab8 100644
+--- a/perlio.h
++++ b/perlio.h
+@@ -286,6 +286,9 @@ PERL_CALLCONV SSize_t PerlIO_get_bufsiz(PerlIO *);
+ #ifndef PerlIO_tmpfile
+ PERL_CALLCONV PerlIO *PerlIO_tmpfile(void);
+ #endif
++#ifndef PerlIO_tmpfile_flags
++PERL_CALLCONV PerlIO *PerlIO_tmpfile_flags(int flags);
++#endif
+ #ifndef PerlIO_stdin
+ PERL_CALLCONV PerlIO *PerlIO_stdin(void);
+ #endif
+diff --git a/proto.h b/proto.h
+index 74a8e46..e0ea55b 100644
+--- a/proto.h
++++ b/proto.h
+@@ -2270,6 +2270,11 @@ PERL_CALLCONV Pid_t	Perl_my_fork(void);
+ PERL_CALLCONV I32	Perl_my_lstat(pTHX);
+ #endif
+ PERL_CALLCONV I32	Perl_my_lstat_flags(pTHX_ const U32 flags);
++PERL_CALLCONV int	Perl_my_mkostemp_cloexec(char *templte, int flags)
++			__attribute__warn_unused_result__;
++#define PERL_ARGS_ASSERT_MY_MKOSTEMP_CLOEXEC	\
++	assert(templte)
++
+ PERL_CALLCONV int	Perl_my_mkstemp_cloexec(char *templte)
+ 			__attribute__warn_unused_result__;
+ #define PERL_ARGS_ASSERT_MY_MKSTEMP_CLOEXEC	\
+diff --git a/t/io/perlio_open.t b/t/io/perlio_open.t
+index 99d7e51..56c354b 100644
+--- a/t/io/perlio_open.t
++++ b/t/io/perlio_open.t
+@@ -11,7 +11,7 @@ BEGIN {
+ use strict;
+ use warnings;
+ 
+-plan tests => 6;
++plan tests => 10;
+ 
+ use Fcntl qw(:seek);
+ 
+@@ -31,6 +31,16 @@ use Fcntl qw(:seek);
+     is($data, "the right read stuff", "found the right stuff");
+ }
+ 
+-
++SKIP:
++{
++    ok((open my $fh, "+>>", undef), "open my \$fh, '+>>', undef")
++      or skip "can't open temp for append: $!", 3;
++    print $fh "abc";
++    ok(seek($fh, 0, SEEK_SET), "seek to zero");
++    print $fh "xyz";
++    ok(seek($fh, 0, SEEK_SET), "seek to zero again");
++    my $data = <$fh>;
++    is($data, "abcxyz", "check the second write appended");
++}
+ 
+ 
+-- 
+2.20.1
+

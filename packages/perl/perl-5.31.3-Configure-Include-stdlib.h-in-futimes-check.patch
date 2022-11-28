@@ -1,0 +1,30 @@
+From 425077e4b85509df2907be6c103d54c0687c7647 Mon Sep 17 00:00:00 2001
+From: Florian Weimer <fweimer@redhat.com>
+Date: Mon, 9 Sep 2019 19:35:47 +0200
+Subject: [PATCH 1/2] Configure: Include <stdlib.h> in futimes check
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Needed for the exit function.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ Configure | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Configure b/Configure
+index 818deb8378..7aa03d6aed 100755
+--- a/Configure
++++ b/Configure
+@@ -14091,6 +14091,7 @@ $cat >try.c <<EOCP
+ #include <sys/time.h>
+ #include <errno.h>
+ #include <fcntl.h>
++#include <stdlib.h>
+ 
+ int main ()
+ {
+-- 
+2.21.0
+

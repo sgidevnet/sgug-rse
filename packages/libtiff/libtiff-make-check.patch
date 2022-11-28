@@ -1,0 +1,12 @@
+diff --git a/html/man/Makefile.am b/html/man/Makefile.am
+index 587296c..696005e 100644
+--- a/html/man/Makefile.am
++++ b/html/man/Makefile.am
+@@ -92,7 +92,6 @@ docfiles = \
+ 	tiffcrop.1.html \
+ 	tiffdither.1.html \
+ 	tiffdump.1.html \
+-	tiffgt.1.html \
+ 	tiffinfo.1.html \
+ 	tiffmedian.1.html \
+ 	tiffset.1.html \

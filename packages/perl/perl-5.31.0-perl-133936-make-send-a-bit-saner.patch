@@ -1,0 +1,93 @@
+From bc26d2e6b287cc6693f41e1a2d48b0dd77d2e427 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Tue, 18 Jun 2019 14:59:00 +1000
+Subject: [PATCH] (perl #133936) make send() a bit saner
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This undoes some of the effect of f1000aa2d in that TO will always
+be supplied to CORE::send() if it's supplied, otherwise whether
+TO is supplied to CORE::send() is based on whether the socket is
+connected.
+
+On Linux you appear to be able to sendto() to a different address on
+a connected UDP socket, but this doesn't appear to be portable,
+failing on darwin, and presumably on other BSDs.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ dist/IO/lib/IO/Socket.pm | 25 +++++++++++++++++--------
+ dist/IO/t/io_udp.t       | 11 ++++++++---
+ 2 files changed, 25 insertions(+), 11 deletions(-)
+
+diff --git a/dist/IO/lib/IO/Socket.pm b/dist/IO/lib/IO/Socket.pm
+index 345ffd475d..28fa1ec149 100644
+--- a/dist/IO/lib/IO/Socket.pm
++++ b/dist/IO/lib/IO/Socket.pm
+@@ -277,13 +277,22 @@ sub send {
+     @_ >= 2 && @_ <= 4 or croak 'usage: $sock->send(BUF, [FLAGS, [TO]])';
+     my $sock  = $_[0];
+     my $flags = $_[2] || 0;
+-    my $peer  = $_[3] || $sock->peername;
++    my $peer;
+ 
+-    croak 'send: Cannot determine peer address'
+-	 unless(defined $peer);
++    if ($_[3]) {
++        # the caller explicitly requested a TO, so use it
++        # this is non-portable for "connected" UDP sockets
++        $peer = $_[3];
++    }
++    elsif (!defined getpeername($sock)) {
++        # we're not connected, so we require a peer from somewhere
++        $peer = $sock->peername;
++
++	croak 'send: Cannot determine peer address'
++	    unless(defined $peer);
++    }
+ 
+-    my $type = $sock->socktype;
+-    my $r = $type == SOCK_DGRAM || $type == SOCK_RAW
++    my $r = $peer
+       ? send($sock, $_[1], $flags, $peer)
+       : send($sock, $_[1], $flags);
+ 
+@@ -526,9 +535,9 @@ C<FLAGS> is optional and defaults to C<0>, and
+ 
+ =item *
+ 
+-after a successful send with C<TO>, further calls to send() without
+-C<TO> will send to the same address, and C<TO> will be used as the
+-result of peername().
++after a successful send with C<TO>, further calls to send() on an
++unconnected socket without C<TO> will send to the same address, and
++C<TO> will be used as the result of peername().
+ 
+ =back
+ 
+diff --git a/dist/IO/t/io_udp.t b/dist/IO/t/io_udp.t
+index 571e4303bb..2adc6a4a69 100644
+--- a/dist/IO/t/io_udp.t
++++ b/dist/IO/t/io_udp.t
+@@ -89,9 +89,14 @@ is($buf, 'FOObar');
+     ok($udpa->recv($buf = "", 8), "recv it");
+     is($buf, "fromctoa", "check value received");
+ 
+-    ok($udpc->send("fromctob", 0, $udpb->sockname), "send to non-connected socket");
+-    ok($udpb->recv($buf = "", 8), "recv it");
+-    is($buf, "fromctob", "check value received");
++  SKIP:
++    {
++        $^O eq "linux"
++	  or skip "This is non-portable, known to 'work' on Linux", 3;
++        ok($udpc->send("fromctob", 0, $udpb->sockname), "send to non-connected socket");
++        ok($udpb->recv($buf = "", 8), "recv it");
++        is($buf, "fromctob", "check value received");
++    }
+ }
+ 
+ exit(0);
+-- 
+2.20.1
+

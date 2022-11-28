@@ -1,0 +1,18 @@
+--- a/tests/torture.c	2020-04-09 16:16:07.691894761 +0200
++++ b/tests/torture.c	2020-04-09 20:11:50.577962771 +0200
+@@ -636,6 +636,15 @@
+ # else /* HAVE_DSA */
+              "HostKeyAlgorithms +ssh-rsa\n"
+ # endif /* HAVE_DSA */
++/* Add back algorithms removed from default in OpenSSH-8.2 due to SHA1
++ * deprecation*/
++# if (OPENSSH_VERSION_MAJOR == 8 && OPENSSH_VERSION_MINOR >= 2)
++             "KexAlgorithms +diffie-hellman-group14-sha1,"
++             "diffie-hellman-group-exchange-sha1,"
++             "diffie-hellman-group1-sha1\n"
++             "HostKeyAlgorithms +ssh-rsa\n"
++             "CASignatureAlgorithms +ssh-rsa\n"
++#endif
+ # if (OPENSSH_VERSION_MAJOR == 7 && OPENSSH_VERSION_MINOR < 6)
+              "Ciphers +3des-cbc,aes128-cbc,aes192-cbc,aes256-cbc,blowfish-cbc\n"
+ # else /* OPENSSH_VERSION 7.0 - 7.5 */

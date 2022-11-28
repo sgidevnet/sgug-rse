@@ -1,0 +1,290 @@
+commit b8f85fc797aeee09a50718f402e0c95e68467d50
+Author: Patrik Kopkan <pkopkan@redhat.com>
+Date:   Mon Nov 4 10:45:49 2019 +0100
+
+    commit 211987de0de73e2747e14fcfa217b20c1ec7d817
+    Author: Patrik Kopkan <pkopkan@redhat.com>
+    Date:   Fri Sep 6 15:09:43 2019 +0200
+    
+        bpo-37064: add -a to Tools/Scripts/pathfix.py
+        - this option enables to add single literal
+        flag to kept flags
+    
+    commit 3f43ceff186da09978d0aff257bb18b8ac7611f7
+    Author: Victor Stinner <vstinner@redhat.com>
+    Date:   Thu Sep 5 18:09:46 2019 +0200
+    
+        bpo-37064: Skip test_tools.test_pathfix if installed (GH-15705)
+    
+        If Python is installed, skip test_tools.test_pathfix test because
+        Tools/scripts/pathfix.py script is not installed.
+    
+    commit 50254ac4c179cb412e90682098c97db786143929
+    Author: PatrikKopkan <kopkanpatrik@gmail.com>
+    Date:   Thu Sep 5 16:54:54 2019 +0200
+    
+        bpo-37064: Add option -k to Tools/scripts/pathfix.py (GH-15548)
+    
+        Add flag -k to pathscript.py script: preserve shebang flags
+
+diff --git a/Lib/test/test_tools/test_pathfix.py b/Lib/test/test_tools/test_pathfix.py
+new file mode 100644
+index 0000000..ec36117
+--- /dev/null
++++ b/Lib/test/test_tools/test_pathfix.py
+@@ -0,0 +1,129 @@
++import os
++import subprocess
++import sys
++import unittest
++from test import support
++from test.test_tools import import_tool, scriptsdir, skip_if_missing
++
++
++# need Tools/script/ directory: skip if run on Python installed on the system
++skip_if_missing()
++
++
++class TestPathfixFunctional(unittest.TestCase):
++    script = os.path.join(scriptsdir, 'pathfix.py')
++
++    def setUp(self):
++        self.addCleanup(support.unlink, support.TESTFN)
++
++    def pathfix(self, shebang, pathfix_flags, exitcode=0, stdout='', stderr='',
++                directory=''):
++        if directory:
++            # bpo-38347: Test filename should contain lowercase, uppercase,
++            # "-", "_" and digits.
++            filename = os.path.join(directory, 'script-A_1.py')
++            pathfix_arg = directory
++        else:
++            filename = support.TESTFN
++            pathfix_arg = filename
++
++        with open(filename, 'w', encoding='utf8') as f:
++            f.write(f'{shebang}\n' + 'print("Hello world")\n')
++
++        proc = subprocess.run(
++            [sys.executable, self.script,
++             *pathfix_flags, '-n', pathfix_arg],
++            capture_output=True, text=1)
++
++        if stdout == '' and proc.returncode == 0:
++            stdout = f'{filename}: updating\n'
++        self.assertEqual(proc.returncode, exitcode, proc)
++        self.assertEqual(proc.stdout, stdout, proc)
++        self.assertEqual(proc.stderr, stderr, proc)
++
++        with open(filename, 'r', encoding='utf8') as f:
++            output = f.read()
++
++        lines = output.split('\n')
++        self.assertEqual(lines[1:], ['print("Hello world")', ''])
++        new_shebang = lines[0]
++
++        if proc.returncode != 0:
++            self.assertEqual(shebang, new_shebang)
++
++        return new_shebang
++
++    def test_recursive(self):
++        tmpdir = support.TESTFN + '.d'
++        self.addCleanup(support.rmtree, tmpdir)
++        os.mkdir(tmpdir)
++        expected_stderr = f"recursedown('{os.path.basename(tmpdir)}')\n"
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python',
++                ['-i', '/usr/bin/python3'],
++                directory=tmpdir,
++                stderr=expected_stderr),
++            '#! /usr/bin/python3')
++
++    def test_pathfix(self):
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python',
++                ['-i', '/usr/bin/python3']),
++            '#! /usr/bin/python3')
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python -R',
++                ['-i', '/usr/bin/python3']),
++            '#! /usr/bin/python3')
++
++    def test_pathfix_keeping_flags(self):
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python -R',
++                ['-i', '/usr/bin/python3', '-k']),
++            '#! /usr/bin/python3 -R')
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python',
++                ['-i', '/usr/bin/python3', '-k']),
++            '#! /usr/bin/python3')
++
++    def test_pathfix_adding_flag(self):
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python',
++                ['-i', '/usr/bin/python3', '-a', 's']),
++            '#! /usr/bin/python3 -s')
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python -S',
++                ['-i', '/usr/bin/python3', '-a', 's']),
++            '#! /usr/bin/python3 -s')
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python -V',
++                ['-i', '/usr/bin/python3', '-a', 'v', '-k']),
++            '#! /usr/bin/python3 -vV')
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python',
++                ['-i', '/usr/bin/python3', '-a', 'Rs']),
++            '#! /usr/bin/python3 -Rs')
++        self.assertEqual(
++            self.pathfix(
++                '#! /usr/bin/env python -W default',
++                ['-i', '/usr/bin/python3', '-a', 's', '-k']),
++            '#! /usr/bin/python3 -sW default')
++
++    def test_pathfix_adding_errors(self):
++        self.pathfix(
++            '#! /usr/bin/env python -E',
++            ['-i', '/usr/bin/python3', '-a', 'W default', '-k'],
++            exitcode=2,
++            stderr="-a option doesn't support whitespaces")
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/Misc/NEWS.d/next/Tools-Demos/2019-05-27-15-26-12.bpo-37064.k_SPW2.rst b/Misc/NEWS.d/next/Tools-Demos/2019-05-27-15-26-12.bpo-37064.k_SPW2.rst
+new file mode 100644
+index 0000000..d1210e2
+--- /dev/null
++++ b/Misc/NEWS.d/next/Tools-Demos/2019-05-27-15-26-12.bpo-37064.k_SPW2.rst
+@@ -0,0 +1,2 @@
++Add option -k to pathscript.py script: preserve shebang flags.
++Add option -a to pathscript.py script: add flags.
+diff --git a/Tools/scripts/pathfix.py b/Tools/scripts/pathfix.py
+index 28ee428..127c2fe 100755
+--- a/Tools/scripts/pathfix.py
++++ b/Tools/scripts/pathfix.py
+@@ -1,6 +1,6 @@
+ #!/usr/bin/env python3
+ 
+-# Change the #! line occurring in Python scripts.  The new interpreter
++# Change the #! line (shebang) occurring in Python scripts.  The new interpreter
+ # pathname must be given with a -i option.
+ #
+ # Command line arguments are files or directories to be processed.
+@@ -10,7 +10,13 @@
+ # arguments).
+ # The original file is kept as a back-up (with a "~" attached to its name),
+ # -n flag can be used to disable this.
+-#
++
++# Sometimes you may find shebangs with flags such as `#! /usr/bin/env python -si`.
++# Normally, pathfix overwrites the entire line, including the flags.
++# To change interpreter and keep flags from the original shebang line, use -k.
++# If you want to keep flags and add to them one single literal flag, use option -a.
++
++
+ # Undoubtedly you can do this using find and sed or perl, but this is
+ # a nice example of Python code that recurses down a directory tree
+ # and uses regular expressions.  Also note several subtleties like
+@@ -33,16 +39,21 @@ rep = sys.stdout.write
+ new_interpreter = None
+ preserve_timestamps = False
+ create_backup = True
++keep_flags = False
++add_flags = b''
+ 
+ 
+ def main():
+     global new_interpreter
+     global preserve_timestamps
+     global create_backup
+-    usage = ('usage: %s -i /interpreter -p -n file-or-directory ...\n' %
++    global keep_flags
++    global add_flags
++
++    usage = ('usage: %s -i /interpreter -p -n -k -a file-or-directory ...\n' %
+              sys.argv[0])
+     try:
+-        opts, args = getopt.getopt(sys.argv[1:], 'i:pn')
++        opts, args = getopt.getopt(sys.argv[1:], 'i:a:kpn')
+     except getopt.error as msg:
+         err(str(msg) + '\n')
+         err(usage)
+@@ -54,6 +65,13 @@ def main():
+             preserve_timestamps = True
+         if o == '-n':
+             create_backup = False
++        if o == '-k':
++            keep_flags = True
++        if o == '-a':
++            add_flags = a.encode()
++            if b' ' in add_flags:
++                err("-a option doesn't support whitespaces")
++                sys.exit(2)
+     if not new_interpreter or not new_interpreter.startswith(b'/') or \
+            not args:
+         err('-i option or file-or-directory missing\n')
+@@ -96,6 +114,7 @@ def recursedown(dirname):
+         if recursedown(fullname): bad = 1
+     return bad
+ 
++
+ def fix(filename):
+ ##  dbg('fix(%r)\n' % (filename,))
+     try:
+@@ -166,12 +185,43 @@ def fix(filename):
+     # Return success
+     return 0
+ 
++
++def parse_shebang(shebangline):
++    shebangline = shebangline.rstrip(b'\n')
++    start = shebangline.find(b' -')
++    if start == -1:
++        return b''
++    return shebangline[start:]
++
++
++def populate_flags(shebangline):
++    old_flags = b''
++    if keep_flags:
++        old_flags = parse_shebang(shebangline)
++        if old_flags:
++            old_flags = old_flags[2:]
++    if not (old_flags or add_flags):
++        return b''
++    # On Linux, the entire string following the interpreter name
++    # is passed as a single argument to the interpreter.
++    # e.g. "#! /usr/bin/python3 -W Error -s" runs "/usr/bin/python3 "-W Error -s"
++    # so shebang should have single '-' where flags are given and
++    # flag might need argument for that reasons adding new flags is
++    # between '-' and original flags
++    # e.g. #! /usr/bin/python3 -sW Error
++    return b' -' + add_flags + old_flags
++
++
+ def fixline(line):
+     if not line.startswith(b'#!'):
+         return line
++
+     if b"python" not in line:
+         return line
+-    return b'#! ' + new_interpreter + b'\n'
++
++    flags = populate_flags(line)
++    return b'#! ' + new_interpreter + flags + b'\n'
++
+ 
+ if __name__ == '__main__':
+     main()

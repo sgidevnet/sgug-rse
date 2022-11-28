@@ -1,0 +1,55 @@
+From 524cd22fb77e69db9bb3f017bbb1d9782c37b0cd Mon Sep 17 00:00:00 2001
+From: Jeremy Cline <jeremy@jcline.org>
+Date: Tue, 13 Jun 2017 09:08:09 -0400
+Subject: [PATCH] Remove tests that use the tarpit
+
+The latest version of Mock has started using systemd containers. The
+systemd-nspawn command is being run with --private-network, which
+immediately kills connections to something other than localhost. These
+tests depend on the connection not being killed immediately and that
+they are never responded to.
+
+Signed-off-by: Jeremy Cline <jeremy@jcline.org>
+---
+ tests/test_requests.py | 25 -------------------------
+ 1 file changed, 25 deletions(-)
+
+diff --git a/tests/test_requests.py b/tests/test_requests.py
+index b8350cb..46b7e9e 100755
+--- a/tests/test_requests.py
++++ b/tests/test_requests.py
+@@ -2049,31 +2049,6 @@ class TestTimeout:
+         except ReadTimeout:
+             pass
+ 
+-    @pytest.mark.parametrize(
+-        'timeout', (
+-            (0.1, None),
+-            Urllib3Timeout(connect=0.1, read=None)
+-        ))
+-    def test_connect_timeout(self, timeout):
+-        try:
+-            requests.get(TARPIT, timeout=timeout)
+-            pytest.fail('The connect() request should time out.')
+-        except ConnectTimeout as e:
+-            assert isinstance(e, ConnectionError)
+-            assert isinstance(e, Timeout)
+-
+-    @pytest.mark.parametrize(
+-        'timeout', (
+-            (0.1, 0.1),
+-            Urllib3Timeout(connect=0.1, read=0.1)
+-        ))
+-    def test_total_timeout_connect(self, timeout):
+-        try:
+-            requests.get(TARPIT, timeout=timeout)
+-            pytest.fail('The connect() request should time out.')
+-        except ConnectTimeout:
+-            pass
+-
+     def test_encoded_methods(self, httpbin):
+         """See: https://github.com/requests/requests/issues/2316"""
+         r = requests.request(b'GET', httpbin('get'))
+-- 
+2.9.4
+

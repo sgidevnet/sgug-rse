@@ -1,0 +1,32 @@
+#! /bin/sh -e
+## 04_previous-image.dpatch by Juan Cespedes <cespedes@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Fix 'p' (previous image) key.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+diff -urNad 04.xloadimage.tmp/xloadimage.c 04.xloadimage/xloadimage.c
+--- 04.xloadimage.tmp/xloadimage.c	2003-04-02 19:28:25.000000000 +0100
++++ 04.xloadimage/xloadimage.c	2003-04-02 19:27:44.000000000 +0100
+@@ -493,6 +493,8 @@
+       if (!tmpset)
+ 	goto redisplay_in_window; /* ick */
+       optset= tmpset;
++      freeImage(dispimage);
++      dispimage= NULL;
+       goto get_another_image; /* ick */
+     case '<':
+       if ((opt = getOption(optset,ZOOM)) == NULL) {

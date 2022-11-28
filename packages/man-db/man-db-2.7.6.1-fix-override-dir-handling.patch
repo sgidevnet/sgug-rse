@@ -1,0 +1,177 @@
+From 84d6b3fab40be5e1ea288fb296df6cd8be06c985 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nikola=20Forr=C3=B3?= <nforro@redhat.com>
+Date: Thu, 19 Jan 2017 10:45:57 +0100
+Subject: [PATCH] man(1): Fix override dir handling
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Previously, override dir was affecting only some cases
+of manpath determination.
+
+Apply it only when all paths has been gathered instead.
+(Depending on the definition of when the override dir applies,
+this might not be correct).
+
+Also look for override dir when sorting candidates.
+
+Fixes src/tests/man-9 failing when --with-override-dir=od
+is passed to ./configure.
+
+Reported-by: Nikola Forró <nforro@redhat.com>
+Tested-by: Nikola Forró <nforro@redhat.com>
+---
+ src/man.c  | 33 +++++++++++++++++++++++++++++++++
+ src/manp.c | 52 +++++++++++++++++++++-------------------------------
+ 2 files changed, 54 insertions(+), 31 deletions(-)
+
+diff --git a/src/man.c b/src/man.c
+index 15a568a..8b11f43 100644
+--- a/src/man.c
++++ b/src/man.c
+@@ -2665,6 +2665,32 @@ static int duplicate_candidates (struct candidate *left,
+ 	return ret;
+ }
+ 
++static int cand1_differs_by_override_dir (const struct candidate *left,
++		                          const struct candidate *right)
++{
++	size_t ov_len, pre_ov_len;
++
++	ov_len = strlen (OVERRIDE_DIR);
++	if (!ov_len)
++		return 0;
++
++	if (!STREQ (left->source->name, right->source->name))
++		return 0;
++
++	pre_ov_len = strlen(right->path);
++	if (!STRNEQ (left->path, right->path, pre_ov_len))
++		return 0;
++
++	if (left->path[pre_ov_len] != '/')
++		return 0;
++	pre_ov_len++;
++
++	if (STREQ (left->path + pre_ov_len, OVERRIDE_DIR))
++		return 1;
++
++	return 0;
++}
++
+ static int compare_candidates (const struct candidate *left,
+ 			       const struct candidate *right)
+ {
+@@ -2749,6 +2775,13 @@ static int compare_candidates (const struct candidate *left,
+ 	if (cmp)
+ 		return cmp;
+ 
++	/* Sort override dir first
++	 */
++	if (cand1_differs_by_override_dir(left, right))
++		return -1;
++	if (cand1_differs_by_override_dir(right, left))
++		return 1;
++
+ 	/* Try comparing based on language. We used to prefer to display a
+ 	 * page in the user's preferred language than a page from a better
+ 	 * section, but that attracted objections, so now we prefer to get
+diff --git a/src/manp.c b/src/manp.c
+index 0d864f1..b78a50f 100644
+--- a/src/manp.c
++++ b/src/manp.c
+@@ -931,23 +931,6 @@ static char *def_path (int flag)
+ }
+ 
+ /*
+- * If specified with configure, append OVERRIDE_DIR to dir param and add it
+- * to the lp list.
+- */
+-static void insert_override_dir (char **lp, const char *dir)
+-{
+-	char *override_dir = NULL;
+-
+-	if (!strlen (OVERRIDE_DIR))
+-		return;
+-
+-	if ((override_dir = xasprintf ("%s/%s", dir, OVERRIDE_DIR))) {
+-		add_dir_to_list (lp, override_dir);
+-		free (override_dir);
+-	}
+-}
+-
+-/*
+  * For each directory in the user's path, see if it is one of the
+  * directories listed in the man_db.config file.  If so, and it is
+  * not already in the manpath, add it.  If the directory is not listed
+@@ -994,8 +977,6 @@ char *get_manpath_from_path (const char *path, int mandatory)
+ 		if (mandir_list) {
+ 			debug ("is in the config file\n");
+ 			while (mandir_list) {
+-				insert_override_dir (tmplist,
+-						     mandir_list->cont);
+ 				add_dir_to_list (tmplist, mandir_list->cont);
+ 				mandir_list = iterate_over_list
+ 					(mandir_list, p, MANPATH_MAP);
+@@ -1014,7 +995,6 @@ char *get_manpath_from_path (const char *path, int mandatory)
+ 				       "../share/man, or share/man "
+ 				       "subdirectory\n");
+ 
+-				insert_override_dir (tmplist, t);
+ 				add_dir_to_list (tmplist, t);
+ 				free (t);
+ 		 	} else
+@@ -1030,10 +1010,8 @@ char *get_manpath_from_path (const char *path, int mandatory)
+ 		debug ("\nadding mandatory man directories\n\n");
+ 
+ 		for (list = namestore; list; list = list->next)
+-			if (list->flag == MANDATORY) {
+-				insert_override_dir (tmplist, list->key);
++			if (list->flag == MANDATORY)
+ 				add_dir_to_list (tmplist, list->key);
+-			}
+ 	}
+ 
+ 	len = 0;
+@@ -1201,18 +1179,30 @@ void create_pathlist (const char *manp, char **mp)
+ 	const char *p, *end;
+ 	char **mphead = mp;
+ 
+-	/* Expand the manpath into a list for easier handling. */
++	/* Expand the manpath into a list for easier handling.
++	 * For each entry, add corresponding OVERRIDE_DIR.
++	 * */
+ 
+ 	for (p = manp;; p = end + 1) {
++		char *element, *element_override;
++		ssize_t p_len;
++
+ 		end = strchr (p, ':');
+-		if (end) {
+-			char *element = xstrndup (p, end - p);
+-			mp = add_dir_to_path_list (mphead, mp, element);
+-			free (element);
+-		} else {
+-			mp = add_dir_to_path_list (mphead, mp, p);
+-			break;
++		p_len = end ? end - p : (ssize_t)strlen(p);
++
++		element = xstrndup (p, p_len);
++
++		if (strlen(OVERRIDE_DIR)) {
++			element_override = xasprintf("%s/%s", element, OVERRIDE_DIR);
++			mp = add_dir_to_path_list (mphead, mp, element_override);
++			free (element_override);
+ 		}
++
++		mp = add_dir_to_path_list (mphead, mp, element);
++		free (element);
++
++		if (!end)
++			break;
+ 	}
+ 	*mp = NULL;
+ 
+-- 
+2.7.4
+

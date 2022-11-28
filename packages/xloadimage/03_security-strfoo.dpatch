@@ -1,0 +1,157 @@
+#! /bin/sh -e
+## 03_newpatch.dpatch by James Troup <james@nocrew.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Fix unsafe str{cat,cpy} usage.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+diff -urNad 03.xloadimage.tmp/config.c 03.xloadimage/config.c
+--- 03.xloadimage.tmp/config.c	2003-04-02 19:16:50.000000000 +0100
++++ 03.xloadimage/config.c	2003-04-02 19:16:44.000000000 +0100
+@@ -256,7 +256,8 @@
+       }
+       break;
+     case parse_filter_name: /* name of filter program */
+-      strcpy(filter_name, buf);
++      strncpy(filter_name, buf, BUFSIZ - 1);
++      filter_name[BUFSIZ - 1] = '\0';
+       state= parse_filter_extension;
+       break;
+     case parse_filter_extension:
+@@ -454,7 +455,8 @@
+ #endif
+     else if(*p == '~') {
+       buf1[b1] = '\0';
+-      strcat(buf1, getenv("HOME"));
++      strncat(buf1, getenv("HOME"), BUFSIZ - strlen(buf1) - 1);
++      buf1[BUFSIZ - 1] = '\0';
+       b1 = strlen(buf1);
+       var = 0;
+     }
+@@ -462,7 +464,8 @@
+       if(var) {
+ 	buf1[b1] = '\0';
+ 	buf2[b2] = '\0';
+-	strcat(buf1, getenv(buf2));
++	strncat(buf1, getenv(buf2), BUFSIZ - strlen (buf1) - 1);
++	buf1[BUFSIZ - 1] = '\0';
+ 	b1 = strlen(buf1);
+ 	buf2[0] = '\0';
+ 	b2 = 0;
+diff -urNad 03.xloadimage.tmp/faces.c 03.xloadimage/faces.c
+--- 03.xloadimage.tmp/faces.c	1993-10-21 22:28:37.000000000 +0100
++++ 03.xloadimage/faces.c	2003-04-02 19:16:44.000000000 +0100
+@@ -108,9 +108,15 @@
+     if (! strcmp(buf, "\n"))
+       break;
+     if (!strncmp(buf, "FirstName:", 10))
+-      strcpy(fname, buf + 11);
++      {
++	strncpy(fname, buf + 11, BUFSIZ - 1);
++	fname[BUFSIZ - 1] = '\0';
++      }
+     else if (!strncmp(buf, "LastName:", 9))
+-      strcpy(lname, buf + 10);
++      {
++	strncpy(lname, buf + 10, BUFSIZ - 1);
++	lname[BUFSIZ - 1] = '\0';
++      }
+     else if (!strncmp(buf, "Image:", 6)) {
+       if (sscanf(buf + 7, "%d%d%d", &iw, &ih, &id) != 3) {
+ 	printf("%s: Bad Faces Project image\n", fullname);
+@@ -136,7 +142,7 @@
+ 
+   image= newRGBImage(w, h, d);
+   fname[strlen(fname) - 1]= ' ';
+-  strcat(fname, lname);
++  strncat(fname, lname, BUFSIZ - strlen(fname) -1);
+   fname[strlen(fname) - 1]= '\0';
+   image->title= dupString(fname);
+ 
+diff -urNad 03.xloadimage.tmp/imagetypes.c 03.xloadimage/imagetypes.c
+--- 03.xloadimage.tmp/imagetypes.c	2003-04-02 19:16:50.000000000 +0100
++++ 03.xloadimage/imagetypes.c	2003-04-02 19:16:44.000000000 +0100
+@@ -146,7 +146,10 @@
+     optptr++; /* skip comma */
+   }
+   else
+-    strcpy(typename, type);
++    {
++      strncpy(typename, type, 31);
++      typename[31] = '\0';
++    }
+ 
+   for (a= 0; ImageTypes[a].loader; a++)
+     if (!strncmp(ImageTypes[a].type, typename, strlen(typename))) {
+diff -urNad 03.xloadimage.tmp/options.c 03.xloadimage/options.c
+--- 03.xloadimage.tmp/options.c	2003-04-02 19:16:50.000000000 +0100
++++ 03.xloadimage/options.c	2003-04-02 19:16:44.000000000 +0100
+@@ -13,6 +13,9 @@
+ #include "image.h"
+ #include "options.h"
+ 
++#undef  MIN
++#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
++
+ extern char *ProgramName;
+ /* options array and definitions.  If you add something to this you also
+  * need to add its OptionId in options.h.
+@@ -883,12 +886,13 @@
+    */
+   p = index(*opt_string, ',');
+   if (p != NULL) {
+-    strncpy(option_name, *opt_string, p - *opt_string);
+-    option_name[p - *opt_string] = '\0';
++    strncpy(option_name, *opt_string, MIN(BUFSIZ - 1, p - *opt_string));
++    option_name[MIN(BUFSIZ - 1, p - *opt_string)] = '\0';
+     *opt_string = p + 1; /* increment to next option */
+   }
+   else {
+-    strcpy(option_name, *opt_string);
++    strncpy(option_name, *opt_string, BUFSIZ -1);
++    option_name[BUFSIZ - 1] = '\0';
+     *opt_string += strlen(*opt_string); /* increment to end of string */
+   }
+   *name = option_name;
+@@ -897,7 +901,8 @@
+    */
+   p = index(option_name, '=');
+   if (p != NULL) {
+-    strcpy(option_value, p + 1);
++    strncpy(option_value, p + 1, BUFSIZ - 1);
++    option_value[BUFSIZ - 1] = '\0';
+     *p = '\0'; /* stomp equals sign */
+     *value = option_value;
+   }
+diff -urNad 03.xloadimage.tmp/packtar.c 03.xloadimage/packtar.c
+--- 03.xloadimage.tmp/packtar.c	1993-11-09 21:18:14.000000000 +0000
++++ 03.xloadimage/packtar.c	2003-04-02 19:16:44.000000000 +0100
+@@ -48,9 +48,12 @@
+   char new_file[1024];
+   char *p;
+ 
+-  strcpy(new_file, dir); /* target directory */
+-  strcat(new_file, "/");
+-  strcat(new_file, old_file);
++  strncpy(new_file, dir, 1023); /* target directory */
++  new_file[1023] = '\0';
++  strncat(new_file, "/", 1023 - strlen(new_file));
++  new_file[1023] = '\0';
++  strncat(new_file, old_file, 1023 - strlen(new_file));
++  new_file[1023] = '\0';
+ 
+   for (p = new_file; p = strchr(p, '/'); p++) {
+     *p = '\0'; /* stomp directory separator */

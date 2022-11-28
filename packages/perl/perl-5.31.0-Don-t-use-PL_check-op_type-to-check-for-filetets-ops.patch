@@ -1,0 +1,87 @@
+From 1d31efef7dd4388fd606972e67bda3318e8838fe Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dagfinn=20Ilmari=20Manns=C3=A5ker?= <ilmari@ilmari.org>
+Date: Tue, 21 May 2019 17:34:49 +0100
+Subject: [PATCH] Don't use PL_check[op_type] to check for filetets ops to
+ stack
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This breaks hooking the filetest ops' check function by modules like
+bareword::filehandles.  Instead use the OP_IS_FILETEST() macro to decide
+check for filetest ops.  Also add an OP_IS_STAT() macro for when we want
+to check for (l)stat as well as the filetest ops.
+
+c.f. https://rt.cpan.org/Ticket/Display.html?id=127073
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ op.c          | 11 ++++-------
+ op.h          |  2 ++
+ regen/opcodes |  1 +
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/op.c b/op.c
+index 29181ba731..dba7ac7fea 100644
+--- a/op.c
++++ b/op.c
+@@ -991,8 +991,7 @@ Perl_op_clear(pTHX_ OP *o)
+ 	o->op_targ = 0;
+ 	break;
+     default:
+-	if (!(o->op_flags & OPf_REF)
+-	    || (PL_check[o->op_type] != Perl_ck_ftst))
++	if (!(o->op_flags & OPf_REF) || !OP_IS_STAT(o->op_type))
+ 	    break;
+ 	/* FALLTHROUGH */
+     case OP_GVSV:
+@@ -4413,8 +4412,7 @@ Perl_op_lvalue_flags(pTHX_ OP *o, I32 type, U32 flags)
+     /* [20011101.069 (#7861)] File test operators interpret OPf_REF to mean that
+        their argument is a filehandle; thus \stat(".") should not set
+        it. AMS 20011102 */
+-    if (type == OP_REFGEN &&
+-        PL_check[o->op_type] == Perl_ck_ftst)
++    if (type == OP_REFGEN && OP_IS_STAT(o->op_type))
+         return o;
+ 
+     if (type != OP_LEAVESUBLV)
+@@ -11696,9 +11694,8 @@ Perl_ck_ftst(pTHX_ OP *o)
+ 	scalar((OP *) kid);
+ 	if ((PL_hints & HINT_FILETEST_ACCESS) && OP_IS_FILETEST_ACCESS(o->op_type))
+ 	    o->op_private |= OPpFT_ACCESS;
+-	if (type != OP_STAT && type != OP_LSTAT
+-            && PL_check[kidtype] == Perl_ck_ftst
+-            && kidtype != OP_STAT && kidtype != OP_LSTAT
++	if (OP_IS_FILETEST(type)
++            && OP_IS_FILETEST(kidtype)
+         ) {
+ 	    o->op_private |= OPpFT_STACKED;
+ 	    kid->op_private |= OPpFT_STACKING;
+diff --git a/op.h b/op.h
+index c9f05b2271..ad6cf7fe49 100644
+--- a/op.h
++++ b/op.h
+@@ -1021,6 +1021,8 @@ C<sib> is non-null. For a higher-level interface, see C<L</op_sibling_splice>>.
+ #define OP_TYPE_ISNT_AND_WASNT(o, type) \
+     ( (o) && OP_TYPE_ISNT_AND_WASNT_NN(o, type) )
+ 
++/* should match anything that uses ck_ftst in regen/opcodes */
++#define OP_IS_STAT(op) (OP_IS_FILETEST(op) || (op) == OP_LSTAT || (op) == OP_STAT)
+ 
+ #  define OpHAS_SIBLING(o)	(cBOOL((o)->op_moresib))
+ #  define OpSIBLING(o)		(0 + (o)->op_moresib ? (o)->op_sibparent : NULL)
+diff --git a/regen/opcodes b/regen/opcodes
+index b4bf904fdc..4e8236947a 100644
+--- a/regen/opcodes
++++ b/regen/opcodes
+@@ -397,6 +397,7 @@ getsockname	getsockname		ck_fun		is%	Fs
+ getpeername	getpeername		ck_fun		is%	Fs
+ 
+ # Stat calls.  OP_IS_FILETEST wants them consecutive.
++# Also needs to match OP_IS_STAT() in op.h
+ 
+ lstat		lstat			ck_ftst		u-	F?
+ stat		stat			ck_ftst		u-	F?
+-- 
+2.20.1
+

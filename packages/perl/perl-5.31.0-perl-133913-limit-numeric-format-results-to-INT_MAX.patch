@@ -1,0 +1,73 @@
+From 027471cf1095f75f273df40310e4647fe1e8a9df Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Wed, 20 Mar 2019 16:47:49 +1100
+Subject: [PATCH] (perl #133913) limit numeric format results to INT_MAX
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The return value of v?snprintf() is int, and we pay attention to that
+return value, so limit the expected size of numeric formats to
+INT_MAX.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ pod/perldiag.pod | 6 ++++++
+ sv.c             | 7 +++++++
+ t/op/sprintf2.t  | 7 +++++++
+ 3 files changed, 20 insertions(+)
+
+diff --git a/pod/perldiag.pod b/pod/perldiag.pod
+index 1037215d44..166d29b4bb 100644
+--- a/pod/perldiag.pod
++++ b/pod/perldiag.pod
+@@ -4354,6 +4354,12 @@ the meantime, try using scientific notation (e.g. "1e6" instead of
+ a number.  This happens, for example with C<\o{}>, with no number between
+ the braces.
+ 
++=item Numeric format result too large
++
++(F) The length of the result of a numeric format supplied to sprintf()
++or printf() would have been too large for the underlying C function to
++report.  This limit is typically 2GB.
++
+ =item Octal number > 037777777777 non-portable
+ 
+ (W portable) The octal number you specified is larger than 2**32-1
+diff --git a/sv.c b/sv.c
+index 8fbca52eb2..8bc0af0c16 100644
+--- a/sv.c
++++ b/sv.c
+@@ -13085,6 +13085,13 @@ Perl_sv_vcatpvfn_flags(pTHX_ SV *const sv, const char *const pat, const STRLEN p
+ 	    if (float_need < width)
+ 		float_need = width;
+ 
++            if (float_need > INT_MAX) {
++                /* snprintf() returns an int, and we use that return value,
++                   so die horribly if the expected size is too large for int
++                */
++                Perl_croak(aTHX_ "Numeric format result too large");
++            }
++
+ 	    if (PL_efloatsize <= float_need) {
+                 /* PL_efloatbuf should be at least 1 greater than
+                  * float_need to allow a trailing \0 to be returned by
+diff --git a/t/op/sprintf2.t b/t/op/sprintf2.t
+index 84259a4afd..5fee8efede 100644
+--- a/t/op/sprintf2.t
++++ b/t/op/sprintf2.t
+@@ -1153,4 +1153,11 @@ foreach(
+     is sprintf("%.0f", $_), sprintf("%-.0f", $_), "special-case %.0f on $_";
+ }
+ 
++# large uvsize needed so the large width is parsed properly
++# large sizesize needed so the STRLEN check doesn't
++if ($Config{intsize} == 4 && $Config{uvsize} > 4 && $Config{sizesize} > 4) {
++    eval { my $x = sprintf("%7000000000E", 0) };
++    like($@, qr/^Numeric format result too large at /,
++         "croak for very large numeric format results");
++}
+ done_testing();
+-- 
+2.20.1
+

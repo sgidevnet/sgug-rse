@@ -1,0 +1,25 @@
+diff -up texinfo-6.5.92/install-info/tests/Makefile.in.orig texinfo-6.5.92/install-info/tests/Makefile.in
+--- texinfo-6.5.92/install-info/tests/Makefile.in.orig	2019-02-01 16:16:49.000000000 +0100
++++ texinfo-6.5.92/install-info/tests/Makefile.in	2019-02-18 10:33:52.078877104 +0100
+@@ -1229,8 +1229,8 @@ ii-0021-test ii-0022-test ii-0023-test i
+ ii-0026-test ii-0027-test ii-0028-test ii-0029-test ii-0030-test \
+ ii-0031-test ii-0032-test ii-0033-test ii-0034-test ii-0035-test \
+ ii-0036-test ii-0037-test ii-0038-test ii-0039-test ii-0040-test \
+-ii-0041-test ii-0042-test ii-0043-test ii-0044-test ii-0045-test \
+-ii-0046-test ii-0047-test ii-0048-test ii-0049-test ii-0050-test \
++ii-0042-test ii-0043-test ii-0044-test ii-0045-test \
++ii-0046-test ii-0047-test ii-0048-test ii-0049-test \
+ ii-0051-test ii-0052-test ii-0053-test ii-0054-test ii-0055-test \
+ ii-0056-test ii-0057-test
+ 
+diff -up texinfo-6.5.92/tp/tests/Makefile.in.orig texinfo-6.5.92/tp/tests/Makefile.in
+--- texinfo-6.5.92/tp/tests/Makefile.in.orig	2019-02-01 16:16:50.000000000 +0100
++++ texinfo-6.5.92/tp/tests/Makefile.in	2019-02-18 10:33:13.774827269 +0100
+@@ -1374,7 +1374,6 @@ one_test_files_generated_list = \
+      test_scripts/layout_formatting_html32.sh \
+      test_scripts/layout_formatting_regions.sh \
+      test_scripts/layout_formatting_exotic.sh \
+-     test_scripts/layout_formatting_fr_icons.sh \
+      test_scripts/layout_formatting_chm.sh \
+      test_scripts/layout_formatting_nodes.sh \
+      test_scripts/layout_formatting.sh \

@@ -1,0 +1,28 @@
+diff -up Python-2.7.3/Modules/getpath.c.fix-for-usr-move Python-2.7.3/Modules/getpath.c
+--- Python-2.7.3/Modules/getpath.c.fix-for-usr-move	2013-03-06 14:25:32.801828698 -0500
++++ Python-2.7.3/Modules/getpath.c	2013-03-06 15:59:30.872443168 -0500
+@@ -510,6 +510,24 @@ calculate_path(void)
+        MAXPATHLEN bytes long.
+     */
+ 
++    /*
++      Workaround for rhbz#817554, where an empty argv0_path erroneously
++      locates "prefix" as "/lib[64]/python2.7" due to it finding
++      "/lib[64]/python2.7/os.py" via the /lib -> /usr/lib symlink for
++      https://fedoraproject.org/wiki/Features/UsrMove
++    */
++    if (argv0_path[0] == '\0' && 0 == strcmp(prog, "cmpi_swig")) {
++        /*
++          We have an empty argv0_path, presumably because prog aka
++          Py_GetProgramName() was not found on $PATH.
++
++          Set argv0_path to "/usr/" so that search_for_prefix() and
++          search_for_exec_prefix() don't erroneously pick up
++          on /lib/ via the UsrMove symlink:
++        */
++        strcpy(argv0_path, "/usr/");
++    }
++
+     if (!(pfound = search_for_prefix(argv0_path, home))) {
+         if (!Py_FrozenFlag)
+             fprintf(stderr,

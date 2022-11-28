@@ -1,0 +1,39 @@
+From 293a533c53d9c0fe939e23c439f4dfc47a5736dc Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Tue, 25 Jun 2019 15:47:57 +1000
+Subject: [PATCH] (perl #122112) make sure SIGPIPE is delivered if we test it
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ t/io/pipe.t | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/t/io/pipe.t b/t/io/pipe.t
+index 9f5bb3bcf8..bdf743c26c 100644
+--- a/t/io/pipe.t
++++ b/t/io/pipe.t
+@@ -125,6 +125,18 @@ wait;				# Collect from $pid
+ pipe(READER,WRITER) || die "Can't open pipe";
+ close READER;
+ 
++eval {
++    # one platform at least appears to block SIGPIPE by default (see #122112)
++    # so make sure it's unblocked.
++    # The eval wrapper should ensure this does nothing if these aren't
++    # implemented.
++    require POSIX;
++    my $mask = POSIX::SigSet->new(POSIX::SIGPIPE());
++    my $old = POSIX::SigSet->new();
++    POSIX::sigprocmask(POSIX::SIG_UNBLOCK(), $mask, $old);
++    note "Yes, SIGPIPE was blocked" if $old->ismember(POSIX::SIGPIPE());
++};
++
+ $SIG{'PIPE'} = 'broken_pipe';
+ 
+ sub broken_pipe {
+-- 
+2.20.1
+

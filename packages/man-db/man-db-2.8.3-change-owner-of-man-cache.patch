@@ -1,0 +1,19 @@
+From 99dd120b952a2a27fa31ae005149e6aaaed28755 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nikola=20Forr=C3=B3?= <nforro@redhat.com>
+Date: Fri, 6 Apr 2018 11:52:33 +0200
+Subject: [PATCH] Set owner of man cache to root
+
+---
+ init/systemd/man-db.conf.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/init/systemd/man-db.conf.in b/init/systemd/man-db.conf.in
+index 7a461e8..cac2b52 100644
+--- a/init/systemd/man-db.conf.in
++++ b/init/systemd/man-db.conf.in
+@@ -1 +1 @@
+-d /var/cache/man 0755 @cache_top_owner@ @cache_top_owner@ 1w
++d /var/cache/man 0755 root root 1w
+-- 
+2.13.6
+

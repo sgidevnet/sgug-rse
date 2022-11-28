@@ -1,0 +1,90 @@
+--- sqlite-src-3180000/test/sync2.test.sync2-dirsync	2017-03-30 21:26:42.000000000 +0200
++++ sqlite-src-3180000/test/sync2.test	2017-04-03 13:16:14.422329691 +0200
+@@ -44,6 +44,15 @@
+   uplevel [list do_test $tn [list execsql_sync $sql] [list {*}$res]]
+ }
+ 
++# Wrapper over the expected sync count, takes DIRSYNC into consideration
++proc expected_sync_count {sync_count} {
++  ifcapable dirsync {
++    return $sync_count
++  } else {
++    return [ incr sync_count -1 ]
++  }
++}
++
+ #-----------------------------------------------------------------------
+ # Tests for journal mode.
+ #
+@@ -53,13 +62,13 @@
+   INSERT INTO t1 VALUES(1, 2);
+ }
+ 
+-do_execsql_sync_test 1.1 { INSERT INTO t1 VALUES(3, 4) } 4
++do_execsql_sync_test 1.1 { INSERT INTO t1 VALUES(3, 4) } [ expected_sync_count 4 ]
+ 
+ # synchronous=normal. So, 1 sync on the directory, 1 on the journal, 1 
+ # on the db file. 3 in total.
+ do_execsql_test      1.2.1 { PRAGMA main.synchronous = NORMAL }
+ do_execsql_test      1.2.2 { PRAGMA main.synchronous }     1
+-do_execsql_sync_test 1.2.3 { INSERT INTO t1 VALUES(5, 6) } 3
++do_execsql_sync_test 1.2.3 { INSERT INTO t1 VALUES(5, 6) } [ expected_sync_count 3 ]
+ 
+ # synchronous=off. No syncs.
+ do_execsql_test      1.3.1 { PRAGMA main.synchronous = OFF }
+@@ -70,7 +79,7 @@
+ # 2 on the journal, 1 on the db file. 4 in total.
+ do_execsql_test      1.4.1 { PRAGMA main.synchronous = FULL }
+ do_execsql_test      1.4.2 { PRAGMA main.synchronous }      2
+-do_execsql_sync_test 1.4.3 { INSERT INTO t1 VALUES(9, 10) } 4
++do_execsql_sync_test 1.4.3 { INSERT INTO t1 VALUES(9, 10) } [ expected_sync_count 4 ]
+ 
+ #-----------------------------------------------------------------------
+ # Tests for wal mode.
+@@ -79,7 +88,7 @@
+ 
+ # sync=full, journal_mode=wal. One sync on the directory, two on the 
+ # wal file.
+-do_execsql_sync_test 1.6 { INSERT INTO t1 VALUES(11, 12) } 3
++do_execsql_sync_test 1.6 { INSERT INTO t1 VALUES(11, 12) } [ expected_sync_count 3 ]
+ 
+ # One sync on the wal file.
+ do_execsql_sync_test 1.7 { INSERT INTO t1 VALUES(13, 14) } 1
+@@ -112,7 +121,7 @@
+ 
+   # Wal mode, sync=normal. The first transaction does one sync on directory,
+   # one on the wal file. The second does no syncs.
+-  do_execsql_sync_test 1.11.1 { INSERT INTO t1 VALUES(19, 20) } 2
++  do_execsql_sync_test 1.11.1 { INSERT INTO t1 VALUES(19, 20) } [ expected_sync_count 2 ]
+   do_execsql_sync_test 1.11.2 { INSERT INTO t1 VALUES(21, 22) } 0
+   do_execsql_test 1.11.3      { PRAGMA main.synchronous }       1
+ 
+@@ -129,14 +138,14 @@
+   # Delete mode, sync=full. The first transaction does one sync on 
+   # directory, two on the journal file, one on the db. The second does 
+   # the same.
+-  do_execsql_sync_test 1.15.1 { INSERT INTO t1 VALUES(26, 27) } 4
+-  do_execsql_sync_test 1.15.2 { INSERT INTO t1 VALUES(28, 29) } 4
++  do_execsql_sync_test 1.15.1 { INSERT INTO t1 VALUES(26, 27) } [ expected_sync_count 4 ]
++  do_execsql_sync_test 1.15.2 { INSERT INTO t1 VALUES(28, 29) } [ expected_sync_count 4 ]
+   do_execsql_test 1.15.3      { PRAGMA main.synchronous }       2
+ 
+   # Switch back to wal mode.
+   do_execsql_test 1.16 { PRAGMA journal_mode = wal } {wal}
+ 
+-  do_execsql_sync_test 1.17.1 { INSERT INTO t1 VALUES(30, 31) } 2
++  do_execsql_sync_test 1.17.1 { INSERT INTO t1 VALUES(30, 31) } [ expected_sync_count 2 ]
+   do_execsql_sync_test 1.17.2 { INSERT INTO t1 VALUES(32, 33) } 0
+   do_execsql_test 1.17.3      { PRAGMA main.synchronous }       1
+ 
+@@ -152,8 +161,8 @@
+   # Close and reopen the db. Back to synchronous=normal.
+   db close
+   sqlite3 db test.db
+-  do_execsql_sync_test 1.20.1 { INSERT INTO t1 VALUES(38, 39) } 4
+-  do_execsql_sync_test 1.20.2 { INSERT INTO t1 VALUES(40, 41) } 4
++  do_execsql_sync_test 1.20.1 { INSERT INTO t1 VALUES(38, 39) } [ expected_sync_count 4 ]
++  do_execsql_sync_test 1.20.2 { INSERT INTO t1 VALUES(40, 41) } [ expected_sync_count 4 ]
+   do_execsql_test 1.20.3      { PRAGMA main.synchronous }       2
+ }
+ 

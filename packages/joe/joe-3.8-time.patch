@@ -1,0 +1,57 @@
+From deb5b349c2551268b4cf93f267a672c136fba74e Mon Sep 17 00:00:00 2001
+From: Jan Chaloupka <jchaloup@redhat.com>
+Date: Mon, 23 Mar 2015 11:44:13 +0100
+Subject: [PATCH] time
+
+---
+ joe/tty.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/joe/tty.c b/joe/tty.c
+index 3404455..830b9d3 100644
+--- a/joe/tty.c
++++ b/joe/tty.c
+@@ -244,18 +244,19 @@ void ttclose(void)
+ }
+ 
+ static int winched = 0;
++int ticked = 0;
+ #ifdef SIGWINCH
+ /* Window size interrupt handler */
+ static RETSIGTYPE winchd(int unused)
+ {
+ 	++winched;
++	ticked = 1;
+ 	REINSTALL_SIGHANDLER(SIGWINCH, winchd);
+ }
+ #endif
+ 
+ /* Second ticker */
+ 
+-int ticked = 0;
+ static RETSIGTYPE dotick(int unused)
+ {
+ 	ticked = 1;
+@@ -279,6 +280,8 @@ void tickon(void)
+ {
+ #ifdef HAVE_SETITIMER
+ 	struct itimerval val;
++	struct timeval now;
++	gettimeofday(&now, NULL);
+ 	val.it_interval.tv_sec = 0;
+ 	val.it_interval.tv_usec = 0;
+ 	if (auto_scroll) {
+@@ -289,8 +292,8 @@ void tickon(void)
+ 		val.it_value.tv_sec = 0;
+ 		val.it_value.tv_usec = tim;
+ 	} else {
+-		val.it_value.tv_sec = 1;
+-		val.it_value.tv_usec = 0;
++		val.it_value.tv_sec = 60 - (now.tv_sec % 60);
++		val.it_value.tv_usec = 1000000 - now.tv_usec;
+ 	}
+ 	ticked = 0;
+ 	joe_set_signal(SIGALRM, dotick);
+-- 
+1.9.3
+

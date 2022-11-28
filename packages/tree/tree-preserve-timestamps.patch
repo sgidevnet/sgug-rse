@@ -1,0 +1,19 @@
+ Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 842281e..ee7fbe6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -112,9 +112,9 @@ install: tree
+ 	install -d $(BINDIR)
+ 	install -d $(MANDIR)
+ 	if [ -e $(TREE_DEST) ]; then \
+-		install $(TREE_DEST) $(BINDIR)/$(TREE_DEST); \
++		install -p $(TREE_DEST) $(BINDIR)/$(TREE_DEST); \
+ 	fi
+-	install doc/$(MAN) $(MANDIR)/$(MAN)
++	install -p doc/$(MAN) $(MANDIR)/$(MAN)
+ 
+ distclean:
+ 	if [ -f tree.o ]; then rm *.o; fi

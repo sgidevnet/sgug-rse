@@ -1,0 +1,184 @@
+#! /bin/sh -e
+## 19_fix_root_c_resource_leak.dpatch
+##
+## DP: Fix leaking xresources when using onroot option. See #325689.
+## DP: Patch by Alex Perry, reformatted by Tim Connors 
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+diff -urNad xloadimage-4.1~/root.c xloadimage-4.1/root.c
+--- xloadimage-4.1~/root.c	2008-11-22 19:52:01.000000000 +0100
++++ xloadimage-4.1/root.c	2008-11-22 19:52:02.000000000 +0100
+@@ -16,24 +16,6 @@
+ 
+ #define RETAIN_PROP_NAME	"_XSETROOT_ID"
+ 
+-void updateProperty(dpy, w, name, type, format, data, nelem)
+-     Display	*dpy;
+-     Window	w;
+-     char	*name;
+-     Atom	type;
+-     int	format;
+-     int	data;
+-     int	nelem;
+-{
+-  /* intern the property name */
+-  Atom	atom = XInternAtom(dpy, name, 0);
+-
+-  /* create or replace the property */
+-  XChangeProperty(dpy, w, atom, type, format, PropModeReplace, 
+-		  (unsigned char *)&data, nelem);
+-}
+-
+-
+ /* Sets the close-down mode of the client to 'RetainPermanent'
+  * so all client resources will be preserved after the client
+  * exits.  Puts a property on the default root window containing
+@@ -47,9 +29,15 @@
+ {
+   /* create dummy resource */
+   Pixmap pm= XCreatePixmap(dpy, w, 1, 1, 1);
++  unsigned char *data = (unsigned char *) &pm;
+ 	
+-  /* create/replace the property */
+-  updateProperty(dpy, w, RETAIN_PROP_NAME, XA_PIXMAP, 32, (int)pm, 1);
++  /* intern the property name */
++  char *name = RETAIN_PROP_NAME;
++  Atom atom = XInternAtom(dpy, name, 0);
++
++  /* create or replace the property */
++  XChangeProperty(dpy, w, atom, XA_PIXMAP, 32, PropModeReplace,
++                 data, sizeof(Pixmap)/4);
+ 	
+   /* retain all client resources until explicitly killed */
+   XSetCloseDownMode(dpy, RetainPermanent);
+@@ -61,36 +49,64 @@
+  */
+ 
+ static void
+-freePrevious(dpy, w)
++freePrevious(dpy, w, verbose)
+      Display	*dpy;
+      Window	w;
++     unsigned int  verbose;
+ {
+-  Pixmap *pm;			
+-  Atom	actual_type;		/* NOTUSED */
++  Pixmap *pm;
++  unsigned char *charpm;
++  Atom actual_type;
+   int	format;
+-  int	nitems;
+-  int	bytes_after;
++  unsigned long        nitems;
++  unsigned long        bytes_after;
++  int   returncode;
+ 
+   /* intern the property name */
+   Atom atom = XInternAtom(dpy, RETAIN_PROP_NAME, 0);
+ 
+   /* look for existing resource allocation */
+-  if ((XGetWindowProperty(dpy, w, atom, 0, 1, 1/*delete*/,
+-			  AnyPropertyType, &actual_type, &format, (unsigned long *)&nitems,
+-			  (unsigned long *)&bytes_after, (unsigned char **)&pm) == Success) &&
+-      nitems == 1) {
+-    if ((actual_type == XA_PIXMAP) && (format == 32) &&
+-	(nitems == 1) && (bytes_after == 0)) {
+-      /* blast it away */
+-      XKillClient(dpy, (XID) *pm);
+-      XFree((char *)pm);
+-    }
+-    else if (actual_type != None) {
+-      fprintf(stderr,
+-	      "%s: warning: invalid format encountered for property %s\n",
+-	      RETAIN_PROP_NAME, "xloadimage");
+-    }
++  nitems = sizeof(Pixmap)/4;
++  returncode = XGetWindowProperty(dpy, w, atom,
++                 0, nitems, 1/*delete*/,
++                XA_PIXMAP, &actual_type,
++                &format, &nitems,
++                &bytes_after, &charpm);
++  if (returncode != Success) {
++    if (verbose)
++      fprintf(stderr, "failed to look for %s with return code %i.\n",
++              RETAIN_PROP_NAME, returncode);
++    return;
++  }
++
++  /* Check if the property was found */
++  if (actual_type == None) {
++    if (verbose)
++      fprintf(stderr, "didn't find evidence of prior run.\n");
++    return;
++  }
++
++  /* Make sure the dummy value is still present */
++  if (actual_type != XA_PIXMAP) {
++    if (verbose)
++      fprintf(stderr, "found wrong data type - skipped.\n");
++    return;
++  }
++
++  /* Check size, in case we're a different architecture */
++  if ((nitems != sizeof(Pixmap)/4) ||
++      (format != 32) ||
++      (bytes_after != 0)) {
++    if (verbose)
++      fprintf(stderr, "saw wrong %li / word size %i / architecture %li.\n",
++              bytes_after, format, nitems);
++    return;
+   }
++
++  /* blast it away */
++  pm = (Pixmap*) charpm;
++  XKillClient(dpy, (XID) *pm);
++  XFree(charpm);
+ }
+ 
+ #if FIND_DEC_ROOTWINDOW
+@@ -185,20 +201,21 @@
+     for(i = 0; i < numChildren; i++) {
+       Atom actual_type;
+       int actual_format;
+-      long nitems, bytesafter;
+-      Window *newRoot = NULL;
+-      
+-      if (XGetWindowProperty (disp, children[i], __SWM_VROOT,0,1,
+-			      False, XA_WINDOW, &actual_type, &actual_format,
+-			      (unsigned long *)&nitems, (unsigned long *)&bytesafter,
+-			      (unsigned char **) &newRoot) ==
+-	  Success && newRoot) {
+-	root = *newRoot;
++      unsigned long nitems, bytesafter;
++      unsigned char *newRoot = 0;
++
++      if ((XGetWindowProperty (disp, children[i], __SWM_VROOT,0,1,
++                             False, XA_WINDOW,
++                             &actual_type, &actual_format,
++                             &nitems, &bytesafter, &newRoot)
++          == Success) &&
++         newRoot) {
++        root = *((Window*) newRoot);
+ 	break;
+       }
+     }
+   }
+-  freePrevious(disp, root);
++  freePrevious(disp, root, verbose);
+ 
+   if (! (ximageinfo= imageToXImage(disp, scrn,
+ 				   DefaultVisual(disp, scrn),

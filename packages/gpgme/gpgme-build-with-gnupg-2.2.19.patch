@@ -1,0 +1,27 @@
+diff -up gpgme-1.13.1/src/engine-gpg.c.build gpgme-1.13.1/src/engine-gpg.c
+--- gpgme-1.13.1/src/engine-gpg.c.build	2019-06-13 08:45:22.000000000 +0200
++++ gpgme-1.13.1/src/engine-gpg.c	2020-04-30 14:30:35.550253558 +0200
+@@ -2920,6 +2920,12 @@ gpg_keylist_build_options (engine_gpg_t
+ 
+   err = add_arg (gpg, "--with-colons");
+ 
++  if (have_gpg_version (gpg, "2.2.19"))
++    {
++      if (!err)
++        err = add_arg (gpg, "--with-keygrip");
++    }
++
+   /* Since gpg 2.1.15 fingerprints are always printed, thus there is
+    * no more need to explicitly request them.  */
+   if (!have_gpg_version (gpg, "2.1.15"))
+diff -up gpgme-1.13.1/tests/json/t-keylist-secret.out.json.build gpgme-1.13.1/tests/json/t-keylist-secret.out.json
+--- gpgme-1.13.1/tests/json/t-keylist-secret.out.json.build	2018-12-03 10:37:25.000000000 +0100
++++ gpgme-1.13.1/tests/json/t-keylist-secret.out.json	2020-04-30 14:24:40.904707411 +0200
+@@ -91,7 +91,6 @@
+             "can_sign":     true,
+             "can_certify":  true,
+             "can_authenticate":     true,
+-            "secret":       true,
+             "is_qualified": false,
+             "protocol":     "OpenPGP",
+             "fingerprint":  "D695676BDCEDCC2CDD6152BCFE180B1DA9E3B0B2",

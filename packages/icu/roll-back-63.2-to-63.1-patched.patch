@@ -1,0 +1,2310 @@
+# This includes the previously applied
+# rhbz1646703-icu4c-ICU-20246-integer-overflow.patch
+# on 63.1 that was also applied by ICU to 63.2
+# Omitted are the Japanese Reiwa source/test/intltest/incaltst.* related
+# changes, i.e. still included, not backed out.
+# Also omitted are changes that would identify as ICU 63.1 instead of 63.2
+# (configure, readme, icu version, package version, data version, ...) as it
+# would confuse the installer or pkgconfig or possibly a mismatch with the
+# included binary icu/source/data/in/icudt63l.dat
+diff -urp icu4c-63_2/icu/source/common/characterproperties.cpp icu4c-63_1/icu/source/common/characterproperties.cpp
+--- icu4c-63_2/icu/source/common/characterproperties.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/characterproperties.cpp	2018-10-02 00:39:56.000000000 +0200
+@@ -23,9 +23,6 @@
+ #include "umutex.h"
+ #include "uprops.h"
+ 
+-using icu::LocalPointer;
+-using icu::Normalizer2Factory;
+-using icu::Normalizer2Impl;
+ using icu::UInitOnce;
+ using icu::UnicodeSet;
+ 
+@@ -33,13 +30,11 @@ namespace {
+ 
+ UBool U_CALLCONV characterproperties_cleanup();
+ 
+-constexpr int32_t NUM_INCLUSIONS = UPROPS_SRC_COUNT + UCHAR_INT_LIMIT - UCHAR_INT_START;
+-
+ struct Inclusion {
+     UnicodeSet  *fSet;
+     UInitOnce    fInitOnce;
+ };
+-Inclusion gInclusions[NUM_INCLUSIONS]; // cached getInclusions()
++Inclusion gInclusions[UPROPS_SRC_COUNT]; // cached getInclusions()
+ 
+ UnicodeSet *sets[UCHAR_BINARY_LIMIT] = {};
+ 
+@@ -85,22 +80,35 @@ UBool U_CALLCONV characterproperties_cle
+     return TRUE;
+ }
+ 
+-void U_CALLCONV initInclusion(UPropertySource src, UErrorCode &errorCode) {
++}  // namespace
++
++U_NAMESPACE_BEGIN
++
++/*
++Reduce excessive reallocation, and make it easier to detect initialization problems.
++Usually you don't see smaller sets than this for Unicode 5.0.
++*/
++constexpr int32_t DEFAULT_INCLUSION_CAPACITY = 3072;
++
++void U_CALLCONV CharacterProperties::initInclusion(UPropertySource src, UErrorCode &errorCode) {
+     // This function is invoked only via umtx_initOnce().
++    // This function is a friend of class UnicodeSet.
++
+     U_ASSERT(0 <= src && src < UPROPS_SRC_COUNT);
+     if (src == UPROPS_SRC_NONE) {
+         errorCode = U_INTERNAL_PROGRAM_ERROR;
+         return;
+     }
+-    U_ASSERT(gInclusions[src].fSet == nullptr);
++    UnicodeSet * &incl = gInclusions[src].fSet;
++    U_ASSERT(incl == nullptr);
+ 
+-    LocalPointer<UnicodeSet> incl(new UnicodeSet());
+-    if (incl.isNull()) {
++    incl = new UnicodeSet();
++    if (incl == nullptr) {
+         errorCode = U_MEMORY_ALLOCATION_ERROR;
+         return;
+     }
+     USetAdder sa = {
+-        (USet *)incl.getAlias(),
++        (USet *)incl,
+         _set_add,
+         _set_addRange,
+         _set_addString,
+@@ -108,6 +116,7 @@ void U_CALLCONV initInclusion(UPropertyS
+         nullptr // don't need removeRange()
+     };
+ 
++    incl->ensureCapacity(DEFAULT_INCLUSION_CAPACITY, errorCode);
+     switch(src) {
+     case UPROPS_SRC_CHAR:
+         uchar_addPropertyStarts(&sa, &errorCode);
+@@ -174,15 +183,12 @@ void U_CALLCONV initInclusion(UPropertyS
+     }
+ 
+     if (U_FAILURE(errorCode)) {
++        delete incl;
++        incl = nullptr;
+         return;
+     }
+-    if (incl->isBogus()) {
+-        errorCode = U_MEMORY_ALLOCATION_ERROR;
+-        return;
+-    }
+-    // Compact for caching.
++    // Compact for caching
+     incl->compact();
+-    gInclusions[src].fSet = incl.orphan();
+     ucln_common_registerCleanup(UCLN_COMMON_CHARACTERPROPERTIES, characterproperties_cleanup);
+ }
+ 
+@@ -193,66 +199,15 @@ const UnicodeSet *getInclusionsForSource
+         return nullptr;
+     }
+     Inclusion &i = gInclusions[src];
+-    umtx_initOnce(i.fInitOnce, &initInclusion, src, errorCode);
++    umtx_initOnce(i.fInitOnce, &CharacterProperties::initInclusion, src, errorCode);
+     return i.fSet;
+ }
+ 
+-void U_CALLCONV initIntPropInclusion(UProperty prop, UErrorCode &errorCode) {
+-    // This function is invoked only via umtx_initOnce().
+-    U_ASSERT(UCHAR_INT_START <= prop && prop < UCHAR_INT_LIMIT);
+-    int32_t inclIndex = UPROPS_SRC_COUNT + prop - UCHAR_INT_START;
+-    U_ASSERT(gInclusions[inclIndex].fSet == nullptr);
+-    UPropertySource src = uprops_getSource(prop);
+-    const UnicodeSet *incl = getInclusionsForSource(src, errorCode);
+-    if (U_FAILURE(errorCode)) {
+-        return;
+-    }
+-
+-    LocalPointer<UnicodeSet> intPropIncl(new UnicodeSet(0, 0));
+-    if (intPropIncl.isNull()) {
+-        errorCode = U_MEMORY_ALLOCATION_ERROR;
+-        return;
+-    }
+-    int32_t numRanges = incl->getRangeCount();
+-    int32_t prevValue = 0;
+-    for (int32_t i = 0; i < numRanges; ++i) {
+-        UChar32 rangeEnd = incl->getRangeEnd(i);
+-        for (UChar32 c = incl->getRangeStart(i); c <= rangeEnd; ++c) {
+-            // TODO: Get a UCharacterProperty.IntProperty to avoid the property dispatch.
+-            int32_t value = u_getIntPropertyValue(c, prop);
+-            if (value != prevValue) {
+-                intPropIncl->add(c);
+-                prevValue = value;
+-            }
+-        }
+-    }
+-
+-    if (intPropIncl->isBogus()) {
+-        errorCode = U_MEMORY_ALLOCATION_ERROR;
+-        return;
+-    }
+-    // Compact for caching.
+-    intPropIncl->compact();
+-    gInclusions[inclIndex].fSet = intPropIncl.orphan();
+-    ucln_common_registerCleanup(UCLN_COMMON_CHARACTERPROPERTIES, characterproperties_cleanup);
+-}
+-
+-}  // namespace
+-
+-U_NAMESPACE_BEGIN
+-
+ const UnicodeSet *CharacterProperties::getInclusionsForProperty(
+         UProperty prop, UErrorCode &errorCode) {
+     if (U_FAILURE(errorCode)) { return nullptr; }
+-    if (UCHAR_INT_START <= prop && prop < UCHAR_INT_LIMIT) {
+-        int32_t inclIndex = UPROPS_SRC_COUNT + prop - UCHAR_INT_START;
+-        Inclusion &i = gInclusions[inclIndex];
+-        umtx_initOnce(i.fInitOnce, &initIntPropInclusion, prop, errorCode);
+-        return i.fSet;
+-    } else {
+-        UPropertySource src = uprops_getSource(prop);
+-        return getInclusionsForSource(src, errorCode);
+-    }
++    UPropertySource src = uprops_getSource(prop);
++    return getInclusionsForSource(src, errorCode);
+ }
+ 
+ U_NAMESPACE_END
+@@ -261,7 +216,7 @@ namespace {
+ 
+ UnicodeSet *makeSet(UProperty property, UErrorCode &errorCode) {
+     if (U_FAILURE(errorCode)) { return nullptr; }
+-    LocalPointer<UnicodeSet> set(new UnicodeSet());
++    icu::LocalPointer<UnicodeSet> set(new UnicodeSet());
+     if (set.isNull()) {
+         errorCode = U_MEMORY_ALLOCATION_ERROR;
+         return nullptr;
+diff -urp icu4c-63_2/icu/source/common/ucptrie.cpp icu4c-63_1/icu/source/common/ucptrie.cpp
+--- icu4c-63_2/icu/source/common/ucptrie.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/ucptrie.cpp	2018-10-02 00:39:56.000000000 +0200
+@@ -280,7 +280,7 @@ UChar32 getRange(const void *t, UChar32
+     int32_t prevI3Block = -1;
+     int32_t prevBlock = -1;
+     UChar32 c = start;
+-    uint32_t trieValue, value;
++    uint32_t value;
+     bool haveValue = false;
+     do {
+         int32_t i3Block;
+@@ -319,7 +319,6 @@ UChar32 getRange(const void *t, UChar32
+                         return c - 1;
+                     }
+                 } else {
+-                    trieValue = trie->nullValue;
+                     value = nullValue;
+                     if (pValue != nullptr) { *pValue = nullValue; }
+                     haveValue = true;
+@@ -358,7 +357,6 @@ UChar32 getRange(const void *t, UChar32
+                             return c - 1;
+                         }
+                     } else {
+-                        trieValue = trie->nullValue;
+                         value = nullValue;
+                         if (pValue != nullptr) { *pValue = nullValue; }
+                         haveValue = true;
+@@ -366,32 +364,23 @@ UChar32 getRange(const void *t, UChar32
+                     c = (c + dataBlockLength) & ~dataMask;
+                 } else {
+                     int32_t di = block + (c & dataMask);
+-                    uint32_t trieValue2 = getValue(trie->data, valueWidth, di);
++                    uint32_t value2 = getValue(trie->data, valueWidth, di);
++                    value2 = maybeFilterValue(value2, trie->nullValue, nullValue,
++                                              filter, context);
+                     if (haveValue) {
+-                        if (trieValue2 != trieValue) {
+-                            if (filter == nullptr ||
+-                                    maybeFilterValue(trieValue2, trie->nullValue, nullValue,
+-                                                     filter, context) != value) {
+-                                return c - 1;
+-                            }
+-                            trieValue = trieValue2;  // may or may not help
++                        if (value2 != value) {
++                            return c - 1;
+                         }
+                     } else {
+-                        trieValue = trieValue2;
+-                        value = maybeFilterValue(trieValue2, trie->nullValue, nullValue,
+-                                                 filter, context);
++                        value = value2;
+                         if (pValue != nullptr) { *pValue = value; }
+                         haveValue = true;
+                     }
+                     while ((++c & dataMask) != 0) {
+-                        trieValue2 = getValue(trie->data, valueWidth, ++di);
+-                        if (trieValue2 != trieValue) {
+-                            if (filter == nullptr ||
+-                                    maybeFilterValue(trieValue2, trie->nullValue, nullValue,
+-                                                     filter, context) != value) {
+-                                return c - 1;
+-                            }
+-                            trieValue = trieValue2;  // may or may not help
++                        if (maybeFilterValue(getValue(trie->data, valueWidth, ++di),
++                                             trie->nullValue, nullValue,
++                                             filter, context) != value) {
++                            return c - 1;
+                         }
+                     }
+                 }
+diff -urp icu4c-63_2/icu/source/common/umutablecptrie.cpp icu4c-63_1/icu/source/common/umutablecptrie.cpp
+--- icu4c-63_2/icu/source/common/umutablecptrie.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/umutablecptrie.cpp	2018-10-02 00:39:56.000000000 +0200
+@@ -60,7 +60,6 @@ constexpr uint8_t I3_18 = 3;
+ constexpr int32_t INDEX_3_18BIT_BLOCK_LENGTH = UCPTRIE_INDEX_3_BLOCK_LENGTH + UCPTRIE_INDEX_3_BLOCK_LENGTH / 8;
+ 
+ class AllSameBlocks;
+-class MixedBlocks;
+ 
+ class MutableCodePointTrie : public UMemory {
+ public:
+@@ -93,10 +92,8 @@ private:
+     void maskValues(uint32_t mask);
+     UChar32 findHighStart() const;
+     int32_t compactWholeDataBlocks(int32_t fastILimit, AllSameBlocks &allSameBlocks);
+-    int32_t compactData(
+-            int32_t fastILimit, uint32_t *newData, int32_t newDataCapacity,
+-            int32_t dataNullIndex, MixedBlocks &mixedBlocks, UErrorCode &errorCode);
+-    int32_t compactIndex(int32_t fastILimit, MixedBlocks &mixedBlocks, UErrorCode &errorCode);
++    int32_t compactData(int32_t fastILimit, uint32_t *newData, int32_t dataNullIndex);
++    int32_t compactIndex(int32_t fastILimit, UErrorCode &errorCode);
+     int32_t compactTrie(int32_t fastILimit, UErrorCode &errorCode);
+ 
+     uint32_t *index = nullptr;
+@@ -304,56 +301,41 @@ UChar32 MutableCodePointTrie::getRange(
+     uint32_t nullValue = initialValue;
+     if (filter != nullptr) { nullValue = filter(context, nullValue); }
+     UChar32 c = start;
+-    uint32_t trieValue, value;
++    uint32_t value;
+     bool haveValue = false;
+     int32_t i = c >> UCPTRIE_SHIFT_3;
+     do {
+         if (flags[i] == ALL_SAME) {
+-            uint32_t trieValue2 = index[i];
++            uint32_t value2 = maybeFilterValue(index[i], initialValue, nullValue,
++                                               filter, context);
+             if (haveValue) {
+-                if (trieValue2 != trieValue) {
+-                    if (filter == nullptr ||
+-                            maybeFilterValue(trieValue2, initialValue, nullValue,
+-                                             filter, context) != value) {
+-                        return c - 1;
+-                    }
+-                    trieValue = trieValue2;  // may or may not help
++                if (value2 != value) {
++                    return c - 1;
+                 }
+             } else {
+-                trieValue = trieValue2;
+-                value = maybeFilterValue(trieValue2, initialValue, nullValue, filter, context);
++                value = value2;
+                 if (pValue != nullptr) { *pValue = value; }
+                 haveValue = true;
+             }
+             c = (c + UCPTRIE_SMALL_DATA_BLOCK_LENGTH) & ~UCPTRIE_SMALL_DATA_MASK;
+         } else /* MIXED */ {
+             int32_t di = index[i] + (c & UCPTRIE_SMALL_DATA_MASK);
+-            uint32_t trieValue2 = data[di];
++            uint32_t value2 = maybeFilterValue(data[di], initialValue, nullValue,
++                                               filter, context);
+             if (haveValue) {
+-                if (trieValue2 != trieValue) {
+-                    if (filter == nullptr ||
+-                            maybeFilterValue(trieValue2, initialValue, nullValue,
+-                                             filter, context) != value) {
+-                        return c - 1;
+-                    }
+-                    trieValue = trieValue2;  // may or may not help
++                if (value2 != value) {
++                    return c - 1;
+                 }
+             } else {
+-                trieValue = trieValue2;
+-                value = maybeFilterValue(trieValue2, initialValue, nullValue, filter, context);
++                value = value2;
+                 if (pValue != nullptr) { *pValue = value; }
+                 haveValue = true;
+             }
+             while ((++c & UCPTRIE_SMALL_DATA_MASK) != 0) {
+-                trieValue2 = data[++di];
+-                if (trieValue2 != trieValue) {
+-                    if (filter == nullptr ||
+-                            maybeFilterValue(trieValue2, initialValue, nullValue,
+-                                             filter, context) != value) {
+-                        return c - 1;
+-                    }
++                if (maybeFilterValue(data[++di], initialValue, nullValue,
++                                     filter, context) != value) {
++                    return c - 1;
+                 }
+-                trieValue = trieValue2;  // may or may not help
+             }
+         }
+         ++i;
+@@ -566,8 +548,28 @@ void MutableCodePointTrie::maskValues(ui
+     }
+ }
+ 
+-template<typename UIntA, typename UIntB>
+-bool equalBlocks(const UIntA *s, const UIntB *t, int32_t length) {
++inline bool
++equalBlocks(const uint32_t *s, const uint32_t *t, int32_t length) {
++    while (length > 0 && *s == *t) {
++        ++s;
++        ++t;
++        --length;
++    }
++    return length == 0;
++}
++
++inline bool
++equalBlocks(const uint16_t *s, const uint32_t *t, int32_t length) {
++    while (length > 0 && *s == *t) {
++        ++s;
++        ++t;
++        --length;
++    }
++    return length == 0;
++}
++
++inline bool
++equalBlocks(const uint16_t *s, const uint16_t *t, int32_t length) {
+     while (length > 0 && *s == *t) {
+         ++s;
+         ++t;
+@@ -583,6 +585,36 @@ bool allValuesSameAs(const uint32_t *p,
+ }
+ 
+ /** Search for an identical block. */
++int32_t findSameBlock(const uint32_t *p, int32_t pStart, int32_t length,
++                      const uint32_t *q, int32_t qStart, int32_t blockLength) {
++    // Ensure that we do not even partially get past length.
++    length -= blockLength;
++
++    q += qStart;
++    while (pStart <= length) {
++        if (equalBlocks(p + pStart, q, blockLength)) {
++            return pStart;
++        }
++        ++pStart;
++    }
++    return -1;
++}
++
++int32_t findSameBlock(const uint16_t *p, int32_t pStart, int32_t length,
++                      const uint32_t *q, int32_t qStart, int32_t blockLength) {
++    // Ensure that we do not even partially get past length.
++    length -= blockLength;
++
++    q += qStart;
++    while (pStart <= length) {
++        if (equalBlocks(p + pStart, q, blockLength)) {
++            return pStart;
++        }
++        ++pStart;
++    }
++    return -1;
++}
++
+ int32_t findSameBlock(const uint16_t *p, int32_t pStart, int32_t length,
+                       const uint16_t *q, int32_t qStart, int32_t blockLength) {
+     // Ensure that we do not even partially get past length.
+@@ -623,9 +655,30 @@ int32_t findAllSameBlock(const uint32_t
+  * Look for maximum overlap of the beginning of the other block
+  * with the previous, adjacent block.
+  */
+-template<typename UIntA, typename UIntB>
+-int32_t getOverlap(const UIntA *p, int32_t length,
+-                   const UIntB *q, int32_t qStart, int32_t blockLength) {
++int32_t getOverlap(const uint32_t *p, int32_t length,
++                   const uint32_t *q, int32_t qStart, int32_t blockLength) {
++    int32_t overlap = blockLength - 1;
++    U_ASSERT(overlap <= length);
++    q += qStart;
++    while (overlap > 0 && !equalBlocks(p + (length - overlap), q, overlap)) {
++        --overlap;
++    }
++    return overlap;
++}
++
++int32_t getOverlap(const uint16_t *p, int32_t length,
++                   const uint32_t *q, int32_t qStart, int32_t blockLength) {
++    int32_t overlap = blockLength - 1;
++    U_ASSERT(overlap <= length);
++    q += qStart;
++    while (overlap > 0 && !equalBlocks(p + (length - overlap), q, overlap)) {
++        --overlap;
++    }
++    return overlap;
++}
++
++int32_t getOverlap(const uint16_t *p, int32_t length,
++                   const uint16_t *q, int32_t qStart, int32_t blockLength) {
+     int32_t overlap = blockLength - 1;
+     U_ASSERT(overlap <= length);
+     q += qStart;
+@@ -754,171 +807,6 @@ private:
+     int32_t refCounts[CAPACITY];
+ };
+ 
+-// Custom hash table for mixed-value blocks to be found anywhere in the
+-// compacted data or index so far.
+-class MixedBlocks {
+-public:
+-    MixedBlocks() {}
+-    ~MixedBlocks() {
+-        uprv_free(table);
+-    }
+-
+-    bool init(int32_t maxLength, int32_t newBlockLength) {
+-        // We store actual data indexes + 1 to reserve 0 for empty entries.
+-        int32_t maxDataIndex = maxLength - newBlockLength + 1;
+-        int32_t newLength;
+-        if (maxDataIndex <= 0xfff) {  // 4k
+-            newLength = 6007;
+-            shift = 12;
+-            mask = 0xfff;
+-        } else if (maxDataIndex <= 0x7fff) {  // 32k
+-            newLength = 50021;
+-            shift = 15;
+-            mask = 0x7fff;
+-        } else if (maxDataIndex <= 0x1ffff) {  // 128k
+-            newLength = 200003;
+-            shift = 17;
+-            mask = 0x1ffff;
+-        } else {
+-            // maxDataIndex up to around MAX_DATA_LENGTH, ca. 1.1M
+-            newLength = 1500007;
+-            shift = 21;
+-            mask = 0x1fffff;
+-        }
+-        if (newLength > capacity) {
+-            uprv_free(table);
+-            table = (uint32_t *)uprv_malloc(newLength * 4);
+-            if (table == nullptr) {
+-                return false;
+-            }
+-            capacity = newLength;
+-        }
+-        length = newLength;
+-        uprv_memset(table, 0, length * 4);
+-
+-        blockLength = newBlockLength;
+-        return true;
+-    }
+-
+-    template<typename UInt>
+-    void extend(const UInt *data, int32_t minStart, int32_t prevDataLength, int32_t newDataLength) {
+-        int32_t start = prevDataLength - blockLength;
+-        if (start >= minStart) {
+-            ++start;  // Skip the last block that we added last time.
+-        } else {
+-            start = minStart;  // Begin with the first full block.
+-        }
+-        for (int32_t end = newDataLength - blockLength; start <= end; ++start) {
+-            uint32_t hashCode = makeHashCode(data, start);
+-            addEntry(data, start, hashCode, start);
+-        }
+-    }
+-
+-    template<typename UIntA, typename UIntB>
+-    int32_t findBlock(const UIntA *data, const UIntB *blockData, int32_t blockStart) const {
+-        uint32_t hashCode = makeHashCode(blockData, blockStart);
+-        int32_t entryIndex = findEntry(data, blockData, blockStart, hashCode);
+-        if (entryIndex >= 0) {
+-            return (table[entryIndex] & mask) - 1;
+-        } else {
+-            return -1;
+-        }
+-    }
+-
+-    int32_t findAllSameBlock(const uint32_t *data, uint32_t blockValue) const {
+-        uint32_t hashCode = makeHashCode(blockValue);
+-        int32_t entryIndex = findEntry(data, blockValue, hashCode);
+-        if (entryIndex >= 0) {
+-            return (table[entryIndex] & mask) - 1;
+-        } else {
+-            return -1;
+-        }
+-    }
+-
+-private:
+-    template<typename UInt>
+-    uint32_t makeHashCode(const UInt *blockData, int32_t blockStart) const {
+-        int32_t blockLimit = blockStart + blockLength;
+-        uint32_t hashCode = blockData[blockStart++];
+-        do {
+-            hashCode = 37 * hashCode + blockData[blockStart++];
+-        } while (blockStart < blockLimit);
+-        return hashCode;
+-    }
+-
+-    uint32_t makeHashCode(uint32_t blockValue) const {
+-        uint32_t hashCode = blockValue;
+-        for (int32_t i = 1; i < blockLength; ++i) {
+-            hashCode = 37 * hashCode + blockValue;
+-        }
+-        return hashCode;
+-    }
+-
+-    template<typename UInt>
+-    void addEntry(const UInt *data, int32_t blockStart, uint32_t hashCode, int32_t dataIndex) {
+-        U_ASSERT(0 <= dataIndex && dataIndex < (int32_t)mask);
+-        int32_t entryIndex = findEntry(data, data, blockStart, hashCode);
+-        if (entryIndex < 0) {
+-            table[~entryIndex] = (hashCode << shift) | (dataIndex + 1);
+-        }
+-    }
+-
+-    template<typename UIntA, typename UIntB>
+-    int32_t findEntry(const UIntA *data, const UIntB *blockData, int32_t blockStart,
+-                      uint32_t hashCode) const {
+-        uint32_t shiftedHashCode = hashCode << shift;
+-        int32_t initialEntryIndex = (hashCode % (length - 1)) + 1;  // 1..length-1
+-        for (int32_t entryIndex = initialEntryIndex;;) {
+-            uint32_t entry = table[entryIndex];
+-            if (entry == 0) {
+-                return ~entryIndex;
+-            }
+-            if ((entry & ~mask) == shiftedHashCode) {
+-                int32_t dataIndex = (entry & mask) - 1;
+-                if (equalBlocks(data + dataIndex, blockData + blockStart, blockLength)) {
+-                    return entryIndex;
+-                }
+-            }
+-            entryIndex = nextIndex(initialEntryIndex, entryIndex);
+-        }
+-    }
+-
+-    int32_t findEntry(const uint32_t *data, uint32_t blockValue, uint32_t hashCode) const {
+-        uint32_t shiftedHashCode = hashCode << shift;
+-        int32_t initialEntryIndex = (hashCode % (length - 1)) + 1;  // 1..length-1
+-        for (int32_t entryIndex = initialEntryIndex;;) {
+-            uint32_t entry = table[entryIndex];
+-            if (entry == 0) {
+-                return ~entryIndex;
+-            }
+-            if ((entry & ~mask) == shiftedHashCode) {
+-                int32_t dataIndex = (entry & mask) - 1;
+-                if (allValuesSameAs(data + dataIndex, blockLength, blockValue)) {
+-                    return entryIndex;
+-                }
+-            }
+-            entryIndex = nextIndex(initialEntryIndex, entryIndex);
+-        }
+-    }
+-
+-    inline int32_t nextIndex(int32_t initialEntryIndex, int32_t entryIndex) const {
+-        // U_ASSERT(0 < initialEntryIndex && initialEntryIndex < length);
+-        return (entryIndex + initialEntryIndex) % length;
+-    }
+-
+-    // Hash table.
+-    // The length is a prime number, larger than the maximum data length.
+-    // The "shift" lower bits store a data index + 1.
+-    // The remaining upper bits store a partial hashCode of the block data values.
+-    uint32_t *table = nullptr;
+-    int32_t capacity = 0;
+-    int32_t length = 0;
+-    int32_t shift = 0;
+-    uint32_t mask = 0;
+-
+-    int32_t blockLength = 0;
+-};
+-
+ int32_t MutableCodePointTrie::compactWholeDataBlocks(int32_t fastILimit, AllSameBlocks &allSameBlocks) {
+ #ifdef UCPTRIE_DEBUG
+     bool overflow = false;
+@@ -1074,9 +962,8 @@ void printBlock(const uint32_t *block, i
+  *
+  * It does not try to find an optimal order of writing, deduplicating, and overlapping blocks.
+  */
+-int32_t MutableCodePointTrie::compactData(
+-        int32_t fastILimit, uint32_t *newData, int32_t newDataCapacity,
+-        int32_t dataNullIndex, MixedBlocks &mixedBlocks, UErrorCode &errorCode) {
++int32_t MutableCodePointTrie::compactData(int32_t fastILimit,
++                                          uint32_t *newData, int32_t dataNullIndex) {
+ #ifdef UCPTRIE_DEBUG
+     int32_t countSame=0, sumOverlaps=0;
+     bool printData = dataLength == 29088 /* line.brk */ ||
+@@ -1096,14 +983,8 @@ int32_t MutableCodePointTrie::compactDat
+ #endif
+     }
+ 
+-    int32_t blockLength = UCPTRIE_FAST_DATA_BLOCK_LENGTH;
+-    if (!mixedBlocks.init(newDataCapacity, blockLength)) {
+-        errorCode = U_MEMORY_ALLOCATION_ERROR;
+-        return 0;
+-    }
+-    mixedBlocks.extend(newData, 0, 0, newDataLength);
+-
+     int32_t iLimit = highStart >> UCPTRIE_SHIFT_3;
++    int32_t blockLength = UCPTRIE_FAST_DATA_BLOCK_LENGTH;
+     int32_t inc = SMALL_DATA_BLOCKS_PER_BMP_BLOCK;
+     int32_t fastLength = 0;
+     for (int32_t i = ASCII_I_LIMIT; i < iLimit; i += inc) {
+@@ -1111,17 +992,12 @@ int32_t MutableCodePointTrie::compactDat
+             blockLength = UCPTRIE_SMALL_DATA_BLOCK_LENGTH;
+             inc = 1;
+             fastLength = newDataLength;
+-            if (!mixedBlocks.init(newDataCapacity, blockLength)) {
+-                errorCode = U_MEMORY_ALLOCATION_ERROR;
+-                return 0;
+-            }
+-            mixedBlocks.extend(newData, 0, 0, newDataLength);
+         }
+         if (flags[i] == ALL_SAME) {
+             uint32_t value = index[i];
++            int32_t n;
+             // Find an earlier part of the data array of length blockLength
+             // that is filled with this value.
+-            int32_t n = mixedBlocks.findAllSameBlock(newData, value);
+             // If we find a match, and the current block is the data null block,
+             // and it is not a fast block but matches the start of a fast block,
+             // then we need to continue looking.
+@@ -1129,10 +1005,12 @@ int32_t MutableCodePointTrie::compactDat
+             // and not all of the rest of the fast block is filled with this value.
+             // Otherwise trie.getRange() would detect that the fast block starts at
+             // dataNullOffset and assume incorrectly that it is filled with the null value.
+-            while (n >= 0 && i == dataNullIndex && i >= fastILimit && n < fastLength &&
+-                    isStartOfSomeFastBlock(n, index, fastILimit)) {
+-                n = findAllSameBlock(newData, n + 1, newDataLength, value, blockLength);
+-            }
++            for (int32_t start = 0;
++                    (n = findAllSameBlock(newData, start, newDataLength,
++                                value, blockLength)) >= 0 &&
++                            i == dataNullIndex && i >= fastILimit && n < fastLength &&
++                            isStartOfSomeFastBlock(n, index, fastILimit);
++                    start = n + 1) {}
+             if (n >= 0) {
+                 DEBUG_DO(++countSame);
+                 index[i] = n;
+@@ -1145,16 +1023,14 @@ int32_t MutableCodePointTrie::compactDat
+                 }
+ #endif
+                 index[i] = newDataLength - n;
+-                int32_t prevDataLength = newDataLength;
+                 while (n < blockLength) {
+                     newData[newDataLength++] = value;
+                     ++n;
+                 }
+-                mixedBlocks.extend(newData, 0, prevDataLength, newDataLength);
+             }
+         } else if (flags[i] == MIXED) {
+             const uint32_t *block = data + index[i];
+-            int32_t n = mixedBlocks.findBlock(newData, block, 0);
++            int32_t n = findSameBlock(newData, 0, newDataLength, block, 0, blockLength);
+             if (n >= 0) {
+                 DEBUG_DO(++countSame);
+                 index[i] = n;
+@@ -1167,11 +1043,9 @@ int32_t MutableCodePointTrie::compactDat
+                 }
+ #endif
+                 index[i] = newDataLength - n;
+-                int32_t prevDataLength = newDataLength;
+                 while (n < blockLength) {
+                     newData[newDataLength++] = block[n++];
+                 }
+-                mixedBlocks.extend(newData, 0, prevDataLength, newDataLength);
+             }
+         } else /* SAME_AS */ {
+             uint32_t j = index[i];
+@@ -1187,8 +1061,7 @@ int32_t MutableCodePointTrie::compactDat
+     return newDataLength;
+ }
+ 
+-int32_t MutableCodePointTrie::compactIndex(int32_t fastILimit, MixedBlocks &mixedBlocks,
+-                                           UErrorCode &errorCode) {
++int32_t MutableCodePointTrie::compactIndex(int32_t fastILimit, UErrorCode &errorCode) {
+     int32_t fastIndexLength = fastILimit >> (UCPTRIE_FAST_SHIFT - UCPTRIE_SHIFT_3);
+     if ((highStart >> UCPTRIE_FAST_SHIFT) <= fastIndexLength) {
+         // Only the linear fast index, no multi-stage index tables.
+@@ -1222,12 +1095,6 @@ int32_t MutableCodePointTrie::compactInd
+         }
+     }
+ 
+-    if (!mixedBlocks.init(fastIndexLength, UCPTRIE_INDEX_3_BLOCK_LENGTH)) {
+-        errorCode = U_MEMORY_ALLOCATION_ERROR;
+-        return 0;
+-    }
+-    mixedBlocks.extend(fastIndex, 0, 0, fastIndexLength);
+-
+     // Examine index-3 blocks. For each determine one of:
+     // - same as the index-3 null block
+     // - same as a fast-index block
+@@ -1238,7 +1105,6 @@ int32_t MutableCodePointTrie::compactInd
+     // Also determine an upper limit for the index-3 table length.
+     int32_t index3Capacity = 0;
+     i3FirstNull = index3NullOffset;
+-    bool hasLongI3Blocks = false;
+     // If the fast index covers the whole BMP, then
+     // the multi-stage index is only for supplementary code points.
+     // Otherwise, the multi-stage index covers all of Unicode.
+@@ -1263,13 +1129,13 @@ int32_t MutableCodePointTrie::compactInd
+                     index3Capacity += UCPTRIE_INDEX_3_BLOCK_LENGTH;
+                 } else {
+                     index3Capacity += INDEX_3_18BIT_BLOCK_LENGTH;
+-                    hasLongI3Blocks = true;
+                 }
+                 i3FirstNull = 0;
+             }
+         } else {
+             if (oredI3 <= 0xffff) {
+-                int32_t n = mixedBlocks.findBlock(fastIndex, index, i);
++                int32_t n = findSameBlock(fastIndex, 0, fastIndexLength,
++                                          index, i, UCPTRIE_INDEX_3_BLOCK_LENGTH);
+                 if (n >= 0) {
+                     flags[i] = I3_BMP;
+                     index[i] = n;
+@@ -1280,7 +1146,6 @@ int32_t MutableCodePointTrie::compactInd
+             } else {
+                 flags[i] = I3_18;
+                 index3Capacity += INDEX_3_18BIT_BLOCK_LENGTH;
+-                hasLongI3Blocks = true;
+             }
+         }
+         i = j;
+@@ -1301,18 +1166,6 @@ int32_t MutableCodePointTrie::compactInd
+     }
+     uprv_memcpy(index16, fastIndex, fastIndexLength * 2);
+ 
+-    if (!mixedBlocks.init(index16Capacity, UCPTRIE_INDEX_3_BLOCK_LENGTH)) {
+-        errorCode = U_MEMORY_ALLOCATION_ERROR;
+-        return 0;
+-    }
+-    MixedBlocks longI3Blocks;
+-    if (hasLongI3Blocks) {
+-        if (!longI3Blocks.init(index16Capacity, INDEX_3_18BIT_BLOCK_LENGTH)) {
+-            errorCode = U_MEMORY_ALLOCATION_ERROR;
+-            return 0;
+-        }
+-    }
+-
+     // Compact the index-3 table and write an uncompacted version of the index-2 table.
+     uint16_t index2[UNICODE_LIMIT >> UCPTRIE_SHIFT_2];  // index2Capacity
+     int32_t i2Length = 0;
+@@ -1332,7 +1185,8 @@ int32_t MutableCodePointTrie::compactInd
+         } else if (f == I3_BMP) {
+             i3 = index[i];
+         } else if (f == I3_16) {
+-            int32_t n = mixedBlocks.findBlock(index16, index, i);
++            int32_t n = findSameBlock(index16, index3Start, indexLength,
++                                      index, i, UCPTRIE_INDEX_3_BLOCK_LENGTH);
+             if (n >= 0) {
+                 i3 = n;
+             } else {
+@@ -1344,18 +1198,12 @@ int32_t MutableCodePointTrie::compactInd
+                                    index, i, UCPTRIE_INDEX_3_BLOCK_LENGTH);
+                 }
+                 i3 = indexLength - n;
+-                int32_t prevIndexLength = indexLength;
+                 while (n < UCPTRIE_INDEX_3_BLOCK_LENGTH) {
+                     index16[indexLength++] = index[i + n++];
+                 }
+-                mixedBlocks.extend(index16, index3Start, prevIndexLength, indexLength);
+-                if (hasLongI3Blocks) {
+-                    longI3Blocks.extend(index16, index3Start, prevIndexLength, indexLength);
+-                }
+             }
+         } else {
+             U_ASSERT(f == I3_18);
+-            U_ASSERT(hasLongI3Blocks);
+             // Encode an index-3 block that contains one or more data indexes exceeding 16 bits.
+             int32_t j = i;
+             int32_t jLimit = i + UCPTRIE_INDEX_3_BLOCK_LENGTH;
+@@ -1388,7 +1236,8 @@ int32_t MutableCodePointTrie::compactInd
+                 index16[k++] = v;
+                 index16[k - 9] = upperBits;
+             } while (j < jLimit);
+-            int32_t n = longI3Blocks.findBlock(index16, index16, indexLength);
++            int32_t n = findSameBlock(index16, index3Start, indexLength,
++                                      index16, indexLength, INDEX_3_18BIT_BLOCK_LENGTH);
+             if (n >= 0) {
+                 i3 = n | 0x8000;
+             } else {
+@@ -1400,7 +1249,6 @@ int32_t MutableCodePointTrie::compactInd
+                                    index16, indexLength, INDEX_3_18BIT_BLOCK_LENGTH);
+                 }
+                 i3 = (indexLength - n) | 0x8000;
+-                int32_t prevIndexLength = indexLength;
+                 if (n > 0) {
+                     int32_t start = indexLength;
+                     while (n < INDEX_3_18BIT_BLOCK_LENGTH) {
+@@ -1409,10 +1257,6 @@ int32_t MutableCodePointTrie::compactInd
+                 } else {
+                     indexLength += INDEX_3_18BIT_BLOCK_LENGTH;
+                 }
+-                mixedBlocks.extend(index16, index3Start, prevIndexLength, indexLength);
+-                if (hasLongI3Blocks) {
+-                    longI3Blocks.extend(index16, index3Start, prevIndexLength, indexLength);
+-                }
+             }
+         }
+         if (index3NullOffset < 0 && i3FirstNull >= 0) {
+@@ -1435,23 +1279,16 @@ int32_t MutableCodePointTrie::compactInd
+     }
+ 
+     // Compact the index-2 table and write the index-1 table.
+-    static_assert(UCPTRIE_INDEX_2_BLOCK_LENGTH == UCPTRIE_INDEX_3_BLOCK_LENGTH,
+-                  "must re-init mixedBlocks");
+     int32_t blockLength = UCPTRIE_INDEX_2_BLOCK_LENGTH;
+     int32_t i1 = fastIndexLength;
+     for (int32_t i = 0; i < i2Length; i += blockLength) {
+-        int32_t n;
+-        if ((i2Length - i) >= blockLength) {
+-            // normal block
+-            U_ASSERT(blockLength == UCPTRIE_INDEX_2_BLOCK_LENGTH);
+-            n = mixedBlocks.findBlock(index16, index2, i);
+-        } else {
++        if ((i2Length - i) < blockLength) {
+             // highStart is inside the last index-2 block. Shorten it.
+             blockLength = i2Length - i;
+-            n = findSameBlock(index16, index3Start, indexLength,
+-                              index2, i, blockLength);
+         }
+         int32_t i2;
++        int32_t n = findSameBlock(index16, index3Start, indexLength,
++                                  index2, i, blockLength);
+         if (n >= 0) {
+             i2 = n;
+         } else {
+@@ -1462,11 +1299,9 @@ int32_t MutableCodePointTrie::compactInd
+                 n = getOverlap(index16, indexLength, index2, i, blockLength);
+             }
+             i2 = indexLength - n;
+-            int32_t prevIndexLength = indexLength;
+             while (n < blockLength) {
+                 index16[indexLength++] = index2[i + n++];
+             }
+-            mixedBlocks.extend(index16, index3Start, prevIndexLength, indexLength);
+         }
+         // Set the index-1 table entry.
+         index16[i1++] = i2;
+@@ -1534,11 +1369,7 @@ int32_t MutableCodePointTrie::compactTri
+     uprv_memcpy(newData, asciiData, sizeof(asciiData));
+ 
+     int32_t dataNullIndex = allSameBlocks.findMostUsed();
+-
+-    MixedBlocks mixedBlocks;
+-    int32_t newDataLength = compactData(fastILimit, newData, newDataCapacity,
+-                                        dataNullIndex, mixedBlocks, errorCode);
+-    if (U_FAILURE(errorCode)) { return 0; }
++    int32_t newDataLength = compactData(fastILimit, newData, dataNullIndex);
+     U_ASSERT(newDataLength <= newDataCapacity);
+     uprv_free(data);
+     data = newData;
+@@ -1563,7 +1394,7 @@ int32_t MutableCodePointTrie::compactTri
+         dataNullOffset = UCPTRIE_NO_DATA_NULL_OFFSET;
+     }
+ 
+-    int32_t indexLength = compactIndex(fastILimit, mixedBlocks, errorCode);
++    int32_t indexLength = compactIndex(fastILimit, errorCode);
+     highStart = realHighStart;
+     return indexLength;
+ }
+diff -urp icu4c-63_2/icu/source/common/umutex.h icu4c-63_1/icu/source/common/umutex.h
+--- icu4c-63_2/icu/source/common/umutex.h	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/umutex.h	2018-10-02 00:39:56.000000000 +0200
+@@ -54,23 +54,15 @@ U_NAMESPACE_END
+ 
+ #include <atomic>
+ 
++U_NAMESPACE_BEGIN
++
+ // Export an explicit template instantiation of std::atomic<int32_t>. 
+ // When building DLLs for Windows this is required as it is used as a data member of the exported SharedObject class.
+ // See digitlst.h, pluralaffix.h, datefmt.h, and others for similar examples.
+-#if U_PF_WINDOWS <= U_PLATFORM && U_PLATFORM <= U_PF_CYGWIN && !defined(U_IN_DOXYGEN)
+-  #if defined(__clang__)
+-  // Suppress the warning that the explicit instantiation after explicit specialization has no effect.
+-  #pragma clang diagnostic push
+-  #pragma clang diagnostic ignored "-Winstantiation-after-specialization"
+-  #endif
++#if U_PF_WINDOWS <= U_PLATFORM && U_PLATFORM <= U_PF_CYGWIN
+ template struct U_COMMON_API std::atomic<int32_t>;
+-  #if defined(__clang__)
+-  #pragma clang diagnostic pop
+-  #endif
+ #endif
+ 
+-U_NAMESPACE_BEGIN
+-
+ typedef std::atomic<int32_t> u_atomic_int32_t;
+ #define ATOMIC_INT32_T_INITIALIZER(val) ATOMIC_VAR_INIT(val)
+ 
+diff -urp icu4c-63_2/icu/source/common/unicode/uniset.h icu4c-63_1/icu/source/common/unicode/uniset.h
+--- icu4c-63_2/icu/source/common/unicode/uniset.h	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/unicode/uniset.h	2018-10-02 00:39:56.000000000 +0200
+@@ -27,6 +27,7 @@ U_NAMESPACE_BEGIN
+ 
+ // Forward Declarations.
+ class BMPSet;
++class CharacterProperties;
+ class ParsePosition;
+ class RBBIRuleScanner;
+ class SymbolTable;
+@@ -275,23 +276,14 @@ class RuleCharacterIterator;
+  * @stable ICU 2.0
+  */
+ class U_COMMON_API UnicodeSet U_FINAL : public UnicodeFilter {
+-private:
+-    /**
+-     * Enough for sets with few ranges.
+-     * For example, White_Space has 10 ranges, list length 21.
+-     */
+-    static constexpr int32_t INITIAL_CAPACITY = 25;
+-    // fFlags constant
+-    static constexpr uint8_t kIsBogus = 1;  // This set is bogus (i.e. not valid)
+-
+-    UChar32* list = stackList; // MUST be terminated with HIGH
+-    int32_t capacity = INITIAL_CAPACITY; // capacity of list
+-    int32_t len = 1; // length of list used; 1 <= len <= capacity
+-    uint8_t fFlags = 0;         // Bit flag (see constants above)
+-
+-    BMPSet *bmpSet = nullptr; // The set is frozen iff either bmpSet or stringSpan is not NULL.
+-    UChar32* buffer = nullptr; // internal buffer, may be NULL
+-    int32_t bufferCapacity = 0; // capacity of buffer
++
++    int32_t len; // length of list used; 0 <= len <= capacity
++    int32_t capacity; // capacity of list
++    UChar32* list; // MUST be terminated with HIGH
++    BMPSet *bmpSet; // The set is frozen iff either bmpSet or stringSpan is not NULL.
++    UChar32* buffer; // internal buffer, may be NULL
++    int32_t bufferCapacity; // capacity of buffer
++    int32_t patLen;
+ 
+     /**
+      * The pattern representation of this set.  This may not be the
+@@ -302,19 +294,15 @@ private:
+      * indicating that toPattern() must generate a pattern
+      * representation from the inversion list.
+      */
+-    char16_t *pat = nullptr;
+-    int32_t patLen = 0;
+-
+-    UVector* strings = nullptr; // maintained in sorted order
+-    UnicodeSetStringSpan *stringSpan = nullptr;
+-
+-    /**
+-     * Initial list array.
+-     * Avoids some heap allocations, and list is never nullptr.
+-     * Increases the object size a bit.
+-     */
+-    UChar32 stackList[INITIAL_CAPACITY];
++    char16_t *pat;
++    UVector* strings; // maintained in sorted order
++    UnicodeSetStringSpan *stringSpan;
+ 
++private:
++    enum { // constants
++        kIsBogus = 1       // This set is bogus (i.e. not valid)
++    };
++    uint8_t fFlags;         // Bit flag (see constants above)
+ public:
+     /**
+      * Determine if this object contains a valid set.
+@@ -1492,6 +1480,8 @@ private:
+ 
+     friend class USetAccess;
+ 
++    int32_t getStringCount() const;
++
+     const UnicodeString* getString(int32_t index) const;
+ 
+     //----------------------------------------------------------------
+@@ -1538,18 +1528,13 @@ private:
+     // Implementation: Utility methods
+     //----------------------------------------------------------------
+ 
+-    static int32_t nextCapacity(int32_t minCapacity);
+-
+-    bool ensureCapacity(int32_t newLen);
++    void ensureCapacity(int32_t newLen, UErrorCode& ec);
+ 
+-    bool ensureBufferCapacity(int32_t newLen);
++    void ensureBufferCapacity(int32_t newLen, UErrorCode& ec);
+ 
+     void swapBuffers(void);
+ 
+     UBool allocateStrings(UErrorCode &status);
+-    UBool hasStrings() const;
+-    int32_t stringsSize() const;
+-    UBool stringsContains(const UnicodeString &s) const;
+ 
+     UnicodeString& _toPattern(UnicodeString& result,
+                               UBool escapeUnprintable) const;
+@@ -1629,6 +1614,7 @@ private:
+                               UnicodeString& rebuiltPat,
+                               UErrorCode& ec);
+ 
++    friend class CharacterProperties;
+     static const UnicodeSet* getInclusions(int32_t src, UErrorCode &status);
+ 
+     /**
+@@ -1660,10 +1646,7 @@ private:
+     /**
+      * Set the new pattern to cache.
+      */
+-    void setPattern(const UnicodeString& newPat) {
+-        setPattern(newPat.getBuffer(), newPat.length());
+-    }
+-    void setPattern(const char16_t *newPat, int32_t newPatLen);
++    void setPattern(const UnicodeString& newPat);
+     /**
+      * Release existing cached pattern.
+      */
+diff -urp icu4c-63_2/icu/source/common/unicode/urename.h icu4c-63_1/icu/source/common/unicode/urename.h
+--- icu4c-63_2/icu/source/common/unicode/urename.h	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/unicode/urename.h	2018-10-15 20:02:37.000000000 +0200
+@@ -110,6 +110,7 @@
+ #define _UTF7Data U_ICU_ENTRY_POINT_RENAME(_UTF7Data)
+ #define _UTF8Data U_ICU_ENTRY_POINT_RENAME(_UTF8Data)
+ #define allowedHourFormatsCleanup U_ICU_ENTRY_POINT_RENAME(allowedHourFormatsCleanup)
++#define checkImpl U_ICU_ENTRY_POINT_RENAME(checkImpl)
+ #define cmemory_cleanup U_ICU_ENTRY_POINT_RENAME(cmemory_cleanup)
+ #define dayPeriodRulesCleanup U_ICU_ENTRY_POINT_RENAME(dayPeriodRulesCleanup)
+ #define deleteAllowedHourFormats U_ICU_ENTRY_POINT_RENAME(deleteAllowedHourFormats)
+diff -urp icu4c-63_2/icu/source/common/uniset_closure.cpp icu4c-63_1/icu/source/common/uniset_closure.cpp
+--- icu4c-63_2/icu/source/common/uniset_closure.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/uniset_closure.cpp	2018-09-29 02:34:41.000000000 +0200
+@@ -31,6 +31,10 @@
+ #include "util.h"
+ #include "uvector.h"
+ 
++// initial storage. Must be >= 0
++// *** same as in uniset.cpp ! ***
++#define START_EXTRA 16
++
+ U_NAMESPACE_BEGIN
+ 
+ // TODO memory debugging provided inside uniset.cpp
+@@ -45,16 +49,42 @@ U_NAMESPACE_BEGIN
+ UnicodeSet::UnicodeSet(const UnicodeString& pattern,
+                        uint32_t options,
+                        const SymbolTable* symbols,
+-                       UErrorCode& status) {
+-    applyPattern(pattern, options, symbols, status);
++                       UErrorCode& status) :
++    len(0), capacity(START_EXTRA), list(0), bmpSet(0), buffer(0),
++    bufferCapacity(0), patLen(0), pat(NULL), strings(NULL), stringSpan(NULL),
++    fFlags(0)
++{
++    if(U_SUCCESS(status)){
++        list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
++        /* test for NULL */
++        if(list == NULL) {
++            status = U_MEMORY_ALLOCATION_ERROR;  
++        }else{
++            allocateStrings(status);
++            applyPattern(pattern, options, symbols, status);
++        }
++    }
+     _dbgct(this);
+ }
+ 
+ UnicodeSet::UnicodeSet(const UnicodeString& pattern, ParsePosition& pos,
+                        uint32_t options,
+                        const SymbolTable* symbols,
+-                       UErrorCode& status) {
+-    applyPattern(pattern, pos, options, symbols, status);
++                       UErrorCode& status) :
++    len(0), capacity(START_EXTRA), list(0), bmpSet(0), buffer(0),
++    bufferCapacity(0), patLen(0), pat(NULL), strings(NULL), stringSpan(NULL),
++    fFlags(0)
++{
++    if(U_SUCCESS(status)){
++        list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
++        /* test for NULL */
++        if(list == NULL) {
++            status = U_MEMORY_ALLOCATION_ERROR;   
++        }else{
++            allocateStrings(status);
++            applyPattern(pattern, pos, options, symbols, status);
++        }
++    }
+     _dbgct(this);
+ }
+ 
+@@ -169,7 +199,7 @@ UnicodeSet& UnicodeSet::closeOver(int32_
+             // start with input set to guarantee inclusion
+             // USET_CASE: remove strings because the strings will actually be reduced (folded);
+             //            therefore, start with no strings and add only those needed
+-            if ((attribute & USET_CASE_INSENSITIVE) && foldSet.hasStrings()) {
++            if (attribute & USET_CASE_INSENSITIVE) {
+                 foldSet.strings->removeAllElements();
+             }
+ 
+@@ -204,7 +234,7 @@ UnicodeSet& UnicodeSet::closeOver(int32_
+                     }
+                 }
+             }
+-            if (hasStrings()) {
++            if (strings != NULL && strings->size() > 0) {
+                 if (attribute & USET_CASE_INSENSITIVE) {
+                     for (int32_t j=0; j<strings->size(); ++j) {
+                         str = *(const UnicodeString *) strings->elementAt(j);
+diff -urp icu4c-63_2/icu/source/common/uniset.cpp icu4c-63_1/icu/source/common/uniset.cpp
+--- icu4c-63_2/icu/source/common/uniset.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/uniset.cpp	2018-10-02 00:39:56.000000000 +0200
+@@ -14,7 +14,6 @@
+ #include "unicode/parsepos.h"
+ #include "unicode/symtable.h"
+ #include "unicode/uniset.h"
+-#include "unicode/ustring.h"
+ #include "unicode/utf8.h"
+ #include "unicode/utf16.h"
+ #include "ruleiter.h"
+@@ -54,8 +53,11 @@
+ // LOW <= all valid values. ZERO for codepoints
+ #define UNICODESET_LOW 0x000000
+ 
+-/** Max list [0, 1, 2, ..., max code point, HIGH] */
+-constexpr int32_t MAX_LENGTH = UNICODESET_HIGH + 1;
++// initial storage. Must be >= 0
++#define START_EXTRA 16
++
++// extra amount for growth. Must be >= 0
++#define GROW_EXTRA START_EXTRA
+ 
+ U_NAMESPACE_BEGIN
+ 
+@@ -135,18 +137,6 @@ static int8_t U_CALLCONV compareUnicodeS
+     return a.compare(b);
+ }
+ 
+-UBool UnicodeSet::hasStrings() const {
+-    return strings != nullptr && !strings->isEmpty();
+-}
+-
+-int32_t UnicodeSet::stringsSize() const {
+-    return strings == nullptr ? 0 : strings->size();
+-}
+-
+-UBool UnicodeSet::stringsContains(const UnicodeString &s) const {
+-    return strings != nullptr && strings->contains((void*) &s);
+-}
+-
+ //----------------------------------------------------------------
+ // Constructors &c
+ //----------------------------------------------------------------
+@@ -154,8 +144,24 @@ UBool UnicodeSet::stringsContains(const
+ /**
+  * Constructs an empty set.
+  */
+-UnicodeSet::UnicodeSet() {
+-    list[0] = UNICODESET_HIGH;
++UnicodeSet::UnicodeSet() :
++    len(1), capacity(1 + START_EXTRA), list(0), bmpSet(0), buffer(0),
++    bufferCapacity(0), patLen(0), pat(NULL), strings(NULL), stringSpan(NULL),
++    fFlags(0)
++{
++    UErrorCode status = U_ZERO_ERROR;
++    allocateStrings(status);
++    if (U_FAILURE(status)) {
++        setToBogus(); // If memory allocation failed, set to bogus state.
++        return;
++    }
++    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
++    if(list!=NULL){
++        list[0] = UNICODESET_HIGH;
++    } else { // If memory allocation failed, set to bogus state.
++        setToBogus();
++        return;
++    }
+     _dbgct(this);
+ }
+ 
+@@ -166,39 +172,89 @@ UnicodeSet::UnicodeSet() {
+  * @param start first character, inclusive, of range
+  * @param end last character, inclusive, of range
+  */
+-UnicodeSet::UnicodeSet(UChar32 start, UChar32 end) {
+-    list[0] = UNICODESET_HIGH;
+-    add(start, end);
++UnicodeSet::UnicodeSet(UChar32 start, UChar32 end) :
++    len(1), capacity(1 + START_EXTRA), list(0), bmpSet(0), buffer(0),
++    bufferCapacity(0), patLen(0), pat(NULL), strings(NULL), stringSpan(NULL),
++    fFlags(0)
++{
++    UErrorCode status = U_ZERO_ERROR;
++    allocateStrings(status);
++    if (U_FAILURE(status)) {
++        setToBogus(); // If memory allocation failed, set to bogus state.
++        return;
++    }
++    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
++    if(list!=NULL){
++        list[0] = UNICODESET_HIGH;
++        complement(start, end);
++    } else { // If memory allocation failed, set to bogus state.
++        setToBogus();
++        return;
++    }
+     _dbgct(this);
+ }
+ 
+ /**
+  * Constructs a set that is identical to the given UnicodeSet.
+  */
+-UnicodeSet::UnicodeSet(const UnicodeSet& o) : UnicodeFilter(o) {
+-    *this = o;
++UnicodeSet::UnicodeSet(const UnicodeSet& o) :
++    UnicodeFilter(o),
++    len(0), capacity(o.isFrozen() ? o.len : o.len + GROW_EXTRA), list(0),
++    bmpSet(0),
++    buffer(0), bufferCapacity(0),
++    patLen(0), pat(NULL), strings(NULL), stringSpan(NULL),
++    fFlags(0)
++{
++    UErrorCode status = U_ZERO_ERROR;
++    allocateStrings(status);
++    if (U_FAILURE(status)) {
++        setToBogus(); // If memory allocation failed, set to bogus state.
++        return;
++    }
++    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
++    if(list!=NULL){
++        *this = o;
++    } else { // If memory allocation failed, set to bogus state.
++        setToBogus();
++        return;
++    }
+     _dbgct(this);
+ }
+ 
+ // Copy-construct as thawed.
+-UnicodeSet::UnicodeSet(const UnicodeSet& o, UBool /* asThawed */) : UnicodeFilter(o) {
+-    if (ensureCapacity(o.len)) {
++UnicodeSet::UnicodeSet(const UnicodeSet& o, UBool /* asThawed */) :
++    UnicodeFilter(o),
++    len(0), capacity(o.len + GROW_EXTRA), list(0),
++    bmpSet(0),
++    buffer(0), bufferCapacity(0),
++    patLen(0), pat(NULL), strings(NULL), stringSpan(NULL),
++    fFlags(0)
++{
++    UErrorCode status = U_ZERO_ERROR;
++    allocateStrings(status);
++    if (U_FAILURE(status)) {
++        setToBogus(); // If memory allocation failed, set to bogus state.
++        return;
++    }
++    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
++    if(list!=NULL){
+         // *this = o except for bmpSet and stringSpan
+         len = o.len;
+         uprv_memcpy(list, o.list, (size_t)len*sizeof(UChar32));
+-        if (o.hasStrings()) {
+-            UErrorCode status = U_ZERO_ERROR;
+-            if (!allocateStrings(status) ||
+-                    (strings->assign(*o.strings, cloneUnicodeString, status), U_FAILURE(status))) {
+-                setToBogus();
+-                return;
+-            }
++        if (strings != NULL && o.strings != NULL) {
++            strings->assign(*o.strings, cloneUnicodeString, status);
++        } else { // Invalid strings.
++            setToBogus();
++            return;
+         }
+         if (o.pat) {
+-            setPattern(o.pat, o.patLen);
++            setPattern(UnicodeString(o.pat, o.patLen));
+         }
+-        _dbgct(this);
++    } else { // If memory allocation failed, set to bogus state.
++        setToBogus();
++        return;
+     }
++    _dbgct(this);
+ }
+ 
+ /**
+@@ -206,11 +262,9 @@ UnicodeSet::UnicodeSet(const UnicodeSet&
+  */
+ UnicodeSet::~UnicodeSet() {
+     _dbgdt(this); // first!
+-    if (list != stackList) {
+-        uprv_free(list);
+-    }
++    uprv_free(list);
+     delete bmpSet;
+-    if (buffer != stackList) {
++    if (buffer) {
+         uprv_free(buffer);
+     }
+     delete strings;
+@@ -236,30 +290,32 @@ UnicodeSet& UnicodeSet::copyFrom(const U
+         setToBogus();
+         return *this;
+     }
+-    if (!ensureCapacity(o.len)) {
++    UErrorCode ec = U_ZERO_ERROR;
++    ensureCapacity(o.len, ec);
++    if (U_FAILURE(ec)) {
+         // ensureCapacity will mark the UnicodeSet as Bogus if OOM failure happens.
+         return *this;
+     }
+     len = o.len;
+     uprv_memcpy(list, o.list, (size_t)len*sizeof(UChar32));
+-    if (o.bmpSet != nullptr && !asThawed) {
++    if (o.bmpSet == NULL || asThawed) {
++        bmpSet = NULL;
++    } else {
+         bmpSet = new BMPSet(*o.bmpSet, list, len);
+         if (bmpSet == NULL) { // Check for memory allocation error.
+             setToBogus();
+             return *this;
+         }
+     }
+-    if (o.hasStrings()) {
+-        UErrorCode status = U_ZERO_ERROR;
+-        if ((strings == nullptr && !allocateStrings(status)) ||
+-                (strings->assign(*o.strings, cloneUnicodeString, status), U_FAILURE(status))) {
+-            setToBogus();
+-            return *this;
+-        }
+-    } else if (hasStrings()) {
+-        strings->removeAllElements();
++    if (strings != NULL && o.strings != NULL) {
++        strings->assign(*o.strings, cloneUnicodeString, ec);
++    } else { // Invalid strings.
++        setToBogus();
++        return *this;
+     }
+-    if (o.stringSpan != nullptr && !asThawed) {
++    if (o.stringSpan == NULL || asThawed) {
++        stringSpan = NULL;
++    } else {
+         stringSpan = new UnicodeSetStringSpan(*o.stringSpan, *strings);
+         if (stringSpan == NULL) { // Check for memory allocation error.
+             setToBogus();
+@@ -268,7 +324,7 @@ UnicodeSet& UnicodeSet::copyFrom(const U
+     }
+     releasePattern();
+     if (o.pat) {
+-        setPattern(o.pat, o.patLen);
++        setPattern(UnicodeString(o.pat, o.patLen));
+     }
+     return *this;
+ }
+@@ -301,8 +357,7 @@ UBool UnicodeSet::operator==(const Unico
+     for (int32_t i = 0; i < len; ++i) {
+         if (list[i] != o.list[i]) return FALSE;
+     }
+-    if (hasStrings() != o.hasStrings()) { return FALSE; }
+-    if (hasStrings() && *strings != *o.strings) return FALSE;
++    if (*strings != *o.strings) return FALSE;
+     return TRUE;
+ }
+ 
+@@ -338,7 +393,7 @@ int32_t UnicodeSet::size(void) const {
+     for (int32_t i = 0; i < count; ++i) {
+         n += getRangeEnd(i) - getRangeStart(i) + 1;
+     }
+-    return n + stringsSize();
++    return n + strings->size();
+ }
+ 
+ /**
+@@ -347,7 +402,7 @@ int32_t UnicodeSet::size(void) const {
+  * @return <tt>true</tt> if this set contains no elements.
+  */
+ UBool UnicodeSet::isEmpty(void) const {
+-    return len == 1 && !hasStrings();
++    return len == 1 && strings->size() == 0;
+ }
+ 
+ /**
+@@ -447,7 +502,7 @@ UBool UnicodeSet::contains(const Unicode
+     if (s.length() == 0) return FALSE;
+     int32_t cp = getSingleCP(s);
+     if (cp < 0) {
+-        return stringsContains(s);
++        return strings->contains((void*) &s);
+     } else {
+         return contains((UChar32) cp);
+     }
+@@ -469,7 +524,8 @@ UBool UnicodeSet::containsAll(const Unic
+             return FALSE;
+         }
+     }
+-    return !c.hasStrings() || (strings != nullptr && strings->containsAll(*c.strings));
++    if (!strings->containsAll(*c.strings)) return FALSE;
++    return TRUE;
+ }
+ 
+ /**
+@@ -515,7 +571,8 @@ UBool UnicodeSet::containsNone(const Uni
+             return FALSE;
+         }
+     }
+-    return strings == nullptr || !c.hasStrings() || strings->containsNone(*c.strings);
++    if (!strings->containsNone(*c.strings)) return FALSE;
++    return TRUE;
+ }
+ 
+ /**
+@@ -556,7 +613,7 @@ UBool UnicodeSet::matchesIndexValue(uint
+             return TRUE;
+         }
+     }
+-    if (hasStrings()) {
++    if (strings->size() != 0) {
+         for (i=0; i<strings->size(); ++i) {
+             const UnicodeString& s = *(const UnicodeString*)strings->elementAt(i);
+             //if (s.length() == 0) {
+@@ -591,7 +648,7 @@ UMatchDegree UnicodeSet::matches(const R
+             return U_MISMATCH;
+         }
+     } else {
+-        if (hasStrings()) { // try strings first
++        if (strings->size() != 0) { // try strings first
+ 
+             // might separate forward and backward loops later
+             // for now they are combined
+@@ -792,39 +849,7 @@ UnicodeSet& UnicodeSet::set(UChar32 star
+  */
+ UnicodeSet& UnicodeSet::add(UChar32 start, UChar32 end) {
+     if (pinCodePoint(start) < pinCodePoint(end)) {
+-        UChar32 limit = end + 1;
+-        // Fast path for adding a new range after the last one.
+-        // Odd list length: [..., lastStart, lastLimit, HIGH]
+-        if ((len & 1) != 0) {
+-            // If the list is empty, set lastLimit low enough to not be adjacent to 0.
+-            UChar32 lastLimit = len == 1 ? -2 : list[len - 2];
+-            if (lastLimit <= start && !isFrozen() && !isBogus()) {
+-                if (lastLimit == start) {
+-                    // Extend the last range.
+-                    list[len - 2] = limit;
+-                    if (limit == UNICODESET_HIGH) {
+-                        --len;
+-                    }
+-                } else {
+-                    list[len - 1] = start;
+-                    if (limit < UNICODESET_HIGH) {
+-                        if (ensureCapacity(len + 2)) {
+-                            list[len++] = limit;
+-                            list[len++] = UNICODESET_HIGH;
+-                        }
+-                    } else {  // limit == UNICODESET_HIGH
+-                        if (ensureCapacity(len + 1)) {
+-                            list[len++] = UNICODESET_HIGH;
+-                        }
+-                    }
+-                }
+-                releasePattern();
+-                return *this;
+-            }
+-        }
+-        // This is slow. Could be much faster using findCodePoint(start)
+-        // and modifying the list, dealing with adjacent & overlapping ranges.
+-        UChar32 range[3] = { start, limit, UNICODESET_HIGH };
++        UChar32 range[3] = { start, end+1, UNICODESET_HIGH };
+         add(range, 2, 0);
+     } else if (start == end) {
+         add(start);
+@@ -893,7 +918,9 @@ UnicodeSet& UnicodeSet::add(UChar32 c) {
+         list[i] = c;
+         // if we touched the HIGH mark, then add a new one
+         if (c == (UNICODESET_HIGH - 1)) {
+-            if (!ensureCapacity(len+1)) {
++            UErrorCode status = U_ZERO_ERROR;
++            ensureCapacity(len+1, status);
++            if (U_FAILURE(status)) {
+                 // ensureCapacity will mark the object as Bogus if OOM failure happens.
+                 return *this;
+             }
+@@ -937,13 +964,21 @@ UnicodeSet& UnicodeSet::add(UChar32 c) {
+         //                             ^
+         //                             list[i]
+ 
+-        if (!ensureCapacity(len+2)) {
++        UErrorCode status = U_ZERO_ERROR;
++        ensureCapacity(len+2, status);
++        if (U_FAILURE(status)) {
+             // ensureCapacity will mark the object as Bogus if OOM failure happens.
+             return *this;
+         }
+ 
+-        UChar32 *p = list + i;
+-        uprv_memmove(p + 2, p, (len - i) * sizeof(*p));
++        //for (int32_t k=len-1; k>=i; --k) {
++        //    list[k+2] = list[k];
++        //}
++        UChar32* src = list + len;
++        UChar32* dst = src + 2;
++        UChar32* srclimit = list + i;
++        while (src > srclimit) *(--dst) = *(--src);
++
+         list[i] = c;
+         list[i+1] = c+1;
+         len += 2;
+@@ -979,7 +1014,7 @@ UnicodeSet& UnicodeSet::add(const Unicod
+     if (s.length() == 0 || isFrozen() || isBogus()) return *this;
+     int32_t cp = getSingleCP(s);
+     if (cp < 0) {
+-        if (!stringsContains(s)) {
++        if (!strings->contains((void*) &s)) {
+             _add(s);
+             releasePattern();
+         }
+@@ -998,16 +1033,12 @@ void UnicodeSet::_add(const UnicodeStrin
+     if (isFrozen() || isBogus()) {
+         return;
+     }
+-    UErrorCode ec = U_ZERO_ERROR;
+-    if (strings == nullptr && !allocateStrings(ec)) {
+-        setToBogus();
+-        return;
+-    }
+     UnicodeString* t = new UnicodeString(s);
+     if (t == NULL) { // Check for memory allocation error.
+         setToBogus();
+         return;
+     }
++    UErrorCode ec = U_ZERO_ERROR;
+     strings->sortedInsert(t, compareUnicodeString, ec);
+     if (U_FAILURE(ec)) {
+         setToBogus();
+@@ -1090,10 +1121,7 @@ UnicodeSet& UnicodeSet::removeAll(const
+ }
+ 
+ UnicodeSet& UnicodeSet::removeAllStrings() {
+-    if (!isFrozen() && hasStrings()) {
+-        strings->removeAllElements();
+-        releasePattern();
+-    }
++    strings->removeAllElements();
+     return *this;
+ }
+ 
+@@ -1189,9 +1217,8 @@ UnicodeSet& UnicodeSet::remove(const Uni
+     if (s.length() == 0 || isFrozen() || isBogus()) return *this;
+     int32_t cp = getSingleCP(s);
+     if (cp < 0) {
+-        if (strings != nullptr && strings->removeElement((void*) &s)) {
+-            releasePattern();
+-        }
++        strings->removeElement((void*) &s);
++        releasePattern();
+     } else {
+         remove((UChar32)cp, (UChar32)cp);
+     }
+@@ -1233,17 +1260,24 @@ UnicodeSet& UnicodeSet::complement(void)
+     if (isFrozen() || isBogus()) {
+         return *this;
+     }
++    UErrorCode status = U_ZERO_ERROR;
+     if (list[0] == UNICODESET_LOW) {
+-        uprv_memmove(list, list + 1, (size_t)(len-1)*sizeof(UChar32));
++        ensureBufferCapacity(len-1, status);
++        if (U_FAILURE(status)) {
++            return *this;
++        }
++        uprv_memcpy(buffer, list + 1, (size_t)(len-1)*sizeof(UChar32));
+         --len;
+     } else {
+-        if (!ensureCapacity(len+1)) {
++        ensureBufferCapacity(len+1, status);
++        if (U_FAILURE(status)) {
+             return *this;
+         }
+-        uprv_memmove(list + 1, list, (size_t)len*sizeof(UChar32));
+-        list[0] = UNICODESET_LOW;
++        uprv_memcpy(buffer + 1, list, (size_t)len*sizeof(UChar32));
++        buffer[0] = UNICODESET_LOW;
+         ++len;
+     }
++    swapBuffers();
+     releasePattern();
+     return *this;
+ }
+@@ -1260,7 +1294,7 @@ UnicodeSet& UnicodeSet::complement(const
+     if (s.length() == 0 || isFrozen() || isBogus()) return *this;
+     int32_t cp = getSingleCP(s);
+     if (cp < 0) {
+-        if (stringsContains(s)) {
++        if (strings->contains((void*) &s)) {
+             strings->removeElement((void*) &s);
+         } else {
+             _add(s);
+@@ -1291,7 +1325,7 @@ UnicodeSet& UnicodeSet::addAll(const Uni
+     if ( c.strings!=NULL ) {
+         for (int32_t i=0; i<c.strings->size(); ++i) {
+             const UnicodeString* s = (const UnicodeString*)c.strings->elementAt(i);
+-            if (!stringsContains(*s)) {
++            if (!strings->contains((void*) s)) {
+                 _add(*s);
+             }
+         }
+@@ -1313,13 +1347,7 @@ UnicodeSet& UnicodeSet::retainAll(const
+         return *this;
+     }
+     retain(c.list, c.len, 0);
+-    if (hasStrings()) {
+-        if (!c.hasStrings()) {
+-            strings->removeAllElements();
+-        } else {
+-            strings->retainAll(*c.strings);
+-        }
+-    }
++    strings->retainAll(*c.strings);
+     return *this;
+ }
+ 
+@@ -1337,9 +1365,7 @@ UnicodeSet& UnicodeSet::removeAll(const
+         return *this;
+     }
+     retain(c.list, c.len, 2);
+-    if (hasStrings() && c.hasStrings()) {
+-        strings->removeAll(*c.strings);
+-    }
++    strings->removeAll(*c.strings);
+     return *this;
+ }
+ 
+@@ -1357,12 +1383,10 @@ UnicodeSet& UnicodeSet::complementAll(co
+     }
+     exclusiveOr(c.list, c.len, 0);
+ 
+-    if (c.strings != nullptr) {
+-        for (int32_t i=0; i<c.strings->size(); ++i) {
+-            void* e = c.strings->elementAt(i);
+-            if (strings == nullptr || !strings->removeElement(e)) {
+-                _add(*(const UnicodeString*)e);
+-            }
++    for (int32_t i=0; i<c.strings->size(); ++i) {
++        void* e = c.strings->elementAt(i);
++        if (!strings->removeElement(e)) {
++            _add(*(const UnicodeString*)e);
+         }
+     }
+     return *this;
+@@ -1376,14 +1400,18 @@ UnicodeSet& UnicodeSet::clear(void) {
+     if (isFrozen()) {
+         return *this;
+     }
+-    list[0] = UNICODESET_HIGH;
++    if (list != NULL) {
++        list[0] = UNICODESET_HIGH;
++    }
+     len = 1;
+     releasePattern();
+     if (strings != NULL) {
+         strings->removeAllElements();
+     }
+-    // Remove bogus
+-    fFlags = 0;
++    if (list != NULL && strings != NULL) {
++        // Remove bogus
++        fFlags = 0;
++    }
+     return *this;
+ }
+ 
+@@ -1417,6 +1445,10 @@ UChar32 UnicodeSet::getRangeEnd(int32_t
+     return list[index*2 + 1] - 1;
+ }
+ 
++int32_t UnicodeSet::getStringCount() const {
++    return strings->size();
++}
++
+ const UnicodeString* UnicodeSet::getString(int32_t index) const {
+     return (const UnicodeString*) strings->elementAt(index);
+ }
+@@ -1430,32 +1462,22 @@ UnicodeSet& UnicodeSet::compact() {
+         return *this;
+     }
+     // Delete buffer first to defragment memory less.
+-    if (buffer != stackList) {
++    if (buffer != NULL) {
+         uprv_free(buffer);
+         buffer = NULL;
+-        bufferCapacity = 0;
+     }
+-    if (list == stackList) {
+-        // pass
+-    } else if (len <= INITIAL_CAPACITY) {
+-        uprv_memcpy(stackList, list, len * sizeof(UChar32));
+-        uprv_free(list);
+-        list = stackList;
+-        capacity = INITIAL_CAPACITY;
+-    } else if ((len + 7) < capacity) {
+-        // If we have more than a little unused capacity, shrink it to len.
+-        UChar32* temp = (UChar32*) uprv_realloc(list, sizeof(UChar32) * len);
++    if (len < capacity) {
++        // Make the capacity equal to len or 1.
++        // We don't want to realloc of 0 size.
++        int32_t newCapacity = len + (len == 0);
++        UChar32* temp = (UChar32*) uprv_realloc(list, sizeof(UChar32) * newCapacity);
+         if (temp) {
+             list = temp;
+-            capacity = len;
++            capacity = newCapacity;
+         }
+         // else what the heck happened?! We allocated less memory!
+         // Oh well. We'll keep our original array.
+     }
+-    if (strings != nullptr && strings->isEmpty()) {
+-        delete strings;
+-        strings = nullptr;
+-    }
+     return *this;
+ }
+ 
+@@ -1466,8 +1488,10 @@ UnicodeSet& UnicodeSet::compact() {
+ /**
+  * Deserialize constructor.
+  */
+-UnicodeSet::UnicodeSet(const uint16_t data[], int32_t dataLen, ESerialization serialization,
+-                       UErrorCode &ec) {
++UnicodeSet::UnicodeSet(const uint16_t data[], int32_t dataLen, ESerialization serialization, UErrorCode &ec)
++  : len(1), capacity(1+START_EXTRA), list(0), bmpSet(0), buffer(0),
++    bufferCapacity(0), patLen(0), pat(NULL), strings(NULL), stringSpan(NULL),
++    fFlags(0) {
+ 
+   if(U_FAILURE(ec)) {
+     setToBogus();
+@@ -1482,15 +1506,24 @@ UnicodeSet::UnicodeSet(const uint16_t da
+     return;
+   }
+ 
++  allocateStrings(ec);
++  if (U_FAILURE(ec)) {
++    setToBogus();
++    return;
++  }
++
+   // bmp?
+   int32_t headerSize = ((data[0]&0x8000)) ?2:1;
+   int32_t bmpLength = (headerSize==1)?data[0]:data[1];
+ 
+-  int32_t newLength = (((data[0]&0x7FFF)-bmpLength)/2)+bmpLength;
++  len = (((data[0]&0x7FFF)-bmpLength)/2)+bmpLength;
+ #ifdef DEBUG_SERIALIZE
+-  printf("dataLen %d headerSize %d bmpLen %d len %d. data[0]=%X/%X/%X/%X\n", dataLen,headerSize,bmpLength,newLength, data[0],data[1],data[2],data[3]);
++  printf("dataLen %d headerSize %d bmpLen %d len %d. data[0]=%X/%X/%X/%X\n", dataLen,headerSize,bmpLength,len, data[0],data[1],data[2],data[3]);
+ #endif
+-  if(!ensureCapacity(newLength + 1)) {  // +1 for HIGH
++  capacity = len+1;
++  list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
++  if(!list || U_FAILURE(ec)) {
++    setToBogus();
+     return;
+   }
+   // copy bmp
+@@ -1502,18 +1535,15 @@ UnicodeSet::UnicodeSet(const uint16_t da
+ #endif
+   }
+   // copy smp
+-  for(i=bmpLength;i<newLength;i++) {
++  for(i=bmpLength;i<len;i++) {
+     list[i] = ((UChar32)data[headerSize+bmpLength+(i-bmpLength)*2+0] << 16) +
+               ((UChar32)data[headerSize+bmpLength+(i-bmpLength)*2+1]);
+ #ifdef DEBUG_SERIALIZE
+     printf("<<32@%d+[%d] %lX\n", headerSize+bmpLength+i, i, list[i]);
+ #endif
+   }
+-  U_ASSERT(i == newLength);
+-  if (i == 0 || list[i - 1] != UNICODESET_HIGH) {
+-    list[i++] = UNICODESET_HIGH;
+-  }
+-  len = i;
++  // terminator
++  list[len++]=UNICODESET_HIGH;
+ }
+ 
+ 
+@@ -1634,65 +1664,33 @@ UBool UnicodeSet::allocateStrings(UError
+     return TRUE;
+ }
+ 
+-int32_t UnicodeSet::nextCapacity(int32_t minCapacity) {
+-    // Grow exponentially to reduce the frequency of allocations.
+-    if (minCapacity < INITIAL_CAPACITY) {
+-        return minCapacity + INITIAL_CAPACITY;
+-    } else if (minCapacity <= 2500) {
+-        return 5 * minCapacity;
+-    } else {
+-        int32_t newCapacity = 2 * minCapacity;
+-        if (newCapacity > MAX_LENGTH) {
+-            newCapacity = MAX_LENGTH;
+-        }
+-        return newCapacity;
+-    }
+-}
+-
+-bool UnicodeSet::ensureCapacity(int32_t newLen) {
+-    if (newLen > MAX_LENGTH) {
+-        newLen = MAX_LENGTH;
+-    }
++void UnicodeSet::ensureCapacity(int32_t newLen, UErrorCode& ec) {
+     if (newLen <= capacity) {
+-        return true;
++        return;
+     }
+-    int32_t newCapacity = nextCapacity(newLen);
+-    UChar32* temp = (UChar32*) uprv_malloc(newCapacity * sizeof(UChar32));
++    UChar32* temp = (UChar32*) uprv_realloc(list, sizeof(UChar32) * (newLen + GROW_EXTRA));
+     if (temp == NULL) {
++        ec = U_MEMORY_ALLOCATION_ERROR;
+         setToBogus(); // set the object to bogus state if an OOM failure occurred.
+-        return false;
+-    }
+-    // Copy only the actual contents.
+-    uprv_memcpy(temp, list, len * sizeof(UChar32));
+-    if (list != stackList) {
+-        uprv_free(list);
++        return;
+     }
+     list = temp;
+-    capacity = newCapacity;
+-    return true;
++    capacity = newLen + GROW_EXTRA;
++    // else we keep the original contents on the memory failure.
+ }
+ 
+-bool UnicodeSet::ensureBufferCapacity(int32_t newLen) {
+-    if (newLen > MAX_LENGTH) {
+-        newLen = MAX_LENGTH;
+-    }
+-    if (newLen <= bufferCapacity) {
+-        return true;
+-    }
+-    int32_t newCapacity = nextCapacity(newLen);
+-    UChar32* temp = (UChar32*) uprv_malloc(newCapacity * sizeof(UChar32));
++void UnicodeSet::ensureBufferCapacity(int32_t newLen, UErrorCode& ec) {
++    if (buffer != NULL && newLen <= bufferCapacity)
++        return;
++    UChar32* temp = (UChar32*) uprv_realloc(buffer, sizeof(UChar32) * (newLen + GROW_EXTRA));
+     if (temp == NULL) {
++        ec = U_MEMORY_ALLOCATION_ERROR;
+         setToBogus();
+-        return false;
+-    }
+-    // The buffer has no contents to be copied.
+-    // It is always filled from scratch after this call.
+-    if (buffer != stackList) {
+-        uprv_free(buffer);
++        return;
+     }
+     buffer = temp;
+-    bufferCapacity = newCapacity;
+-    return true;
++    bufferCapacity = newLen + GROW_EXTRA;
++    // else we keep the original contents on the memory failure.
+ }
+ 
+ /**
+@@ -1729,7 +1727,9 @@ void UnicodeSet::exclusiveOr(const UChar
+     if (isFrozen() || isBogus()) {
+         return;
+     }
+-    if (!ensureBufferCapacity(len + otherLen)) {
++    UErrorCode status = U_ZERO_ERROR;
++    ensureBufferCapacity(len + otherLen, status);
++    if (U_FAILURE(status)) {
+         return;
+     }
+ 
+@@ -1777,7 +1777,9 @@ void UnicodeSet::add(const UChar32* othe
+     if (isFrozen() || isBogus() || other==NULL) {
+         return;
+     }
+-    if (!ensureBufferCapacity(len + otherLen)) {
++    UErrorCode status = U_ZERO_ERROR;
++    ensureBufferCapacity(len + otherLen, status);
++    if (U_FAILURE(status)) {
+         return;
+     }
+ 
+@@ -1888,7 +1890,9 @@ void UnicodeSet::retain(const UChar32* o
+     if (isFrozen() || isBogus()) {
+         return;
+     }
+-    if (!ensureBufferCapacity(len + otherLen)) {
++    UErrorCode status = U_ZERO_ERROR;
++    ensureBufferCapacity(len + otherLen, status);
++    if (U_FAILURE(status)) {
+         return;
+     }
+ 
+@@ -2134,14 +2138,12 @@ UnicodeString& UnicodeSet::_generatePatt
+         }
+     }
+ 
+-    if (strings != nullptr) {
+-        for (int32_t i = 0; i<strings->size(); ++i) {
+-            result.append(OPEN_BRACE);
+-            _appendToPat(result,
+-                         *(const UnicodeString*) strings->elementAt(i),
+-                         escapeUnprintable);
+-            result.append(CLOSE_BRACE);
+-        }
++    for (int32_t i = 0; i<strings->size(); ++i) {
++        result.append(OPEN_BRACE);
++        _appendToPat(result,
++                     *(const UnicodeString*) strings->elementAt(i),
++                     escapeUnprintable);
++        result.append(CLOSE_BRACE);
+     }
+     return result.append(SET_CLOSE);
+ }
+@@ -2160,12 +2162,13 @@ void UnicodeSet::releasePattern() {
+ /**
+ * Set the new pattern to cache.
+ */
+-void UnicodeSet::setPattern(const char16_t *newPat, int32_t newPatLen) {
++void UnicodeSet::setPattern(const UnicodeString& newPat) {
+     releasePattern();
++    int32_t newPatLen = newPat.length();
+     pat = (UChar *)uprv_malloc((newPatLen + 1) * sizeof(UChar));
+     if (pat) {
+         patLen = newPatLen;
+-        u_memcpy(pat, newPat, patLen);
++        newPat.extractBetween(0, patLen, pat);
+         pat[patLen] = 0;
+     }
+     // else we don't care if malloc failed. This was just a nice cache.
+@@ -2174,15 +2177,30 @@ void UnicodeSet::setPattern(const char16
+ 
+ UnicodeFunctor *UnicodeSet::freeze() {
+     if(!isFrozen() && !isBogus()) {
+-        compact();
++        // Do most of what compact() does before freezing because
++        // compact() will not work when the set is frozen.
++        // Small modification: Don't shrink if the savings would be tiny (<=GROW_EXTRA).
++
++        // Delete buffer first to defragment memory less.
++        if (buffer != NULL) {
++            uprv_free(buffer);
++            buffer = NULL;
++        }
++        if (capacity > (len + GROW_EXTRA)) {
++            // Make the capacity equal to len or 1.
++            // We don't want to realloc of 0 size.
++            capacity = len + (len == 0);
++            list = (UChar32*) uprv_realloc(list, sizeof(UChar32) * capacity);
++            if (list == NULL) { // Check for memory allocation error.
++                setToBogus();
++                return this;
++            }
++        }
+ 
+         // Optimize contains() and span() and similar functions.
+-        if (hasStrings()) {
++        if (!strings->isEmpty()) {
+             stringSpan = new UnicodeSetStringSpan(*this, *strings, UnicodeSetStringSpan::ALL);
+-            if (stringSpan == nullptr) {
+-                setToBogus();
+-                return this;
+-            } else if (!stringSpan->needsStringSpanUTF16()) {
++            if (stringSpan != NULL && !stringSpan->needsStringSpanUTF16()) {
+                 // All strings are irrelevant for span() etc. because
+                 // all of each string's code points are contained in this set.
+                 // Do not check needsStringSpanUTF8() because UTF-8 has at most as
+@@ -2215,7 +2233,7 @@ int32_t UnicodeSet::span(const UChar *s,
+     }
+     if(stringSpan!=NULL) {
+         return stringSpan->span(s, length, spanCondition);
+-    } else if(hasStrings()) {
++    } else if(!strings->isEmpty()) {
+         uint32_t which= spanCondition==USET_SPAN_NOT_CONTAINED ?
+                             UnicodeSetStringSpan::FWD_UTF16_NOT_CONTAINED :
+                             UnicodeSetStringSpan::FWD_UTF16_CONTAINED;
+@@ -2252,7 +2270,7 @@ int32_t UnicodeSet::spanBack(const UChar
+     }
+     if(stringSpan!=NULL) {
+         return stringSpan->spanBack(s, length, spanCondition);
+-    } else if(hasStrings()) {
++    } else if(!strings->isEmpty()) {
+         uint32_t which= spanCondition==USET_SPAN_NOT_CONTAINED ?
+                             UnicodeSetStringSpan::BACK_UTF16_NOT_CONTAINED :
+                             UnicodeSetStringSpan::BACK_UTF16_CONTAINED;
+@@ -2290,7 +2308,7 @@ int32_t UnicodeSet::spanUTF8(const char
+     }
+     if(stringSpan!=NULL) {
+         return stringSpan->spanUTF8((const uint8_t *)s, length, spanCondition);
+-    } else if(hasStrings()) {
++    } else if(!strings->isEmpty()) {
+         uint32_t which= spanCondition==USET_SPAN_NOT_CONTAINED ?
+                             UnicodeSetStringSpan::FWD_UTF8_NOT_CONTAINED :
+                             UnicodeSetStringSpan::FWD_UTF8_CONTAINED;
+@@ -2328,7 +2346,7 @@ int32_t UnicodeSet::spanBackUTF8(const c
+     }
+     if(stringSpan!=NULL) {
+         return stringSpan->spanBackUTF8((const uint8_t *)s, length, spanCondition);
+-    } else if(hasStrings()) {
++    } else if(!strings->isEmpty()) {
+         uint32_t which= spanCondition==USET_SPAN_NOT_CONTAINED ?
+                             UnicodeSetStringSpan::BACK_UTF8_NOT_CONTAINED :
+                             UnicodeSetStringSpan::BACK_UTF8_CONTAINED;
+diff -urp icu4c-63_2/icu/source/common/uniset_props.cpp icu4c-63_1/icu/source/common/uniset_props.cpp
+--- icu4c-63_2/icu/source/common/uniset_props.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/uniset_props.cpp	2018-10-02 00:39:56.000000000 +0200
+@@ -47,6 +47,10 @@
+ 
+ U_NAMESPACE_USE
+ 
++// initial storage. Must be >= 0
++// *** same as in uniset.cpp ! ***
++#define START_EXTRA 16
++
+ // Define UChar constants using hex for EBCDIC compatibility
+ // Used #define to reduce private static exports and memory access time.
+ #define SET_OPEN        ((UChar)0x005B) /*[*/
+@@ -181,8 +185,21 @@ isPOSIXClose(const UnicodeString &patter
+  * @param pattern a string specifying what characters are in the set
+  */
+ UnicodeSet::UnicodeSet(const UnicodeString& pattern,
+-                       UErrorCode& status) {
+-    applyPattern(pattern, status);
++                       UErrorCode& status) :
++    len(0), capacity(START_EXTRA), list(0), bmpSet(0), buffer(0),
++    bufferCapacity(0), patLen(0), pat(NULL), strings(NULL), stringSpan(NULL),
++    fFlags(0)
++{
++    if(U_SUCCESS(status)){
++        list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
++        /* test for NULL */
++        if(list == NULL) {
++            status = U_MEMORY_ALLOCATION_ERROR;  
++        }else{
++            allocateStrings(status);
++            applyPattern(pattern, status);
++        }
++    }
+     _dbgct(this);
+ }
+ 
+@@ -696,11 +713,6 @@ static UBool numericValueFilter(UChar32
+     return u_getNumericValue(ch) == *(double*)context;
+ }
+ 
+-static UBool generalCategoryMaskFilter(UChar32 ch, void* context) {
+-    int32_t value = *(int32_t*)context;
+-    return (U_GET_GC_MASK((UChar32) ch) & value) != 0;
+-}
+-
+ static UBool versionFilter(UChar32 ch, void* context) {
+     static const UVersionInfo none = { 0, 0, 0, 0 };
+     UVersionInfo v;
+@@ -709,16 +721,6 @@ static UBool versionFilter(UChar32 ch, v
+     return uprv_memcmp(&v, &none, sizeof(v)) > 0 && uprv_memcmp(&v, version, sizeof(v)) <= 0;
+ }
+ 
+-typedef struct {
+-    UProperty prop;
+-    int32_t value;
+-} IntPropertyContext;
+-
+-static UBool intPropertyFilter(UChar32 ch, void* context) {
+-    IntPropertyContext* c = (IntPropertyContext*)context;
+-    return u_getIntPropertyValue((UChar32) ch, c->prop) == c->value;
+-}
+-
+ static UBool scriptExtensionsFilter(UChar32 ch, void* context) {
+     return uscript_hasScript(ch, *(UScriptCode*)context);
+ }
+@@ -779,6 +781,43 @@ void UnicodeSet::applyFilter(UnicodeSet:
+ 
+ namespace {
+ 
++/** Maps map values to 1 if the mask contains their value'th bit, all others to 0. */
++uint32_t U_CALLCONV generalCategoryMaskFilter(const void *context, uint32_t value) {
++    uint32_t mask = *(const uint32_t *)context;
++    value = U_MASK(value) & mask;
++    if (value != 0) { value = 1; }
++    return value;
++}
++
++/** Maps one map value to 1, all others to 0. */
++uint32_t U_CALLCONV intValueFilter(const void *context, uint32_t value) {
++    uint32_t v = *(const uint32_t *)context;
++    return value == v ? 1 : 0;
++}
++
++}  // namespace
++
++void UnicodeSet::applyIntPropertyValue(const UCPMap *map,
++                                       UCPMapValueFilter *filter, const void *context,
++                                       UErrorCode &errorCode) {
++    if (U_FAILURE(errorCode)) { return; }
++    clear();
++    UChar32 start = 0, end;
++    uint32_t value;
++    while ((end = ucpmap_getRange(map, start, UCPMAP_RANGE_NORMAL, 0,
++                                  filter, context, &value)) >= 0) {
++        if (value != 0) {
++            add(start, end);
++        }
++        start = end + 1;
++    }
++    if (isBogus()) {
++        errorCode = U_MEMORY_ALLOCATION_ERROR;
++    }
++}
++
++namespace {
++
+ static UBool mungeCharName(char* dst, const char* src, int32_t dstCapacity) {
+     /* Note: we use ' ' in compiler code page */
+     int32_t j = 0;
+@@ -806,10 +845,11 @@ static UBool mungeCharName(char* dst, co
+ 
+ UnicodeSet&
+ UnicodeSet::applyIntPropertyValue(UProperty prop, int32_t value, UErrorCode& ec) {
+-    if (U_FAILURE(ec) || isFrozen()) { return *this; }
++    if (U_FAILURE(ec)) { return *this; }
++    // All of the following check isFrozen() before modifying this set.
+     if (prop == UCHAR_GENERAL_CATEGORY_MASK) {
+-        const UnicodeSet* inclusions = CharacterProperties::getInclusionsForProperty(prop, ec);
+-        applyFilter(generalCategoryMaskFilter, &value, inclusions, ec);
++        const UCPMap *map = u_getIntPropertyMap(UCHAR_GENERAL_CATEGORY, &ec);
++        applyIntPropertyValue(map, generalCategoryMaskFilter, &value, ec);
+     } else if (prop == UCHAR_SCRIPT_EXTENSIONS) {
+         const UnicodeSet* inclusions = CharacterProperties::getInclusionsForProperty(prop, ec);
+         UScriptCode script = (UScriptCode)value;
+@@ -826,11 +866,14 @@ UnicodeSet::applyIntPropertyValue(UPrope
+             clear();
+         }
+     } else if (UCHAR_INT_START <= prop && prop < UCHAR_INT_LIMIT) {
+-        const UnicodeSet* inclusions = CharacterProperties::getInclusionsForProperty(prop, ec);
+-        IntPropertyContext c = {prop, value};
+-        applyFilter(intPropertyFilter, &c, inclusions, ec);
++        const UCPMap *map = u_getIntPropertyMap(prop, &ec);
++        applyIntPropertyValue(map, intValueFilter, &value, ec);
+     } else {
++        // This code used to always call getInclusions(property source)
++        // which sets an error for an unsupported property.
+         ec = U_ILLEGAL_ARGUMENT_ERROR;
++        // Otherwise we would just clear() this set because
++        // getIntPropertyValue(c, prop) returns 0 for all code points.
+     }
+     return *this;
+ }
+diff -urp icu4c-63_2/icu/source/common/uprops.h icu4c-63_1/icu/source/common/uprops.h
+--- icu4c-63_2/icu/source/common/uprops.h	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/uprops.h	2018-10-02 00:39:56.000000000 +0200
+@@ -462,6 +462,7 @@ class UnicodeSet;
+ class CharacterProperties {
+ public:
+     CharacterProperties() = delete;
++    static void U_CALLCONV initInclusion(UPropertySource src, UErrorCode &errorCode);
+     static const UnicodeSet *getInclusionsForProperty(UProperty prop, UErrorCode &errorCode);
+ };
+ 
+diff -urp icu4c-63_2/icu/source/common/uset.cpp icu4c-63_1/icu/source/common/uset.cpp
+--- icu4c-63_2/icu/source/common/uset.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/uset.cpp	2018-09-29 02:34:41.000000000 +0200
+@@ -249,7 +249,7 @@ class USetAccess /* not : public UObject
+ public:
+     /* Try to have the compiler inline these*/
+     inline static int32_t getStringCount(const UnicodeSet& set) {
+-        return set.stringsSize();
++        return set.getStringCount();
+     }
+     inline static const UnicodeString* getString(const UnicodeSet& set,
+                                                  int32_t i) {
+diff -urp icu4c-63_2/icu/source/common/usetiter.cpp icu4c-63_1/icu/source/common/usetiter.cpp
+--- icu4c-63_2/icu/source/common/usetiter.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/common/usetiter.cpp	2018-09-29 02:34:41.000000000 +0200
+@@ -116,7 +116,7 @@ void UnicodeSetIterator::reset() {
+         stringCount = 0;
+     } else {
+         endRange = set->getRangeCount() - 1;
+-        stringCount = set->stringsSize();
++        stringCount = set->strings->size();
+     }
+     range = 0;
+     endElement = -1;
+Binary files icu4c-63_2/icu/source/data/in/icudt63l.dat and icu4c-63_1/icu/source/data/in/icudt63l.dat differ
+diff -urp icu4c-63_2/icu/source/i18n/japancal.cpp icu4c-63_1/icu/source/i18n/japancal.cpp
+--- icu4c-63_2/icu/source/i18n/japancal.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/i18n/japancal.cpp	2018-10-02 00:39:56.000000000 +0200
+@@ -18,16 +18,6 @@
+ #if !UCONFIG_NO_FORMATTING
+ #if U_PLATFORM_HAS_WINUWP_API == 0
+ #include <stdlib.h> // getenv() is not available in UWP env
+-#else
+-#ifndef WIN32_LEAN_AND_MEAN
+-#   define WIN32_LEAN_AND_MEAN
+-#endif
+-#   define VC_EXTRALEAN
+-#   define NOUSER
+-#   define NOSERVICE
+-#   define NOIME
+-#   define NOMCX
+-#include <windows.h>
+ #endif
+ #include "cmemory.h"
+ #include "erarules.h"
+diff -urp icu4c-63_2/icu/source/i18n/unicode/numberrangeformatter.h icu4c-63_1/icu/source/i18n/unicode/numberrangeformatter.h
+--- icu4c-63_2/icu/source/i18n/unicode/numberrangeformatter.h	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/i18n/unicode/numberrangeformatter.h	2018-10-15 20:02:37.000000000 +0200
+@@ -185,14 +185,8 @@ class NumberRangeFormatterImpl;
+  * Export an explicit template instantiation. See datefmt.h
+  * (When building DLLs for Windows this is required.)
+  */
+-#if U_PLATFORM == U_PF_WINDOWS && !defined(U_IN_DOXYGEN)
+-} // namespace icu::number
+-U_NAMESPACE_END
+-
+-template struct U_I18N_API std::atomic< U_NAMESPACE_QUALIFIER number::impl::NumberRangeFormatterImpl*>;
+-
+-U_NAMESPACE_BEGIN
+-namespace number {  // icu::number
++#if U_PF_WINDOWS <= U_PLATFORM && U_PLATFORM <= U_PF_CYGWIN && !defined(U_IN_DOXYGEN)
++template struct U_I18N_API std::atomic<impl::NumberRangeFormatterImpl*>;
+ #endif
+ /** \endcond */
+ 
+diff -urp icu4c-63_2/icu/source/i18n/uspoof.cpp icu4c-63_1/icu/source/i18n/uspoof.cpp
+--- icu4c-63_2/icu/source/i18n/uspoof.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/i18n/uspoof.cpp	2018-09-29 02:34:42.000000000 +0200
+@@ -547,7 +547,7 @@ uspoof_checkUnicodeString(const USpoofCh
+     return uspoof_check2UnicodeString(sc, id, NULL, status);
+ }
+ 
+-static int32_t checkImpl(const SpoofImpl* This, const UnicodeString& id, CheckResult* checkResult, UErrorCode* status) {
++int32_t checkImpl(const SpoofImpl* This, const UnicodeString& id, CheckResult* checkResult, UErrorCode* status) {
+     U_ASSERT(This != NULL);
+     U_ASSERT(checkResult != NULL);
+     checkResult->clear();
+diff -urp icu4c-63_2/icu/source/test/intltest/convtest.cpp icu4c-63_1/icu/source/test/intltest/convtest.cpp
+--- icu4c-63_2/icu/source/test/intltest/convtest.cpp	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/test/intltest/convtest.cpp	2018-09-29 02:34:42.000000000 +0200
+@@ -606,7 +606,12 @@ ConversionTest::TestGetUnicodeSet2() {
+                 // First try to see if we have different sets because ucnv_getUnicodeSet()
+                 // added strings: The above conversion method does not tell us what strings might be convertible.
+                 // Remove strings from the set and compare again.
+-                set.removeAllStrings();
++                // Unfortunately, there are no good, direct set methods for finding out whether there are strings
++                // in the set, nor for enumerating or removing just them.
++                // Intersect all code points with the set. The intersection will not contain strings.
++                UnicodeSet temp(0, 0x10ffff);
++                temp.retainAll(set);
++                set=temp;
+             }
+             if(set!=expected) {
+                 UnicodeSet diffSet;
+diff -urp icu4c-63_2/icu/source/test/intltest/numbertest.h icu4c-63_1/icu/source/test/intltest/numbertest.h
+--- icu4c-63_2/icu/source/test/intltest/numbertest.h	2019-04-12 00:38:30.000000000 +0200
++++ icu4c-63_1/icu/source/test/intltest/numbertest.h	2018-10-02 00:39:56.000000000 +0200
+@@ -10,7 +10,6 @@
+ #include "intltest.h"
+ #include "number_affixutils.h"
+ #include "numparse_stringsegment.h"
+-#include "numrange_impl.h"
+ #include "unicode/locid.h"
+ #include "unicode/numberformatter.h"
+ #include "unicode/numberrangeformatter.h"

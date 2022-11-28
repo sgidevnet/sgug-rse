@@ -1,0 +1,177 @@
+From 8f2b0b9128f4d2dc50ae52c304237c8e9d4b85f9 Mon Sep 17 00:00:00 2001
+From: "Arnold D. Robbins" <arnold@skeeve.com>
+Date: Wed, 26 Jun 2019 21:34:29 +0300
+Subject: [PATCH 1/3] Fix a problem when using awk::var kinds of names.
+
+---
+ ChangeLog        |  6 ++++++
+ symbol.c         |  5 ++++-
+ test/ChangeLog   |  7 +++++++
+ test/Makefile.am | 33 +++++++++++++++++++++++++++++++++
+ test/Makefile.in | 33 +++++++++++++++++++++++++++++++++
+ 5 files changed, 83 insertions(+), 1 deletion(-)
+
+diff --git a/ChangeLog b/ChangeLog
+index 44178ffc..3aa5b12e 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,9 @@
++2019-06-26         Arnold D. Robbins     <arnold@skeeve.com>
++
++	* symbol.c (install): Strip off any leading `awk::' before
++	installing a symbol. Thanks to Andrew Schorr for the
++	report.
++
+ 2019-06-18         Arnold D. Robbins     <arnold@skeeve.com>
+ 
+ 	* 5.0.1: Release tar ball made.
+diff --git a/symbol.c b/symbol.c
+index fe928112..e2e07c30 100644
+--- a/symbol.c
++++ b/symbol.c
+@@ -306,7 +306,10 @@ install(const char *name, NODE *parm, NODETYPE type)
+ 	NODE *n_name;
+ 	NODE *prev;
+ 
+-	n_name = make_string(name, strlen(name));
++	if (strncmp(name, "awk::", 5) == 0)
++		n_name = make_string(name + 5, strlen(name) - 5);
++	else
++		n_name = make_string(name, strlen(name));
+ 
+ 	table = symbol_table;
+ 
+diff --git a/test/ChangeLog b/test/ChangeLog
+index a53c2d13..99391b0d 100644
+--- a/test/ChangeLog
++++ b/test/ChangeLog
+@@ -1,3 +1,10 @@
++2019-06-26         Arnold D. Robbins     <arnold@skeeve.com>
++
++	* Makefile.am (EXTRA_DIST): New tests, nsawk1[abc] and nsawk2[ab].
++	* nsawk1.awk, nsawk1a.ok, nsawk1b.ok, nsawk1c.ok, nsawk2.awk,
++	nsawk2a.ok, nsawk2b.ok: New files.
++	Tests courtesy of Michal Jaegermann.
++
+ 2019-06-18         Arnold D. Robbins     <arnold@skeeve.com>
+ 
+ 	* 5.0.1: Release tar ball made.
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 58ee1304..d7f6e016 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -782,6 +782,13 @@ EXTRA_DIST = \
+ 	noparms.ok \
+ 	nors.in \
+ 	nors.ok \
++	nsawk1.awk \
++	nsawk1a.ok \
++	nsawk1b.ok \
++	nsawk1c.ok \
++	nsawk2.awk \
++	nsawk2a.ok \
++	nsawk2b.ok \
+ 	nsbad.awk \
+ 	nsbad.ok \
+ 	nsbad_cmd.ok \
+@@ -1353,6 +1360,7 @@ GAWK_EXT_TESTS = \
+ 	lint lintexp lintindex lintint lintlength lintold lintset lintwarn \
+ 	manyfiles match1 match2 match3 mbstr1 mbstr2 mixed1 mktime muldimposix \
+ 	nastyparm negtime next nondec nondec2 nonfatal1 nonfatal2 nonfatal3 \
++	nsawk1a nsawk1b nsawk1c nsawk2a nsawk2b \
+ 	nsbad nsbad_cmd nsforloop nsfuncrecurse nsindirect1 nsindirect2 nsprof1 nsprof2 \
+ 	patsplit posix printfbad1 printfbad2 printfbad3 printfbad4 printhuge \
+ 	procinfs profile0 profile1 profile2 profile3 profile4 profile5 profile6 \
+@@ -2042,6 +2050,31 @@ readfile2::
+ 	@$(AWK) -f "$(srcdir)"/$@.awk "$(srcdir)"/$@.awk "$(srcdir)"/readdir.awk > _$@ || echo EXIT CODE: $$? >>_$@
+ 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
+ 
++nsawk1a::
++	@echo $@
++	@$(AWK) -f "$(srcdir)"/nsawk1.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
++nsawk1b::
++	@echo $@
++	@$(AWK) -v I=fine -f "$(srcdir)"/nsawk1.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
++nsawk1c::
++	@echo $@
++	@$(AWK) -v awk::I=fine -f "$(srcdir)"/nsawk1.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
++nsawk2a::
++	@echo $@
++	@$(AWK) -v I=fine -f "$(srcdir)"/nsawk2.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
++nsawk2b::
++	@echo $@
++	@$(AWK) -v awk::I=fine -f "$(srcdir)"/nsawk2.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
+ include2::
+ 	@echo $@
+ 	@AWKPATH="$(srcdir)" $(AWK) --include inclib 'BEGIN {print sandwich("a", "b", "c")}' >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
+diff --git a/test/Makefile.in b/test/Makefile.in
+index ce5b2e26..53827516 100644
+--- a/test/Makefile.in
++++ b/test/Makefile.in
+@@ -1041,6 +1041,13 @@ EXTRA_DIST = \
+ 	noparms.ok \
+ 	nors.in \
+ 	nors.ok \
++	nsawk1.awk \
++	nsawk1a.ok \
++	nsawk1b.ok \
++	nsawk1c.ok \
++	nsawk2.awk \
++	nsawk2a.ok \
++	nsawk2b.ok \
+ 	nsbad.awk \
+ 	nsbad.ok \
+ 	nsbad_cmd.ok \
+@@ -1612,6 +1619,7 @@ GAWK_EXT_TESTS = \
+ 	lint lintexp lintindex lintint lintlength lintold lintset lintwarn \
+ 	manyfiles match1 match2 match3 mbstr1 mbstr2 mixed1 mktime muldimposix \
+ 	nastyparm negtime next nondec nondec2 nonfatal1 nonfatal2 nonfatal3 \
++	nsawk1a nsawk1b nsawk1c nsawk2a nsawk2b \
+ 	nsbad nsbad_cmd nsforloop nsfuncrecurse nsindirect1 nsindirect2 nsprof1 nsprof2 \
+ 	patsplit posix printfbad1 printfbad2 printfbad3 printfbad4 printhuge \
+ 	procinfs profile0 profile1 profile2 profile3 profile4 profile5 profile6 \
+@@ -2491,6 +2499,31 @@ readfile2::
+ 	@$(AWK) -f "$(srcdir)"/$@.awk "$(srcdir)"/$@.awk "$(srcdir)"/readdir.awk > _$@ || echo EXIT CODE: $$? >>_$@
+ 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
+ 
++nsawk1a::
++	@echo $@
++	@$(AWK) -f "$(srcdir)"/nsawk1.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
++nsawk1b::
++	@echo $@
++	@$(AWK) -v I=fine -f "$(srcdir)"/nsawk1.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
++nsawk1c::
++	@echo $@
++	@$(AWK) -v awk::I=fine -f "$(srcdir)"/nsawk1.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
++nsawk2a::
++	@echo $@
++	@$(AWK) -v I=fine -f "$(srcdir)"/nsawk2.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
++nsawk2b::
++	@echo $@
++	@$(AWK) -v awk::I=fine -f "$(srcdir)"/nsawk2.awk > _$@ || echo EXIT CODE: $$? >>_$@
++	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
++
+ include2::
+ 	@echo $@
+ 	@AWKPATH="$(srcdir)" $(AWK) --include inclib 'BEGIN {print sandwich("a", "b", "c")}' >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
+-- 
+2.22.0
+

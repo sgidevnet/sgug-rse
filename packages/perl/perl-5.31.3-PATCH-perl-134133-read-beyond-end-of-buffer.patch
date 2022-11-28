@@ -1,0 +1,31 @@
+From c6f37d61adb39a6d7764b1bcb6bb67accb22a0a0 Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Fri, 24 May 2019 09:01:46 -0600
+Subject: [PATCH] PATCH: [perl #134133] read beyond end of buffer
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The code was using the wrong limit variable.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ regcomp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/regcomp.c b/regcomp.c
+index d61fd434fe..b2cc6672cb 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -22946,7 +22946,7 @@ Perl_parse_uniprop_string(pTHX_
+         /* Certain properties whose values are numeric need special handling.
+          * They may optionally be prefixed by 'is'.  Ignore that prefix for the
+          * purposes of checking if this is one of those properties */
+-        if (memBEGINPs(lookup_name, name_len, "is")) {
++        if (memBEGINPs(lookup_name, j, "is")) {
+             lookup_offset = 2;
+         }
+ 
+-- 
+2.21.0
+

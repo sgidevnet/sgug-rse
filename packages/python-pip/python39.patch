@@ -1,0 +1,45 @@
+From ef7ca1472c1fdd085cffb8183b7ce8abbe9e2800 Mon Sep 17 00:00:00 2001
+From: Chih-Hsuan Yen <yan12125@gmail.com>
+Date: Thu, 18 Jul 2019 12:45:15 +0800
+Subject: [PATCH] Add an html5lib patch for Python 3.9 compatibility
+
+The patch is adapted from https://github.com/html5lib/html5lib-python/commit/4f9235752cea29c5a31721440578b430823a1e69
+
+Closes https://github.com/pypa/pip/issues/6407
+Closes https://github.com/pypa/pip/issues/6237
+---
+ src/pip/_vendor/html5lib/_trie/_base.py      |  5 +++-
+ src/pip/_vendor/html5lib/treebuilders/dom.py |  5 +++-
+ 4 files changed, 40 insertions(+), 2 deletions(-)
+
+diff --git a/src/pip/_vendor/html5lib/_trie/_base.py b/src/pip/_vendor/html5lib/_trie/_base.py
+index a1158bbbf..6b71975f0 100644
+--- a/src/pip/_vendor/html5lib/_trie/_base.py
++++ b/src/pip/_vendor/html5lib/_trie/_base.py
+@@ -1,6 +1,9 @@
+ from __future__ import absolute_import, division, unicode_literals
+ 
+-from collections import Mapping
++try:
++    from collections.abc import Mapping
++except ImportError:  # Python 2.7
++    from collections import Mapping
+ 
+ 
+ class Trie(Mapping):
+diff --git a/src/pip/_vendor/html5lib/treebuilders/dom.py b/src/pip/_vendor/html5lib/treebuilders/dom.py
+index dcfac220b..d8b530046 100644
+--- a/src/pip/_vendor/html5lib/treebuilders/dom.py
++++ b/src/pip/_vendor/html5lib/treebuilders/dom.py
+@@ -1,7 +1,10 @@
+ from __future__ import absolute_import, division, unicode_literals
+ 
+ 
+-from collections import MutableMapping
++try:
++    from collections.abc import MutableMapping
++except ImportError:  # Python 2.7
++    from collections import MutableMapping
+ from xml.dom import minidom, Node
+ import weakref
+ 

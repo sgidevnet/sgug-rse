@@ -1,0 +1,75 @@
+From 21cd963565a43dabd59516bd4cca5c76a614f255 Mon Sep 17 00:00:00 2001
+From: Jakub Martisko <jamartis@redhat.com>
+Date: Tue, 26 Mar 2019 12:29:30 +0100
+Subject: [PATCH] Fix: the value of the skip variable in the gzexe
+
+---
+ gzexe.in          |  4 ++--
+ tests/Makefile.am |  1 +
+ tests/gzexe       | 20 ++++++++++++++++++++
+ 3 files changed, 23 insertions(+), 2 deletions(-)
+ create mode 100755 tests/gzexe
+
+diff --git a/gzexe.in b/gzexe.in
+index 6c61183..cffa84e 100644
+--- a/gzexe.in
++++ b/gzexe.in
+@@ -145,7 +145,7 @@ for i do
+   if test $decomp -eq 0; then
+     (cat <<'EOF' &&
+ #!/bin/sh
+-skip=44
++skip=49
+ 
+ tab='	'
+ nl='
+@@ -201,7 +201,7 @@ EOF
+ 
+   else
+     # decompression
+-    skip=44
++    skip=49
+     skip_line=`sed -e 1d -e 2q "$file"`
+     case $skip_line in
+     skip=[0-9] | skip=[0-9][0-9] | skip=[0-9][0-9][0-9])
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index ebdce5b..4dfbccf 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -15,6 +15,7 @@
+ # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ 
+ TESTS =					\
++	gzexe				\
+   gzip-env				\
+   helin-segv				\
+   help-version				\
+diff --git a/tests/gzexe b/tests/gzexe
+new file mode 100755
+index 0000000..45f71c7
+--- /dev/null
++++ b/tests/gzexe
+@@ -0,0 +1,20 @@
++#!/bin/sh
++#Try running simple shell script compressed by gzexe
++
++. "${srcdir=.}/init.sh"; path_prepend_ ..
++
++cat <<EOF > foo || framework_failure_
++#!/bin/sh
++echo "Hello World!"
++EOF
++
++echo "Hello World!" > exp || framework_failure_
++
++fail=0
++gzexe foo || fail=1
++/bin/sh foo > out 2> err || fail=1
++
++compare exp out || fail=1
++test -s err && fail=1
++
++Exit $fail
+-- 
+2.21.0
+

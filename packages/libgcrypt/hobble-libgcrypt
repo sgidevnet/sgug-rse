@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Quit out if anything fails.
+set -e -x
+
+# Clean out patent-or-otherwise-encumbered code.
+# EC:    ????????? ??/??/2015
+
+rm -f cipher/ecc-curves.c
+rm -f tests/curves.c
+rm -f tests/t-mpi-point.c

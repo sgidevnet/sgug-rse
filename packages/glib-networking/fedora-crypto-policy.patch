@@ -1,0 +1,26 @@
+From 0bb4eb0bbb45bf4d2265661a6cd566f20dc8ad61 Mon Sep 17 00:00:00 2001
+From: Michael Catanzaro <mcatanzaro@gnome.org>
+Date: Wed, 15 Jun 2016 10:29:50 -0500
+Subject: [PATCH] Comply with Fedora system-wide crypto policy
+
+https://bugzilla.redhat.com/show_bug.cgi?id=1179295
+---
+ tls/gnutls/gtlsconnection-gnutls.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tls/gnutls/gtlsconnection-gnutls.c b/tls/gnutls/gtlsconnection-gnutls.c
+index 3b2afa4..4b7ebca 100644
+--- a/tls/gnutls/gtlsconnection-gnutls.c
++++ b/tls/gnutls/gtlsconnection-gnutls.c
+@@ -280,7 +280,7 @@ static gnutls_priority_t priorities[2][2];
+ /* TODO: Get rid of this in favor of gnutls_set_default_priority_append()
+  * when upgrading to GnuTLS 3.6.3.
+  */
+-#define DEFAULT_BASE_PRIORITY "NORMAL:%COMPAT"
++#define DEFAULT_BASE_PRIORITY "@SYSTEM:%COMPAT"
+ 
+ static void
+ g_tls_connection_gnutls_init_priorities (void)
+-- 
+2.19.1
+

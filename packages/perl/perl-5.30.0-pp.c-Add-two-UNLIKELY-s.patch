@@ -1,0 +1,42 @@
+From 4f0ded009bf6de2da6a2a2022bec03576dcb80ca Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Wed, 1 May 2019 10:41:38 -0600
+Subject: [PATCH] pp.c: Add two UNLIKELY()s
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+It should be uncommon to shift beyond a full word
+
+Signed-off-by: Ported to 5.30.0 from
+bae047b68c92622bb4bb04499e36cdaa48138909.
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ pp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pp.c b/pp.c
+index 90db3a0..7afb090 100644
+--- a/pp.c
++++ b/pp.c
+@@ -1979,7 +1979,7 @@ static UV S_uv_shift(UV uv, int shift, bool left)
+        shift = -shift;
+        left = !left;
+    }
+-   if (shift >= IV_BITS) {
++   if (UNLIKELY(shift >= IV_BITS)) {
+        return 0;
+    }
+    return left ? uv << shift : uv >> shift;
+@@ -1991,7 +1991,7 @@ static IV S_iv_shift(IV iv, int shift, bool left)
+        shift = -shift;
+        left = !left;
+    }
+-   if (shift >= IV_BITS) {
++   if (UNLIKELY(shift >= IV_BITS)) {
+        return iv < 0 && !left ? -1 : 0;
+    }
+    return left ? iv << shift : iv >> shift;
+-- 
+2.20.1
+

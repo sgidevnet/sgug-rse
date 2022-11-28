@@ -1,0 +1,61 @@
+From f8c632f579c71012f9aca81543b880a579f634fc Mon Sep 17 00:00:00 2001
+From: Eric Haszlakiewicz <erh+git@nimenees.com>
+Date: Sun, 25 Mar 2018 18:25:58 -0400
+Subject: [PATCH] Issue #407: fix incorrect casts in calls to ctype functions
+ (isdigit and isspace) so we don't crash when asserts are enabled on certain
+ platforms and characters > 128 are parsed.
+
+---
+ json_object.c  | 2 +-
+ json_pointer.c | 4 ++--
+ json_tokener.c | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/json_object.c b/json_object.c
+index 8287163a1c..8a86bc6ea0 100644
+--- a/json_object.c
++++ b/json_object.c
+@@ -838,7 +838,7 @@ static int json_object_double_to_json_string_format(struct json_object* jso,
+ 			format_drops_decimals = 1;
+ 
+ 		if (size < (int)sizeof(buf) - 2 &&
+-		    isdigit((int)buf[0]) && /* Looks like *some* kind of number */
++		    isdigit((unsigned char)buf[0]) && /* Looks like *some* kind of number */
+ 			!p && /* Has no decimal point */
+ 		    strchr(buf, 'e') == NULL && /* Not scientific notation */
+ 			format_drops_decimals)
+diff --git a/json_pointer.c b/json_pointer.c
+index 2b2a9ef507..c7e34f76f3 100644
+--- a/json_pointer.c
++++ b/json_pointer.c
+@@ -44,7 +44,7 @@ static int is_valid_index(struct json_object *jo, const char *path, int32_t *idx
+ 	/* this code-path optimizes a bit, for when we reference the 0-9 index range in a JSON array
+ 	   and because leading zeros not allowed */
+ 	if (len == 1) {
+-		if (isdigit((int)path[0])) {
++		if (isdigit((unsigned char)path[0])) {
+ 			*idx = (path[0] - '0');
+ 			goto check_oob;
+ 		}
+@@ -58,7 +58,7 @@ static int is_valid_index(struct json_object *jo, const char *path, int32_t *idx
+ 	}
+ 	/* RFC states base-10 decimals */
+ 	for (i = 0; i < len; i++) {
+-		if (!isdigit((int)path[i])) {
++		if (!isdigit((unsigned char)path[i])) {
+ 			errno = EINVAL;
+ 			return 0;
+ 		}
+diff --git a/json_tokener.c b/json_tokener.c
+index 449a82da6f..561f7303b2 100644
+--- a/json_tokener.c
++++ b/json_tokener.c
+@@ -295,7 +295,7 @@ struct json_object* json_tokener_parse_ex(struct json_tokener *tok,
+ 
+     case json_tokener_state_eatws:
+       /* Advance until we change state */
+-      while (isspace((int)c)) {
++      while (isspace((unsigned char)c)) {
+ 	if ((!ADVANCE_CHAR(str, tok)) || (!PEEK_CHAR(c, tok)))
+ 	  goto out;
+       }

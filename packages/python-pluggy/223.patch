@@ -1,0 +1,214 @@
+From c66077d8c017c2728517be74701ebf06859c980d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miro=20Hron=C4=8Dok?= <miro@hroncok.cz>
+Date: Wed, 3 Jul 2019 00:51:04 +0200
+Subject: [PATCH 1/3] Replace importlib_metadata with importlib.metadata on
+ Python 3.8+
+
+Fixes https://github.com/pytest-dev/pluggy/issues/222
+---
+ changelog/222.trivial.rst     |  2 ++
+ docs/conf.py                  |  9 +++++++--
+ setup.py                      |  2 +-
+ src/pluggy/manager.py         |  8 ++++++--
+ testing/test_pluginmanager.py | 10 ++++++++--
+ 5 files changed, 24 insertions(+), 7 deletions(-)
+ create mode 100644 changelog/222.trivial.rst
+
+diff --git a/changelog/222.trivial.rst b/changelog/222.trivial.rst
+new file mode 100644
+index 0000000..0263e8c
+--- /dev/null
++++ b/changelog/222.trivial.rst
+@@ -0,0 +1,2 @@
++Replace ``importlib_metadata`` backport with ``importlib.metadata`` from the
++standard library on Python 3.8+.
+diff --git a/docs/conf.py b/docs/conf.py
+index 550071d..0346563 100644
+--- a/docs/conf.py
++++ b/docs/conf.py
+@@ -1,5 +1,10 @@
+ # -*- coding: utf-8 -*-
+-import importlib_metadata
++import sys
++
++if sys.version_info >= (3, 8):
++    from importlib import metadata
++else:
++    import importlib_metadata as metadata
+ 
+ 
+ extensions = [
+@@ -24,7 +29,7 @@
+ copyright = u"2016, Holger Krekel"
+ author = "Holger Krekel"
+ 
+-release = importlib_metadata.version(project)
++release = metadata.version(project)
+ # The short X.Y version.
+ version = u".".join(release.split(".")[:2])
+ 
+diff --git a/setup.py b/setup.py
+index 0f26fa0..ae2cd84 100644
+--- a/setup.py
++++ b/setup.py
+@@ -37,7 +37,7 @@ def main():
+         author_email="holger@merlinux.eu",
+         url="https://github.com/pytest-dev/pluggy",
+         python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+-        install_requires=["importlib-metadata>=0.12"],
++        install_requires=['importlib-metadata>=0.12;python_version<"3.8"'],
+         extras_require={"dev": ["pre-commit", "tox"]},
+         classifiers=classifiers,
+         packages=["pluggy"],
+diff --git a/src/pluggy/manager.py b/src/pluggy/manager.py
+index 27c86f6..6aecb2a 100644
+--- a/src/pluggy/manager.py
++++ b/src/pluggy/manager.py
+@@ -1,9 +1,13 @@
+ import inspect
++import sys
+ from . import _tracing
+ from .hooks import HookImpl, _HookRelay, _HookCaller, normalize_hookimpl_opts
+ import warnings
+ 
+-import importlib_metadata
++if sys.version_info >= (3, 8):
++    from importlib import metadata
++else:
++    import importlib_metadata as metadata
+ 
+ 
+ def _warn_for_function(warning, function):
+@@ -279,7 +283,7 @@ def load_setuptools_entrypoints(self, group, name=None):
+         :return: return the number of loaded plugins by this call.
+         """
+         count = 0
+-        for dist in importlib_metadata.distributions():
++        for dist in metadata.distributions():
+             for ep in dist.entry_points:
+                 if (
+                     ep.group != group
+diff --git a/testing/test_pluginmanager.py b/testing/test_pluginmanager.py
+index b226c41..693280c 100644
+--- a/testing/test_pluginmanager.py
++++ b/testing/test_pluginmanager.py
+@@ -2,8 +2,9 @@
+ ``PluginManager`` unit and public API testing.
+ """
+ import pytest
++import sys
+ import types
+-import importlib_metadata
++
+ from pluggy import (
+     PluginManager,
+     PluginValidationError,
+@@ -12,6 +13,11 @@
+     HookspecMarker,
+ )
+ 
++if sys.version_info >= (3, 8):
++    from importlib import metadata
++else:
++    import importlib_metadata as metadata
++
+ 
+ hookspec = HookspecMarker("example")
+ hookimpl = HookimplMarker("example")
+@@ -466,7 +472,7 @@ class Distribution(object):
+     def my_distributions():
+         return (dist,)
+ 
+-    monkeypatch.setattr(importlib_metadata, "distributions", my_distributions)
++    monkeypatch.setattr(metadata, "distributions", my_distributions)
+     num = pm.load_setuptools_entrypoints("hello")
+     assert num == 1
+     plugin = pm.get_plugin("myname")
+
+From 763b661fc15c04f85bcf6b501280641b88041d0a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miro=20Hron=C4=8Dok?= <miro@hroncok.cz>
+Date: Wed, 3 Jul 2019 01:02:41 +0200
+Subject: [PATCH 2/3] Workaround
+ https://github.com/pytest-dev/pytest/issues/5523
+
+---
+ tox.ini | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tox.ini b/tox.ini
+index 431aceb..eb917aa 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -38,7 +38,7 @@ commands =
+ minversion=2.0
+ testpaths = testing
+ #--pyargs --doctest-modules --ignore=.tox
+-addopts=-ra
++addopts=-r a
+ filterwarnings =
+   error
+ 
+
+From 1bf30d695d13c656015eaf0b29d9445d3788da68 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miro=20Hron=C4=8Dok?= <miro@hroncok.cz>
+Date: Wed, 3 Jul 2019 01:09:26 +0200
+Subject: [PATCH 3/3] Update tests matrix to reflect recent changes in pytest
+
+No Python 3.8 on AppVeyor yet.
+---
+ .travis.yml  | 8 ++++----
+ appveyor.yml | 3 +--
+ tox.ini      | 2 +-
+ 3 files changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/.travis.yml b/.travis.yml
+index 994146d..d72f517 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -32,16 +32,16 @@ jobs:
+       env: TOXENV=py37-pytestrelease-coverage
+     - python: '3.8-dev'
+       env: TOXENV=py38-pytestrelease-coverage
+-    - python: '2.7'
+-      env: TOXENV=py27-pytestmaster-coverage
+-    - python: '2.7'
+-      env: TOXENV=py27-pytestfeatures-coverage
+     - python: '3.6'
+       env: TOXENV=py36-pytestmaster-coverage
+     - python: '3.6'
+       env: TOXENV=py36-pytestfeatures-coverage
+     - python: '3.6'
+       env: TOXENV=benchmark
++    - python: '3.7'
++      env: TOXENV=py37-pytestmaster-coverage
++    - python: '3.7'
++      env: TOXENV=py37-pytestfeatures-coverage
+ 
+     - stage: deploy
+       python: '3.6'
+diff --git a/appveyor.yml b/appveyor.yml
+index 8d1a57d..560151c 100644
+--- a/appveyor.yml
++++ b/appveyor.yml
+@@ -7,9 +7,8 @@ environment:
+   - TOXENV: "py34-pytestrelease"
+   - TOXENV: "py35-pytestrelease"
+   - TOXENV: "py36-pytestrelease"
++  - TOXENV: "py37-pytestrelease"
+   - TOXENV: "pypy-pytestrelease"
+-  - TOXENV: "py27-pytestmaster"
+-  - TOXENV: "py27-pytestfeatures"
+   - TOXENV: "py36-pytestmaster"
+   - TOXENV: "py36-pytestfeatures"
+ 
+diff --git a/tox.ini b/tox.ini
+index eb917aa..ebcd004 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -1,5 +1,5 @@
+ [tox]
+-envlist=linting,docs,py{27,34,35,36,py,py3}-pytestrelease,py{27,36}-pytest{master,features}
++envlist=linting,docs,py{27,34,35,36,37,38,py,py3}-pytestrelease,py{36,37}-pytest{master,features}
+ 
+ [testenv]
+ commands=

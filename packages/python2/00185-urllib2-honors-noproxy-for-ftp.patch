@@ -1,0 +1,12 @@
+diff -up Python-2.7.5/Lib/urllib2.py.orig Python-2.7.5/Lib/urllib2.py
+--- Python-2.7.5/Lib/urllib2.py.orig	2013-07-17 12:22:58.595525622 +0200
++++ Python-2.7.5/Lib/urllib2.py	2013-07-17 12:19:59.875898030 +0200
+@@ -728,6 +728,8 @@ class ProxyHandler(BaseHandler):
+         if proxy_type is None:
+             proxy_type = orig_type
+ 
++        req.get_host()
++
+         if req.host and proxy_bypass(req.host):
+             return None
+ 

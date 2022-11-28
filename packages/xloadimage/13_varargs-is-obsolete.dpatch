@@ -1,0 +1,37 @@
+#!/bin/sh -e
+## 13_varargs-is-obsolete.dpatch by James Troup <james@nocrew.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: <varargs.h> is obsolete and no longer supported by gcc-3.3.
+## DP: ... and more to the point rlelib.c doesn't actually need it.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+
+[ -f debian/patches/00patch-opts ] && . debian/patches/00patch-opts
+patch_opts="${patch_opts:--f --no-backup-if-mismatch}"
+
+case "$1" in
+       -patch) patch $patch_opts -p1 < $0;;
+       -unpatch) patch $patch_opts -p1 -R < $0;;
+        *)
+                echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+                exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+diff -urNad /home/james/debian/packages/xloadimage/xloadimage-4.1/rlelib.c xloadimage-4.1/rlelib.c
+--- /home/james/debian/packages/xloadimage/xloadimage-4.1/rlelib.c	2003-06-06 03:32:44.000000000 +0100
++++ xloadimage-4.1/rlelib.c	2003-06-06 03:33:00.000000000 +0100
+@@ -12,7 +12,6 @@
+ 
+ #include <stdio.h>
+ #include <math.h>
+-#include <varargs.h>
+ #include <ctype.h>
+ 
+ #include "image.h"		/* need ZFILE definition */

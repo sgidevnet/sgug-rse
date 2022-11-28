@@ -1,0 +1,22 @@
+diff -up nedit-5.5/util/misc.c.scroll nedit-5.5/util/misc.c
+--- nedit-5.5/util/misc.c.scroll	2007-10-29 13:09:28.000000000 +0100
++++ nedit-5.5/util/misc.c	2007-10-29 13:59:22.000000000 +0100
+@@ -2032,12 +2032,12 @@ void AddMouseWheelSupport(Widget w)
+     if (XmIsScrolledWindow(XtParent(w))) 
+     {
+         static const char scrollTranslations[] =
+-           "Shift<Btn4Down>,<Btn4Up>: scrolled-window-scroll-up(1)\n"
+-           "Shift<Btn5Down>,<Btn5Up>: scrolled-window-scroll-down(1)\n"
+-           "Ctrl<Btn4Down>,<Btn4Up>:  scrolled-window-page-up()\n"
+-           "Ctrl<Btn5Down>,<Btn5Up>:  scrolled-window-page-down()\n"
+-           "<Btn4Down>,<Btn4Up>:      scrolled-window-scroll-up(3)\n"
+-           "<Btn5Down>,<Btn5Up>:      scrolled-window-scroll-down(3)\n";
++           "Shift<Btn4Down>: scrolled-window-scroll-up(1)\n"
++           "Shift<Btn5Down>: scrolled-window-scroll-down(1)\n"
++           "Ctrl<Btn4Down>:  scrolled-window-page-up()\n"
++           "Ctrl<Btn5Down>:  scrolled-window-page-down()\n"
++           "<Btn4Down>:      scrolled-window-scroll-up(3)\n"
++           "<Btn5Down>:      scrolled-window-scroll-down(3)\n";
+         static XtTranslations trans_table = NULL;
+         
+         if (trans_table == NULL)

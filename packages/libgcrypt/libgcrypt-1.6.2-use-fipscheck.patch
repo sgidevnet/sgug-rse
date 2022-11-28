@@ -1,0 +1,89 @@
+diff -up libgcrypt-1.6.2/src/fips.c.use-fipscheck libgcrypt-1.6.2/src/fips.c
+--- libgcrypt-1.6.2/src/fips.c.use-fipscheck	2014-08-21 14:50:39.000000000 +0200
++++ libgcrypt-1.6.2/src/fips.c	2014-09-26 11:42:20.999588282 +0200
+@@ -578,23 +578,50 @@ run_random_selftests (void)
+   return !!err;
+ }
+ 
++#ifdef ENABLE_HMAC_BINARY_CHECK
++static int
++get_library_path(const char *libname, const char *symbolname, char *path, size_t pathlen)
++{
++    Dl_info info;
++    void *dl, *sym;
++    int rv = -1;
++
++        dl = dlopen(libname, RTLD_LAZY);
++        if (dl == NULL) {
++            return -1;
++        }       
++
++    sym = dlsym(dl, symbolname);
++
++    if (sym != NULL && dladdr(sym, &info)) {
++	strncpy(path, info.dli_fname, pathlen-1);
++	path[pathlen-1] = '\0';
++	rv = 0;
++    }
++
++    dlclose(dl);	
++    
++    return rv;
++}
++#endif
++
+ /* Run an integrity check on the binary.  Returns 0 on success.  */
+ static int
+ check_binary_integrity (void)
+ {
+ #ifdef ENABLE_HMAC_BINARY_CHECK
+   gpg_error_t err;
+-  Dl_info info;
++  char libpath[4096];
+   unsigned char digest[32];
+   int dlen;
+   char *fname = NULL;
+-  const char key[] = "What am I, a doctor or a moonshuttle conductor?";
+-
+-  if (!dladdr ("gcry_check_version", &info))
++  const char key[] = "orboDeJITITejsirpADONivirpUkvarP";
++  
++  if (get_library_path ("libgcrypt.so.20", "gcry_check_version", libpath, sizeof(libpath)))
+     err = gpg_error_from_syserror ();
+   else
+     {
+-      dlen = _gcry_hmac256_file (digest, sizeof digest, info.dli_fname,
++      dlen = _gcry_hmac256_file (digest, sizeof digest, libpath,
+                                  key, strlen (key));
+       if (dlen < 0)
+         err = gpg_error_from_syserror ();
+@@ -602,7 +629,7 @@ check_binary_integrity (void)
+         err = gpg_error (GPG_ERR_INTERNAL);
+       else
+         {
+-          fname = xtrymalloc (strlen (info.dli_fname) + 1 + 5 + 1 );
++          fname = xtrymalloc (strlen (libpath) + 1 + 5 + 1 );
+           if (!fname)
+             err = gpg_error_from_syserror ();
+           else
+@@ -611,7 +638,7 @@ check_binary_integrity (void)
+               char *p;
+ 
+               /* Prefix the basename with a dot.  */
+-              strcpy (fname, info.dli_fname);
++              strcpy (fname, libpath);
+               p = strrchr (fname, '/');
+               if (p)
+                 p++;
+diff -up libgcrypt-1.6.2/src/Makefile.in.use-fipscheck libgcrypt-1.6.2/src/Makefile.in
+--- libgcrypt-1.6.2/src/Makefile.in.use-fipscheck	2014-08-21 15:14:08.000000000 +0200
++++ libgcrypt-1.6.2/src/Makefile.in	2014-09-26 11:41:13.271059281 +0200
+@@ -449,7 +449,7 @@ libgcrypt_la_LIBADD = $(gcrypt_res) \
+ 	../cipher/libcipher.la \
+ 	../random/librandom.la \
+ 	../mpi/libmpi.la \
+-	../compat/libcompat.la  $(GPG_ERROR_LIBS)
++	../compat/libcompat.la  $(GPG_ERROR_LIBS) -ldl
+ 
+ dumpsexp_SOURCES = dumpsexp.c
+ dumpsexp_CFLAGS = $(arch_gpg_error_cflags)

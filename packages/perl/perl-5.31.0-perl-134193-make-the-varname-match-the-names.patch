@@ -1,0 +1,36 @@
+From d8422270033e0728e6a9cecb24cdbd123656e367 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Mon, 17 Jun 2019 11:46:00 +1000
+Subject: [PATCH] (perl #134193) make the varname match the %[+-] names
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+when loading Tie/Hash/NamedCapture.pm for the long name variants
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ gv.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/gv.c b/gv.c
+index 2b83680898..652f5e737d 100644
+--- a/gv.c
++++ b/gv.c
+@@ -2032,11 +2032,11 @@ S_gv_magicalize(pTHX_ GV *gv, HV *stash, const char *name, STRLEN len,
+                     sv_magic(MUTABLE_SV(av), (SV*)n, PERL_MAGIC_regdata, NULL, 0);
+                     SvREADONLY_on(av);
+ 
+-                    require_tie_mod_s(gv, '-', "Tie::Hash::NamedCapture",0);
++                    require_tie_mod_s(gv, '+', "Tie::Hash::NamedCapture",0);
+ 
+                 } else          /* %{^CAPTURE_ALL} */
+                 if (memEQs(name, len, "\003APTURE_ALL")) {
+-                    require_tie_mod_s(gv, '+', "Tie::Hash::NamedCapture",0);
++                    require_tie_mod_s(gv, '-', "Tie::Hash::NamedCapture",0);
+                 }
+ 		break;
+ 	    case '\005':	/* $^ENCODING */
+-- 
+2.20.1
+

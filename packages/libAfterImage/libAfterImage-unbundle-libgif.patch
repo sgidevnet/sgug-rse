@@ -1,0 +1,276 @@
+diff -ur libAfterImage-1.20.orig/configure.in libAfterImage-1.20/configure.in
+--- libAfterImage-1.20.orig/configure.in	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/configure.in	2019-05-11 05:38:25.469516942 +0200
+@@ -64,8 +64,8 @@
+ dnl# AC_ARG_WITH(gif,		    [  --with-gif               support GIF image format using libgif   [no]],with_gif="$withval",with_gif=no)
+ dnl# AC_ARG_WITH(gif_includes,   [  --with-gif-includes=DIR  use GIF includes in DIR], gif_includes="$withval", gif_includes=no)
+ with_ungif=no
+-with_gif=no
+-with_gif_includes=no
++with_gif=yes
++gif_includes=no
+ AC_ARG_WITH(builtin_gif,    [  --with-builtin-gif               support Uncompressed GIF image format using builtin libgif [yes]],with_builtin_gif="$withval",with_builtin_gif=yes)
+ 
+ 
+diff -ur libAfterImage-1.20.orig/configure libAfterImage-1.20/configure
+--- libAfterImage-1.20.orig/configure	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/configure	2019-05-11 05:38:26.009511051 +0200
+@@ -1553,8 +1553,8 @@
+ with_builtin_xpm=$with_xpm
+ 
+ with_ungif=no
+-with_gif=no
+-with_gif_includes=no
++with_gif=yes
++gif_includes=no
+ 
+ # Check whether --with-builtin_gif or --without-builtin_gif was given.
+ if test "${with_builtin_gif+set}" = set; then
+diff -ur libAfterImage-1.20.orig/export.c libAfterImage-1.20/export.c
+--- libAfterImage-1.20.orig/export.c	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/export.c	2019-05-12 07:22:04.018783092 +0200
+@@ -1086,7 +1086,11 @@
+ 
+ 	while( cmap_size < 256 && cmap_size < (int)cmap.count+(gce_bytes[0]&0x01) )
+ 		cmap_size = cmap_size<<1 ;
++#if GIFLIB_MAJOR >= 5
++	if( (gif_cmap = GifMakeMapObject(cmap_size, NULL )) == NULL )
++#else
+ 	if( (gif_cmap = MakeMapObject(cmap_size, NULL )) == NULL )
++#endif
+ 	{
+ 		free( mapped_im );
+ 		ASIM_PrintGifError();
+@@ -1107,7 +1111,11 @@
+ 			ASIM_PrintGifError();
+ 			if( gif )
+ 			{
++#if GIFLIB_MAJOR >= 5
++				DGifCloseFile(gif, NULL);
++#else
+ 				DGifCloseFile(gif);
++#endif
+ 				gif = NULL ;
+ 			}
+ 			if (infile)
+@@ -1123,15 +1131,22 @@
+ 			gif_src = *gif ;
+ 			gif->SColorMap = NULL ;
+ 			gif->Image.ColorMap = NULL ;
++#if GIFLIB_MAJOR >= 5
++			DGifCloseFile(gif, NULL);
++#else
+ 			DGifCloseFile(gif);
++#endif
+ 			gif = NULL;
+ 			fclose (infile);
+ 			infile = NULL;
+ 			outfile = open_writeable_image_file( path );
+ 
+ 			if (outfile)
++#if GIFLIB_MAJOR >= 5
++				gif = EGifOpenFileHandle(fileno(outfile), NULL);
++#else
+ 				gif = EGifOpenFileHandle(fileno(outfile));
+-				
++#endif
+ 			if (gif)
+ 			{
+ 				int status;
+@@ -1148,15 +1163,26 @@
+ 			    * screen colormap ( saves us  768 bytes per image ) */
+ 				if( gif_cmap->ColorCount == gif_src.SColorMap->ColorCount )
+ 					dont_save_cmap = ( memcmp( gif_cmap->Colors, gif_src.SColorMap->Colors, gif_cmap->ColorCount*sizeof(GifColorType)) == 0 );
++#if GIFLIB_MAJOR >= 5
++				GifFreeMapObject(gif_src.SColorMap);
++#else
+ 				FreeMapObject(gif_src.SColorMap);
++#endif
+ 			}
+ 			if (gif)
+ 			{
+ 				EGifPutExtension(gif, GRAPHICS_EXT_FUNC_CODE, GIF_GCE_BYTES, &(gce_bytes[0]));
+ 				if( get_flags( params->gif.flags, EXPORT_ANIMATION_REPEATS ) )
+ 				{
++#if GIFLIB_MAJOR >= 5
++					EGifPutExtensionLeader(gif, APPLICATION_EXT_FUNC_CODE);
++					EGifPutExtensionBlock(gif, 11, "NETSCAPE2.0");
++					EGifPutExtensionBlock(gif, GIF_NETSCAPE_EXT_BYTES, &(netscape_ext_bytes[0]));
++					EGifPutExtensionTrailer(gif);
++#else
+ 					EGifPutExtensionFirst(gif, APPLICATION_EXT_FUNC_CODE, 11, "NETSCAPE2.0");
+ 					EGifPutExtensionLast(gif, 0, GIF_NETSCAPE_EXT_BYTES, &(netscape_ext_bytes[0]));
++#endif
+ 				}
+ 				
+ 				if( EGifPutImageDesc(gif, 0, 0, im->width, im->height, FALSE, (dont_save_cmap)?NULL:gif_cmap ) == GIF_ERROR )
+@@ -1172,7 +1198,11 @@
+ 			outfile = open_writeable_image_file(path);
+ 			
+ 		if (outfile)
++#if GIFLIB_MAJOR >= 5
++			if ((gif = EGifOpenFileHandle(fileno(outfile), NULL)) == NULL)
++#else
+ 			if ((gif = EGifOpenFileHandle(fileno(outfile))) == NULL)
++#endif
+ 				ASIM_PrintGifError();
+ 	}
+ 
+@@ -1189,7 +1219,11 @@
+ 
+ 	if( gif_cmap )
+ 	{
++#if GIFLIB_MAJOR >= 5
++		GifFreeMapObject(gif_cmap);
++#else
+ 		FreeMapObject(gif_cmap);
++#endif
+ 		gif_cmap = NULL ;
+ 	}
+ 	if( gif )
+@@ -1207,7 +1241,11 @@
+ 				ASIM_PrintGifError();
+ 		}
+ 		free( row_pointer );
++#if GIFLIB_MAJOR >= 5
++		if (EGifCloseFile(gif, NULL) == GIF_ERROR)
++#else
+ 		if (EGifCloseFile(gif) == GIF_ERROR)
++#endif
+ 			ASIM_PrintGifError();
+ 		gif = NULL;
+ 	}
+diff -ur libAfterImage-1.20.orig/import.c libAfterImage-1.20/import.c
+--- libAfterImage-1.20.orig/import.c	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/import.c	2019-05-11 11:54:36.829635201 +0200
+@@ -2295,7 +2295,11 @@
+ 		else
+ 			show_error( "Image file \"%s\" does not have subimage %d.", path, params->subimage );
+ 
++#if GIFLIB_MAJOR >= 5
++		DGifCloseFile(gif, NULL);
++#else
+ 		DGifCloseFile(gif);
++#endif
+ 		fclose( fp );
+ 	}
+ 	SHOW_TIME("image loading",started);
+diff -ur libAfterImage-1.20.orig/ungif.c libAfterImage-1.20/ungif.c
+--- libAfterImage-1.20.orig/ungif.c	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/ungif.c	2019-05-11 17:29:33.651890075 +0200
+@@ -75,13 +75,21 @@
+ 	if( sp )
+ 	{
+ 		if (sp->ImageDesc.ColorMap)
+-	    	FreeMapObject(sp->ImageDesc.ColorMap);
++#if GIFLIB_MAJOR >= 5
++			GifFreeMapObject(sp->ImageDesc.ColorMap);
++#else
++			FreeMapObject(sp->ImageDesc.ColorMap);
++#endif
+ 
+ 		if (sp->RasterBits)
+ 		    free((char *)sp->RasterBits);
+ 
+ 		if (sp->ExtensionBlocks)
+-		    FreeExtension(sp);
++#if GIFLIB_MAJOR >= 5
++			GifFreeExtensions(&sp->ExtensionBlockCount, &sp->ExtensionBlocks);
++#else
++			FreeExtension(sp);
++#endif
+ 
+ 		if( !reusable )
+ 			free( sp );
+@@ -122,7 +130,11 @@
+ GifFileType*
+ open_gif_read( FILE *in_stream )
+ {
++#if GIFLIB_MAJOR >= 5
++	return DGifOpen(in_stream, fread_gif, NULL);
++#else
+ 	return DGifOpen(in_stream, fread_gif);
++#endif
+ }
+ 
+ int
+@@ -151,7 +163,11 @@
+ 		memcpy( &(im->ImageDesc), &(gif->Image), sizeof(GifImageDesc));
+ 		if( gif->Image.ColorMap )
+ 		{
++#if GIFLIB_MAJOR >= 5
++			im->ImageDesc.ColorMap = GifMakeMapObject(gif->Image.ColorMap->ColorCount, NULL);
++#else
+ 			im->ImageDesc.ColorMap = MakeMapObject(gif->Image.ColorMap->ColorCount, NULL);
++#endif
+ 			fseek( gif->UserData, start_pos+9, SEEK_SET ); 
+ 			fread( im->ImageDesc.ColorMap->Colors, 1, gif->Image.ColorMap->ColorCount*3, gif->UserData);
+ 			fseek( gif->UserData, end_pos, SEEK_SET );
+@@ -165,6 +181,7 @@
+ get_gif_saved_images( GifFileType *gif, int subimage, SavedImage **ret, int *ret_images  )
+ {
+     GifRecordType RecordType;
++    int ExtCode;
+     GifByteType *ExtData;
+     SavedImage temp_save;
+ 	int curr_image = 0, ret_count = *ret_images ;
+@@ -197,13 +214,19 @@
+ 				break;
+ 
+ 	    	case EXTENSION_RECORD_TYPE:
+-				status = DGifGetExtension(gif,&temp_save.Function,&ExtData);
++				status = DGifGetExtension(gif, &ExtCode, &ExtData);
+ 				while (ExtData != NULL && status == GIF_OK )
+ 				{
+-            		/* Create an extension block with our data */
+-            		if ((status = AddExtensionBlock(&temp_save, ExtData[0], (char*)&(ExtData[1]))) == GIF_OK)
+-				    	status = DGifGetExtensionNext(gif, &ExtData);
+-            		temp_save.Function = 0;
++					/* Create an extension block with our data */
++#if GIFLIB_MAJOR >= 5
++					status = GifAddExtensionBlock(&temp_save.ExtensionBlockCount, &temp_save.ExtensionBlocks, ExtCode, ExtData[0], &(ExtData[1]));
++#else
++					temp_save.Function = ExtCode;
++					status = AddExtensionBlock(&temp_save, ExtData[0], (char*)&(ExtData[1]));
++					temp_save.Function = 0;
++#endif
++					if (status == GIF_OK)
++						status = DGifGetExtensionNext(gif, &ExtData);
+ 				}
+ 				break;
+ 
+diff -ur libAfterImage-1.20.orig/ungif.h libAfterImage-1.20/ungif.h
+--- libAfterImage-1.20.orig/ungif.h	2011-01-15 06:52:22.000000000 +0100
++++ libAfterImage-1.20/ungif.h	2019-05-12 07:33:10.524778082 +0200
+@@ -8,10 +8,31 @@
+ #endif
+ 
+ #ifdef __GNUC__
++#if GIFLIB_MAJOR >= 5
++#define ASIM_PrintGifError() do {					\
++  const char* Err = GifErrorString(gif->Error);				\
++  fprintf(stderr, "%s():%d:<%s>", __FUNCTION__, __LINE__, path?path:"null"); \
++  if (Err != NULL)							\
++    fprintf(stderr, "\nGIF-LIB error: %s.\n", Err);			\
++  else									\
++    fprintf(stderr, "\nGIF-LIB undefined error %d.\n", gif->Error);	\
++} while(0)
++#else
+ #define ASIM_PrintGifError() do{ fprintf( stderr, "%s():%d:<%s> ",__FUNCTION__, __LINE__, path?path:"null" ); PrintGifError(); }while(0)
++#endif
++#else
++#if GIFLIB_MAJOR >= 5
++#define ASIM_PrintGifError() do {					\
++  const char* Err = GifErrorString(gif->Error);				\
++  if (Err != NULL)							\
++    fprintf(stderr, "\nGIF-LIB error: %s.\n", Err);			\
++  else									\
++    fprintf(stderr, "\nGIF-LIB undefined error %d.\n", gif->Error);	\
++} while(0)
+ #else
+ #define ASIM_PrintGifError() do{ PrintGifError(); }while(0)
+ #endif
++#endif
+ 
+ #define GIF_GCE_DELAY_BYTE_LOW	1
+ #define GIF_GCE_DELAY_BYTE_HIGH	2

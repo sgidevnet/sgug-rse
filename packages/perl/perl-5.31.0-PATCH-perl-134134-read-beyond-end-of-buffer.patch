@@ -1,0 +1,41 @@
+From 2d26cf4aed90a77ac5e93ddec29770756027b788 Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Fri, 24 May 2019 09:15:59 -0600
+Subject: [PATCH] PATCH: [perl #134134] read beyond end of buffer
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This turns out to be because of a special input case in myatof3(),
+wherein if the input length is 0, it call strlen to find the length.
+
+The solution is to add a test and not call the function unless the
+length is positive.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ regcomp.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/regcomp.c b/regcomp.c
+index 9bd6dd3739..3ad09c52b2 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -23428,10 +23428,12 @@ Perl_parse_uniprop_string(pTHX_
+                  * NV. */
+ 
+                 NV value;
++                SSize_t value_len = lookup_len - equals_pos;
+ 
+                 /* Get the value */
+-                if (my_atof3(lookup_name + equals_pos, &value,
+-                             lookup_len - equals_pos)
++                if (   value_len <= 0
++                    || my_atof3(lookup_name + equals_pos, &value,
++                                value_len)
+                           != lookup_name + lookup_len)
+                 {
+                     goto failed;
+-- 
+2.20.1
+

@@ -1,0 +1,46 @@
+From 0f5e94bd80c1cf703b789747262c787b72c4e504 Mon Sep 17 00:00:00 2001
+From: Benno Schulenberg <bensberg@telfort.nl>
+Date: Sat, 23 Nov 2019 20:22:31 +0100
+Subject: [PATCH] display: do refresh the edit window when exiting from the
+ help viewer
+
+There are several cases (searching, replacing, spell checking, ...)
+where exiting from the help viewer does NOT return the user to the
+editing of the buffer.
+
+This fixes https://savannah.gnu.org/bugs/?57295.
+
+Bug existed since version 4.3, commit 5817e83e.
+
+Upstream-commit: ec9a11c76136f8968040e9d63f81f773826f46d6
+Signed-off-by: Kamil Dudka <kdudka@redhat.com>
+---
+ src/help.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/help.c b/src/help.c
+index 9591008..db3275e 100644
+--- a/src/help.c
++++ b/src/help.c
+@@ -247,7 +247,6 @@ void do_help(void)
+ 	inhelp = FALSE;
+ 
+ 	curs_set(0);
+-	refresh_needed = TRUE;
+ 
+ 	if (ISSET(NO_HELP)) {
+ 		currmenu = oldmenu;
+@@ -262,7 +261,10 @@ void do_help(void)
+ 		browser_refresh();
+ 	else
+ #endif
++	{
+ 		titlebar(NULL);
++		edit_refresh();
++	}
+ }
+ 
+ /* Allocate space for the help text for the current menu, and concatenate
+-- 
+2.20.1
+

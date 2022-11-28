@@ -1,0 +1,9 @@
+diff -up libepoxy-1.5.3/epoxy.pc.in.drop_private_gl libepoxy-1.5.3/epoxy.pc.in
+--- libepoxy-1.5.3/epoxy.pc.in.drop_private_gl	2019-08-22 09:20:50.508390863 -0500
++++ libepoxy-1.5.3/epoxy.pc.in	2019-08-22 09:20:41.495226561 -0500
+@@ -13,4 +13,4 @@ Version: @PACKAGE_VERSION@
+ Cflags: -I${includedir}
+ Libs: -L${libdir} -lepoxy
+ Libs.private: @DLOPEN_LIBS@
+-Requires.private: @GL_REQS@
++#Requires.private: @GL_REQS@

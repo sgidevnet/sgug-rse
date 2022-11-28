@@ -1,0 +1,11 @@
+--- ddd-3.3.12/ddd/GDBAgent.C~	2014-06-12 13:12:48.713738359 -0400
++++ ddd-3.3.12/ddd/GDBAgent.C	2014-06-12 13:12:48.713738359 -0400
+@@ -3200,7 +3200,7 @@
+     {
+         string end_( end );
+ 	normalize_address(end_);
+-	cmd += ' ';
++	cmd += ',';
+ 	cmd += end_;
+     }
+     return cmd;

@@ -1,0 +1,191 @@
+diff -up gnupg-2.2.20/g10/gpg.c.file-is-digest gnupg-2.2.20/g10/gpg.c
+--- gnupg-2.2.20/g10/gpg.c.file-is-digest	2020-04-14 16:33:42.630269318 +0200
++++ gnupg-2.2.20/g10/gpg.c	2020-04-14 16:34:46.455100086 +0200
+@@ -380,6 +380,7 @@ enum cmd_and_opt_values
+     oTTYtype,
+     oLCctype,
+     oLCmessages,
++    oFileIsDigest,
+     oXauthority,
+     oGroup,
+     oUnGroup,
+@@ -831,6 +832,7 @@ static ARGPARSE_OPTS opts[] = {
+   ARGPARSE_s_s (oPersonalCompressPreferences,
+                                          "personal-compress-preferences", "@"),
+   ARGPARSE_s_s (oFakedSystemTime, "faked-system-time", "@"),
++  ARGPARSE_s_n (oFileIsDigest, "file-is-digest", "@"),
+   ARGPARSE_s_s (oWeakDigest, "weak-digest","@"),
+   ARGPARSE_s_n (oUnwrap, "unwrap", "@"),
+   ARGPARSE_s_n (oOnlySignTextIDs, "only-sign-text-ids", "@"),
+@@ -2419,6 +2421,7 @@ main (int argc, char **argv)
+     opt.keyid_format = KF_NONE;
+     opt.def_sig_expire = "0";
+     opt.def_cert_expire = "0";
++    opt.file_is_digest = 0;
+     gnupg_set_homedir (NULL);
+     opt.passphrase_repeat = 1;
+     opt.emit_version = 0;
+@@ -2997,6 +3000,7 @@ main (int argc, char **argv)
+ 	    opt.verify_options&=~VERIFY_SHOW_PHOTOS;
+ 	    break;
+ 	  case oPhotoViewer: opt.photo_viewer = pargs.r.ret_str; break;
++	  case oFileIsDigest: opt.file_is_digest = 1; break;
+ 
+           case oDisableSignerUID: opt.flags.disable_signer_uid = 1; break;
+           case oIncludeKeyBlock:  opt.flags.include_key_block = 1; break;
+diff -up gnupg-2.2.20/g10/options.h.file-is-digest gnupg-2.2.20/g10/options.h
+--- gnupg-2.2.20/g10/options.h.file-is-digest	2020-03-14 19:54:05.000000000 +0100
++++ gnupg-2.2.20/g10/options.h	2020-04-14 16:33:42.634269245 +0200
+@@ -202,6 +202,7 @@ struct
+   int no_auto_check_trustdb;
+   int preserve_permissions;
+   int no_homedir_creation;
++  int file_is_digest;
+   struct groupitem *grouplist;
+   int mangle_dos_filenames;
+   int enable_progress_filter;
+diff -up gnupg-2.2.20/g10/sign.c.file-is-digest gnupg-2.2.20/g10/sign.c
+--- gnupg-2.2.20/g10/sign.c.file-is-digest	2020-03-14 19:35:46.000000000 +0100
++++ gnupg-2.2.20/g10/sign.c	2020-04-14 16:36:54.661751422 +0200
+@@ -40,6 +40,7 @@
+ #include "pkglue.h"
+ #include "../common/sysutils.h"
+ #include "call-agent.h"
++#include "../common/host2net.h"
+ #include "../common/mbox-util.h"
+ #include "../common/compliance.h"
+ 
+@@ -834,6 +835,8 @@ write_signature_packets (ctrl_t ctrl,
+       if (duration || opt.sig_policy_url
+           || opt.sig_notations || opt.sig_keyserver_url)
+         sig->version = 4;
++	  else if (opt.file_is_digest)
++        sig->version = 3;
+       else
+         sig->version = pk->version;
+ 
+@@ -860,8 +863,11 @@ write_signature_packets (ctrl_t ctrl,
+           else
+             err = 0;
+         }
+-      hash_sigversion_to_magic (md, sig);
+-      gcry_md_final (md);
++
++      if (!opt.file_is_digest) {
++	hash_sigversion_to_magic (md, sig);
++	gcry_md_final (md);
++      }
+ 
+       if (!err)
+         err = do_sign (ctrl, pk, sig, md, hash_for (pk), cache_nonce, 0);
+@@ -924,6 +930,8 @@ sign_file (ctrl_t ctrl, strlist_t filena
+     SK_LIST sk_rover = NULL;
+     int multifile = 0;
+     u32 duration=0;
++    int sigclass = 0x00;
++    u32 timestamp = 0;
+ 
+     pfx = new_progress_context ();
+     afx = new_armor_context ();
+@@ -941,7 +949,16 @@ sign_file (ctrl_t ctrl, strlist_t filena
+ 	fname = NULL;
+ 
+     if( fname && filenames->next && (!detached || encryptflag) )
+-	log_bug("multiple files can only be detached signed");
++	log_bug("multiple files can only be detached signed\n");
++
++    if (opt.file_is_digest && (multifile || !fname))
++	log_bug("file-is-digest only works with one file\n");
++    if (opt.file_is_digest && !detached)
++	log_bug("file-is-digest can only write detached signatures\n");
++    if (opt.file_is_digest && !opt.def_digest_algo)
++	log_bug("file-is-digest needs --digest-algo\n");
++    if (opt.file_is_digest && opt.textmode)
++	log_bug("file-is-digest doesn't work with --textmode\n");
+ 
+     if(encryptflag==2
+        && (rc=setup_symkey(&efx.symkey_s2k,&efx.symkey_dek)))
+@@ -962,7 +979,7 @@ sign_file (ctrl_t ctrl, strlist_t filena
+       goto leave;
+ 
+     /* prepare iobufs */
+-    if( multifile )  /* have list of filenames */
++    if( multifile || opt.file_is_digest)  /* have list of filenames */
+ 	inp = NULL; /* we do it later */
+     else {
+       inp = iobuf_open(fname);
+@@ -1100,7 +1117,7 @@ sign_file (ctrl_t ctrl, strlist_t filena
+     for (sk_rover = sk_list; sk_rover; sk_rover = sk_rover->next)
+       gcry_md_enable (mfx.md, hash_for (sk_rover->pk));
+ 
+-    if( !multifile )
++    if( !multifile && !opt.file_is_digest )
+ 	iobuf_push_filter( inp, md_filter, &mfx );
+ 
+     if( detached && !encryptflag)
+@@ -1155,6 +1172,8 @@ sign_file (ctrl_t ctrl, strlist_t filena
+ 
+     write_status_begin_signing (mfx.md);
+ 
++    sigclass = opt.textmode && !outfile? 0x01 : 0x00;
++
+     /* Setup the inner packet. */
+     if( detached ) {
+ 	if( multifile ) {
+@@ -1195,6 +1214,45 @@ sign_file (ctrl_t ctrl, strlist_t filena
+ 	    if( opt.verbose )
+               log_printf ("\n");
+ 	}
++	else if (opt.file_is_digest) {
++	    byte *mdb, ts[5];
++	    size_t mdlen;
++	    const char *fp;
++	    int c, d;
++
++	    gcry_md_final(mfx.md);
++	    /* this assumes gcry_md_read returns the same buffer */
++	    mdb = gcry_md_read(mfx.md, opt.def_digest_algo);
++		mdlen = gcry_md_get_algo_dlen(opt.def_digest_algo);
++	    if (strlen(fname) != mdlen * 2 + 11)
++	        log_bug("digests must be %zu + @ + 5 bytes\n", mdlen);
++	    d = -1;
++	    for (fp = fname ; *fp; ) {
++		c = *fp++;
++		if (c >= '0' && c <= '9')
++		    c -= '0';
++		else if (c >= 'a' && c <= 'f')
++		    c -= 'a' - 10;
++		else if (c >= 'A' && c <= 'F')
++		    c -= 'A' - 10;
++		else
++		    log_bug("filename is not hex\n");
++		if (d >= 0) {
++		    *mdb++ = d << 4 | c;
++		    c = -1;
++		    if (--mdlen == 0) {
++			mdb = ts;
++			if (*fp++ != '@')
++			    log_bug("missing time separator\n");
++		    }
++		}
++		d = c;
++	    }
++	    sigclass = ts[0];
++	    if (sigclass != 0x00 && sigclass != 0x01)
++		log_bug("bad cipher class\n");
++	    timestamp = buf32_to_u32(ts + 1);
++	}
+ 	else {
+ 	    /* read, so that the filter can calculate the digest */
+ 	    while( iobuf_get(inp) != -1 )
+@@ -1213,8 +1271,8 @@ sign_file (ctrl_t ctrl, strlist_t filena
+ 
+     /* write the signatures */
+     rc = write_signature_packets (ctrl, sk_list, out, mfx.md,
+-                                  opt.textmode && !outfile? 0x01 : 0x00,
+-				  0, duration, detached ? 'D':'S', NULL);
++                                  sigclass,
++				  timestamp, duration, detached ? 'D':'S', NULL);
+     if( rc )
+         goto leave;
+ 

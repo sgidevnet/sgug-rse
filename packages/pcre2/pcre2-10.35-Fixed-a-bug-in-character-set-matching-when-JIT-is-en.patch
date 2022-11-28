@@ -1,0 +1,94 @@
+From 5002a59a8289027b8a88c4933077a9b66e839d6c Mon Sep 17 00:00:00 2001
+From: zherczeg <zherczeg@6239d852-aaf2-0410-a92c-79f79f948069>
+Date: Sat, 19 Sep 2020 03:49:32 +0000
+Subject: [PATCH] Fixed a bug in character set matching when JIT is enabled.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+git-svn-id: svn://vcs.exim.org/pcre2/code/trunk@1273 6239d852-aaf2-0410-a92c-79f79f948069
+Petr Písař: Ported to 10.35.
+---
+ src/pcre2_jit_compile.c | 36 ++++++++++++++++++++++++++++--------
+ src/pcre2_jit_test.c    |  1 +
+
+diff --git a/src/pcre2_jit_compile.c b/src/pcre2_jit_compile.c
+index edf64d5..04f0278 100644
+--- a/src/pcre2_jit_compile.c
++++ b/src/pcre2_jit_compile.c
+@@ -7672,25 +7672,43 @@ if (needstype || needsscript)
+       }
+ 
+     cc = ccbegin;
+-    }
+ 
+-  if (needschar)
+-    OP1(SLJIT_MOV, TMP1, 0, RETURN_ADDR, 0);
++    if (needstype)
++      {
++      /* TMP2 has already been shifted by 2 */
++      if (!needschar)
++        {
++        OP2(SLJIT_ADD, TMP1, 0, TMP2, 0, TMP2, 0);
++        OP2(SLJIT_ADD, TMP1, 0, TMP1, 0, TMP2, 0);
++
++        OP1(SLJIT_MOV_U8, TMP1, 0, SLJIT_MEM1(TMP1), (sljit_sw)PRIV(ucd_records) + SLJIT_OFFSETOF(ucd_record, chartype));
++        }
++      else
++        {
++        OP2(SLJIT_ADD, TMP1, 0, TMP2, 0, TMP2, 0);
++        OP2(SLJIT_ADD, TMP2, 0, TMP2, 0, TMP1, 0);
+ 
+-  if (needstype)
++        OP1(SLJIT_MOV, TMP1, 0, RETURN_ADDR, 0);
++        OP1(SLJIT_MOV_U8, RETURN_ADDR, 0, SLJIT_MEM1(TMP2), (sljit_sw)PRIV(ucd_records) + SLJIT_OFFSETOF(ucd_record, chartype));
++        typereg = RETURN_ADDR;
++        }
++      }
++    else if (needschar)
++      OP1(SLJIT_MOV, TMP1, 0, RETURN_ADDR, 0);
++    }
++  else if (needstype)
+     {
++    OP2(SLJIT_SHL, TMP1, 0, TMP2, 0, SLJIT_IMM, 3);
++    OP2(SLJIT_SHL, TMP2, 0, TMP2, 0, SLJIT_IMM, 2);
++
+     if (!needschar)
+       {
+-      OP2(SLJIT_SHL, TMP1, 0, TMP2, 0, SLJIT_IMM, 3);
+-      OP2(SLJIT_SHL, TMP2, 0, TMP2, 0, SLJIT_IMM, 2);
+       OP2(SLJIT_ADD, TMP1, 0, TMP1, 0, TMP2, 0);
+ 
+       OP1(SLJIT_MOV_U8, TMP1, 0, SLJIT_MEM1(TMP1), (sljit_sw)PRIV(ucd_records) + SLJIT_OFFSETOF(ucd_record, chartype));
+       }
+     else
+       {
+-      OP2(SLJIT_SHL, TMP1, 0, TMP2, 0, SLJIT_IMM, 2);
+-      OP2(SLJIT_SHL, TMP2, 0, TMP2, 0, SLJIT_IMM, 3);
+       OP2(SLJIT_ADD, TMP2, 0, TMP2, 0, TMP1, 0);
+ 
+       OP1(SLJIT_MOV, TMP1, 0, RETURN_ADDR, 0);
+@@ -7698,6 +7716,8 @@ if (needstype || needsscript)
+       typereg = RETURN_ADDR;
+       }
+     }
++  else if (needschar)
++    OP1(SLJIT_MOV, TMP1, 0, RETURN_ADDR, 0);
+   }
+ #endif /* SUPPORT_UNICODE */
+ 
+diff --git a/src/pcre2_jit_test.c b/src/pcre2_jit_test.c
+index b7856ad..d935887 100644
+--- a/src/pcre2_jit_test.c
++++ b/src/pcre2_jit_test.c
+@@ -409,6 +409,7 @@ static struct regression_test_case regression_test_cases[] = {
+ 	{ MUP, A, 0, 0 | F_PROPERTY, "[\xc3\xa2-\xc3\xa6\xc3\x81-\xc3\x84\xe2\x80\xa8-\xe2\x80\xa9\xe6\x92\xad\\p{Zs}]{2,}", "\xe2\x80\xa7\xe2\x80\xa9\xe6\x92\xad \xe6\x92\xae" },
+ 	{ MUP, A, 0, 0 | F_PROPERTY, "[\\P{L&}]{2}[^\xc2\x85-\xc2\x89\\p{Ll}\\p{Lu}]{2}", "\xc3\xa9\xe6\x92\xad.a\xe6\x92\xad|\xc2\x8a#" },
+ 	{ PCRE2_UCP, 0, 0, 0 | F_PROPERTY, "[a-b\\s]{2,5}[^a]", "AB  baaa" },
++	{ MUP, 0, 0, 0 | F_NOMATCH, "[^\\p{Hangul}\\p{Z}]", " " },
+ 
+ 	/* Possible empty brackets. */
+ 	{ MU, A, 0, 0, "(?:|ab||bc|a)+d", "abcxabcabd" },
+-- 
+2.25.4
+
