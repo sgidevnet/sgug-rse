@@ -1,0 +1,19 @@
+# Compressed Archive
+*.7z   filter=fat diff=fat merge=fat -text
+*.bz2  filter=fat diff=fat merge=fat -text
+*.gz   filter=fat diff=fat merge=fat -text
+*.xz   filter=fat diff=fat merge=fat -text
+*.lzma filter=fat diff=fat merge=fat -text
+*.lz4  filter=fat diff=fat merge=fat -text
+*.rar  filter=fat diff=fat merge=fat -text
+*.tar  filter=fat diff=fat merge=fat -text
+*.zip  filter=fat diff=fat merge=fat -text
+*.tgz  filter=fat diff=fat merge=fat -text
+
+# Executable/Installer
+*.apk  filter=fat diff=fat merge=fat -text
+*.exe  filter=fat diff=fat merge=fat -text
+
+# Documents
+*.pdf  filter=fat diff=fat merge=fat -text
+

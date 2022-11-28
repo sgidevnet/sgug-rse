@@ -1,0 +1,5 @@
+[rsync]
+remote = frost:/home/vladimir/proj/sgi/fat-rse
+sshuser = vladimir
+
+
