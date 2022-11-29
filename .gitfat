@@ -1,5 +1,3 @@
 [rsync]
-remote = frost:/home/vladimir/proj/sgi/fat-rse
+remote = conduit:/home/vladimir/fat-rse
 sshuser = vladimir
-
-
