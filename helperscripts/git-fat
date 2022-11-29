@@ -315,7 +315,6 @@ class GitFat(object):
             cat_iter(result, sys.stdout)
 
     def catalog_objects(self):
-        return set(os.listdir(self.objdir))
         #sha1 is split into 8bits folder name, plus filename
         dirlist = os.listdir(self.objdir)
         catalog = set()
