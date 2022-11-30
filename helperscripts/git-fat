@@ -500,15 +500,15 @@ class GitFat(object):
                for f in filenames:
                    f = os.path.join(dirpath,f)
                    f_hash = self.get_file_hash(f)
-                   if f_hash: files.append(f_hash)
+                   if f_hash: files.append(hash2fname(f_hash))
         else:
             f_hash = self.get_file_hash(arg)
-            if f_hash: files.append(f_hash)
+            if f_hash: files.append(hash2fname(f_hash))
         return files
 
     def get_file_hash(self, fname):
         #fname is a string with the path to desired file or directory
-	found_file = os.path.isfile(fname)
+        found_file = os.path.isfile(fname)
         if not found_file:
             print(fname)
             sys.exit("File not found, try giving an explicit path")
