@@ -29,6 +29,7 @@ This package contains development files for %{name}.
 %autosetup -p1
 
 %build
+export CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 $CXXFLAGS"
 %cmake -DBUILD_TESTING:BOOL=OFF \
        -DINSTALL_HEADERS:BOOL=ON \
        -DREGISTER_BUILD_DIR:BOOL=OFF \
