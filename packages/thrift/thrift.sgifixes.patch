@@ -1,0 +1,54 @@
+Index: thrift-0.14.0/lib/cpp/src/thrift/transport/THttpServer.cpp
+===================================================================
+--- thrift-0.14.0.orig/lib/cpp/src/thrift/transport/THttpServer.cpp
++++ thrift-0.14.0/lib/cpp/src/thrift/transport/THttpServer.cpp
+@@ -48,7 +48,7 @@ THttpServer::~THttpServer() = default;
+ #else
+   #define THRIFT_GMTIME(TM, TIME)             gmtime_r(&TIME, &TM)
+   #define THRIFT_strncasecmp(str1, str2, len) strncasecmp(str1, str2, len)
+-  #define THRIFT_strcasestr(haystack, needle) strcasestr(haystack, needle)
++  #define THRIFT_strcasestr(haystack, needle) strstr(haystack, needle)
+ #endif
+ 
+ void THttpServer::parseHeader(char* header) {
+Index: thrift-0.14.0/lib/cpp/src/thrift/server/TNonblockingServer.cpp
+===================================================================
+--- thrift-0.14.0.orig/lib/cpp/src/thrift/server/TNonblockingServer.cpp
++++ thrift-0.14.0/lib/cpp/src/thrift/server/TNonblockingServer.cpp
+@@ -1438,7 +1438,7 @@ void TNonblockingIOThread::setCurrentThr
+ #ifdef HAVE_SCHED_H
+   // Start out with a standard, low-priority setup for the sched params.
+   struct sched_param sp;
+-  bzero((void*)&sp, sizeof(sp));
++  memset((void*)&sp, 0, sizeof(sp));
+   int policy = SCHED_OTHER;
+ 
+   // If desired, set up high-priority sched params structure.
+Index: thrift-0.14.0/lib/cpp/src/thrift/TOutput.cpp
+===================================================================
+--- thrift-0.14.0.orig/lib/cpp/src/thrift/TOutput.cpp
++++ thrift-0.14.0/lib/cpp/src/thrift/TOutput.cpp
+@@ -130,7 +130,7 @@ std::string TOutput::strerror_s(int errn
+     b_errbuf[size-1] = '\0';
+   }
+ #else // _WIN32
+-  ::strerror_s(b_errbuf, sizeof(b_errbuf), errno_copy);
++  strerror(errno_copy);
+ #endif // _WIN32
+   char* b_error = b_errbuf;
+ #endif // HAVE_STRERROR_R
+Index: thrift-0.14.0/lib/cpp/src/thrift/transport/SocketCommon.cpp
+===================================================================
+--- thrift-0.14.0.orig/lib/cpp/src/thrift/transport/SocketCommon.cpp
++++ thrift-0.14.0/lib/cpp/src/thrift/transport/SocketCommon.cpp
+@@ -34,6 +34,10 @@
+ #include <sys/un.h>
+ #endif
+ 
++#ifdef __sgi
++#include <sys/socket.h>
++#endif
++
+ #include <string>
+ 
+ #include <thrift/transport/PlatformSocket.h>

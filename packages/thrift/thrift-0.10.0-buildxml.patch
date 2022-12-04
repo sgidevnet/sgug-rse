@@ -1,0 +1,236 @@
+diff --git a/lib/java/build.xml b/lib/java/build.xml
+index 40e5284..db1ce54 100644
+--- a/lib/java/build.xml
++++ b/lib/java/build.xml
+@@ -17,8 +17,7 @@
+  specific language governing permissions and limitations
+  under the License.
+  -->
+-<project name="libthrift" default="dist" basedir="."
+-  xmlns:artifact="antlib:org.apache.maven.artifact.ant">
++<project name="libthrift" default="dist" basedir=".">
+ 
+   <description>Thrift Build File</description>
+   <property name="thrift.root" location="../../"/>
+@@ -67,8 +66,15 @@
+   <property name="pom.xml" location="${build.dir}/${final.name}.pom"/>
+ 
+   <path id="compile.classpath">
+-    <fileset dir="${build.lib.dir}">
+-      <include name="**/*.jar"/>
++    <fileset dir="/usr/share/java">
++      <include name="commons-codec.jar"/>
++      <include name="commons-lang.jar"/>
++      <include name="commons-logging.jar"/>
++      <include name="httpcomponents/httpcore.jar"/>
++      <include name="httpcomponents/httpclient.jar"/>
++      <include name="log4j.jar"/>
++      <include name="slf4j/api.jar"/>
++      <include name="glassfish-servlet-api.jar"/>
+     </fileset>
+   </path>
+ 
+@@ -78,11 +84,14 @@
+     <pathelement location="${build.test.dir}"/>
+     <pathelement location="${jar.file}"/>
+     <pathelement location="${test.jar.file}"/>
+-
++    <fileset dir="/usr/share/java">
++      <include name="junit.jar"/>
++      <include name="slf4j/log4j12.jar"/>
++    </fileset>
+   </path>
+ 
+   <!-- Tasks -->
+-  <target name="init" depends="setup.init,mvn.init" unless="init.finished">
++  <target name="init" depends="setup.init" unless="init.finished">
+     <property name="init.finished" value="true"/>
+   </target>
+ 
+@@ -295,120 +304,12 @@
+   </target>
+ 
+   <target name="mvn.ant.tasks.download" depends="setup.init,mvn.ant.tasks.check,proxy" unless="mvn.ant.tasks.found">
+-    <get src="${mvn.ant.task.url}/${mvn.ant.task.jar}" dest="${build.tools.dir}/${mvn.ant.task.jar}" usetimestamp="true"/>
+   </target>
+ 
+   <target name="mvn.ant.tasks.check">
+-    <condition property="mvn.ant.tasks.found">
+-      <typefound uri="antlib:org.apache.maven.artifact.ant" name="artifact"/>
+-    </condition>
+   </target>
+ 
+-  <target name="mvn.init" depends="mvn.ant.tasks.download" unless="mvn.finished">
+-    <!-- Download mvn ant tasks, download dependencies, and setup pom file -->
+-    <typedef uri="antlib:org.apache.maven.artifact.ant" classpath="${build.tools.dir}/${mvn.ant.task.jar}"/>
+-
+-    <!-- remote repositories used to download dependencies from -->
+-    <artifact:remoteRepository id="central" url="${mvn.repo}"/>
+-    <artifact:remoteRepository id="apache" url="${apache.repo}"/>
+-
+-    <!-- Pom file information -->
+-    <artifact:pom id="pom"
+-      groupId="${thrift.groupid}"
+-      artifactId="${thrift.artifactid}"
+-      version="${version}"
+-      url="http://thrift.apache.org"
+-      name="Apache Thrift"
+-      description="Thrift is a software framework for scalable cross-language services development."
+-      packaging="pom"
+-    >
+-      <remoteRepository refid="central"/>
+-      <remoteRepository refid="apache"/>
+-      <license name="The Apache Software License, Version 2.0" url="${license}"/>
+-      <scm connection="scm:git:https://git-wip-us.apache.org/repos/asf/thrift.git"
+-      developerConnection="scm:git:https://git-wip-us.apache.org/repos/asf/thrift.git"
+-      url="https://git-wip-us.apache.org/repos/asf?p=thrift.git"
+-      />
+-      <!-- Thrift Developers -->
+-      <developer id="mcslee" name="Mark Slee"/>
+-      <developer id="dreiss" name="David Reiss"/>
+-      <developer id="aditya" name="Aditya Agarwal"/>
+-      <developer id="marck" name="Marc Kwiatkowski"/>
+-      <developer id="jwang" name="James Wang"/>
+-      <developer id="cpiro" name="Chris Piro"/>
+-      <developer id="bmaurer" name="Ben Maurer"/>
+-      <developer id="kclark" name="Kevin Clark"/>
+-      <developer id="jake" name="Jake Luciani"/>
+-      <developer id="bryanduxbury" name="Bryan Duxbury"/>
+-      <developer id="esteve" name="Esteve Fernandez"/>
+-      <developer id="todd" name="Todd Lipcon"/>
+-      <developer id="geechorama" name="Andrew McGeachie"/>
+-      <developer id="molinaro" name="Anthony Molinaro"/>
+-      <developer id="roger" name="Roger Meier"/>
+-      <developer id="jfarrell" name="Jake Farrell"/>
+-      <developer id="jensg" name="Jens Geyer"/>
+-      <developer id="carl" name="Carl Yeksigian"/>
+-
+-      <!-- Thrift dependencies list -->
+-      <dependency groupId="org.slf4j" artifactId="slf4j-api" version="${slf4j.version}"/>
+-      <dependency groupId="javax.servlet" artifactId="servlet-api" version="${servlet.version}" scope="provided"/>
+-      <dependency groupId="org.apache.httpcomponents" artifactId="httpclient" version="${httpclient.version}"/>
+-      <dependency groupId="org.apache.httpcomponents" artifactId="httpcore" version="${httpcore.version}"/>
+-    </artifact:pom>
+-
+-    <!-- Generate the pom file -->
+-    <artifact:writepom pomRefId="pom" file="${pom.xml}"/>
+-
+-    <!-- Download the dependencies -->
+-    <artifact:dependencies filesetId="build-dependency-jars" pomRefId="pom"/>
+-
+-    <!-- Copy the dependencies to the build/lib dir -->
+-    <copy todir="${build.dir}/lib">
+-      <fileset refid="build-dependency-jars"/>
+-      <mapper type="flatten"/>
+-    </copy>
+-
+-    <!-- Dependencies needed for testing -->
+-    <artifact:dependencies filesetId="test-dependency-jars" useScope="runtime">
+-      <dependency groupId="org.slf4j" artifactId="slf4j-log4j12" version="${slf4j.version}"/>
+-      <dependency groupId="junit" artifactId="junit" version="4.4"/>
+-    </artifact:dependencies>
+-
+-    <!-- Copy the test dependencies to the build/lib dir -->
+-    <copy todir="${build.dir}/lib">
+-      <fileset refid="test-dependency-jars"/>
+-      <mapper type="flatten"/>
+-    </copy>
+-
+-    <property name="mvn.finished" value="true"/>
++  <target name="mvn.init" unless="mvn.finished">
+   </target>
+ 
+-  <macrodef name="signAndDeploy">
+-    <!-- Sign and deploy jars to apache repo -->
+-    <attribute name="file"/>
+-    <attribute name="classifier" default=""/>
+-    <attribute name="packaging" default="jar"/>
+-    <attribute name="pom" default=""/>
+-    <sequential>
+-      <artifact:mvn fork="true">
+-        <arg value="org.apache.maven.plugins:maven-gpg-plugin:1.6:sign-and-deploy-file"/>
+-        <arg value="-DrepositoryId=${maven-repository-id}"/>
+-        <arg value="-Durl=${maven-repository-url}"/>
+-        <arg value="-DpomFile=@{pom}"/>
+-        <arg value="-Dfile=@{file}"/>
+-        <arg value="-Dclassifier=@{classifier}"/>
+-        <arg value="-Dpackaging=@{packaging}"/>
+-        <arg value="-Pgpg"/>
+-      </artifact:mvn>
+-    </sequential>
+-  </macrodef>
+-
+-  <target name="publish" depends="clean,init,test,dist,javadoc,pack.src">
+-    <!-- Compile, package, test and then send release to apache maven repo -->
+-    <!-- run with: ant -Drelease=true publish-->
+-    <signAndDeploy file="${pom.xml}" packaging="pom" classifier="" pom="${pom.xml}"/>
+-    <signAndDeploy file="${jar.file}" classifier="" pom="${pom.xml}"/>
+-    <signAndDeploy file="${javadoc.jar.file}" classifier="javadoc" pom="${pom.xml}"/>
+-    <signAndDeploy file="${source.jar.file}" classifier="sources" pom="${pom.xml}"/>
+-  </target>
+ </project>
+diff --git a/tutorial/java/build.xml b/tutorial/java/build.xml
+index 7638d5b..c5ca703 100644
+--- a/tutorial/java/build.xml
++++ b/tutorial/java/build.xml
+@@ -29,13 +29,33 @@
+       <include name="*.jar" />
+       <exclude name="-test.jar" />
+     </fileset>
+-    <fileset dir="../../lib/java/build/lib">
+-      <include name="*.jar" />
++    <fileset dir="/usr/share/java">
++      <include name="commons-codec.jar"/>
++      <include name="commons-lang.jar"/>
++      <include name="commons-logging.jar"/>
++      <include name="httpcomponents/httpcore.jar"/>
++      <include name="httpcomponents/httpclient.jar"/>
++      <include name="log4j.jar"/>
++      <include name="slf4j/api.jar"/>
++      <include name="glassfish-servlet-api.jar"/>
+     </fileset>
+   </path>
+   <path id="build.classpath">
+-    <path refid="libs.classpath" />
+     <pathelement path="${gen}" />
++    <fileset dir="../../lib/java/build">
++      <include name="*.jar" />
++      <exclude name="-test.jar" />
++    </fileset>
++    <fileset dir="/usr/share/java">
++      <include name="commons-codec.jar"/>
++      <include name="commons-lang.jar"/>
++      <include name="commons-logging.jar"/>
++      <include name="httpcomponents/httpcore.jar"/>
++      <include name="httpcomponents/httpclient.jar"/>
++      <include name="log4j.jar"/>
++      <include name="slf4j/api.jar"/>
++      <include name="glassfish-servlet-api.jar"/>
++    </fileset>
+   </path>
+   <path id="tutorial.classpath">
+     <path refid="build.classpath" />
+diff --git a/tutorial/js/build.xml b/tutorial/js/build.xml
+index a9a9ad4..2fddf0c 100644
+--- a/tutorial/js/build.xml
++++ b/tutorial/js/build.xml
+@@ -35,8 +35,16 @@
+       <include name="*.jar" />
+       <exclude name="-test.jar" />
+     </fileset>
+-    <fileset dir="../../lib/java/build/lib">
+-      <include name="*.jar" />
++
++    <fileset dir="/usr/share/java">
++      <include name="commons-codec.jar"/>
++      <include name="commons-lang.jar"/>
++      <include name="commons-logging.jar"/>
++      <include name="httpcomponents/httpcore.jar"/>
++      <include name="httpcomponents/httpclient.jar"/>
++      <include name="log4j.jar"/>
++      <include name="slf4j/api.jar"/>
++      <include name="glassfish-servlet-api.jar"/>
+     </fileset>
+   </path>
+   <path id="build.classpath">
+
