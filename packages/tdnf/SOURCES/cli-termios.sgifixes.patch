@@ -1,0 +1,20 @@
+--- tdnf-3.1.5-orig/tools/cli/lib/output.c	2021-10-06 18:39:26.000000000 +0000
++++ tdnf-3.1.5/tools/cli/lib/output.c	2021-11-21 21:47:50.156623360 +0000
+@@ -21,6 +21,17 @@
+ 
+ #include "includes.h"
+ 
++#ifdef __sgi
++struct winsize {
++    unsigned short ws_row;       /* rows, in characters*/
++    unsigned short ws_col;       /* columns, in character */
++    unsigned short ws_xpixel;    /* horizontal size, pixels */
++    unsigned short ws_ypixel;    /* vertical size, pixels */
++};
++
++#define TIOCGWINSZ  _IOR('t', 104, struct winsize)  /* get window size */
++#endif
++
+ void
+ ShowConsoleProps(
+     void

@@ -1,18 +1,19 @@
---- tdnf-3.0.0-beta-orig/CMakeLists.txt	2020-12-03 17:02:43.241228240 +0000
-+++ tdnf-3.0.0-beta/CMakeLists.txt	2020-12-03 17:03:26.043551840 +0000
-@@ -29,11 +29,11 @@
+--- tdnf-3.1.5-orig/CMakeLists.txt	2021-10-06 18:39:26.000000000 +0000
++++ tdnf-3.1.5/CMakeLists.txt	2021-11-17 20:33:17.954842960 +0000
+@@ -29,13 +29,13 @@
  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
  
  # Ensure that we don't accidentally install into /usr/etc
 -set(CMAKE_INSTALL_FULL_SYSCONDIR "/etc")
 -set(SYSCONFDIR /etc)
+-
+-set(MOTGEN_DIR /etc/motdgen.d)
 +set(CMAKE_INSTALL_FULL_SYSCONDIR "/usr/sgug/etc")
 +set(SYSCONFDIR /usr/sgug/etc)
  
--set(MOTGEN_DIR /etc/motdgen.d)
--set(SYSTEMD_DIR /lib/systemd/system)
 +set(MOTGEN_DIR /usr/sgug/etc/motdgen.d)
-+set(SYSTEMD_DIR /usr/sgug/lib/systemd/system)
- 
- ##
- ## C Flags
++ 
+ if(NOT SYSTEMD_DIR)
+-    set(SYSTEMD_DIR /lib/systemd/system)
++    set(SYSTEMD_DIR /usr/sgug/lib/systemd/system)
+ endif()
