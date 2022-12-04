@@ -90,7 +90,8 @@ for file in api.c dumper.c emitter.c loader.c parser.c reader.c scanner.c \
 done
 
 %build
-perl Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}" NO_PACKLIST=1 NO_PERLLOCAL=1 LDDLFLAGS="$RPM_LD_FLAGS"
+perl Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}" NO_PACKLIST=1 NO_PERLLOCAL=1
+# LDDLFLAGS="$RPM_LD_FLAGS"
 %{make_build}
 
 %install
