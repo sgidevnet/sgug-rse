@@ -1,3 +1,0 @@
-# xkbcomp
-
-The xkbcomp package
