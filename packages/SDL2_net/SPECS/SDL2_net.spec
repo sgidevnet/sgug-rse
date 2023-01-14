@@ -35,8 +35,6 @@ sed -i 's/\r//' README.txt CHANGES.txt COPYING.txt
 %make_install
 find %{buildroot} -name '*.la' -exec rm -f {} ';'
 
-%ldconfig_scriptlets
-
 %files
 %license COPYING.txt
 %doc README.txt CHANGES.txt
@@ -48,6 +46,9 @@ find %{buildroot} -name '*.la' -exec rm -f {} ';'
 %{_libdir}/pkgconfig/*.pc
 
 %changelog
+* Fri Jan 13 2023 Jason Benaim <jkbenaim@gmail.com> - 2.0.1-9-1
+- Removed '%ldconfig_scriptlets' directive.
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.0.1-9
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
