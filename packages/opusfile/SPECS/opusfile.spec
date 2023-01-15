@@ -45,8 +45,6 @@ Files for development with %{name}.
 #Remove libtool archives.
 find %{buildroot} -type f -name "*.la" -delete
 
-%ldconfig_scriptlets
-
 %files
 %license COPYING
 %doc AUTHORS
@@ -62,6 +60,9 @@ find %{buildroot} -type f -name "*.la" -delete
 %{_libdir}/libopusurl.so
 
 %changelog
+* Fri Jan 13 2023 Jason Benaim <jkbenaim@gmail.com> - 0.11-3-1
+- Removed '%ldconfig_scriptlets' directive.
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.11-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

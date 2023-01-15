@@ -21,6 +21,7 @@ BuildRequires:  xorg-x11-util-macros byacc flex bison
 BuildRequires:  xorg-x11-proto-devel libX11-devel
 BuildRequires:  xkeyboard-config-devel
 BuildRequires:  pkgconfig(xcb-xkb) >= 1.10
+BuildRequires:  libdicl-devel
 
 Requires:       xkeyboard-config
 
@@ -94,6 +95,9 @@ export LDFLAGS="-ldicl-0.1 -lc $RPM_LD_FLAGS"
 %{_libdir}/pkgconfig/xkbcommon-x11.pc
 
 %changelog
+* Fri Jan 13 2023 Jason Benaim <jkbenaim@gmail.com> - 0.9.1-3
+- add missing build dependency on libdicl-devel.
+
 * Fri Nov 27 2020  HAL & DH <notes2@gmx.de> - 0.9.1-3
 - compiles on Irix 6.5 with sgug-rse gcc 9.2.
 
