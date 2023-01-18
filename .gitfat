@@ -1,3 +1,8 @@
 [rsync]
 remote = conduit:/
 sshuser = vladimir
+
+[s3]
+bucket = sgi-dev-public
+prefix = repo/fat/
+publicurl = https://ports.sgi.sh/repo/fat/

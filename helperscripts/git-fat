@@ -14,6 +14,7 @@ import itertools
 import threading
 import time
 import collections
+import urllib2
 
 if not type(sys.version_info) is tuple and sys.version_info.major > 2:
     sys.stderr.write('git-fat does not support Python-3 yet.  Please use python2.\n')
@@ -156,6 +157,13 @@ class GitFat(object):
             return len(enc(hashlib.sha1('dummy').hexdigest(), 5))
         self.magiclen = magiclen(self.encode) # Current version
         self.magiclens = [magiclen(enc) for enc in [self.encode_v2]] # All prior versions
+        self.cfgpath = os.path.join(self.gitroot, '.gitfat')
+        self.s3_bucket = gitconfig_get('s3.bucket', file=self.cfgpath)
+        self.s3_public_url = gitconfig_get('s3.publicurl', file=self.cfgpath)
+        s3_prefix = gitconfig_get('s3.prefix', file=self.cfgpath)
+        if s3_prefix is None:
+            s3_prefix = ""
+        self.s3_prefix = s3_prefix
     def setup(self):
         mkdir_p(self.objdir)
     def is_init_done(self):
@@ -165,6 +173,53 @@ class GitFat(object):
             sys.stderr.write('fatal: git-fat is not yet configured in this repository.\n')
             sys.stderr.write('Run "git fat init" to configure.\n')
             sys.exit(1)
+    def do_s3_command(self, push, files, pushall=False):
+        has_public_url = self.s3_public_url is not None
+        pull = not push
+        if len(files) == 0:
+            sys.stderr.write('git-fat: no files\n')
+            return 0
+
+        s3_url = 's3://%s/%s' % (self.s3_bucket, self.s3_prefix)
+        if pull:
+            if self.s3_public_url is not None:
+                # try getting via the public URL first.  It should be the full path (no s3_prefix)
+                success = False
+                for f in files:
+                    try:
+                        sys.stdout.write("Downloading " + self.s3_public_url + f + " ...\n")
+                        urld = urllib2.urlopen(self.s3_public_url + f)
+                        with open(os.path.join(self.objdir, f), "wb") as dest:
+                            data = urld.read(32768)
+                            if not data:
+                                break
+                            dest.write(data)
+                    except Exception as e:
+                        os.unlink(os.path.join(self.objdir, f))
+                        sys.stderr.write('got error using s3_public_url, trying with s3 directly...\n')
+                        sys.stderr.write(str(e))
+                        sys.stderr.write('\n')
+                        success = False
+                    if not success:
+                        break
+                if success:
+                    return 0
+
+            # if public url download failed, try via s3
+            for f in files:
+                cmd = ['aws', 's3', 'cp', s3_url + f, os.path.join(self.objdir, f)]
+                subprocess.check_call(cmd)
+        else:
+            # push
+            if pushall:
+                cmd = ['aws', 's3', 'sync', self.objdir, s3_url]
+                subprocess.check_call(cmd)
+
+            for f in files:
+                cmd = ['aws', 's3', 'cp', os.path.join(self.objdir, f), s3_url + f]
+                subprocess.check_call(cmd)
+        return 0
+
     def get_rsync(self):
         cfgpath   = os.path.join(self.gitroot,'.gitfat')
         remote    = gitconfig_get('rsync.remote', file=cfgpath)
@@ -426,12 +481,16 @@ class GitFat(object):
         # (includes history). Finer-grained pushing would be useful.
         pushall = '--all' in args
         files = self.referenced_objects(all=pushall) & self.catalog_objects()
-        cmd = self.get_rsync_command(push=True)
-        self.verbose('Executing: %s' % ' '.join(cmd))
-        p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-        p.communicate(input='\x00'.join(files))
-        if p.returncode:
-            sys.exit(p.returncode)
+        if self.s3_bucket:
+            rv = self.do_s3_command(True, files, pushall=pushall)
+        else:
+            cmd = self.get_rsync_command(push=True)
+            self.verbose('Executing: %s' % ' '.join(cmd))
+            p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+            p.communicate(input='\x00'.join(files))
+            rv = p.returncode
+        if rv != 0:
+            sys.exit(rv)
     def checkout(self, show_orphans=False):
         'Update any stale files in the present working tree'
         self.assert_init_done()
@@ -481,12 +540,16 @@ class GitFat(object):
         if not files:
             print('No git-fat hashed files found. Perhaps they have already been pulled?')
             return
-        cmd = self.get_rsync_command(push=False)
-        self.verbose('Executing: %s' % ' '.join(cmd))
-        p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-        p.communicate(input='\x00'.join(files))
-        if p.returncode:
-            sys.exit(p.returncode)
+        if self.s3_bucket:
+            rv = self.do_s3_command(False, files)
+        else:
+            cmd = self.get_rsync_command(push=False)
+            self.verbose('Executing: %s' % ' '.join(cmd))
+            p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+            p.communicate(input='\x00'.join(files))
+            rv = p.returncode
+        if rv != 0:
+            sys.exit(rv)
         self.checkout()
 
     def get_target_files(self, arg):
