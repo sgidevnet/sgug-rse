@@ -2,61 +2,184 @@
 
 Contributions to sgug-rse are more than welcomed - and the following guidelines are here to help you in submitting new toys for everyone to use!
 
-## What can I contribute?
-
 You are free to contribute what/where you feel you can add value. That might be by submitting new packages - but could also be contributions that correct mistakes in our installation guide or new things to this document!
 
-## How do I contribute?
+## Initial Setup
 
-The simplest method for us (the sgug-rse team) - is to:
+This repository is set up make it easy to work on RPMs directly inside the repository, with source management via `git-fat` and patch management via `quilt`.  The repository contains all of the source tarballs needed to build a package, but are stored using `git-fat` (which is a lightweight version of `git-lfs`).
 
-* Clone the sgug-rse repository so you have a personal copy of the repository
-* Checkout the `wipnonautomated` branch
-* Ensure it is up to date (compared to the sgug-rse `wipnonautomated` branch)
-* Make your changes and commit them (more detail about the "what" below)
-* Push your changes to your clone on that `wipnonautomated` branch
-* Go to github in your browser and you'll get the option to create a pull request
-* Ensure the pull request is against the sgug-rse repository `wipnonautomated` branch
-* One of our flight attendants will be with you shortly
+This document does not go into detail about building RPM spec files or using rpmbuild.  See (this documentation) for more info.
 
-## Packages - Deeper Detail
+### Setting up the reprository and build scripts on IRIX
 
-Things that are submitted + merged into `wipnonautomated` are in fact not "live" packages yet. It's a wip branch that lets the sgug-rse team work on new/up and coming changes together. Things in this branch don't have to be perfect - so that includes things in a pull request against the branch.
+First, clone the `sgug-rse` git repository.  This document will assume it's cloned at `~/sgug-rse`, but replace that with wherever you place it.
 
-Once a package is reviewed and the sgug-rse team have some confidence in a package (either through internal tests or by having the thing used by another package that is "good enough") - the package is included in the "releasepackages.txt" file that our build automation can use.
+Second, install some prerequisites.  This assumes that you have the SGUG-RSE environment installed.  (If not, installation instructions are here!)
 
-At the next point-in-time release of sgug-rse, our tooling then works through the releasepackages.txt file building shiny new versions of the package.
+```
+$ sudo tdnf install python2 python3-pip python3-wheel quilt
+[....]
 
-## Packages - Adding/Porting A New Package
+$ pip3 install awscli
+```
 
-1) You may choose to port your package outside of rpmbuild, it can be easier to do the patching there before tackling the `.spec` build file
+Third, make sure the `git-fat` script is in your PATH.  If you have `~/bin` in PATH:
 
-2) Check fedora fc31 if the package exists and pull the latest source RPM. Fedora source RPMs can be searched and downloaded here: <https://koji.fedoraproject.org/koji/packages>.
+```
+$ ln -s ~/sgug-rse/helperscripts/git-fat ~/bin/git-fat
+```
 
-3) Install srpm, copy .spec into rse packages/PACKAGENAME/SPECS/PACKAGENAME.spec.origfedora
+Fourth, finally run `git-fat` to initialize things in the repository you cloned:
 
-4) Edit ~/rpmbuild/SPECS/PACKAGENAME.spec until it is happily building (add patches in ~/rpmbuild/SOURCES/packagename.sgifixes.patch etc)
+```
+$ cd ~/sgug-rse
+$ git-fat init
+```
 
-5) Copy back PACKAGENAME.spec to repo PACKAGENAME/SPECS/PACKAGENAME.spec plus any patches or modified sources into PACKAGENAME/SOURCES/
+### Setting up `~/.rpmmacros`
 
-6) If you can't find the exact version of the package, still try and use the .spec from fc31, we get dependency bonuses with other packages that might depend on it
+Add the following at the start of `~/.rpmmacros`to redirect `rpmbuild` to the `sgug-rse` repository for finding source and spec files, and placing the output there.  Replace `vladimir` with your username.
 
-7) For things that don't have equivs in fedora, you can maybe find stuff in other RPM repos, libiconv for example was done this way
+```
+%_topdir /usr/people/vladimir/sgug-rse
+%_sourcedir %{_topdir}/packages/%{name}
+%_specdir %{_sourcedir}
+```
 
-8) Really there's no hard rules about quality - there's already packages in the rse that fail some tests, so don't be shy about "it has to be perfect"
+------------------------
 
-9) We prefer to not include large files in the repository, it is nice that this repository remains usable on irix natively
+## Working With Packages
 
-## Packages - Git Snapshots
+`git-fat` requires explicit push/pull operations.  If you look at e.g. `packages/xterm/xterm-351.tgz` you'll see that it's a short text file containing a hash.
 
-* On the whole we prefer that packages follow the versioning of fc31 - this makes it easier for others to build the package (install the fc31 SRPM, copy over files from "wipnonautomated", build)
-* Not always the case, meson for example is a git snapshot + fixes
-* If we _do_ want a git snapshot, the "release" section of the version in the `.spec` should indicate it is a git snapshot. See meson as an example.
+Run a `git fat pull` to get the actual source:
 
-## Packages - Original Spec File
+```
+$ cd ~/sgug-rse
+$ git fat pull packages/xterm
+[...]
+$ ls -l packages/xterm/xterm-351.tgz
+[ something bigger than 128 bytes ]
+```
 
-* If there is an fc31 package something is built from, we put the original fedora spec file next to the RSE one as "PACKAGENAME.spec.origfedora"
-* Let's us easily do a "diff" to see what has been changed
+When adding or changing files, git add/commit as normal.  Run `git fat push` to push any changed binary files.  See (Push Authorization) for authentication information.
+
+### Making modifications to an existing package
+
+(For a much better version of this section, see [PatchingRPMsWithQuilt](https://utcc.utoronto.ca/~cks/space/blog/linux/PatchingRPMsWithQuilt))
+
+Let's do some work with xterm:
+
+```
+$ cd packages/xterm
+$ git fat pull .
+$ quilt setup *.spec
+### md5sum: ..g.....
+### rpmbuild: tpppp
+Unpacking archive xterm-351.tgz
+```
+
+`quilt` has unpacked the xterm source (in the current directory under `xterm-351`.  It knows about the patches from the spec file, but hasn't applied any of them yet:
+
+```
+$ cd xterm-351
+$ quilt series -v
+  patches/xterm-defaults.patch
+  patches/xterm-desktop.patch
+  patches/xterm-man-paths.patch
+  patches/xterm.sgifixes.patch
+```
+
+Let's apply the existing patches.
+
+```
+$ quilt push -a
+Applying patch patches/xterm-defaults.patch
+patching file XTerm.ad
+
+Applying patch patches/xterm-desktop.patch
+patching file xterm.desktop
+
+Applying patch patches/xterm-man-paths.patch
+patching file minstall.in
+Hunk #2 succeeded at 169 (offset 1 line).
+patching file xterm.man
+Hunk #1 succeeded at 2471 (offset 143 lines).
+
+Applying patch patches/xterm.sgifixes.patch
+patching file main.c
+
+Now at patch patches/xterm.sgifixes.patch
+
+[sgugshell vladimir@reality xterm-351]$ quilt series -v
++ patches/xterm-defaults.patch
++ patches/xterm-desktop.patch
++ patches/xterm-man-paths.patch
+= patches/xterm.sgifixes.patch
+```
+
+The current top/active (=) patch is the sgifixes patch.  Let's edit `main.c`, which is already modified by the sgifixes.patch:
+
+```
+$ vi main.c
+[...]
+
+$ quilt diff
+quilt diff
+Index: xterm-351/main.c
+===================================================================
+--- xterm-351.orig/main.c
++++ xterm-351/main.c
+
+[... shows the changes to main.c from the previous patchlevel, i.e. your new change and whatever the patch did originally]
+
+$ quilt refresh
+quilt refresh
+Refreshed patch patches/xterm.sgifixes.patch
+```
+
+At this point the `sgifixes` patch has been updated, and you're ready to run `rpmbuild` again.
+
+At this point you should go read the the link at the start of this section or the quilt docs, because it's like a mini version control system.  Quilt will manage making the actual patch/diff between the previous version of all the files and new ones.  You do have to manually edit .spec files to add any newly-created patches, but it's a very efficient workflow for iterating on RPMs.
+
+One important thing to remember is if you want to change a file, you have to manually `quilt add` the files you want to change _before_ you change them.  If you don't, you'll have to start over so that you can tell `quilt` what the clean version of the file looked like. 
+
+
+IMPORTANT: if the spec file does not have any patches at all, you have to manually do this in order to have the `patches` dir point to the right place:
+
+```
+$ cd dir-source-was-unpacked-to
+$ ln -s .. patches
+```
+
+if there are patches, `quilt` does this automatically.  `xterm` has patches, so the `patches` symlink already exists.  If you don't do this, quilt will create patches inside the wrong directory (inside a `patches` dir in the source tree).  If this happens just move `patches` to `..` and make the symlink.
+
+
+### Adding a new package
+
+**If you have a SRPM**, install it; if your `.rpmmacros` is setup, the sources should end up inside `~/sgug-rse/packages/{packagename}`.  (Note: FC31 SRPMs can be searched and downloaded here: <https://koji.fedoraproject.org/koji/packages>).
+
+You should `git add` and `git commit` the original files from the SRPM before making changes to them, to make it easy to diff against the original in the future.  Suggestion is to use the SRPM name as the commit message.
+
+**If you don't have a SRPM**, make a new directory in `~/sgug-rse/packages/` with the package name.  Copy your source file(s) into it.  Make a `.spec` file in this directory.
+
+Do work like the above instructions to modify; note that you'll have to manually symlink the `patches` dir as mentioned earlier if there are no patches by default.
+
+`git add` and `git commit` everything as normal.
+
+### Submitting your package
+
+If you have access to the S3 bucket, you should `git-fat push` when you `git push` your branch upstream.  If you don't, talk to someone on Discord.
+
+Then make a PR as normal.
+
+## Other Notes
+
+* If you can't find the exact version of the package, still try and use the .spec from fc31, we get dependency bonuses with other packages that might depend on it
+* For things that don't have equivs in fedora, you can maybe find stuff in other RPM repos, libiconv for example was done this way
+* Really there's no hard rules about quality - there's already packages in the rse that fail some tests, so don't be shy about "it has to be perfect"
+* If you need to troubleshoot, `git-fat`, set `GIT_FAT_VERBOSE=1` in the environment to see more detail about what it's doing.
+* If you need to add additional large file extensions to be tracked by `git-fat`, you can do so by adding them to `.gitattributes`.
 
 ## Packages - Preferred Patching / Change Approach
 
