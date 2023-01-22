@@ -175,6 +175,7 @@ Then make a PR as normal.
 
 ## Other Notes
 
+* All files -- the `.spec` file and all the sources and patches should live inside `~/sgug-rse/packages/{packagename}`.  There should not be a `SOURCES` directory inside there.
 * If you can't find the exact version of the package, still try and use the .spec from fc31, we get dependency bonuses with other packages that might depend on it
 * For things that don't have equivs in fedora, you can maybe find stuff in other RPM repos, libiconv for example was done this way
 * Really there's no hard rules about quality - there's already packages in the rse that fail some tests, so don't be shy about "it has to be perfect"
