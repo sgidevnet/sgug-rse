@@ -1,0 +1,4621 @@
+From 0d620c4a03a8b3765ec45785299244e1a494d750 Mon Sep 17 00:00:00 2001
+From: Pradyun Gedam <pradyunsg@gmail.com>
+Date: Sat, 20 Jul 2019 09:29:46 +0530
+Subject: [PATCH] Upgrade urllib3 to 1.25.3
+
+---
+ news/urllib3.vendor                           |   1 +
+ src/pip/_vendor/urllib3/LICENSE.txt           |  32 +-
+ src/pip/_vendor/urllib3/__init__.py           |   3 +-
+ src/pip/_vendor/urllib3/connection.py         |  62 ++-
+ src/pip/_vendor/urllib3/connectionpool.py     |  41 +-
+ .../contrib/_securetransport/bindings.py      |  14 +-
+ src/pip/_vendor/urllib3/contrib/pyopenssl.py  |  35 +-
+ .../urllib3/contrib/securetransport.py        |  87 +++-
+ src/pip/_vendor/urllib3/contrib/socks.py      |  35 +-
+ src/pip/_vendor/urllib3/fields.py             | 140 +++++-
+ .../urllib3/packages/rfc3986/__init__.py      |  56 +++
+ .../urllib3/packages/rfc3986/_mixin.py        | 353 ++++++++++++++
+ .../urllib3/packages/rfc3986/abnf_regexp.py   | 267 +++++++++++
+ .../_vendor/urllib3/packages/rfc3986/api.py   | 106 +++++
+ .../urllib3/packages/rfc3986/builder.py       | 298 ++++++++++++
+ .../urllib3/packages/rfc3986/compat.py        |  54 +++
+ .../urllib3/packages/rfc3986/exceptions.py    | 118 +++++
+ .../_vendor/urllib3/packages/rfc3986/iri.py   | 147 ++++++
+ .../_vendor/urllib3/packages/rfc3986/misc.py  | 124 +++++
+ .../urllib3/packages/rfc3986/normalizers.py   | 167 +++++++
+ .../urllib3/packages/rfc3986/parseresult.py   | 385 +++++++++++++++
+ .../_vendor/urllib3/packages/rfc3986/uri.py   | 153 ++++++
+ .../urllib3/packages/rfc3986/validators.py    | 450 ++++++++++++++++++
+ src/pip/_vendor/urllib3/poolmanager.py        |  13 +-
+ src/pip/_vendor/urllib3/response.py           |  69 ++-
+ src/pip/_vendor/urllib3/util/__init__.py      |   2 +
+ src/pip/_vendor/urllib3/util/request.py       |   7 +
+ src/pip/_vendor/urllib3/util/retry.py         |   3 +-
+ src/pip/_vendor/urllib3/util/ssl_.py          | 111 +++--
+ src/pip/_vendor/urllib3/util/timeout.py       |   3 +-
+ src/pip/_vendor/urllib3/util/url.py           | 215 ++++++---
+ src/pip/_vendor/vendor.txt                    |   2 +-
+ 32 files changed, 3288 insertions(+), 265 deletions(-)
+ create mode 100644 news/urllib3.vendor
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/__init__.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/_mixin.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/abnf_regexp.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/api.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/builder.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/compat.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/exceptions.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/iri.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/misc.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/normalizers.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/parseresult.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/uri.py
+ create mode 100644 src/pip/_vendor/urllib3/packages/rfc3986/validators.py
+
+diff --git a/news/urllib3.vendor b/news/urllib3.vendor
+new file mode 100644
+index 0000000000..ff45e8a548
+--- /dev/null
++++ b/news/urllib3.vendor
+@@ -0,0 +1 @@
++Upgrade urllib3 to 1.25.3
+diff --git a/src/pip/_vendor/urllib3/LICENSE.txt b/src/pip/_vendor/urllib3/LICENSE.txt
+index 1c3283ee5b..c89cf27b85 100644
+--- a/src/pip/_vendor/urllib3/LICENSE.txt
++++ b/src/pip/_vendor/urllib3/LICENSE.txt
+@@ -1,19 +1,21 @@
+-This is the MIT license: http://www.opensource.org/licenses/mit-license.php
++MIT License
+ 
+-Copyright 2008-2016 Andrey Petrov and contributors (see CONTRIBUTORS.txt)
++Copyright (c) 2008-2019 Andrey Petrov and contributors (see CONTRIBUTORS.txt)
+ 
+-Permission is hereby granted, free of charge, to any person obtaining a copy of this
+-software and associated documentation files (the "Software"), to deal in the Software
+-without restriction, including without limitation the rights to use, copy, modify, merge,
+-publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
+-to whom the Software is furnished to do so, subject to the following conditions:
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
+ 
+-The above copyright notice and this permission notice shall be included in all copies or
+-substantial portions of the Software.
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
+ 
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+-PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+-FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-DEALINGS IN THE SOFTWARE.
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+diff --git a/src/pip/_vendor/urllib3/__init__.py b/src/pip/_vendor/urllib3/__init__.py
+index 148a9c31a7..c4c0dde54a 100644
+--- a/src/pip/_vendor/urllib3/__init__.py
++++ b/src/pip/_vendor/urllib3/__init__.py
+@@ -1,7 +1,6 @@
+ """
+ urllib3 - Thread-safe connection pooling and re-using.
+ """
+-
+ from __future__ import absolute_import
+ import warnings
+ 
+@@ -27,7 +26,7 @@
+ 
+ __author__ = 'Andrey Petrov (andrey.petrov@shazow.net)'
+ __license__ = 'MIT'
+-__version__ = '1.24.1'
++__version__ = '1.25.3'
+ 
+ __all__ = (
+     'HTTPConnectionPool',
+diff --git a/src/pip/_vendor/urllib3/connection.py b/src/pip/_vendor/urllib3/connection.py
+index 02b36654bd..57c58fedb7 100644
+--- a/src/pip/_vendor/urllib3/connection.py
++++ b/src/pip/_vendor/urllib3/connection.py
+@@ -19,10 +19,11 @@ class BaseSSLError(BaseException):
+         pass
+ 
+ 
+-try:  # Python 3:
+-    # Not a no-op, we're adding this to the namespace so it can be imported.
++try:
++    # Python 3: not a no-op, we're adding this to the namespace so it can be imported.
+     ConnectionError = ConnectionError
+-except NameError:  # Python 2:
++except NameError:
++    # Python 2
+     class ConnectionError(Exception):
+         pass
+ 
+@@ -101,7 +102,7 @@ class HTTPConnection(_HTTPConnection, object):
+     is_verified = False
+ 
+     def __init__(self, *args, **kw):
+-        if six.PY3:  # Python 3
++        if six.PY3:
+             kw.pop('strict', None)
+ 
+         # Pre-set source_address.
+@@ -158,7 +159,7 @@ def _new_conn(self):
+             conn = connection.create_connection(
+                 (self._dns_host, self.port), self.timeout, **extra_kw)
+ 
+-        except SocketTimeout as e:
++        except SocketTimeout:
+             raise ConnectTimeoutError(
+                 self, "Connection to %s timed out. (connect timeout=%s)" %
+                 (self.host, self.timeout))
+@@ -171,7 +172,8 @@ def _new_conn(self):
+ 
+     def _prepare_conn(self, conn):
+         self.sock = conn
+-        if self._tunnel_host:
++        # Google App Engine's httplib does not define _tunnel_host
++        if getattr(self, '_tunnel_host', None):
+             # TODO: Fix tunnel so it doesn't depend on self.sock state.
+             self._tunnel()
+             # Mark this connection as not reusable
+@@ -226,7 +228,8 @@ class HTTPSConnection(HTTPConnection):
+     ssl_version = None
+ 
+     def __init__(self, host, port=None, key_file=None, cert_file=None,
+-                 strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
++                 key_password=None, strict=None,
++                 timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+                  ssl_context=None, server_hostname=None, **kw):
+ 
+         HTTPConnection.__init__(self, host, port, strict=strict,
+@@ -234,6 +237,7 @@ def __init__(self, host, port=None, key_file=None, cert_file=None,
+ 
+         self.key_file = key_file
+         self.cert_file = cert_file
++        self.key_password = key_password
+         self.ssl_context = ssl_context
+         self.server_hostname = server_hostname
+ 
+@@ -245,16 +249,28 @@ def connect(self):
+         conn = self._new_conn()
+         self._prepare_conn(conn)
+ 
++        # Wrap socket using verification with the root certs in
++        # trusted_root_certs
++        default_ssl_context = False
+         if self.ssl_context is None:
++            default_ssl_context = True
+             self.ssl_context = create_urllib3_context(
+-                ssl_version=resolve_ssl_version(None),
+-                cert_reqs=resolve_cert_reqs(None),
++                ssl_version=resolve_ssl_version(self.ssl_version),
++                cert_reqs=resolve_cert_reqs(self.cert_reqs),
+             )
+ 
++        # Try to load OS default certs if none are given.
++        # Works well on Windows (requires Python3.4+)
++        context = self.ssl_context
++        if (not self.ca_certs and not self.ca_cert_dir and default_ssl_context
++                and hasattr(context, 'load_default_certs')):
++            context.load_default_certs()
++
+         self.sock = ssl_wrap_socket(
+             sock=conn,
+             keyfile=self.key_file,
+             certfile=self.cert_file,
++            key_password=self.key_password,
+             ssl_context=self.ssl_context,
+             server_hostname=self.server_hostname
+         )
+@@ -272,25 +288,24 @@ class VerifiedHTTPSConnection(HTTPSConnection):
+     assert_fingerprint = None
+ 
+     def set_cert(self, key_file=None, cert_file=None,
+-                 cert_reqs=None, ca_certs=None,
++                 cert_reqs=None, key_password=None, ca_certs=None,
+                  assert_hostname=None, assert_fingerprint=None,
+                  ca_cert_dir=None):
+         """
+         This method should only be called once, before the connection is used.
+         """
+-        # If cert_reqs is not provided, we can try to guess. If the user gave
+-        # us a cert database, we assume they want to use it: otherwise, if
+-        # they gave us an SSL Context object we should use whatever is set for
+-        # it.
++        # If cert_reqs is not provided we'll assume CERT_REQUIRED unless we also
++        # have an SSLContext object in which case we'll use its verify_mode.
+         if cert_reqs is None:
+-            if ca_certs or ca_cert_dir:
+-                cert_reqs = 'CERT_REQUIRED'
+-            elif self.ssl_context is not None:
++            if self.ssl_context is not None:
+                 cert_reqs = self.ssl_context.verify_mode
++            else:
++                cert_reqs = resolve_cert_reqs(None)
+ 
+         self.key_file = key_file
+         self.cert_file = cert_file
+         self.cert_reqs = cert_reqs
++        self.key_password = key_password
+         self.assert_hostname = assert_hostname
+         self.assert_fingerprint = assert_fingerprint
+         self.ca_certs = ca_certs and os.path.expanduser(ca_certs)
+@@ -301,7 +316,8 @@ def connect(self):
+         conn = self._new_conn()
+         hostname = self.host
+ 
+-        if self._tunnel_host:
++        # Google App Engine's httplib does not define _tunnel_host
++        if getattr(self, '_tunnel_host', None):
+             self.sock = conn
+             # Calls self._set_hostport(), so self.host is
+             # self._tunnel_host below.
+@@ -326,7 +342,9 @@ def connect(self):
+ 
+         # Wrap socket using verification with the root certs in
+         # trusted_root_certs
++        default_ssl_context = False
+         if self.ssl_context is None:
++            default_ssl_context = True
+             self.ssl_context = create_urllib3_context(
+                 ssl_version=resolve_ssl_version(self.ssl_version),
+                 cert_reqs=resolve_cert_reqs(self.cert_reqs),
+@@ -334,10 +352,18 @@ def connect(self):
+ 
+         context = self.ssl_context
+         context.verify_mode = resolve_cert_reqs(self.cert_reqs)
++
++        # Try to load OS default certs if none are given.
++        # Works well on Windows (requires Python3.4+)
++        if (not self.ca_certs and not self.ca_cert_dir and default_ssl_context
++                and hasattr(context, 'load_default_certs')):
++            context.load_default_certs()
++
+         self.sock = ssl_wrap_socket(
+             sock=conn,
+             keyfile=self.key_file,
+             certfile=self.cert_file,
++            key_password=self.key_password,
+             ca_certs=self.ca_certs,
+             ca_cert_dir=self.ca_cert_dir,
+             server_hostname=server_hostname,
+diff --git a/src/pip/_vendor/urllib3/connectionpool.py b/src/pip/_vendor/urllib3/connectionpool.py
+index f7a8f193d1..157568a395 100644
+--- a/src/pip/_vendor/urllib3/connectionpool.py
++++ b/src/pip/_vendor/urllib3/connectionpool.py
+@@ -26,6 +26,7 @@
+ from .packages.ssl_match_hostname import CertificateError
+ from .packages import six
+ from .packages.six.moves import queue
++from .packages.rfc3986.normalizers import normalize_host
+ from .connection import (
+     port_by_scheme,
+     DummyConnection,
+@@ -65,7 +66,7 @@ def __init__(self, host, port=None):
+         if not host:
+             raise LocationValueError("No host specified.")
+ 
+-        self.host = _ipv6_host(host, self.scheme)
++        self.host = _normalize_host(host, scheme=self.scheme)
+         self._proxy_host = host.lower()
+         self.port = port
+ 
+@@ -373,9 +374,11 @@ def _make_request(self, conn, method, url, timeout=_Default, chunked=False,
+ 
+         # Receive the response from the server
+         try:
+-            try:  # Python 2.7, use buffering of HTTP responses
++            try:
++                # Python 2.7, use buffering of HTTP responses
+                 httplib_response = conn.getresponse(buffering=True)
+-            except TypeError:  # Python 3
++            except TypeError:
++                # Python 3
+                 try:
+                     httplib_response = conn.getresponse()
+                 except Exception as e:
+@@ -432,8 +435,8 @@ def is_same_host(self, url):
+ 
+         # TODO: Add optional support for socket.gethostbyname checking.
+         scheme, host, port = get_host(url)
+-
+-        host = _ipv6_host(host, self.scheme)
++        if host is not None:
++            host = _normalize_host(host, scheme=scheme)
+ 
+         # Use explicit default port for comparison when none is given
+         if self.port and not port:
+@@ -672,7 +675,7 @@ def drain_and_release_conn(response):
+                 # released back to the pool once the entire response is read
+                 response.read()
+             except (TimeoutError, HTTPException, SocketError, ProtocolError,
+-                    BaseSSLError, SSLError) as e:
++                    BaseSSLError, SSLError):
+                 pass
+ 
+         # Handle redirect?
+@@ -746,8 +749,8 @@ class HTTPSConnectionPool(HTTPConnectionPool):
+     If ``assert_hostname`` is False, no verification is done.
+ 
+     The ``key_file``, ``cert_file``, ``cert_reqs``, ``ca_certs``,
+-    ``ca_cert_dir``, and ``ssl_version`` are only used if :mod:`ssl` is
+-    available and are fed into :meth:`urllib3.util.ssl_wrap_socket` to upgrade
++    ``ca_cert_dir``, ``ssl_version``, ``key_password`` are only used if :mod:`ssl`
++    is available and are fed into :meth:`urllib3.util.ssl_wrap_socket` to upgrade
+     the connection socket into an SSL socket.
+     """
+ 
+@@ -759,7 +762,7 @@ def __init__(self, host, port=None,
+                  block=False, headers=None, retries=None,
+                  _proxy=None, _proxy_headers=None,
+                  key_file=None, cert_file=None, cert_reqs=None,
+-                 ca_certs=None, ssl_version=None,
++                 key_password=None, ca_certs=None, ssl_version=None,
+                  assert_hostname=None, assert_fingerprint=None,
+                  ca_cert_dir=None, **conn_kw):
+ 
+@@ -767,12 +770,10 @@ def __init__(self, host, port=None,
+                                     block, headers, retries, _proxy, _proxy_headers,
+                                     **conn_kw)
+ 
+-        if ca_certs and cert_reqs is None:
+-            cert_reqs = 'CERT_REQUIRED'
+-
+         self.key_file = key_file
+         self.cert_file = cert_file
+         self.cert_reqs = cert_reqs
++        self.key_password = key_password
+         self.ca_certs = ca_certs
+         self.ca_cert_dir = ca_cert_dir
+         self.ssl_version = ssl_version
+@@ -787,6 +788,7 @@ def _prepare_conn(self, conn):
+ 
+         if isinstance(conn, VerifiedHTTPSConnection):
+             conn.set_cert(key_file=self.key_file,
++                          key_password=self.key_password,
+                           cert_file=self.cert_file,
+                           cert_reqs=self.cert_reqs,
+                           ca_certs=self.ca_certs,
+@@ -824,7 +826,9 @@ def _new_conn(self):
+ 
+         conn = self.ConnectionCls(host=actual_host, port=actual_port,
+                                   timeout=self.timeout.connect_timeout,
+-                                  strict=self.strict, **self.conn_kw)
++                                  strict=self.strict, cert_file=self.cert_file,
++                                  key_file=self.key_file, key_password=self.key_password,
++                                  **self.conn_kw)
+ 
+         return self._prepare_conn(conn)
+ 
+@@ -875,9 +879,9 @@ def connection_from_url(url, **kw):
+         return HTTPConnectionPool(host, port=port, **kw)
+ 
+ 
+-def _ipv6_host(host, scheme):
++def _normalize_host(host, scheme):
+     """
+-    Process IPv6 address literals
++    Normalize hosts for comparisons and use with sockets.
+     """
+ 
+     # httplib doesn't like it when we include brackets in IPv6 addresses
+@@ -886,11 +890,8 @@ def _ipv6_host(host, scheme):
+     # Instead, we need to make sure we never pass ``None`` as the port.
+     # However, for backward compatibility reasons we can't actually
+     # *assert* that.  See http://bugs.python.org/issue28539
+-    #
+-    # Also if an IPv6 address literal has a zone identifier, the
+-    # percent sign might be URIencoded, convert it back into ASCII
+     if host.startswith('[') and host.endswith(']'):
+-        host = host.replace('%25', '%').strip('[]')
++        host = host.strip('[]')
+     if scheme in NORMALIZABLE_SCHEMES:
+-        host = host.lower()
++        host = normalize_host(host)
+     return host
+diff --git a/src/pip/_vendor/urllib3/contrib/_securetransport/bindings.py b/src/pip/_vendor/urllib3/contrib/_securetransport/bindings.py
+index bcf41c02b2..be34215359 100644
+--- a/src/pip/_vendor/urllib3/contrib/_securetransport/bindings.py
++++ b/src/pip/_vendor/urllib3/contrib/_securetransport/bindings.py
+@@ -516,6 +516,8 @@ class SecurityConst(object):
+     kTLSProtocol1 = 4
+     kTLSProtocol11 = 7
+     kTLSProtocol12 = 8
++    kTLSProtocol13 = 10
++    kTLSProtocolMaxSupported = 999
+ 
+     kSSLClientSide = 1
+     kSSLStreamType = 0
+@@ -558,30 +560,27 @@ class SecurityConst(object):
+     errSecInvalidTrustSettings = -25262
+ 
+     # Cipher suites. We only pick the ones our default cipher string allows.
++    # Source: https://developer.apple.com/documentation/security/1550981-ssl_cipher_suite_values
+     TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 = 0xC02C
+     TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 = 0xC030
+     TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 = 0xC02B
+     TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 = 0xC02F
+-    TLS_DHE_DSS_WITH_AES_256_GCM_SHA384 = 0x00A3
++    TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCA9
++    TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCA8
+     TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 = 0x009F
+-    TLS_DHE_DSS_WITH_AES_128_GCM_SHA256 = 0x00A2
+     TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 = 0x009E
+     TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 = 0xC024
+     TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384 = 0xC028
+     TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA = 0xC00A
+     TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA = 0xC014
+     TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 = 0x006B
+-    TLS_DHE_DSS_WITH_AES_256_CBC_SHA256 = 0x006A
+     TLS_DHE_RSA_WITH_AES_256_CBC_SHA = 0x0039
+-    TLS_DHE_DSS_WITH_AES_256_CBC_SHA = 0x0038
+     TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 = 0xC023
+     TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 = 0xC027
+     TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA = 0xC009
+     TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA = 0xC013
+     TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 = 0x0067
+-    TLS_DHE_DSS_WITH_AES_128_CBC_SHA256 = 0x0040
+     TLS_DHE_RSA_WITH_AES_128_CBC_SHA = 0x0033
+-    TLS_DHE_DSS_WITH_AES_128_CBC_SHA = 0x0032
+     TLS_RSA_WITH_AES_256_GCM_SHA384 = 0x009D
+     TLS_RSA_WITH_AES_128_GCM_SHA256 = 0x009C
+     TLS_RSA_WITH_AES_256_CBC_SHA256 = 0x003D
+@@ -590,4 +589,5 @@ class SecurityConst(object):
+     TLS_RSA_WITH_AES_128_CBC_SHA = 0x002F
+     TLS_AES_128_GCM_SHA256 = 0x1301
+     TLS_AES_256_GCM_SHA384 = 0x1302
+-    TLS_CHACHA20_POLY1305_SHA256 = 0x1303
++    TLS_AES_128_CCM_8_SHA256 = 0x1305
++    TLS_AES_128_CCM_SHA256 = 0x1304
+diff --git a/src/pip/_vendor/urllib3/contrib/pyopenssl.py b/src/pip/_vendor/urllib3/contrib/pyopenssl.py
+index 363667cb56..abfc319132 100644
+--- a/src/pip/_vendor/urllib3/contrib/pyopenssl.py
++++ b/src/pip/_vendor/urllib3/contrib/pyopenssl.py
+@@ -70,6 +70,7 @@ class UnsupportedExtension(Exception):
+ 
+ from .. import util
+ 
++
+ __all__ = ['inject_into_urllib3', 'extract_from_urllib3']
+ 
+ # SNI always works.
+@@ -77,20 +78,19 @@ class UnsupportedExtension(Exception):
+ 
+ # Map from urllib3 to PyOpenSSL compatible parameter-values.
+ _openssl_versions = {
+-    ssl.PROTOCOL_SSLv23: OpenSSL.SSL.SSLv23_METHOD,
++    util.PROTOCOL_TLS: OpenSSL.SSL.SSLv23_METHOD,
+     ssl.PROTOCOL_TLSv1: OpenSSL.SSL.TLSv1_METHOD,
+ }
+ 
++if hasattr(ssl, 'PROTOCOL_SSLv3') and hasattr(OpenSSL.SSL, 'SSLv3_METHOD'):
++    _openssl_versions[ssl.PROTOCOL_SSLv3] = OpenSSL.SSL.SSLv3_METHOD
++
+ if hasattr(ssl, 'PROTOCOL_TLSv1_1') and hasattr(OpenSSL.SSL, 'TLSv1_1_METHOD'):
+     _openssl_versions[ssl.PROTOCOL_TLSv1_1] = OpenSSL.SSL.TLSv1_1_METHOD
+ 
+ if hasattr(ssl, 'PROTOCOL_TLSv1_2') and hasattr(OpenSSL.SSL, 'TLSv1_2_METHOD'):
+     _openssl_versions[ssl.PROTOCOL_TLSv1_2] = OpenSSL.SSL.TLSv1_2_METHOD
+ 
+-try:
+-    _openssl_versions.update({ssl.PROTOCOL_SSLv3: OpenSSL.SSL.SSLv3_METHOD})
+-except AttributeError:
+-    pass
+ 
+ _stdlib_to_openssl_verify = {
+     ssl.CERT_NONE: OpenSSL.SSL.VERIFY_NONE,
+@@ -117,6 +117,7 @@ def inject_into_urllib3():
+ 
+     _validate_dependencies_met()
+ 
++    util.SSLContext = PyOpenSSLContext
+     util.ssl_.SSLContext = PyOpenSSLContext
+     util.HAS_SNI = HAS_SNI
+     util.ssl_.HAS_SNI = HAS_SNI
+@@ -127,6 +128,7 @@ def inject_into_urllib3():
+ def extract_from_urllib3():
+     'Undo monkey-patching by :func:`inject_into_urllib3`.'
+ 
++    util.SSLContext = orig_util_SSLContext
+     util.ssl_.SSLContext = orig_util_SSLContext
+     util.HAS_SNI = orig_util_HAS_SNI
+     util.ssl_.HAS_SNI = orig_util_HAS_SNI
+@@ -184,6 +186,10 @@ def idna_encode(name):
+         except idna.core.IDNAError:
+             return None
+ 
++    # Don't send IPv6 addresses through the IDNA encoder.
++    if ':' in name:
++        return name
++
+     name = idna_encode(name)
+     if name is None:
+         return None
+@@ -276,7 +282,7 @@ def recv(self, *args, **kwargs):
+                 return b''
+             else:
+                 raise SocketError(str(e))
+-        except OpenSSL.SSL.ZeroReturnError as e:
++        except OpenSSL.SSL.ZeroReturnError:
+             if self.connection.get_shutdown() == OpenSSL.SSL.RECEIVED_SHUTDOWN:
+                 return b''
+             else:
+@@ -286,6 +292,10 @@ def recv(self, *args, **kwargs):
+                 raise timeout('The read operation timed out')
+             else:
+                 return self.recv(*args, **kwargs)
++
++        # TLS 1.3 post-handshake authentication
++        except OpenSSL.SSL.Error as e:
++            raise ssl.SSLError("read error: %r" % e)
+         else:
+             return data
+ 
+@@ -297,7 +307,7 @@ def recv_into(self, *args, **kwargs):
+                 return 0
+             else:
+                 raise SocketError(str(e))
+-        except OpenSSL.SSL.ZeroReturnError as e:
++        except OpenSSL.SSL.ZeroReturnError:
+             if self.connection.get_shutdown() == OpenSSL.SSL.RECEIVED_SHUTDOWN:
+                 return 0
+             else:
+@@ -308,6 +318,10 @@ def recv_into(self, *args, **kwargs):
+             else:
+                 return self.recv_into(*args, **kwargs)
+ 
++        # TLS 1.3 post-handshake authentication
++        except OpenSSL.SSL.Error as e:
++            raise ssl.SSLError("read error: %r" % e)
++
+     def settimeout(self, timeout):
+         return self.socket.settimeout(timeout)
+ 
+@@ -360,6 +374,9 @@ def getpeercert(self, binary_form=False):
+             'subjectAltName': get_subj_alt_name(x509)
+         }
+ 
++    def version(self):
++        return self.connection.get_protocol_version_name()
++
+     def _reuse(self):
+         self._makefile_refs += 1
+ 
+@@ -432,7 +449,9 @@ def load_verify_locations(self, cafile=None, capath=None, cadata=None):
+     def load_cert_chain(self, certfile, keyfile=None, password=None):
+         self._ctx.use_certificate_chain_file(certfile)
+         if password is not None:
+-            self._ctx.set_passwd_cb(lambda max_length, prompt_twice, userdata: password)
++            if not isinstance(password, six.binary_type):
++                password = password.encode('utf-8')
++            self._ctx.set_passwd_cb(lambda *_: password)
+         self._ctx.use_privatekey_file(keyfile or certfile)
+ 
+     def wrap_socket(self, sock, server_side=False,
+diff --git a/src/pip/_vendor/urllib3/contrib/securetransport.py b/src/pip/_vendor/urllib3/contrib/securetransport.py
+index 77cb59ed71..4dc4848416 100644
+--- a/src/pip/_vendor/urllib3/contrib/securetransport.py
++++ b/src/pip/_vendor/urllib3/contrib/securetransport.py
+@@ -23,6 +23,31 @@
+     urllib3.contrib.securetransport.inject_into_urllib3()
+ 
+ Happy TLSing!
++
++This code is a bastardised version of the code found in Will Bond's oscrypto
++library. An enormous debt is owed to him for blazing this trail for us. For
++that reason, this code should be considered to be covered both by urllib3's
++license and by oscrypto's:
++
++    Copyright (c) 2015-2016 Will Bond <will@wbond.net>
++
++    Permission is hereby granted, free of charge, to any person obtaining a
++    copy of this software and associated documentation files (the "Software"),
++    to deal in the Software without restriction, including without limitation
++    the rights to use, copy, modify, merge, publish, distribute, sublicense,
++    and/or sell copies of the Software, and to permit persons to whom the
++    Software is furnished to do so, subject to the following conditions:
++
++    The above copyright notice and this permission notice shall be included in
++    all copies or substantial portions of the Software.
++
++    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++    DEALINGS IN THE SOFTWARE.
+ """
+ from __future__ import absolute_import
+ 
+@@ -86,35 +111,32 @@
+ # individual cipher suites. We need to do this because this is how
+ # SecureTransport wants them.
+ CIPHER_SUITES = [
+-    SecurityConst.TLS_AES_256_GCM_SHA384,
+-    SecurityConst.TLS_CHACHA20_POLY1305_SHA256,
+-    SecurityConst.TLS_AES_128_GCM_SHA256,
+     SecurityConst.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+-    SecurityConst.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+     SecurityConst.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
++    SecurityConst.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+     SecurityConst.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+-    SecurityConst.TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,
++    SecurityConst.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
++    SecurityConst.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+     SecurityConst.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+-    SecurityConst.TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,
+     SecurityConst.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+     SecurityConst.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
+-    SecurityConst.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
+     SecurityConst.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+-    SecurityConst.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+-    SecurityConst.TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+-    SecurityConst.TLS_DHE_DSS_WITH_AES_256_CBC_SHA256,
+-    SecurityConst.TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+-    SecurityConst.TLS_DHE_DSS_WITH_AES_256_CBC_SHA,
+     SecurityConst.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+-    SecurityConst.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+     SecurityConst.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
++    SecurityConst.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
++    SecurityConst.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
++    SecurityConst.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+     SecurityConst.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
++    SecurityConst.TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
++    SecurityConst.TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+     SecurityConst.TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
+-    SecurityConst.TLS_DHE_DSS_WITH_AES_128_CBC_SHA256,
+     SecurityConst.TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+-    SecurityConst.TLS_DHE_DSS_WITH_AES_128_CBC_SHA,
++    SecurityConst.TLS_AES_256_GCM_SHA384,
++    SecurityConst.TLS_AES_128_GCM_SHA256,
+     SecurityConst.TLS_RSA_WITH_AES_256_GCM_SHA384,
+     SecurityConst.TLS_RSA_WITH_AES_128_GCM_SHA256,
++    SecurityConst.TLS_AES_128_CCM_8_SHA256,
++    SecurityConst.TLS_AES_128_CCM_SHA256,
+     SecurityConst.TLS_RSA_WITH_AES_256_CBC_SHA256,
+     SecurityConst.TLS_RSA_WITH_AES_128_CBC_SHA256,
+     SecurityConst.TLS_RSA_WITH_AES_256_CBC_SHA,
+@@ -122,9 +144,10 @@
+ ]
+ 
+ # Basically this is simple: for PROTOCOL_SSLv23 we turn it into a low of
+-# TLSv1 and a high of TLSv1.2. For everything else, we pin to that version.
++# TLSv1 and a high of TLSv1.3. For everything else, we pin to that version.
++# TLSv1 to 1.2 are supported on macOS 10.8+ and TLSv1.3 is macOS 10.13+
+ _protocol_to_min_max = {
+-    ssl.PROTOCOL_SSLv23: (SecurityConst.kTLSProtocol1, SecurityConst.kTLSProtocol12),
++    util.PROTOCOL_TLS: (SecurityConst.kTLSProtocol1, SecurityConst.kTLSProtocolMaxSupported),
+ }
+ 
+ if hasattr(ssl, "PROTOCOL_SSLv2"):
+@@ -147,14 +170,13 @@
+     _protocol_to_min_max[ssl.PROTOCOL_TLSv1_2] = (
+         SecurityConst.kTLSProtocol12, SecurityConst.kTLSProtocol12
+     )
+-if hasattr(ssl, "PROTOCOL_TLS"):
+-    _protocol_to_min_max[ssl.PROTOCOL_TLS] = _protocol_to_min_max[ssl.PROTOCOL_SSLv23]
+ 
+ 
+ def inject_into_urllib3():
+     """
+     Monkey-patch urllib3 with SecureTransport-backed SSL-support.
+     """
++    util.SSLContext = SecureTransportContext
+     util.ssl_.SSLContext = SecureTransportContext
+     util.HAS_SNI = HAS_SNI
+     util.ssl_.HAS_SNI = HAS_SNI
+@@ -166,6 +188,7 @@ def extract_from_urllib3():
+     """
+     Undo monkey-patching by :func:`inject_into_urllib3`.
+     """
++    util.SSLContext = orig_util_SSLContext
+     util.ssl_.SSLContext = orig_util_SSLContext
+     util.HAS_SNI = orig_util_HAS_SNI
+     util.ssl_.HAS_SNI = orig_util_HAS_SNI
+@@ -458,7 +481,14 @@ def handshake(self,
+         # Set the minimum and maximum TLS versions.
+         result = Security.SSLSetProtocolVersionMin(self.context, min_version)
+         _assert_no_error(result)
++
++        # TLS 1.3 isn't necessarily enabled by the OS
++        # so we have to detect when we error out and try
++        # setting TLS 1.3 if it's allowed. kTLSProtocolMaxSupported
++        # was added in macOS 10.13 along with kTLSProtocol13.
+         result = Security.SSLSetProtocolVersionMax(self.context, max_version)
++        if result != 0 and max_version == SecurityConst.kTLSProtocolMaxSupported:
++            result = Security.SSLSetProtocolVersionMax(self.context, SecurityConst.kTLSProtocol12)
+         _assert_no_error(result)
+ 
+         # If there's a trust DB, we need to use it. We do that by telling
+@@ -667,6 +697,25 @@ def getpeercert(self, binary_form=False):
+ 
+         return der_bytes
+ 
++    def version(self):
++        protocol = Security.SSLProtocol()
++        result = Security.SSLGetNegotiatedProtocolVersion(self.context, ctypes.byref(protocol))
++        _assert_no_error(result)
++        if protocol.value == SecurityConst.kTLSProtocol13:
++            return 'TLSv1.3'
++        elif protocol.value == SecurityConst.kTLSProtocol12:
++            return 'TLSv1.2'
++        elif protocol.value == SecurityConst.kTLSProtocol11:
++            return 'TLSv1.1'
++        elif protocol.value == SecurityConst.kTLSProtocol1:
++            return 'TLSv1'
++        elif protocol.value == SecurityConst.kSSLProtocol3:
++            return 'SSLv3'
++        elif protocol.value == SecurityConst.kSSLProtocol2:
++            return 'SSLv2'
++        else:
++            raise ssl.SSLError('Unknown TLS version: %r' % protocol)
++
+     def _reuse(self):
+         self._makefile_refs += 1
+ 
+diff --git a/src/pip/_vendor/urllib3/contrib/socks.py b/src/pip/_vendor/urllib3/contrib/socks.py
+index 811e312ec8..636d261fb0 100644
+--- a/src/pip/_vendor/urllib3/contrib/socks.py
++++ b/src/pip/_vendor/urllib3/contrib/socks.py
+@@ -1,25 +1,38 @@
+ # -*- coding: utf-8 -*-
+ """
+ This module contains provisional support for SOCKS proxies from within
+-urllib3. This module supports SOCKS4 (specifically the SOCKS4A variant) and
++urllib3. This module supports SOCKS4, SOCKS4A (an extension of SOCKS4), and
+ SOCKS5. To enable its functionality, either install PySocks or install this
+ module with the ``socks`` extra.
+ 
+ The SOCKS implementation supports the full range of urllib3 features. It also
+ supports the following SOCKS features:
+ 
+-- SOCKS4
+-- SOCKS4a
+-- SOCKS5
++- SOCKS4A (``proxy_url='socks4a://...``)
++- SOCKS4 (``proxy_url='socks4://...``)
++- SOCKS5 with remote DNS (``proxy_url='socks5h://...``)
++- SOCKS5 with local DNS (``proxy_url='socks5://...``)
+ - Usernames and passwords for the SOCKS proxy
+ 
+-Known Limitations:
++ .. note::
++    It is recommended to use ``socks5h://`` or ``socks4a://`` schemes in
++    your ``proxy_url`` to ensure that DNS resolution is done from the remote
++    server instead of client-side when connecting to a domain name.
++
++SOCKS4 supports IPv4 and domain names with the SOCKS4A extension. SOCKS5
++supports IPv4, IPv6, and domain names.
++
++When connecting to a SOCKS4 proxy the ``username`` portion of the ``proxy_url``
++will be sent as the ``userid`` section of the SOCKS request::
++
++    proxy_url="socks4a://<userid>@proxy-host"
++
++When connecting to a SOCKS5 proxy the ``username`` and ``password`` portion
++of the ``proxy_url`` will be sent as the username/password to authenticate
++with the proxy::
++
++    proxy_url="socks5h://<username>:<password>@proxy-host"
+ 
+-- Currently PySocks does not support contacting remote websites via literal
+-  IPv6 addresses. Any such connection attempt will fail. You must use a domain
+-  name.
+-- Currently PySocks does not support IPv6 connections to the SOCKS proxy. Any
+-  such connection attempt will fail.
+ """
+ from __future__ import absolute_import
+ 
+@@ -88,7 +101,7 @@ def _new_conn(self):
+                 **extra_kw
+             )
+ 
+-        except SocketTimeout as e:
++        except SocketTimeout:
+             raise ConnectTimeoutError(
+                 self, "Connection to %s timed out. (connect timeout=%s)" %
+                 (self.host, self.timeout))
+diff --git a/src/pip/_vendor/urllib3/fields.py b/src/pip/_vendor/urllib3/fields.py
+index 37fe64a3e8..6a9a5a7f56 100644
+--- a/src/pip/_vendor/urllib3/fields.py
++++ b/src/pip/_vendor/urllib3/fields.py
+@@ -1,6 +1,7 @@
+ from __future__ import absolute_import
+ import email.utils
+ import mimetypes
++import re
+ 
+ from .packages import six
+ 
+@@ -19,57 +20,147 @@ def guess_content_type(filename, default='application/octet-stream'):
+     return default
+ 
+ 
+-def format_header_param(name, value):
++def format_header_param_rfc2231(name, value):
+     """
+-    Helper function to format and quote a single header parameter.
++    Helper function to format and quote a single header parameter using the
++    strategy defined in RFC 2231.
+ 
+     Particularly useful for header parameters which might contain
+-    non-ASCII values, like file names. This follows RFC 2231, as
+-    suggested by RFC 2388 Section 4.4.
++    non-ASCII values, like file names. This follows RFC 2388 Section 4.4.
+ 
+     :param name:
+         The name of the parameter, a string expected to be ASCII only.
+     :param value:
+-        The value of the parameter, provided as a unicode string.
++        The value of the parameter, provided as ``bytes`` or `str``.
++    :ret:
++        An RFC-2231-formatted unicode string.
+     """
++    if isinstance(value, six.binary_type):
++        value = value.decode("utf-8")
++
+     if not any(ch in value for ch in '"\\\r\n'):
+-        result = '%s="%s"' % (name, value)
++        result = u'%s="%s"' % (name, value)
+         try:
+             result.encode('ascii')
+         except (UnicodeEncodeError, UnicodeDecodeError):
+             pass
+         else:
+             return result
+-    if not six.PY3 and isinstance(value, six.text_type):  # Python 2:
++
++    if not six.PY3:  # Python 2:
+         value = value.encode('utf-8')
++
++    # encode_rfc2231 accepts an encoded string and returns an ascii-encoded
++    # string in Python 2 but accepts and returns unicode strings in Python 3
+     value = email.utils.encode_rfc2231(value, 'utf-8')
+     value = '%s*=%s' % (name, value)
++
++    if not six.PY3:  # Python 2:
++        value = value.decode('utf-8')
++
+     return value
+ 
+ 
++_HTML5_REPLACEMENTS = {
++    u"\u0022": u"%22",
++    # Replace "\" with "\\".
++    u"\u005C": u"\u005C\u005C",
++    u"\u005C": u"\u005C\u005C",
++}
++
++# All control characters from 0x00 to 0x1F *except* 0x1B.
++_HTML5_REPLACEMENTS.update({
++    six.unichr(cc): u"%{:02X}".format(cc)
++    for cc
++    in range(0x00, 0x1F+1)
++    if cc not in (0x1B,)
++})
++
++
++def _replace_multiple(value, needles_and_replacements):
++
++    def replacer(match):
++        return needles_and_replacements[match.group(0)]
++
++    pattern = re.compile(
++        r"|".join([
++            re.escape(needle) for needle in needles_and_replacements.keys()
++        ])
++    )
++
++    result = pattern.sub(replacer, value)
++
++    return result
++
++
++def format_header_param_html5(name, value):
++    """
++    Helper function to format and quote a single header parameter using the
++    HTML5 strategy.
++
++    Particularly useful for header parameters which might contain
++    non-ASCII values, like file names. This follows the `HTML5 Working Draft
++    Section 4.10.22.7`_ and matches the behavior of curl and modern browsers.
++
++    .. _HTML5 Working Draft Section 4.10.22.7:
++        https://w3c.github.io/html/sec-forms.html#multipart-form-data
++
++    :param name:
++        The name of the parameter, a string expected to be ASCII only.
++    :param value:
++        The value of the parameter, provided as ``bytes`` or `str``.
++    :ret:
++        A unicode string, stripped of troublesome characters.
++    """
++    if isinstance(value, six.binary_type):
++        value = value.decode("utf-8")
++
++    value = _replace_multiple(value, _HTML5_REPLACEMENTS)
++
++    return u'%s="%s"' % (name, value)
++
++
++# For backwards-compatibility.
++format_header_param = format_header_param_html5
++
++
+ class RequestField(object):
+     """
+     A data container for request body parameters.
+ 
+     :param name:
+-        The name of this request field.
++        The name of this request field. Must be unicode.
+     :param data:
+         The data/value body.
+     :param filename:
+-        An optional filename of the request field.
++        An optional filename of the request field. Must be unicode.
+     :param headers:
+         An optional dict-like object of headers to initially use for the field.
++    :param header_formatter:
++        An optional callable that is used to encode and format the headers. By
++        default, this is :func:`format_header_param_html5`.
+     """
+-    def __init__(self, name, data, filename=None, headers=None):
++    def __init__(
++            self,
++            name,
++            data,
++            filename=None,
++            headers=None,
++            header_formatter=format_header_param_html5):
+         self._name = name
+         self._filename = filename
+         self.data = data
+         self.headers = {}
+         if headers:
+             self.headers = dict(headers)
++        self.header_formatter = header_formatter
+ 
+     @classmethod
+-    def from_tuples(cls, fieldname, value):
++    def from_tuples(
++            cls,
++            fieldname,
++            value,
++            header_formatter=format_header_param_html5):
+         """
+         A :class:`~urllib3.fields.RequestField` factory from old-style tuple parameters.
+ 
+@@ -97,21 +188,24 @@ def from_tuples(cls, fieldname, value):
+             content_type = None
+             data = value
+ 
+-        request_param = cls(fieldname, data, filename=filename)
++        request_param = cls(
++            fieldname, data, filename=filename, header_formatter=header_formatter)
+         request_param.make_multipart(content_type=content_type)
+ 
+         return request_param
+ 
+     def _render_part(self, name, value):
+         """
+-        Overridable helper function to format a single header parameter.
++        Overridable helper function to format a single header parameter. By
++        default, this calls ``self.header_formatter``.
+ 
+         :param name:
+             The name of the parameter, a string expected to be ASCII only.
+         :param value:
+             The value of the parameter, provided as a unicode string.
+         """
+-        return format_header_param(name, value)
++
++        return self.header_formatter(name, value)
+ 
+     def _render_parts(self, header_parts):
+         """
+@@ -133,7 +227,7 @@ def _render_parts(self, header_parts):
+             if value is not None:
+                 parts.append(self._render_part(name, value))
+ 
+-        return '; '.join(parts)
++        return u'; '.join(parts)
+ 
+     def render_headers(self):
+         """
+@@ -144,15 +238,15 @@ def render_headers(self):
+         sort_keys = ['Content-Disposition', 'Content-Type', 'Content-Location']
+         for sort_key in sort_keys:
+             if self.headers.get(sort_key, False):
+-                lines.append('%s: %s' % (sort_key, self.headers[sort_key]))
++                lines.append(u'%s: %s' % (sort_key, self.headers[sort_key]))
+ 
+         for header_name, header_value in self.headers.items():
+             if header_name not in sort_keys:
+                 if header_value:
+-                    lines.append('%s: %s' % (header_name, header_value))
++                    lines.append(u'%s: %s' % (header_name, header_value))
+ 
+-        lines.append('\r\n')
+-        return '\r\n'.join(lines)
++        lines.append(u'\r\n')
++        return u'\r\n'.join(lines)
+ 
+     def make_multipart(self, content_disposition=None, content_type=None,
+                        content_location=None):
+@@ -168,10 +262,10 @@ def make_multipart(self, content_disposition=None, content_type=None,
+             The 'Content-Location' of the request body.
+ 
+         """
+-        self.headers['Content-Disposition'] = content_disposition or 'form-data'
+-        self.headers['Content-Disposition'] += '; '.join([
+-            '', self._render_parts(
+-                (('name', self._name), ('filename', self._filename))
++        self.headers['Content-Disposition'] = content_disposition or u'form-data'
++        self.headers['Content-Disposition'] += u'; '.join([
++            u'', self._render_parts(
++                ((u'name', self._name), (u'filename', self._filename))
+             )
+         ])
+         self.headers['Content-Type'] = content_type
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/__init__.py b/src/pip/_vendor/urllib3/packages/rfc3986/__init__.py
+new file mode 100644
+index 0000000000..371c6dd519
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/__init__.py
+@@ -0,0 +1,56 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2014 Rackspace
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++"""
++An implementation of semantics and validations described in RFC 3986.
++
++See http://rfc3986.readthedocs.io/ for detailed documentation.
++
++:copyright: (c) 2014 Rackspace
++:license: Apache v2.0, see LICENSE for details
++"""
++
++from .api import iri_reference
++from .api import IRIReference
++from .api import is_valid_uri
++from .api import normalize_uri
++from .api import uri_reference
++from .api import URIReference
++from .api import urlparse
++from .parseresult import ParseResult
++
++__title__ = 'rfc3986'
++__author__ = 'Ian Stapleton Cordasco'
++__author_email__ = 'graffatcolmingov@gmail.com'
++__license__ = 'Apache v2.0'
++__copyright__ = 'Copyright 2014 Rackspace'
++__version__ = '1.3.2'
++
++__all__ = (
++    'ParseResult',
++    'URIReference',
++    'IRIReference',
++    'is_valid_uri',
++    'normalize_uri',
++    'uri_reference',
++    'iri_reference',
++    'urlparse',
++    '__title__',
++    '__author__',
++    '__author_email__',
++    '__license__',
++    '__copyright__',
++    '__version__',
++)
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/_mixin.py b/src/pip/_vendor/urllib3/packages/rfc3986/_mixin.py
+new file mode 100644
+index 0000000000..543925cdbc
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/_mixin.py
+@@ -0,0 +1,353 @@
++"""Module containing the implementation of the URIMixin class."""
++import warnings
++
++from . import exceptions as exc
++from . import misc
++from . import normalizers
++from . import validators
++
++
++class URIMixin(object):
++    """Mixin with all shared methods for URIs and IRIs."""
++
++    __hash__ = tuple.__hash__
++
++    def authority_info(self):
++        """Return a dictionary with the ``userinfo``, ``host``, and ``port``.
++
++        If the authority is not valid, it will raise a
++        :class:`~rfc3986.exceptions.InvalidAuthority` Exception.
++
++        :returns:
++            ``{'userinfo': 'username:password', 'host': 'www.example.com',
++            'port': '80'}``
++        :rtype: dict
++        :raises rfc3986.exceptions.InvalidAuthority:
++            If the authority is not ``None`` and can not be parsed.
++        """
++        if not self.authority:
++            return {'userinfo': None, 'host': None, 'port': None}
++
++        match = self._match_subauthority()
++
++        if match is None:
++            # In this case, we have an authority that was parsed from the URI
++            # Reference, but it cannot be further parsed by our
++            # misc.SUBAUTHORITY_MATCHER. In this case it must not be a valid
++            # authority.
++            raise exc.InvalidAuthority(self.authority.encode(self.encoding))
++
++        # We had a match, now let's ensure that it is actually a valid host
++        # address if it is IPv4
++        matches = match.groupdict()
++        host = matches.get('host')
++
++        if (host and misc.IPv4_MATCHER.match(host) and not
++                validators.valid_ipv4_host_address(host)):
++            # If we have a host, it appears to be IPv4 and it does not have
++            # valid bytes, it is an InvalidAuthority.
++            raise exc.InvalidAuthority(self.authority.encode(self.encoding))
++
++        return matches
++
++    def _match_subauthority(self):
++        return misc.SUBAUTHORITY_MATCHER.match(self.authority)
++
++    @property
++    def host(self):
++        """If present, a string representing the host."""
++        try:
++            authority = self.authority_info()
++        except exc.InvalidAuthority:
++            return None
++        return authority['host']
++
++    @property
++    def port(self):
++        """If present, the port extracted from the authority."""
++        try:
++            authority = self.authority_info()
++        except exc.InvalidAuthority:
++            return None
++        return authority['port']
++
++    @property
++    def userinfo(self):
++        """If present, the userinfo extracted from the authority."""
++        try:
++            authority = self.authority_info()
++        except exc.InvalidAuthority:
++            return None
++        return authority['userinfo']
++
++    def is_absolute(self):
++        """Determine if this URI Reference is an absolute URI.
++
++        See http://tools.ietf.org/html/rfc3986#section-4.3 for explanation.
++
++        :returns: ``True`` if it is an absolute URI, ``False`` otherwise.
++        :rtype: bool
++        """
++        return bool(misc.ABSOLUTE_URI_MATCHER.match(self.unsplit()))
++
++    def is_valid(self, **kwargs):
++        """Determine if the URI is valid.
++
++        .. deprecated:: 1.1.0
++
++            Use the :class:`~rfc3986.validators.Validator` object instead.
++
++        :param bool require_scheme: Set to ``True`` if you wish to require the
++            presence of the scheme component.
++        :param bool require_authority: Set to ``True`` if you wish to require
++            the presence of the authority component.
++        :param bool require_path: Set to ``True`` if you wish to require the
++            presence of the path component.
++        :param bool require_query: Set to ``True`` if you wish to require the
++            presence of the query component.
++        :param bool require_fragment: Set to ``True`` if you wish to require
++            the presence of the fragment component.
++        :returns: ``True`` if the URI is valid. ``False`` otherwise.
++        :rtype: bool
++        """
++        warnings.warn("Please use rfc3986.validators.Validator instead. "
++                      "This method will be eventually removed.",
++                      DeprecationWarning)
++        validators = [
++            (self.scheme_is_valid, kwargs.get('require_scheme', False)),
++            (self.authority_is_valid, kwargs.get('require_authority', False)),
++            (self.path_is_valid, kwargs.get('require_path', False)),
++            (self.query_is_valid, kwargs.get('require_query', False)),
++            (self.fragment_is_valid, kwargs.get('require_fragment', False)),
++            ]
++        return all(v(r) for v, r in validators)
++
++    def authority_is_valid(self, require=False):
++        """Determine if the authority component is valid.
++
++        .. deprecated:: 1.1.0
++
++            Use the :class:`~rfc3986.validators.Validator` object instead.
++
++        :param bool require:
++            Set to ``True`` to require the presence of this component.
++        :returns:
++            ``True`` if the authority is valid. ``False`` otherwise.
++        :rtype:
++            bool
++        """
++        warnings.warn("Please use rfc3986.validators.Validator instead. "
++                      "This method will be eventually removed.",
++                      DeprecationWarning)
++        try:
++            self.authority_info()
++        except exc.InvalidAuthority:
++            return False
++
++        return validators.authority_is_valid(
++            self.authority,
++            host=self.host,
++            require=require,
++        )
++
++    def scheme_is_valid(self, require=False):
++        """Determine if the scheme component is valid.
++
++        .. deprecated:: 1.1.0
++
++            Use the :class:`~rfc3986.validators.Validator` object instead.
++
++        :param str require: Set to ``True`` to require the presence of this
++            component.
++        :returns: ``True`` if the scheme is valid. ``False`` otherwise.
++        :rtype: bool
++        """
++        warnings.warn("Please use rfc3986.validators.Validator instead. "
++                      "This method will be eventually removed.",
++                      DeprecationWarning)
++        return validators.scheme_is_valid(self.scheme, require)
++
++    def path_is_valid(self, require=False):
++        """Determine if the path component is valid.
++
++        .. deprecated:: 1.1.0
++
++            Use the :class:`~rfc3986.validators.Validator` object instead.
++
++        :param str require: Set to ``True`` to require the presence of this
++            component.
++        :returns: ``True`` if the path is valid. ``False`` otherwise.
++        :rtype: bool
++        """
++        warnings.warn("Please use rfc3986.validators.Validator instead. "
++                      "This method will be eventually removed.",
++                      DeprecationWarning)
++        return validators.path_is_valid(self.path, require)
++
++    def query_is_valid(self, require=False):
++        """Determine if the query component is valid.
++
++        .. deprecated:: 1.1.0
++
++            Use the :class:`~rfc3986.validators.Validator` object instead.
++
++        :param str require: Set to ``True`` to require the presence of this
++            component.
++        :returns: ``True`` if the query is valid. ``False`` otherwise.
++        :rtype: bool
++        """
++        warnings.warn("Please use rfc3986.validators.Validator instead. "
++                      "This method will be eventually removed.",
++                      DeprecationWarning)
++        return validators.query_is_valid(self.query, require)
++
++    def fragment_is_valid(self, require=False):
++        """Determine if the fragment component is valid.
++
++        .. deprecated:: 1.1.0
++
++            Use the Validator object instead.
++
++        :param str require: Set to ``True`` to require the presence of this
++            component.
++        :returns: ``True`` if the fragment is valid. ``False`` otherwise.
++        :rtype: bool
++        """
++        warnings.warn("Please use rfc3986.validators.Validator instead. "
++                      "This method will be eventually removed.",
++                      DeprecationWarning)
++        return validators.fragment_is_valid(self.fragment, require)
++
++    def normalized_equality(self, other_ref):
++        """Compare this URIReference to another URIReference.
++
++        :param URIReference other_ref: (required), The reference with which
++            we're comparing.
++        :returns: ``True`` if the references are equal, ``False`` otherwise.
++        :rtype: bool
++        """
++        return tuple(self.normalize()) == tuple(other_ref.normalize())
++
++    def resolve_with(self, base_uri, strict=False):
++        """Use an absolute URI Reference to resolve this relative reference.
++
++        Assuming this is a relative reference that you would like to resolve,
++        use the provided base URI to resolve it.
++
++        See http://tools.ietf.org/html/rfc3986#section-5 for more information.
++
++        :param base_uri: Either a string or URIReference. It must be an
++            absolute URI or it will raise an exception.
++        :returns: A new URIReference which is the result of resolving this
++            reference using ``base_uri``.
++        :rtype: :class:`URIReference`
++        :raises rfc3986.exceptions.ResolutionError:
++            If the ``base_uri`` is not an absolute URI.
++        """
++        if not isinstance(base_uri, URIMixin):
++            base_uri = type(self).from_string(base_uri)
++
++        if not base_uri.is_absolute():
++            raise exc.ResolutionError(base_uri)
++
++        # This is optional per
++        # http://tools.ietf.org/html/rfc3986#section-5.2.1
++        base_uri = base_uri.normalize()
++
++        # The reference we're resolving
++        resolving = self
++
++        if not strict and resolving.scheme == base_uri.scheme:
++            resolving = resolving.copy_with(scheme=None)
++
++        # http://tools.ietf.org/html/rfc3986#page-32
++        if resolving.scheme is not None:
++            target = resolving.copy_with(
++                path=normalizers.normalize_path(resolving.path)
++            )
++        else:
++            if resolving.authority is not None:
++                target = resolving.copy_with(
++                    scheme=base_uri.scheme,
++                    path=normalizers.normalize_path(resolving.path)
++                )
++            else:
++                if resolving.path is None:
++                    if resolving.query is not None:
++                        query = resolving.query
++                    else:
++                        query = base_uri.query
++                    target = resolving.copy_with(
++                        scheme=base_uri.scheme,
++                        authority=base_uri.authority,
++                        path=base_uri.path,
++                        query=query
++                    )
++                else:
++                    if resolving.path.startswith('/'):
++                        path = normalizers.normalize_path(resolving.path)
++                    else:
++                        path = normalizers.normalize_path(
++                            misc.merge_paths(base_uri, resolving.path)
++                        )
++                    target = resolving.copy_with(
++                        scheme=base_uri.scheme,
++                        authority=base_uri.authority,
++                        path=path,
++                        query=resolving.query
++                    )
++        return target
++
++    def unsplit(self):
++        """Create a URI string from the components.
++
++        :returns: The URI Reference reconstituted as a string.
++        :rtype: str
++        """
++        # See http://tools.ietf.org/html/rfc3986#section-5.3
++        result_list = []
++        if self.scheme:
++            result_list.extend([self.scheme, ':'])
++        if self.authority:
++            result_list.extend(['//', self.authority])
++        if self.path:
++            result_list.append(self.path)
++        if self.query is not None:
++            result_list.extend(['?', self.query])
++        if self.fragment is not None:
++            result_list.extend(['#', self.fragment])
++        return ''.join(result_list)
++
++    def copy_with(self, scheme=misc.UseExisting, authority=misc.UseExisting,
++                  path=misc.UseExisting, query=misc.UseExisting,
++                  fragment=misc.UseExisting):
++        """Create a copy of this reference with the new components.
++
++        :param str scheme:
++            (optional) The scheme to use for the new reference.
++        :param str authority:
++            (optional) The authority to use for the new reference.
++        :param str path:
++            (optional) The path to use for the new reference.
++        :param str query:
++            (optional) The query to use for the new reference.
++        :param str fragment:
++            (optional) The fragment to use for the new reference.
++        :returns:
++            New URIReference with provided components.
++        :rtype:
++            URIReference
++        """
++        attributes = {
++            'scheme': scheme,
++            'authority': authority,
++            'path': path,
++            'query': query,
++            'fragment': fragment,
++        }
++        for key, value in list(attributes.items()):
++            if value is misc.UseExisting:
++                del attributes[key]
++        uri = self._replace(**attributes)
++        uri.encoding = self.encoding
++        return uri
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/abnf_regexp.py b/src/pip/_vendor/urllib3/packages/rfc3986/abnf_regexp.py
+new file mode 100644
+index 0000000000..24c9c3d00a
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/abnf_regexp.py
+@@ -0,0 +1,267 @@
++# -*- coding: utf-8 -*-
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Module for the regular expressions crafted from ABNF."""
++
++import sys
++
++# https://tools.ietf.org/html/rfc3986#page-13
++GEN_DELIMS = GENERIC_DELIMITERS = ":/?#[]@"
++GENERIC_DELIMITERS_SET = set(GENERIC_DELIMITERS)
++# https://tools.ietf.org/html/rfc3986#page-13
++SUB_DELIMS = SUB_DELIMITERS = "!$&'()*+,;="
++SUB_DELIMITERS_SET = set(SUB_DELIMITERS)
++# Escape the '*' for use in regular expressions
++SUB_DELIMITERS_RE = r"!$&'()\*+,;="
++RESERVED_CHARS_SET = GENERIC_DELIMITERS_SET.union(SUB_DELIMITERS_SET)
++ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
++DIGIT = '0123456789'
++# https://tools.ietf.org/html/rfc3986#section-2.3
++UNRESERVED = UNRESERVED_CHARS = ALPHA + DIGIT + r'._!-'
++UNRESERVED_CHARS_SET = set(UNRESERVED_CHARS)
++NON_PCT_ENCODED_SET = RESERVED_CHARS_SET.union(UNRESERVED_CHARS_SET)
++# We need to escape the '-' in this case:
++UNRESERVED_RE = r'A-Za-z0-9._~\-'
++
++# Percent encoded character values
++PERCENT_ENCODED = PCT_ENCODED = '%[A-Fa-f0-9]{2}'
++PCHAR = '([' + UNRESERVED_RE + SUB_DELIMITERS_RE + ':@]|%s)' % PCT_ENCODED
++
++# NOTE(sigmavirus24): We're going to use more strict regular expressions
++# than appear in Appendix B for scheme. This will prevent over-eager
++# consuming of items that aren't schemes.
++SCHEME_RE = '[a-zA-Z][a-zA-Z0-9+.-]*'
++_AUTHORITY_RE = '[^/?#]*'
++_PATH_RE = '[^?#]*'
++_QUERY_RE = '[^#]*'
++_FRAGMENT_RE = '.*'
++
++# Extracted from http://tools.ietf.org/html/rfc3986#appendix-B
++COMPONENT_PATTERN_DICT = {
++    'scheme': SCHEME_RE,
++    'authority': _AUTHORITY_RE,
++    'path': _PATH_RE,
++    'query': _QUERY_RE,
++    'fragment': _FRAGMENT_RE,
++}
++
++# See http://tools.ietf.org/html/rfc3986#appendix-B
++# In this case, we name each of the important matches so we can use
++# SRE_Match#groupdict to parse the values out if we so choose. This is also
++# modified to ignore other matches that are not important to the parsing of
++# the reference so we can also simply use SRE_Match#groups.
++URL_PARSING_RE = (
++    r'(?:(?P<scheme>{scheme}):)?(?://(?P<authority>{authority}))?'
++    r'(?P<path>{path})(?:\?(?P<query>{query}))?'
++    r'(?:#(?P<fragment>{fragment}))?'
++).format(**COMPONENT_PATTERN_DICT)
++
++
++# #########################
++# Authority Matcher Section
++# #########################
++
++# Host patterns, see: http://tools.ietf.org/html/rfc3986#section-3.2.2
++# The pattern for a regular name, e.g.,  www.google.com, api.github.com
++REGULAR_NAME_RE = REG_NAME = '((?:{0}|[{1}])*)'.format(
++    '%[0-9A-Fa-f]{2}', SUB_DELIMITERS_RE + UNRESERVED_RE
++)
++# The pattern for an IPv4 address, e.g., 192.168.255.255, 127.0.0.1,
++IPv4_RE = r'([0-9]{1,3}\.){3}[0-9]{1,3}'
++# Hexadecimal characters used in each piece of an IPv6 address
++HEXDIG_RE = '[0-9A-Fa-f]{1,4}'
++# Least-significant 32 bits of an IPv6 address
++LS32_RE = '({hex}:{hex}|{ipv4})'.format(hex=HEXDIG_RE, ipv4=IPv4_RE)
++# Substitutions into the following patterns for IPv6 patterns defined
++# http://tools.ietf.org/html/rfc3986#page-20
++_subs = {'hex': HEXDIG_RE, 'ls32': LS32_RE}
++
++# Below: h16 = hexdig, see: https://tools.ietf.org/html/rfc5234 for details
++# about ABNF (Augmented Backus-Naur Form) use in the comments
++variations = [
++    #                            6( h16 ":" ) ls32
++    '(%(hex)s:){6}%(ls32)s' % _subs,
++    #                       "::" 5( h16 ":" ) ls32
++    '::(%(hex)s:){5}%(ls32)s' % _subs,
++    # [               h16 ] "::" 4( h16 ":" ) ls32
++    '(%(hex)s)?::(%(hex)s:){4}%(ls32)s' % _subs,
++    # [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
++    '((%(hex)s:)?%(hex)s)?::(%(hex)s:){3}%(ls32)s' % _subs,
++    # [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
++    '((%(hex)s:){0,2}%(hex)s)?::(%(hex)s:){2}%(ls32)s' % _subs,
++    # [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
++    '((%(hex)s:){0,3}%(hex)s)?::%(hex)s:%(ls32)s' % _subs,
++    # [ *4( h16 ":" ) h16 ] "::"              ls32
++    '((%(hex)s:){0,4}%(hex)s)?::%(ls32)s' % _subs,
++    # [ *5( h16 ":" ) h16 ] "::"              h16
++    '((%(hex)s:){0,5}%(hex)s)?::%(hex)s' % _subs,
++    # [ *6( h16 ":" ) h16 ] "::"
++    '((%(hex)s:){0,6}%(hex)s)?::' % _subs,
++]
++
++IPv6_RE = '(({0})|({1})|({2})|({3})|({4})|({5})|({6})|({7})|({8}))'.format(
++    *variations
++)
++
++IPv_FUTURE_RE = r'v[0-9A-Fa-f]+\.[%s]+' % (
++    UNRESERVED_RE + SUB_DELIMITERS_RE + ':'
++)
++
++# RFC 6874 Zone ID ABNF
++ZONE_ID = '(?:[' + UNRESERVED_RE + ']|' + PCT_ENCODED + ')+'
++
++IPv6_ADDRZ_RFC4007_RE = IPv6_RE + '(?:(?:%25|%)' + ZONE_ID + ')?'
++IPv6_ADDRZ_RE = IPv6_RE + '(?:%25' + ZONE_ID + ')?'
++
++IP_LITERAL_RE = r'\[({0}|{1})\]'.format(
++    IPv6_ADDRZ_RFC4007_RE,
++    IPv_FUTURE_RE,
++)
++
++# Pattern for matching the host piece of the authority
++HOST_RE = HOST_PATTERN = '({0}|{1}|{2})'.format(
++    REG_NAME,
++    IPv4_RE,
++    IP_LITERAL_RE,
++)
++USERINFO_RE = '^([' + UNRESERVED_RE + SUB_DELIMITERS_RE + ':]|%s)+' % (
++    PCT_ENCODED
++)
++PORT_RE = '[0-9]{1,5}'
++
++# ####################
++# Path Matcher Section
++# ####################
++
++# See http://tools.ietf.org/html/rfc3986#section-3.3 for more information
++# about the path patterns defined below.
++segments = {
++    'segment': PCHAR + '*',
++    # Non-zero length segment
++    'segment-nz': PCHAR + '+',
++    # Non-zero length segment without ":"
++    'segment-nz-nc': PCHAR.replace(':', '') + '+'
++}
++
++# Path types taken from Section 3.3 (linked above)
++PATH_EMPTY = '^$'
++PATH_ROOTLESS = '%(segment-nz)s(/%(segment)s)*' % segments
++PATH_NOSCHEME = '%(segment-nz-nc)s(/%(segment)s)*' % segments
++PATH_ABSOLUTE = '/(%s)?' % PATH_ROOTLESS
++PATH_ABEMPTY = '(/%(segment)s)*' % segments
++PATH_RE = '^(%s|%s|%s|%s|%s)$' % (
++    PATH_ABEMPTY, PATH_ABSOLUTE, PATH_NOSCHEME, PATH_ROOTLESS, PATH_EMPTY
++)
++
++FRAGMENT_RE = QUERY_RE = (
++    '^([/?:@' + UNRESERVED_RE + SUB_DELIMITERS_RE + ']|%s)*$' % PCT_ENCODED
++)
++
++# ##########################
++# Relative reference matcher
++# ##########################
++
++# See http://tools.ietf.org/html/rfc3986#section-4.2 for details
++RELATIVE_PART_RE = '(//%s%s|%s|%s|%s)' % (
++    COMPONENT_PATTERN_DICT['authority'],
++    PATH_ABEMPTY,
++    PATH_ABSOLUTE,
++    PATH_NOSCHEME,
++    PATH_EMPTY,
++)
++
++# See http://tools.ietf.org/html/rfc3986#section-3 for definition
++HIER_PART_RE = '(//%s%s|%s|%s|%s)' % (
++    COMPONENT_PATTERN_DICT['authority'],
++    PATH_ABEMPTY,
++    PATH_ABSOLUTE,
++    PATH_ROOTLESS,
++    PATH_EMPTY,
++)
++
++# ###############
++# IRIs / RFC 3987
++# ###############
++
++# Only wide-unicode gets the high-ranges of UCSCHAR
++if sys.maxunicode > 0xFFFF:  # pragma: no cover
++    IPRIVATE = u'\uE000-\uF8FF\U000F0000-\U000FFFFD\U00100000-\U0010FFFD'
++    UCSCHAR_RE = (
++        u'\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF'
++        u'\U00010000-\U0001FFFD\U00020000-\U0002FFFD'
++        u'\U00030000-\U0003FFFD\U00040000-\U0004FFFD'
++        u'\U00050000-\U0005FFFD\U00060000-\U0006FFFD'
++        u'\U00070000-\U0007FFFD\U00080000-\U0008FFFD'
++        u'\U00090000-\U0009FFFD\U000A0000-\U000AFFFD'
++        u'\U000B0000-\U000BFFFD\U000C0000-\U000CFFFD'
++        u'\U000D0000-\U000DFFFD\U000E1000-\U000EFFFD'
++    )
++else:  # pragma: no cover
++    IPRIVATE = u'\uE000-\uF8FF'
++    UCSCHAR_RE = (
++        u'\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF'
++    )
++
++IUNRESERVED_RE = u'A-Za-z0-9\\._~\\-' + UCSCHAR_RE
++IPCHAR = u'([' + IUNRESERVED_RE + SUB_DELIMITERS_RE + u':@]|%s)' % PCT_ENCODED
++
++isegments = {
++    'isegment': IPCHAR + u'*',
++    # Non-zero length segment
++    'isegment-nz': IPCHAR + u'+',
++    # Non-zero length segment without ":"
++    'isegment-nz-nc': IPCHAR.replace(':', '') + u'+'
++}
++
++IPATH_ROOTLESS = u'%(isegment-nz)s(/%(isegment)s)*' % isegments
++IPATH_NOSCHEME = u'%(isegment-nz-nc)s(/%(isegment)s)*' % isegments
++IPATH_ABSOLUTE = u'/(?:%s)?' % IPATH_ROOTLESS
++IPATH_ABEMPTY = u'(?:/%(isegment)s)*' % isegments
++IPATH_RE = u'^(?:%s|%s|%s|%s|%s)$' % (
++    IPATH_ABEMPTY, IPATH_ABSOLUTE, IPATH_NOSCHEME, IPATH_ROOTLESS, PATH_EMPTY
++)
++
++IREGULAR_NAME_RE = IREG_NAME = u'(?:{0}|[{1}])*'.format(
++    u'%[0-9A-Fa-f]{2}', SUB_DELIMITERS_RE + IUNRESERVED_RE
++)
++
++IHOST_RE = IHOST_PATTERN = u'({0}|{1}|{2})'.format(
++    IREG_NAME,
++    IPv4_RE,
++    IP_LITERAL_RE,
++)
++
++IUSERINFO_RE = u'^(?:[' + IUNRESERVED_RE + SUB_DELIMITERS_RE + u':]|%s)+' % (
++    PCT_ENCODED
++)
++
++IFRAGMENT_RE = (u'^(?:[/?:@' + IUNRESERVED_RE + SUB_DELIMITERS_RE
++                + u']|%s)*$' % PCT_ENCODED)
++IQUERY_RE = (u'^(?:[/?:@' + IUNRESERVED_RE + SUB_DELIMITERS_RE
++             + IPRIVATE + u']|%s)*$' % PCT_ENCODED)
++
++IRELATIVE_PART_RE = u'(//%s%s|%s|%s|%s)' % (
++    COMPONENT_PATTERN_DICT['authority'],
++    IPATH_ABEMPTY,
++    IPATH_ABSOLUTE,
++    IPATH_NOSCHEME,
++    PATH_EMPTY,
++)
++
++IHIER_PART_RE = u'(//%s%s|%s|%s|%s)' % (
++    COMPONENT_PATTERN_DICT['authority'],
++    IPATH_ABEMPTY,
++    IPATH_ABSOLUTE,
++    IPATH_ROOTLESS,
++    PATH_EMPTY,
++)
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/api.py b/src/pip/_vendor/urllib3/packages/rfc3986/api.py
+new file mode 100644
+index 0000000000..ddc4a1cd28
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/api.py
+@@ -0,0 +1,106 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2014 Rackspace
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""
++Module containing the simple and functional API for rfc3986.
++
++This module defines functions and provides access to the public attributes
++and classes of rfc3986.
++"""
++
++from .iri import IRIReference
++from .parseresult import ParseResult
++from .uri import URIReference
++
++
++def uri_reference(uri, encoding='utf-8'):
++    """Parse a URI string into a URIReference.
++
++    This is a convenience function. You could achieve the same end by using
++    ``URIReference.from_string(uri)``.
++
++    :param str uri: The URI which needs to be parsed into a reference.
++    :param str encoding: The encoding of the string provided
++    :returns: A parsed URI
++    :rtype: :class:`URIReference`
++    """
++    return URIReference.from_string(uri, encoding)
++
++
++def iri_reference(iri, encoding='utf-8'):
++    """Parse a IRI string into an IRIReference.
++
++    This is a convenience function. You could achieve the same end by using
++    ``IRIReference.from_string(iri)``.
++
++    :param str iri: The IRI which needs to be parsed into a reference.
++    :param str encoding: The encoding of the string provided
++    :returns: A parsed IRI
++    :rtype: :class:`IRIReference`
++    """
++    return IRIReference.from_string(iri, encoding)
++
++
++def is_valid_uri(uri, encoding='utf-8', **kwargs):
++    """Determine if the URI given is valid.
++
++    This is a convenience function. You could use either
++    ``uri_reference(uri).is_valid()`` or
++    ``URIReference.from_string(uri).is_valid()`` to achieve the same result.
++
++    :param str uri: The URI to be validated.
++    :param str encoding: The encoding of the string provided
++    :param bool require_scheme: Set to ``True`` if you wish to require the
++        presence of the scheme component.
++    :param bool require_authority: Set to ``True`` if you wish to require the
++        presence of the authority component.
++    :param bool require_path: Set to ``True`` if you wish to require the
++        presence of the path component.
++    :param bool require_query: Set to ``True`` if you wish to require the
++        presence of the query component.
++    :param bool require_fragment: Set to ``True`` if you wish to require the
++        presence of the fragment component.
++    :returns: ``True`` if the URI is valid, ``False`` otherwise.
++    :rtype: bool
++    """
++    return URIReference.from_string(uri, encoding).is_valid(**kwargs)
++
++
++def normalize_uri(uri, encoding='utf-8'):
++    """Normalize the given URI.
++
++    This is a convenience function. You could use either
++    ``uri_reference(uri).normalize().unsplit()`` or
++    ``URIReference.from_string(uri).normalize().unsplit()`` instead.
++
++    :param str uri: The URI to be normalized.
++    :param str encoding: The encoding of the string provided
++    :returns: The normalized URI.
++    :rtype: str
++    """
++    normalized_reference = URIReference.from_string(uri, encoding).normalize()
++    return normalized_reference.unsplit()
++
++
++def urlparse(uri, encoding='utf-8'):
++    """Parse a given URI and return a ParseResult.
++
++    This is a partial replacement of the standard library's urlparse function.
++
++    :param str uri: The URI to be parsed.
++    :param str encoding: The encoding of the string provided.
++    :returns: A parsed URI
++    :rtype: :class:`~rfc3986.parseresult.ParseResult`
++    """
++    return ParseResult.from_string(uri, encoding, strict=False)
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/builder.py b/src/pip/_vendor/urllib3/packages/rfc3986/builder.py
+new file mode 100644
+index 0000000000..7934279995
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/builder.py
+@@ -0,0 +1,298 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2017 Ian Stapleton Cordasco
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Module containing the logic for the URIBuilder object."""
++from . import compat
++from . import normalizers
++from . import uri
++
++
++class URIBuilder(object):
++    """Object to aid in building up a URI Reference from parts.
++
++    .. note::
++
++        This object should be instantiated by the user, but it's recommended
++        that it is not provided with arguments. Instead, use the available
++        method to populate the fields.
++
++    """
++
++    def __init__(self, scheme=None, userinfo=None, host=None, port=None,
++                 path=None, query=None, fragment=None):
++        """Initialize our URI builder.
++
++        :param str scheme:
++            (optional)
++        :param str userinfo:
++            (optional)
++        :param str host:
++            (optional)
++        :param int port:
++            (optional)
++        :param str path:
++            (optional)
++        :param str query:
++            (optional)
++        :param str fragment:
++            (optional)
++        """
++        self.scheme = scheme
++        self.userinfo = userinfo
++        self.host = host
++        self.port = port
++        self.path = path
++        self.query = query
++        self.fragment = fragment
++
++    def __repr__(self):
++        """Provide a convenient view of our builder object."""
++        formatstr = ('URIBuilder(scheme={b.scheme}, userinfo={b.userinfo}, '
++                     'host={b.host}, port={b.port}, path={b.path}, '
++                     'query={b.query}, fragment={b.fragment})')
++        return formatstr.format(b=self)
++
++    def add_scheme(self, scheme):
++        """Add a scheme to our builder object.
++
++        After normalizing, this will generate a new URIBuilder instance with
++        the specified scheme and all other attributes the same.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_scheme('HTTPS')
++            URIBuilder(scheme='https', userinfo=None, host=None, port=None,
++                    path=None, query=None, fragment=None)
++
++        """
++        scheme = normalizers.normalize_scheme(scheme)
++        return URIBuilder(
++            scheme=scheme,
++            userinfo=self.userinfo,
++            host=self.host,
++            port=self.port,
++            path=self.path,
++            query=self.query,
++            fragment=self.fragment,
++        )
++
++    def add_credentials(self, username, password):
++        """Add credentials as the userinfo portion of the URI.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_credentials('root', 's3crete')
++            URIBuilder(scheme=None, userinfo='root:s3crete', host=None,
++                    port=None, path=None, query=None, fragment=None)
++
++            >>> URIBuilder().add_credentials('root', None)
++            URIBuilder(scheme=None, userinfo='root', host=None,
++                    port=None, path=None, query=None, fragment=None)
++        """
++        if username is None:
++            raise ValueError('Username cannot be None')
++        userinfo = normalizers.normalize_username(username)
++
++        if password is not None:
++            userinfo = '{}:{}'.format(
++                userinfo,
++                normalizers.normalize_password(password),
++            )
++
++        return URIBuilder(
++            scheme=self.scheme,
++            userinfo=userinfo,
++            host=self.host,
++            port=self.port,
++            path=self.path,
++            query=self.query,
++            fragment=self.fragment,
++        )
++
++    def add_host(self, host):
++        """Add hostname to the URI.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_host('google.com')
++            URIBuilder(scheme=None, userinfo=None, host='google.com',
++                    port=None, path=None, query=None, fragment=None)
++
++        """
++        return URIBuilder(
++            scheme=self.scheme,
++            userinfo=self.userinfo,
++            host=normalizers.normalize_host(host),
++            port=self.port,
++            path=self.path,
++            query=self.query,
++            fragment=self.fragment,
++        )
++
++    def add_port(self, port):
++        """Add port to the URI.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_port(80)
++            URIBuilder(scheme=None, userinfo=None, host=None, port='80',
++                    path=None, query=None, fragment=None)
++
++            >>> URIBuilder().add_port(443)
++            URIBuilder(scheme=None, userinfo=None, host=None, port='443',
++                    path=None, query=None, fragment=None)
++
++        """
++        port_int = int(port)
++        if port_int < 0:
++            raise ValueError(
++                'ports are not allowed to be negative. You provided {}'.format(
++                    port_int,
++                )
++            )
++        if port_int > 65535:
++            raise ValueError(
++                'ports are not allowed to be larger than 65535. '
++                'You provided {}'.format(
++                    port_int,
++                )
++            )
++
++        return URIBuilder(
++            scheme=self.scheme,
++            userinfo=self.userinfo,
++            host=self.host,
++            port='{}'.format(port_int),
++            path=self.path,
++            query=self.query,
++            fragment=self.fragment,
++        )
++
++    def add_path(self, path):
++        """Add a path to the URI.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_path('sigmavirus24/rfc3985')
++            URIBuilder(scheme=None, userinfo=None, host=None, port=None,
++                    path='/sigmavirus24/rfc3986', query=None, fragment=None)
++
++            >>> URIBuilder().add_path('/checkout.php')
++            URIBuilder(scheme=None, userinfo=None, host=None, port=None,
++                    path='/checkout.php', query=None, fragment=None)
++
++        """
++        if not path.startswith('/'):
++            path = '/{}'.format(path)
++
++        return URIBuilder(
++            scheme=self.scheme,
++            userinfo=self.userinfo,
++            host=self.host,
++            port=self.port,
++            path=normalizers.normalize_path(path),
++            query=self.query,
++            fragment=self.fragment,
++        )
++
++    def add_query_from(self, query_items):
++        """Generate and add a query a dictionary or list of tuples.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_query_from({'a': 'b c'})
++            URIBuilder(scheme=None, userinfo=None, host=None, port=None,
++                    path=None, query='a=b+c', fragment=None)
++
++            >>> URIBuilder().add_query_from([('a', 'b c')])
++            URIBuilder(scheme=None, userinfo=None, host=None, port=None,
++                    path=None, query='a=b+c', fragment=None)
++
++        """
++        query = normalizers.normalize_query(compat.urlencode(query_items))
++
++        return URIBuilder(
++            scheme=self.scheme,
++            userinfo=self.userinfo,
++            host=self.host,
++            port=self.port,
++            path=self.path,
++            query=query,
++            fragment=self.fragment,
++        )
++
++    def add_query(self, query):
++        """Add a pre-formated query string to the URI.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_query('a=b&c=d')
++            URIBuilder(scheme=None, userinfo=None, host=None, port=None,
++                    path=None, query='a=b&c=d', fragment=None)
++
++        """
++        return URIBuilder(
++            scheme=self.scheme,
++            userinfo=self.userinfo,
++            host=self.host,
++            port=self.port,
++            path=self.path,
++            query=normalizers.normalize_query(query),
++            fragment=self.fragment,
++        )
++
++    def add_fragment(self, fragment):
++        """Add a fragment to the URI.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_fragment('section-2.6.1')
++            URIBuilder(scheme=None, userinfo=None, host=None, port=None,
++                    path=None, query=None, fragment='section-2.6.1')
++
++        """
++        return URIBuilder(
++            scheme=self.scheme,
++            userinfo=self.userinfo,
++            host=self.host,
++            port=self.port,
++            path=self.path,
++            query=self.query,
++            fragment=normalizers.normalize_fragment(fragment),
++        )
++
++    def finalize(self):
++        """Create a URIReference from our builder.
++
++        .. code-block:: python
++
++            >>> URIBuilder().add_scheme('https').add_host('github.com'
++            ...     ).add_path('sigmavirus24/rfc3986').finalize().unsplit()
++            'https://github.com/sigmavirus24/rfc3986'
++
++            >>> URIBuilder().add_scheme('https').add_host('github.com'
++            ...     ).add_path('sigmavirus24/rfc3986').add_credentials(
++            ...     'sigmavirus24', 'not-re@l').finalize().unsplit()
++            'https://sigmavirus24:not-re%40l@github.com/sigmavirus24/rfc3986'
++
++        """
++        return uri.URIReference(
++            self.scheme,
++            normalizers.normalize_authority(
++                (self.userinfo, self.host, self.port)
++            ),
++            self.path,
++            self.query,
++            self.fragment,
++        )
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/compat.py b/src/pip/_vendor/urllib3/packages/rfc3986/compat.py
+new file mode 100644
+index 0000000000..8968c38437
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/compat.py
+@@ -0,0 +1,54 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2014 Rackspace
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Compatibility module for Python 2 and 3 support."""
++import sys
++
++try:
++    from urllib.parse import quote as urlquote
++except ImportError:  # Python 2.x
++    from urllib import quote as urlquote
++
++try:
++    from urllib.parse import urlencode
++except ImportError:  # Python 2.x
++    from urllib import urlencode
++
++__all__ = (
++    'to_bytes',
++    'to_str',
++    'urlquote',
++    'urlencode',
++)
++
++PY3 = (3, 0) <= sys.version_info < (4, 0)
++PY2 = (2, 6) <= sys.version_info < (2, 8)
++
++
++if PY3:
++    unicode = str  # Python 3.x
++
++
++def to_str(b, encoding='utf-8'):
++    """Ensure that b is text in the specified encoding."""
++    if hasattr(b, 'decode') and not isinstance(b, unicode):
++        b = b.decode(encoding)
++    return b
++
++
++def to_bytes(s, encoding='utf-8'):
++    """Ensure that s is converted to bytes from the encoding."""
++    if hasattr(s, 'encode') and not isinstance(s, bytes):
++        s = s.encode(encoding)
++    return s
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/exceptions.py b/src/pip/_vendor/urllib3/packages/rfc3986/exceptions.py
+new file mode 100644
+index 0000000000..da8ca7cb1f
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/exceptions.py
+@@ -0,0 +1,118 @@
++# -*- coding: utf-8 -*-
++"""Exceptions module for rfc3986."""
++
++from . import compat
++
++
++class RFC3986Exception(Exception):
++    """Base class for all rfc3986 exception classes."""
++
++    pass
++
++
++class InvalidAuthority(RFC3986Exception):
++    """Exception when the authority string is invalid."""
++
++    def __init__(self, authority):
++        """Initialize the exception with the invalid authority."""
++        super(InvalidAuthority, self).__init__(
++            u"The authority ({0}) is not valid.".format(
++                compat.to_str(authority)))
++
++
++class InvalidPort(RFC3986Exception):
++    """Exception when the port is invalid."""
++
++    def __init__(self, port):
++        """Initialize the exception with the invalid port."""
++        super(InvalidPort, self).__init__(
++            'The port ("{0}") is not valid.'.format(port))
++
++
++class ResolutionError(RFC3986Exception):
++    """Exception to indicate a failure to resolve a URI."""
++
++    def __init__(self, uri):
++        """Initialize the error with the failed URI."""
++        super(ResolutionError, self).__init__(
++            "{0} is not an absolute URI.".format(uri.unsplit()))
++
++
++class ValidationError(RFC3986Exception):
++    """Exception raised during Validation of a URI."""
++
++    pass
++
++
++class MissingComponentError(ValidationError):
++    """Exception raised when a required component is missing."""
++
++    def __init__(self, uri, *component_names):
++        """Initialize the error with the missing component name."""
++        verb = 'was'
++        if len(component_names) > 1:
++            verb = 'were'
++
++        self.uri = uri
++        self.components = sorted(component_names)
++        components = ', '.join(self.components)
++        super(MissingComponentError, self).__init__(
++            "{} {} required but missing".format(components, verb),
++            uri,
++            self.components,
++        )
++
++
++class UnpermittedComponentError(ValidationError):
++    """Exception raised when a component has an unpermitted value."""
++
++    def __init__(self, component_name, component_value, allowed_values):
++        """Initialize the error with the unpermitted component."""
++        super(UnpermittedComponentError, self).__init__(
++            "{} was required to be one of {!r} but was {!r}".format(
++                component_name, list(sorted(allowed_values)), component_value,
++            ),
++            component_name,
++            component_value,
++            allowed_values,
++        )
++        self.component_name = component_name
++        self.component_value = component_value
++        self.allowed_values = allowed_values
++
++
++class PasswordForbidden(ValidationError):
++    """Exception raised when a URL has a password in the userinfo section."""
++
++    def __init__(self, uri):
++        """Initialize the error with the URI that failed validation."""
++        unsplit = getattr(uri, 'unsplit', lambda: uri)
++        super(PasswordForbidden, self).__init__(
++            '"{}" contained a password when validation forbade it'.format(
++                unsplit()
++            )
++        )
++        self.uri = uri
++
++
++class InvalidComponentsError(ValidationError):
++    """Exception raised when one or more components are invalid."""
++
++    def __init__(self, uri, *component_names):
++        """Initialize the error with the invalid component name(s)."""
++        verb = 'was'
++        if len(component_names) > 1:
++            verb = 'were'
++
++        self.uri = uri
++        self.components = sorted(component_names)
++        components = ', '.join(self.components)
++        super(InvalidComponentsError, self).__init__(
++            "{} {} found to be invalid".format(components, verb),
++            uri,
++            self.components,
++        )
++
++
++class MissingDependencyError(RFC3986Exception):
++    """Exception raised when an IRI is encoded without the 'idna' module."""
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/iri.py b/src/pip/_vendor/urllib3/packages/rfc3986/iri.py
+new file mode 100644
+index 0000000000..416cae4a71
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/iri.py
+@@ -0,0 +1,147 @@
++"""Module containing the implementation of the IRIReference class."""
++# -*- coding: utf-8 -*-
++# Copyright (c) 2014 Rackspace
++# Copyright (c) 2015 Ian Stapleton Cordasco
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++from collections import namedtuple
++
++from . import compat
++from . import exceptions
++from . import misc
++from . import normalizers
++from . import uri
++
++
++try:
++    from pip._vendor import idna
++except ImportError:  # pragma: no cover
++    idna = None
++
++
++class IRIReference(namedtuple('IRIReference', misc.URI_COMPONENTS),
++                   uri.URIMixin):
++    """Immutable object representing a parsed IRI Reference.
++
++    Can be encoded into an URIReference object via the procedure
++    specified in RFC 3987 Section 3.1
++
++     .. note::
++        The IRI submodule is a new interface and may possibly change in
++        the future. Check for changes to the interface when upgrading.
++    """
++
++    slots = ()
++
++    def __new__(cls, scheme, authority, path, query, fragment,
++                encoding='utf-8'):
++        """Create a new IRIReference."""
++        ref = super(IRIReference, cls).__new__(
++            cls,
++            scheme or None,
++            authority or None,
++            path or None,
++            query,
++            fragment)
++        ref.encoding = encoding
++        return ref
++
++    def __eq__(self, other):
++        """Compare this reference to another."""
++        other_ref = other
++        if isinstance(other, tuple):
++            other_ref = self.__class__(*other)
++        elif not isinstance(other, IRIReference):
++            try:
++                other_ref = self.__class__.from_string(other)
++            except TypeError:
++                raise TypeError(
++                    'Unable to compare {0}() to {1}()'.format(
++                        type(self).__name__, type(other).__name__))
++
++        # See http://tools.ietf.org/html/rfc3986#section-6.2
++        return tuple(self) == tuple(other_ref)
++
++    def _match_subauthority(self):
++        return misc.ISUBAUTHORITY_MATCHER.match(self.authority)
++
++    @classmethod
++    def from_string(cls, iri_string, encoding='utf-8'):
++        """Parse a IRI reference from the given unicode IRI string.
++
++        :param str iri_string: Unicode IRI to be parsed into a reference.
++        :param str encoding: The encoding of the string provided
++        :returns: :class:`IRIReference` or subclass thereof
++        """
++        iri_string = compat.to_str(iri_string, encoding)
++
++        split_iri = misc.IRI_MATCHER.match(iri_string).groupdict()
++        return cls(
++            split_iri['scheme'], split_iri['authority'],
++            normalizers.encode_component(split_iri['path'], encoding),
++            normalizers.encode_component(split_iri['query'], encoding),
++            normalizers.encode_component(split_iri['fragment'], encoding),
++            encoding,
++        )
++
++    def encode(self, idna_encoder=None):  # noqa: C901
++        """Encode an IRIReference into a URIReference instance.
++
++        If the ``idna`` module is installed or the ``rfc3986[idna]``
++        extra is used then unicode characters in the IRI host
++        component will be encoded with IDNA2008.
++
++        :param idna_encoder:
++            Function that encodes each part of the host component
++            If not given will raise an exception if the IRI
++            contains a host component.
++        :rtype: uri.URIReference
++        :returns: A URI reference
++        """
++        authority = self.authority
++        if authority:
++            if idna_encoder is None:
++                if idna is None:  # pragma: no cover
++                    raise exceptions.MissingDependencyError(
++                        "Could not import the 'idna' module "
++                        "and the IRI hostname requires encoding"
++                    )
++
++                def idna_encoder(name):
++                    if any(ord(c) > 128 for c in name):
++                        try:
++                            return idna.encode(name.lower(),
++                                               strict=True,
++                                               std3_rules=True)
++                        except idna.IDNAError:
++                            raise exceptions.InvalidAuthority(self.authority)
++                    return name
++
++            authority = ""
++            if self.host:
++                authority = ".".join([compat.to_str(idna_encoder(part))
++                                      for part in self.host.split(".")])
++
++            if self.userinfo is not None:
++                authority = (normalizers.encode_component(
++                             self.userinfo, self.encoding) + '@' + authority)
++
++            if self.port is not None:
++                authority += ":" + str(self.port)
++
++        return uri.URIReference(self.scheme,
++                                authority,
++                                path=self.path,
++                                query=self.query,
++                                fragment=self.fragment,
++                                encoding=self.encoding)
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/misc.py b/src/pip/_vendor/urllib3/packages/rfc3986/misc.py
+new file mode 100644
+index 0000000000..b735e04402
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/misc.py
+@@ -0,0 +1,124 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2014 Rackspace
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""
++Module containing compiled regular expressions and constants.
++
++This module contains important constants, patterns, and compiled regular
++expressions for parsing and validating URIs and their components.
++"""
++
++import re
++
++from . import abnf_regexp
++
++# These are enumerated for the named tuple used as a superclass of
++# URIReference
++URI_COMPONENTS = ['scheme', 'authority', 'path', 'query', 'fragment']
++
++important_characters = {
++    'generic_delimiters': abnf_regexp.GENERIC_DELIMITERS,
++    'sub_delimiters': abnf_regexp.SUB_DELIMITERS,
++    # We need to escape the '*' in this case
++    're_sub_delimiters': abnf_regexp.SUB_DELIMITERS_RE,
++    'unreserved_chars': abnf_regexp.UNRESERVED_CHARS,
++    # We need to escape the '-' in this case:
++    're_unreserved': abnf_regexp.UNRESERVED_RE,
++}
++
++# For details about delimiters and reserved characters, see:
++# http://tools.ietf.org/html/rfc3986#section-2.2
++GENERIC_DELIMITERS = abnf_regexp.GENERIC_DELIMITERS_SET
++SUB_DELIMITERS = abnf_regexp.SUB_DELIMITERS_SET
++RESERVED_CHARS = abnf_regexp.RESERVED_CHARS_SET
++# For details about unreserved characters, see:
++# http://tools.ietf.org/html/rfc3986#section-2.3
++UNRESERVED_CHARS = abnf_regexp.UNRESERVED_CHARS_SET
++NON_PCT_ENCODED = abnf_regexp.NON_PCT_ENCODED_SET
++
++URI_MATCHER = re.compile(abnf_regexp.URL_PARSING_RE)
++
++SUBAUTHORITY_MATCHER = re.compile((
++    '^(?:(?P<userinfo>{0})@)?'  # userinfo
++    '(?P<host>{1})'  # host
++    ':?(?P<port>{2})?$'  # port
++    ).format(abnf_regexp.USERINFO_RE,
++             abnf_regexp.HOST_PATTERN,
++             abnf_regexp.PORT_RE))
++
++
++HOST_MATCHER = re.compile('^' + abnf_regexp.HOST_RE + '$')
++IPv4_MATCHER = re.compile('^' + abnf_regexp.IPv4_RE + '$')
++IPv6_MATCHER = re.compile(r'^\[' + abnf_regexp.IPv6_ADDRZ_RFC4007_RE + r'\]$')
++
++# Used by host validator
++IPv6_NO_RFC4007_MATCHER = re.compile(r'^\[%s\]$' % (
++    abnf_regexp.IPv6_ADDRZ_RE
++))
++
++# Matcher used to validate path components
++PATH_MATCHER = re.compile(abnf_regexp.PATH_RE)
++
++
++# ##################################
++# Query and Fragment Matcher Section
++# ##################################
++
++QUERY_MATCHER = re.compile(abnf_regexp.QUERY_RE)
++
++FRAGMENT_MATCHER = QUERY_MATCHER
++
++# Scheme validation, see: http://tools.ietf.org/html/rfc3986#section-3.1
++SCHEME_MATCHER = re.compile('^{0}$'.format(abnf_regexp.SCHEME_RE))
++
++RELATIVE_REF_MATCHER = re.compile(r'^%s(\?%s)?(#%s)?$' % (
++    abnf_regexp.RELATIVE_PART_RE,
++    abnf_regexp.QUERY_RE,
++    abnf_regexp.FRAGMENT_RE,
++))
++
++# See http://tools.ietf.org/html/rfc3986#section-4.3
++ABSOLUTE_URI_MATCHER = re.compile(r'^%s:%s(\?%s)?$' % (
++    abnf_regexp.COMPONENT_PATTERN_DICT['scheme'],
++    abnf_regexp.HIER_PART_RE,
++    abnf_regexp.QUERY_RE[1:-1],
++))
++
++# ###############
++# IRIs / RFC 3987
++# ###############
++
++IRI_MATCHER = re.compile(abnf_regexp.URL_PARSING_RE, re.UNICODE)
++
++ISUBAUTHORITY_MATCHER = re.compile((
++    u'^(?:(?P<userinfo>{0})@)?'  # iuserinfo
++    u'(?P<host>{1})'  # ihost
++    u':?(?P<port>{2})?$'  # port
++    ).format(abnf_regexp.IUSERINFO_RE,
++             abnf_regexp.IHOST_RE,
++             abnf_regexp.PORT_RE), re.UNICODE)
++
++
++# Path merger as defined in http://tools.ietf.org/html/rfc3986#section-5.2.3
++def merge_paths(base_uri, relative_path):
++    """Merge a base URI's path with a relative URI's path."""
++    if base_uri.path is None and base_uri.authority is not None:
++        return '/' + relative_path
++    else:
++        path = base_uri.path or ''
++        index = path.rfind('/')
++        return path[:index] + '/' + relative_path
++
++
++UseExisting = object()
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/normalizers.py b/src/pip/_vendor/urllib3/packages/rfc3986/normalizers.py
+new file mode 100644
+index 0000000000..2eb1bb36f7
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/normalizers.py
+@@ -0,0 +1,167 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2014 Rackspace
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Module with functions to normalize components."""
++import re
++
++from . import compat
++from . import misc
++
++
++def normalize_scheme(scheme):
++    """Normalize the scheme component."""
++    return scheme.lower()
++
++
++def normalize_authority(authority):
++    """Normalize an authority tuple to a string."""
++    userinfo, host, port = authority
++    result = ''
++    if userinfo:
++        result += normalize_percent_characters(userinfo) + '@'
++    if host:
++        result += normalize_host(host)
++    if port:
++        result += ':' + port
++    return result
++
++
++def normalize_username(username):
++    """Normalize a username to make it safe to include in userinfo."""
++    return compat.urlquote(username)
++
++
++def normalize_password(password):
++    """Normalize a password to make safe for userinfo."""
++    return compat.urlquote(password)
++
++
++def normalize_host(host):
++    """Normalize a host string."""
++    if misc.IPv6_MATCHER.match(host):
++        percent = host.find('%')
++        if percent != -1:
++            percent_25 = host.find('%25')
++
++            # Replace RFC 4007 IPv6 Zone ID delimiter '%' with '%25'
++            # from RFC 6874. If the host is '[<IPv6 addr>%25]' then we
++            # assume RFC 4007 and normalize to '[<IPV6 addr>%2525]'
++            if percent_25 == -1 or percent < percent_25 or \
++                    (percent == percent_25 and percent_25 == len(host) - 4):
++                host = host.replace('%', '%25', 1)
++
++            # Don't normalize the casing of the Zone ID
++            return host[:percent].lower() + host[percent:]
++
++    return host.lower()
++
++
++def normalize_path(path):
++    """Normalize the path string."""
++    if not path:
++        return path
++
++    path = normalize_percent_characters(path)
++    return remove_dot_segments(path)
++
++
++def normalize_query(query):
++    """Normalize the query string."""
++    if not query:
++        return query
++    return normalize_percent_characters(query)
++
++
++def normalize_fragment(fragment):
++    """Normalize the fragment string."""
++    if not fragment:
++        return fragment
++    return normalize_percent_characters(fragment)
++
++
++PERCENT_MATCHER = re.compile('%[A-Fa-f0-9]{2}')
++
++
++def normalize_percent_characters(s):
++    """All percent characters should be upper-cased.
++
++    For example, ``"%3afoo%DF%ab"`` should be turned into ``"%3Afoo%DF%AB"``.
++    """
++    matches = set(PERCENT_MATCHER.findall(s))
++    for m in matches:
++        if not m.isupper():
++            s = s.replace(m, m.upper())
++    return s
++
++
++def remove_dot_segments(s):
++    """Remove dot segments from the string.
++
++    See also Section 5.2.4 of :rfc:`3986`.
++    """
++    # See http://tools.ietf.org/html/rfc3986#section-5.2.4 for pseudo-code
++    segments = s.split('/')  # Turn the path into a list of segments
++    output = []  # Initialize the variable to use to store output
++
++    for segment in segments:
++        # '.' is the current directory, so ignore it, it is superfluous
++        if segment == '.':
++            continue
++        # Anything other than '..', should be appended to the output
++        elif segment != '..':
++            output.append(segment)
++        # In this case segment == '..', if we can, we should pop the last
++        # element
++        elif output:
++            output.pop()
++
++    # If the path starts with '/' and the output is empty or the first string
++    # is non-empty
++    if s.startswith('/') and (not output or output[0]):
++        output.insert(0, '')
++
++    # If the path starts with '/.' or '/..' ensure we add one more empty
++    # string to add a trailing '/'
++    if s.endswith(('/.', '/..')):
++        output.append('')
++
++    return '/'.join(output)
++
++
++def encode_component(uri_component, encoding):
++    """Encode the specific component in the provided encoding."""
++    if uri_component is None:
++        return uri_component
++
++    # Try to see if the component we're encoding is already percent-encoded
++    # so we can skip all '%' characters but still encode all others.
++    percent_encodings = len(PERCENT_MATCHER.findall(
++                            compat.to_str(uri_component, encoding)))
++
++    uri_bytes = compat.to_bytes(uri_component, encoding)
++    is_percent_encoded = percent_encodings == uri_bytes.count(b'%')
++
++    encoded_uri = bytearray()
++
++    for i in range(0, len(uri_bytes)):
++        # Will return a single character bytestring on both Python 2 & 3
++        byte = uri_bytes[i:i+1]
++        byte_ord = ord(byte)
++        if ((is_percent_encoded and byte == b'%')
++                or (byte_ord < 128 and byte.decode() in misc.NON_PCT_ENCODED)):
++            encoded_uri.extend(byte)
++            continue
++        encoded_uri.extend('%{0:02x}'.format(byte_ord).encode().upper())
++
++    return encoded_uri.decode(encoding)
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/parseresult.py b/src/pip/_vendor/urllib3/packages/rfc3986/parseresult.py
+new file mode 100644
+index 0000000000..0a73456693
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/parseresult.py
+@@ -0,0 +1,385 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2015 Ian Stapleton Cordasco
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Module containing the urlparse compatibility logic."""
++from collections import namedtuple
++
++from . import compat
++from . import exceptions
++from . import misc
++from . import normalizers
++from . import uri
++
++__all__ = ('ParseResult', 'ParseResultBytes')
++
++PARSED_COMPONENTS = ('scheme', 'userinfo', 'host', 'port', 'path', 'query',
++                     'fragment')
++
++
++class ParseResultMixin(object):
++    def _generate_authority(self, attributes):
++        # I swear I did not align the comparisons below. That's just how they
++        # happened to align based on pep8 and attribute lengths.
++        userinfo, host, port = (attributes[p]
++                                for p in ('userinfo', 'host', 'port'))
++        if (self.userinfo != userinfo or
++                self.host != host or
++                self.port != port):
++            if port:
++                port = '{0}'.format(port)
++            return normalizers.normalize_authority(
++                (compat.to_str(userinfo, self.encoding),
++                 compat.to_str(host, self.encoding),
++                 port)
++            )
++        return self.authority
++
++    def geturl(self):
++        """Shim to match the standard library method."""
++        return self.unsplit()
++
++    @property
++    def hostname(self):
++        """Shim to match the standard library."""
++        return self.host
++
++    @property
++    def netloc(self):
++        """Shim to match the standard library."""
++        return self.authority
++
++    @property
++    def params(self):
++        """Shim to match the standard library."""
++        return self.query
++
++
++class ParseResult(namedtuple('ParseResult', PARSED_COMPONENTS),
++                  ParseResultMixin):
++    """Implementation of urlparse compatibility class.
++
++    This uses the URIReference logic to handle compatibility with the
++    urlparse.ParseResult class.
++    """
++
++    slots = ()
++
++    def __new__(cls, scheme, userinfo, host, port, path, query, fragment,
++                uri_ref, encoding='utf-8'):
++        """Create a new ParseResult."""
++        parse_result = super(ParseResult, cls).__new__(
++            cls,
++            scheme or None,
++            userinfo or None,
++            host,
++            port or None,
++            path or None,
++            query,
++            fragment)
++        parse_result.encoding = encoding
++        parse_result.reference = uri_ref
++        return parse_result
++
++    @classmethod
++    def from_parts(cls, scheme=None, userinfo=None, host=None, port=None,
++                   path=None, query=None, fragment=None, encoding='utf-8'):
++        """Create a ParseResult instance from its parts."""
++        authority = ''
++        if userinfo is not None:
++            authority += userinfo + '@'
++        if host is not None:
++            authority += host
++        if port is not None:
++            authority += ':{0}'.format(port)
++        uri_ref = uri.URIReference(scheme=scheme,
++                                   authority=authority,
++                                   path=path,
++                                   query=query,
++                                   fragment=fragment,
++                                   encoding=encoding).normalize()
++        userinfo, host, port = authority_from(uri_ref, strict=True)
++        return cls(scheme=uri_ref.scheme,
++                   userinfo=userinfo,
++                   host=host,
++                   port=port,
++                   path=uri_ref.path,
++                   query=uri_ref.query,
++                   fragment=uri_ref.fragment,
++                   uri_ref=uri_ref,
++                   encoding=encoding)
++
++    @classmethod
++    def from_string(cls, uri_string, encoding='utf-8', strict=True,
++                    lazy_normalize=True):
++        """Parse a URI from the given unicode URI string.
++
++        :param str uri_string: Unicode URI to be parsed into a reference.
++        :param str encoding: The encoding of the string provided
++        :param bool strict: Parse strictly according to :rfc:`3986` if True.
++            If False, parse similarly to the standard library's urlparse
++            function.
++        :returns: :class:`ParseResult` or subclass thereof
++        """
++        reference = uri.URIReference.from_string(uri_string, encoding)
++        if not lazy_normalize:
++            reference = reference.normalize()
++        userinfo, host, port = authority_from(reference, strict)
++
++        return cls(scheme=reference.scheme,
++                   userinfo=userinfo,
++                   host=host,
++                   port=port,
++                   path=reference.path,
++                   query=reference.query,
++                   fragment=reference.fragment,
++                   uri_ref=reference,
++                   encoding=encoding)
++
++    @property
++    def authority(self):
++        """Return the normalized authority."""
++        return self.reference.authority
++
++    def copy_with(self, scheme=misc.UseExisting, userinfo=misc.UseExisting,
++                  host=misc.UseExisting, port=misc.UseExisting,
++                  path=misc.UseExisting, query=misc.UseExisting,
++                  fragment=misc.UseExisting):
++        """Create a copy of this instance replacing with specified parts."""
++        attributes = zip(PARSED_COMPONENTS,
++                         (scheme, userinfo, host, port, path, query, fragment))
++        attrs_dict = {}
++        for name, value in attributes:
++            if value is misc.UseExisting:
++                value = getattr(self, name)
++            attrs_dict[name] = value
++        authority = self._generate_authority(attrs_dict)
++        ref = self.reference.copy_with(scheme=attrs_dict['scheme'],
++                                       authority=authority,
++                                       path=attrs_dict['path'],
++                                       query=attrs_dict['query'],
++                                       fragment=attrs_dict['fragment'])
++        return ParseResult(uri_ref=ref, encoding=self.encoding, **attrs_dict)
++
++    def encode(self, encoding=None):
++        """Convert to an instance of ParseResultBytes."""
++        encoding = encoding or self.encoding
++        attrs = dict(
++            zip(PARSED_COMPONENTS,
++                (attr.encode(encoding) if hasattr(attr, 'encode') else attr
++                 for attr in self)))
++        return ParseResultBytes(
++            uri_ref=self.reference,
++            encoding=encoding,
++            **attrs
++        )
++
++    def unsplit(self, use_idna=False):
++        """Create a URI string from the components.
++
++        :returns: The parsed URI reconstituted as a string.
++        :rtype: str
++        """
++        parse_result = self
++        if use_idna and self.host:
++            hostbytes = self.host.encode('idna')
++            host = hostbytes.decode(self.encoding)
++            parse_result = self.copy_with(host=host)
++        return parse_result.reference.unsplit()
++
++
++class ParseResultBytes(namedtuple('ParseResultBytes', PARSED_COMPONENTS),
++                       ParseResultMixin):
++    """Compatibility shim for the urlparse.ParseResultBytes object."""
++
++    def __new__(cls, scheme, userinfo, host, port, path, query, fragment,
++                uri_ref, encoding='utf-8', lazy_normalize=True):
++        """Create a new ParseResultBytes instance."""
++        parse_result = super(ParseResultBytes, cls).__new__(
++            cls,
++            scheme or None,
++            userinfo or None,
++            host,
++            port or None,
++            path or None,
++            query or None,
++            fragment or None)
++        parse_result.encoding = encoding
++        parse_result.reference = uri_ref
++        parse_result.lazy_normalize = lazy_normalize
++        return parse_result
++
++    @classmethod
++    def from_parts(cls, scheme=None, userinfo=None, host=None, port=None,
++                   path=None, query=None, fragment=None, encoding='utf-8',
++                   lazy_normalize=True):
++        """Create a ParseResult instance from its parts."""
++        authority = ''
++        if userinfo is not None:
++            authority += userinfo + '@'
++        if host is not None:
++            authority += host
++        if port is not None:
++            authority += ':{0}'.format(int(port))
++        uri_ref = uri.URIReference(scheme=scheme,
++                                   authority=authority,
++                                   path=path,
++                                   query=query,
++                                   fragment=fragment,
++                                   encoding=encoding)
++        if not lazy_normalize:
++            uri_ref = uri_ref.normalize()
++        to_bytes = compat.to_bytes
++        userinfo, host, port = authority_from(uri_ref, strict=True)
++        return cls(scheme=to_bytes(scheme, encoding),
++                   userinfo=to_bytes(userinfo, encoding),
++                   host=to_bytes(host, encoding),
++                   port=port,
++                   path=to_bytes(path, encoding),
++                   query=to_bytes(query, encoding),
++                   fragment=to_bytes(fragment, encoding),
++                   uri_ref=uri_ref,
++                   encoding=encoding,
++                   lazy_normalize=lazy_normalize)
++
++    @classmethod
++    def from_string(cls, uri_string, encoding='utf-8', strict=True,
++                    lazy_normalize=True):
++        """Parse a URI from the given unicode URI string.
++
++        :param str uri_string: Unicode URI to be parsed into a reference.
++        :param str encoding: The encoding of the string provided
++        :param bool strict: Parse strictly according to :rfc:`3986` if True.
++            If False, parse similarly to the standard library's urlparse
++            function.
++        :returns: :class:`ParseResultBytes` or subclass thereof
++        """
++        reference = uri.URIReference.from_string(uri_string, encoding)
++        if not lazy_normalize:
++            reference = reference.normalize()
++        userinfo, host, port = authority_from(reference, strict)
++
++        to_bytes = compat.to_bytes
++        return cls(scheme=to_bytes(reference.scheme, encoding),
++                   userinfo=to_bytes(userinfo, encoding),
++                   host=to_bytes(host, encoding),
++                   port=port,
++                   path=to_bytes(reference.path, encoding),
++                   query=to_bytes(reference.query, encoding),
++                   fragment=to_bytes(reference.fragment, encoding),
++                   uri_ref=reference,
++                   encoding=encoding,
++                   lazy_normalize=lazy_normalize)
++
++    @property
++    def authority(self):
++        """Return the normalized authority."""
++        return self.reference.authority.encode(self.encoding)
++
++    def copy_with(self, scheme=misc.UseExisting, userinfo=misc.UseExisting,
++                  host=misc.UseExisting, port=misc.UseExisting,
++                  path=misc.UseExisting, query=misc.UseExisting,
++                  fragment=misc.UseExisting, lazy_normalize=True):
++        """Create a copy of this instance replacing with specified parts."""
++        attributes = zip(PARSED_COMPONENTS,
++                         (scheme, userinfo, host, port, path, query, fragment))
++        attrs_dict = {}
++        for name, value in attributes:
++            if value is misc.UseExisting:
++                value = getattr(self, name)
++            if not isinstance(value, bytes) and hasattr(value, 'encode'):
++                value = value.encode(self.encoding)
++            attrs_dict[name] = value
++        authority = self._generate_authority(attrs_dict)
++        to_str = compat.to_str
++        ref = self.reference.copy_with(
++            scheme=to_str(attrs_dict['scheme'], self.encoding),
++            authority=to_str(authority, self.encoding),
++            path=to_str(attrs_dict['path'], self.encoding),
++            query=to_str(attrs_dict['query'], self.encoding),
++            fragment=to_str(attrs_dict['fragment'], self.encoding)
++        )
++        if not lazy_normalize:
++            ref = ref.normalize()
++        return ParseResultBytes(
++            uri_ref=ref,
++            encoding=self.encoding,
++            lazy_normalize=lazy_normalize,
++            **attrs_dict
++        )
++
++    def unsplit(self, use_idna=False):
++        """Create a URI bytes object from the components.
++
++        :returns: The parsed URI reconstituted as a string.
++        :rtype: bytes
++        """
++        parse_result = self
++        if use_idna and self.host:
++            # self.host is bytes, to encode to idna, we need to decode it
++            # first
++            host = self.host.decode(self.encoding)
++            hostbytes = host.encode('idna')
++            parse_result = self.copy_with(host=hostbytes)
++        if self.lazy_normalize:
++            parse_result = parse_result.copy_with(lazy_normalize=False)
++        uri = parse_result.reference.unsplit()
++        return uri.encode(self.encoding)
++
++
++def split_authority(authority):
++    # Initialize our expected return values
++    userinfo = host = port = None
++    # Initialize an extra var we may need to use
++    extra_host = None
++    # Set-up rest in case there is no userinfo portion
++    rest = authority
++
++    if '@' in authority:
++        userinfo, rest = authority.rsplit('@', 1)
++
++    # Handle IPv6 host addresses
++    if rest.startswith('['):
++        host, rest = rest.split(']', 1)
++        host += ']'
++
++    if ':' in rest:
++        extra_host, port = rest.split(':', 1)
++    elif not host and rest:
++        host = rest
++
++    if extra_host and not host:
++        host = extra_host
++
++    return userinfo, host, port
++
++
++def authority_from(reference, strict):
++    try:
++        subauthority = reference.authority_info()
++    except exceptions.InvalidAuthority:
++        if strict:
++            raise
++        userinfo, host, port = split_authority(reference.authority)
++    else:
++        # Thanks to Richard Barrell for this idea:
++        # https://twitter.com/0x2ba22e11/status/617338811975139328
++        userinfo, host, port = (subauthority.get(p)
++                                for p in ('userinfo', 'host', 'port'))
++
++    if port:
++        try:
++            port = int(port)
++        except ValueError:
++            raise exceptions.InvalidPort(port)
++    return userinfo, host, port
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/uri.py b/src/pip/_vendor/urllib3/packages/rfc3986/uri.py
+new file mode 100644
+index 0000000000..d1d71505e2
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/uri.py
+@@ -0,0 +1,153 @@
++"""Module containing the implementation of the URIReference class."""
++# -*- coding: utf-8 -*-
++# Copyright (c) 2014 Rackspace
++# Copyright (c) 2015 Ian Stapleton Cordasco
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++from collections import namedtuple
++
++from . import compat
++from . import misc
++from . import normalizers
++from ._mixin import URIMixin
++
++
++class URIReference(namedtuple('URIReference', misc.URI_COMPONENTS), URIMixin):
++    """Immutable object representing a parsed URI Reference.
++
++    .. note::
++
++        This class is not intended to be directly instantiated by the user.
++
++    This object exposes attributes for the following components of a
++    URI:
++
++    - scheme
++    - authority
++    - path
++    - query
++    - fragment
++
++    .. attribute:: scheme
++
++        The scheme that was parsed for the URI Reference. For example,
++        ``http``, ``https``, ``smtp``, ``imap``, etc.
++
++    .. attribute:: authority
++
++        Component of the URI that contains the user information, host,
++        and port sub-components. For example,
++        ``google.com``, ``127.0.0.1:5000``, ``username@[::1]``,
++        ``username:password@example.com:443``, etc.
++
++    .. attribute:: path
++
++        The path that was parsed for the given URI Reference. For example,
++        ``/``, ``/index.php``, etc.
++
++    .. attribute:: query
++
++        The query component for a given URI Reference. For example, ``a=b``,
++        ``a=b%20c``, ``a=b+c``, ``a=b,c=d,e=%20f``, etc.
++
++    .. attribute:: fragment
++
++        The fragment component of a URI. For example, ``section-3.1``.
++
++    This class also provides extra attributes for easier access to information
++    like the subcomponents of the authority component.
++
++    .. attribute:: userinfo
++
++        The user information parsed from the authority.
++
++    .. attribute:: host
++
++        The hostname, IPv4, or IPv6 adddres parsed from the authority.
++
++    .. attribute:: port
++
++        The port parsed from the authority.
++    """
++
++    slots = ()
++
++    def __new__(cls, scheme, authority, path, query, fragment,
++                encoding='utf-8'):
++        """Create a new URIReference."""
++        ref = super(URIReference, cls).__new__(
++            cls,
++            scheme or None,
++            authority or None,
++            path or None,
++            query,
++            fragment)
++        ref.encoding = encoding
++        return ref
++
++    __hash__ = tuple.__hash__
++
++    def __eq__(self, other):
++        """Compare this reference to another."""
++        other_ref = other
++        if isinstance(other, tuple):
++            other_ref = URIReference(*other)
++        elif not isinstance(other, URIReference):
++            try:
++                other_ref = URIReference.from_string(other)
++            except TypeError:
++                raise TypeError(
++                    'Unable to compare URIReference() to {0}()'.format(
++                        type(other).__name__))
++
++        # See http://tools.ietf.org/html/rfc3986#section-6.2
++        naive_equality = tuple(self) == tuple(other_ref)
++        return naive_equality or self.normalized_equality(other_ref)
++
++    def normalize(self):
++        """Normalize this reference as described in Section 6.2.2.
++
++        This is not an in-place normalization. Instead this creates a new
++        URIReference.
++
++        :returns: A new reference object with normalized components.
++        :rtype: URIReference
++        """
++        # See http://tools.ietf.org/html/rfc3986#section-6.2.2 for logic in
++        # this method.
++        return URIReference(normalizers.normalize_scheme(self.scheme or ''),
++                            normalizers.normalize_authority(
++                                (self.userinfo, self.host, self.port)),
++                            normalizers.normalize_path(self.path or ''),
++                            normalizers.normalize_query(self.query),
++                            normalizers.normalize_fragment(self.fragment),
++                            self.encoding)
++
++    @classmethod
++    def from_string(cls, uri_string, encoding='utf-8'):
++        """Parse a URI reference from the given unicode URI string.
++
++        :param str uri_string: Unicode URI to be parsed into a reference.
++        :param str encoding: The encoding of the string provided
++        :returns: :class:`URIReference` or subclass thereof
++        """
++        uri_string = compat.to_str(uri_string, encoding)
++
++        split_uri = misc.URI_MATCHER.match(uri_string).groupdict()
++        return cls(
++            split_uri['scheme'], split_uri['authority'],
++            normalizers.encode_component(split_uri['path'], encoding),
++            normalizers.encode_component(split_uri['query'], encoding),
++            normalizers.encode_component(split_uri['fragment'], encoding),
++            encoding,
++        )
+diff --git a/src/pip/_vendor/urllib3/packages/rfc3986/validators.py b/src/pip/_vendor/urllib3/packages/rfc3986/validators.py
+new file mode 100644
+index 0000000000..7fc97215b1
+--- /dev/null
++++ b/src/pip/_vendor/urllib3/packages/rfc3986/validators.py
+@@ -0,0 +1,450 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2017 Ian Stapleton Cordasco
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++# implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Module containing the validation logic for rfc3986."""
++from . import exceptions
++from . import misc
++from . import normalizers
++
++
++class Validator(object):
++    """Object used to configure validation of all objects in rfc3986.
++
++    .. versionadded:: 1.0
++
++    Example usage::
++
++         >>> from rfc3986 import api, validators
++         >>> uri = api.uri_reference('https://github.com/')
++         >>> validator = validators.Validator().require_presence_of(
++         ...    'scheme', 'host', 'path',
++         ... ).allow_schemes(
++         ...    'http', 'https',
++         ... ).allow_hosts(
++         ...    '127.0.0.1', 'github.com',
++         ... )
++         >>> validator.validate(uri)
++         >>> invalid_uri = rfc3986.uri_reference('imap://mail.google.com')
++         >>> validator.validate(invalid_uri)
++         Traceback (most recent call last):
++         ...
++         rfc3986.exceptions.MissingComponentError: ('path was required but
++         missing', URIReference(scheme=u'imap', authority=u'mail.google.com',
++         path=None, query=None, fragment=None), ['path'])
++
++    """
++
++    COMPONENT_NAMES = frozenset([
++        'scheme',
++        'userinfo',
++        'host',
++        'port',
++        'path',
++        'query',
++        'fragment',
++    ])
++
++    def __init__(self):
++        """Initialize our default validations."""
++        self.allowed_schemes = set()
++        self.allowed_hosts = set()
++        self.allowed_ports = set()
++        self.allow_password = True
++        self.required_components = {
++            'scheme': False,
++            'userinfo': False,
++            'host': False,
++            'port': False,
++            'path': False,
++            'query': False,
++            'fragment': False,
++        }
++        self.validated_components = self.required_components.copy()
++
++    def allow_schemes(self, *schemes):
++        """Require the scheme to be one of the provided schemes.
++
++        .. versionadded:: 1.0
++
++        :param schemes:
++            Schemes, without ``://`` that are allowed.
++        :returns:
++            The validator instance.
++        :rtype:
++            Validator
++        """
++        for scheme in schemes:
++            self.allowed_schemes.add(normalizers.normalize_scheme(scheme))
++        return self
++
++    def allow_hosts(self, *hosts):
++        """Require the host to be one of the provided hosts.
++
++        .. versionadded:: 1.0
++
++        :param hosts:
++            Hosts that are allowed.
++        :returns:
++            The validator instance.
++        :rtype:
++            Validator
++        """
++        for host in hosts:
++            self.allowed_hosts.add(normalizers.normalize_host(host))
++        return self
++
++    def allow_ports(self, *ports):
++        """Require the port to be one of the provided ports.
++
++        .. versionadded:: 1.0
++
++        :param ports:
++            Ports that are allowed.
++        :returns:
++            The validator instance.
++        :rtype:
++            Validator
++        """
++        for port in ports:
++            port_int = int(port, base=10)
++            if 0 <= port_int <= 65535:
++                self.allowed_ports.add(port)
++        return self
++
++    def allow_use_of_password(self):
++        """Allow passwords to be present in the URI.
++
++        .. versionadded:: 1.0
++
++        :returns:
++            The validator instance.
++        :rtype:
++            Validator
++        """
++        self.allow_password = True
++        return self
++
++    def forbid_use_of_password(self):
++        """Prevent passwords from being included in the URI.
++
++        .. versionadded:: 1.0
++
++        :returns:
++            The validator instance.
++        :rtype:
++            Validator
++        """
++        self.allow_password = False
++        return self
++
++    def check_validity_of(self, *components):
++        """Check the validity of the components provided.
++
++        This can be specified repeatedly.
++
++        .. versionadded:: 1.1
++
++        :param components:
++            Names of components from :attr:`Validator.COMPONENT_NAMES`.
++        :returns:
++            The validator instance.
++        :rtype:
++            Validator
++        """
++        components = [c.lower() for c in components]
++        for component in components:
++            if component not in self.COMPONENT_NAMES:
++                raise ValueError(
++                    '"{}" is not a valid component'.format(component)
++                )
++        self.validated_components.update({
++            component: True for component in components
++        })
++        return self
++
++    def require_presence_of(self, *components):
++        """Require the components provided.
++
++        This can be specified repeatedly.
++
++        .. versionadded:: 1.0
++
++        :param components:
++            Names of components from :attr:`Validator.COMPONENT_NAMES`.
++        :returns:
++            The validator instance.
++        :rtype:
++            Validator
++        """
++        components = [c.lower() for c in components]
++        for component in components:
++            if component not in self.COMPONENT_NAMES:
++                raise ValueError(
++                    '"{}" is not a valid component'.format(component)
++                )
++        self.required_components.update({
++            component: True for component in components
++        })
++        return self
++
++    def validate(self, uri):
++        """Check a URI for conditions specified on this validator.
++
++        .. versionadded:: 1.0
++
++        :param uri:
++            Parsed URI to validate.
++        :type uri:
++            rfc3986.uri.URIReference
++        :raises MissingComponentError:
++            When a required component is missing.
++        :raises UnpermittedComponentError:
++            When a component is not one of those allowed.
++        :raises PasswordForbidden:
++            When a password is present in the userinfo component but is
++            not permitted by configuration.
++        :raises InvalidComponentsError:
++            When a component was found to be invalid.
++        """
++        if not self.allow_password:
++            check_password(uri)
++
++        required_components = [
++            component
++            for component, required in self.required_components.items()
++            if required
++        ]
++        validated_components = [
++            component
++            for component, required in self.validated_components.items()
++            if required
++        ]
++        if required_components:
++            ensure_required_components_exist(uri, required_components)
++        if validated_components:
++            ensure_components_are_valid(uri, validated_components)
++
++        ensure_one_of(self.allowed_schemes, uri, 'scheme')
++        ensure_one_of(self.allowed_hosts, uri, 'host')
++        ensure_one_of(self.allowed_ports, uri, 'port')
++
++
++def check_password(uri):
++    """Assert that there is no password present in the uri."""
++    userinfo = uri.userinfo
++    if not userinfo:
++        return
++    credentials = userinfo.split(':', 1)
++    if len(credentials) <= 1:
++        return
++    raise exceptions.PasswordForbidden(uri)
++
++
++def ensure_one_of(allowed_values, uri, attribute):
++    """Assert that the uri's attribute is one of the allowed values."""
++    value = getattr(uri, attribute)
++    if value is not None and allowed_values and value not in allowed_values:
++        raise exceptions.UnpermittedComponentError(
++            attribute, value, allowed_values,
++        )
++
++
++def ensure_required_components_exist(uri, required_components):
++    """Assert that all required components are present in the URI."""
++    missing_components = sorted([
++        component
++        for component in required_components
++        if getattr(uri, component) is None
++    ])
++    if missing_components:
++        raise exceptions.MissingComponentError(uri, *missing_components)
++
++
++def is_valid(value, matcher, require):
++    """Determine if a value is valid based on the provided matcher.
++
++    :param str value:
++        Value to validate.
++    :param matcher:
++        Compiled regular expression to use to validate the value.
++    :param require:
++        Whether or not the value is required.
++    """
++    if require:
++        return (value is not None
++                and matcher.match(value))
++
++    # require is False and value is not None
++    return value is None or matcher.match(value)
++
++
++def authority_is_valid(authority, host=None, require=False):
++    """Determine if the authority string is valid.
++
++    :param str authority:
++        The authority to validate.
++    :param str host:
++        (optional) The host portion of the authority to validate.
++    :param bool require:
++        (optional) Specify if authority must not be None.
++    :returns:
++        ``True`` if valid, ``False`` otherwise
++    :rtype:
++        bool
++    """
++    validated = is_valid(authority, misc.SUBAUTHORITY_MATCHER, require)
++    if validated and host is not None:
++        return host_is_valid(host, require)
++    return validated
++
++
++def host_is_valid(host, require=False):
++    """Determine if the host string is valid.
++
++    :param str host:
++        The host to validate.
++    :param bool require:
++        (optional) Specify if host must not be None.
++    :returns:
++        ``True`` if valid, ``False`` otherwise
++    :rtype:
++        bool
++    """
++    validated = is_valid(host, misc.HOST_MATCHER, require)
++    if validated and host is not None and misc.IPv4_MATCHER.match(host):
++        return valid_ipv4_host_address(host)
++    elif validated and host is not None and misc.IPv6_MATCHER.match(host):
++        return misc.IPv6_NO_RFC4007_MATCHER.match(host) is not None
++    return validated
++
++
++def scheme_is_valid(scheme, require=False):
++    """Determine if the scheme is valid.
++
++    :param str scheme:
++        The scheme string to validate.
++    :param bool require:
++        (optional) Set to ``True`` to require the presence of a scheme.
++    :returns:
++        ``True`` if the scheme is valid. ``False`` otherwise.
++    :rtype:
++        bool
++    """
++    return is_valid(scheme, misc.SCHEME_MATCHER, require)
++
++
++def path_is_valid(path, require=False):
++    """Determine if the path component is valid.
++
++    :param str path:
++        The path string to validate.
++    :param bool require:
++        (optional) Set to ``True`` to require the presence of a path.
++    :returns:
++        ``True`` if the path is valid. ``False`` otherwise.
++    :rtype:
++        bool
++    """
++    return is_valid(path, misc.PATH_MATCHER, require)
++
++
++def query_is_valid(query, require=False):
++    """Determine if the query component is valid.
++
++    :param str query:
++        The query string to validate.
++    :param bool require:
++        (optional) Set to ``True`` to require the presence of a query.
++    :returns:
++        ``True`` if the query is valid. ``False`` otherwise.
++    :rtype:
++        bool
++    """
++    return is_valid(query, misc.QUERY_MATCHER, require)
++
++
++def fragment_is_valid(fragment, require=False):
++    """Determine if the fragment component is valid.
++
++    :param str fragment:
++        The fragment string to validate.
++    :param bool require:
++        (optional) Set to ``True`` to require the presence of a fragment.
++    :returns:
++        ``True`` if the fragment is valid. ``False`` otherwise.
++    :rtype:
++        bool
++    """
++    return is_valid(fragment, misc.FRAGMENT_MATCHER, require)
++
++
++def valid_ipv4_host_address(host):
++    """Determine if the given host is a valid IPv4 address."""
++    # If the host exists, and it might be IPv4, check each byte in the
++    # address.
++    return all([0 <= int(byte, base=10) <= 255 for byte in host.split('.')])
++
++
++_COMPONENT_VALIDATORS = {
++    'scheme': scheme_is_valid,
++    'path': path_is_valid,
++    'query': query_is_valid,
++    'fragment': fragment_is_valid,
++}
++
++_SUBAUTHORITY_VALIDATORS = set(['userinfo', 'host', 'port'])
++
++
++def subauthority_component_is_valid(uri, component):
++    """Determine if the userinfo, host, and port are valid."""
++    try:
++        subauthority_dict = uri.authority_info()
++    except exceptions.InvalidAuthority:
++        return False
++
++    # If we can parse the authority into sub-components and we're not
++    # validating the port, we can assume it's valid.
++    if component == 'host':
++        return host_is_valid(subauthority_dict['host'])
++    elif component != 'port':
++        return True
++
++    try:
++        port = int(subauthority_dict['port'])
++    except TypeError:
++        # If the port wasn't provided it'll be None and int(None) raises a
++        # TypeError
++        return True
++
++    return (0 <= port <= 65535)
++
++
++def ensure_components_are_valid(uri, validated_components):
++    """Assert that all components are valid in the URI."""
++    invalid_components = set([])
++    for component in validated_components:
++        if component in _SUBAUTHORITY_VALIDATORS:
++            if not subauthority_component_is_valid(uri, component):
++                invalid_components.add(component)
++            # Python's peephole optimizer means that while this continue *is*
++            # actually executed, coverage.py cannot detect that. See also,
++            # https://bitbucket.org/ned/coveragepy/issues/198/continue-marked-as-not-covered
++            continue  # nocov: Python 2.7, 3.3, 3.4
++
++        validator = _COMPONENT_VALIDATORS[component]
++        if not validator(getattr(uri, component)):
++            invalid_components.add(component)
++
++    if invalid_components:
++        raise exceptions.InvalidComponentsError(uri, *invalid_components)
+diff --git a/src/pip/_vendor/urllib3/poolmanager.py b/src/pip/_vendor/urllib3/poolmanager.py
+index fe5491cfda..a6ade6e905 100644
+--- a/src/pip/_vendor/urllib3/poolmanager.py
++++ b/src/pip/_vendor/urllib3/poolmanager.py
+@@ -7,6 +7,7 @@
+ from .connectionpool import HTTPConnectionPool, HTTPSConnectionPool
+ from .connectionpool import port_by_scheme
+ from .exceptions import LocationValueError, MaxRetryError, ProxySchemeUnknown
++from .packages import six
+ from .packages.six.moves.urllib.parse import urljoin
+ from .request import RequestMethods
+ from .util.url import parse_url
+@@ -19,7 +20,8 @@
+ log = logging.getLogger(__name__)
+ 
+ SSL_KEYWORDS = ('key_file', 'cert_file', 'cert_reqs', 'ca_certs',
+-                'ssl_version', 'ca_cert_dir', 'ssl_context')
++                'ssl_version', 'ca_cert_dir', 'ssl_context',
++                'key_password')
+ 
+ # All known keyword arguments that could be provided to the pool manager, its
+ # pools, or the underlying connections. This is used to construct a pool key.
+@@ -33,6 +35,7 @@
+     'key_block',  # bool
+     'key_source_address',  # str
+     'key_key_file',  # str
++    'key_key_password',  # str
+     'key_cert_file',  # str
+     'key_cert_reqs',  # str
+     'key_ca_certs',  # str
+@@ -47,7 +50,7 @@
+     'key__socks_options',  # dict
+     'key_assert_hostname',  # bool or string
+     'key_assert_fingerprint',  # str
+-    'key_server_hostname', #str
++    'key_server_hostname',  # str
+ )
+ 
+ #: The namedtuple class used to construct keys for the connection pool.
+@@ -342,8 +345,10 @@ def urlopen(self, method, url, redirect=True, **kw):
+         # conn.is_same_host() which may use socket.gethostbyname() in the future.
+         if (retries.remove_headers_on_redirect
+                 and not conn.is_same_host(redirect_location)):
+-            for header in retries.remove_headers_on_redirect:
+-                kw['headers'].pop(header, None)
++            headers = list(six.iterkeys(kw['headers']))
++            for header in headers:
++                if header.lower() in retries.remove_headers_on_redirect:
++                    kw['headers'].pop(header, None)
+ 
+         try:
+             retries = retries.increment(method, url, response=response, _pool=conn)
+diff --git a/src/pip/_vendor/urllib3/response.py b/src/pip/_vendor/urllib3/response.py
+index c112690b0a..4f857932c5 100644
+--- a/src/pip/_vendor/urllib3/response.py
++++ b/src/pip/_vendor/urllib3/response.py
+@@ -6,6 +6,11 @@
+ from socket import timeout as SocketTimeout
+ from socket import error as SocketError
+ 
++try:
++    import brotli
++except ImportError:
++    brotli = None
++
+ from ._collections import HTTPHeaderDict
+ from .exceptions import (
+     BodyNotHttplibCompatible, ProtocolError, DecodeError, ReadTimeoutError,
+@@ -90,6 +95,25 @@ def decompress(self, data):
+             self._obj = zlib.decompressobj(16 + zlib.MAX_WBITS)
+ 
+ 
++if brotli is not None:
++    class BrotliDecoder(object):
++        # Supports both 'brotlipy' and 'Brotli' packages
++        # since they share an import name. The top branches
++        # are for 'brotlipy' and bottom branches for 'Brotli'
++        def __init__(self):
++            self._obj = brotli.Decompressor()
++
++        def decompress(self, data):
++            if hasattr(self._obj, 'decompress'):
++                return self._obj.decompress(data)
++            return self._obj.process(data)
++
++        def flush(self):
++            if hasattr(self._obj, 'flush'):
++                return self._obj.flush()
++            return b''
++
++
+ class MultiDecoder(object):
+     """
+     From RFC7231:
+@@ -118,6 +142,9 @@ def _get_decoder(mode):
+     if mode == 'gzip':
+         return GzipDecoder()
+ 
++    if brotli is not None and mode == 'br':
++        return BrotliDecoder()
++
+     return DeflateDecoder()
+ 
+ 
+@@ -155,6 +182,8 @@ class is also compatible with the Python standard library's :mod:`io`
+     """
+ 
+     CONTENT_DECODERS = ['gzip', 'deflate']
++    if brotli is not None:
++        CONTENT_DECODERS += ['br']
+     REDIRECT_STATUSES = [301, 302, 303, 307, 308]
+ 
+     def __init__(self, body='', headers=None, status=0, version=0, reason=None,
+@@ -311,24 +340,32 @@ def _init_decoder(self):
+             if content_encoding in self.CONTENT_DECODERS:
+                 self._decoder = _get_decoder(content_encoding)
+             elif ',' in content_encoding:
+-                encodings = [e.strip() for e in content_encoding.split(',') if e.strip() in self.CONTENT_DECODERS]
++                encodings = [
++                    e.strip() for e in content_encoding.split(',')
++                    if e.strip() in self.CONTENT_DECODERS]
+                 if len(encodings):
+                     self._decoder = _get_decoder(content_encoding)
+ 
++    DECODER_ERROR_CLASSES = (IOError, zlib.error)
++    if brotli is not None:
++        DECODER_ERROR_CLASSES += (brotli.error,)
++
+     def _decode(self, data, decode_content, flush_decoder):
+         """
+         Decode the data passed in and potentially flush the decoder.
+         """
++        if not decode_content:
++            return data
++
+         try:
+-            if decode_content and self._decoder:
++            if self._decoder:
+                 data = self._decoder.decompress(data)
+-        except (IOError, zlib.error) as e:
++        except self.DECODER_ERROR_CLASSES as e:
+             content_encoding = self.headers.get('content-encoding', '').lower()
+             raise DecodeError(
+                 "Received response with content-encoding: %s, but "
+                 "failed to decode it." % content_encoding, e)
+-
+-        if flush_decoder and decode_content:
++        if flush_decoder:
+             data += self._flush_decoder()
+ 
+         return data
+@@ -508,9 +545,10 @@ def from_httplib(ResponseCls, r, **response_kw):
+         headers = r.msg
+ 
+         if not isinstance(headers, HTTPHeaderDict):
+-            if PY3:  # Python 3
++            if PY3:
+                 headers = HTTPHeaderDict(headers.items())
+-            else:  # Python 2
++            else:
++                # Python 2.7
+                 headers = HTTPHeaderDict.from_httplib(headers)
+ 
+         # HTTPResponse objects in Python 3 don't have a .strict attribute
+@@ -703,3 +741,20 @@ def geturl(self):
+             return self.retries.history[-1].redirect_location
+         else:
+             return self._request_url
++
++    def __iter__(self):
++        buffer = [b""]
++        for chunk in self.stream(decode_content=True):
++            if b"\n" in chunk:
++                chunk = chunk.split(b"\n")
++                yield b"".join(buffer) + chunk[0] + b"\n"
++                for x in chunk[1:-1]:
++                    yield x + b"\n"
++                if chunk[-1]:
++                    buffer = [chunk[-1]]
++                else:
++                    buffer = []
++            else:
++                buffer.append(chunk)
++        if buffer:
++            yield b"".join(buffer)
+diff --git a/src/pip/_vendor/urllib3/util/__init__.py b/src/pip/_vendor/urllib3/util/__init__.py
+index 2f2770b622..2914bb468b 100644
+--- a/src/pip/_vendor/urllib3/util/__init__.py
++++ b/src/pip/_vendor/urllib3/util/__init__.py
+@@ -12,6 +12,7 @@
+     resolve_cert_reqs,
+     resolve_ssl_version,
+     ssl_wrap_socket,
++    PROTOCOL_TLS,
+ )
+ from .timeout import (
+     current_time,
+@@ -35,6 +36,7 @@
+     'IS_PYOPENSSL',
+     'IS_SECURETRANSPORT',
+     'SSLContext',
++    'PROTOCOL_TLS',
+     'Retry',
+     'Timeout',
+     'Url',
+diff --git a/src/pip/_vendor/urllib3/util/request.py b/src/pip/_vendor/urllib3/util/request.py
+index 3ddfcd5594..280b8530c6 100644
+--- a/src/pip/_vendor/urllib3/util/request.py
++++ b/src/pip/_vendor/urllib3/util/request.py
+@@ -5,6 +5,13 @@
+ from ..exceptions import UnrewindableBodyError
+ 
+ ACCEPT_ENCODING = 'gzip,deflate'
++try:
++    import brotli as _unused_module_brotli  # noqa: F401
++except ImportError:
++    pass
++else:
++    ACCEPT_ENCODING += ',br'
++
+ _FAILEDTELL = object()
+ 
+ 
+diff --git a/src/pip/_vendor/urllib3/util/retry.py b/src/pip/_vendor/urllib3/util/retry.py
+index e7d0abd610..02429ee8e4 100644
+--- a/src/pip/_vendor/urllib3/util/retry.py
++++ b/src/pip/_vendor/urllib3/util/retry.py
+@@ -179,7 +179,8 @@ def __init__(self, total=10, connect=None, read=None, redirect=None, status=None
+         self.raise_on_status = raise_on_status
+         self.history = history or tuple()
+         self.respect_retry_after_header = respect_retry_after_header
+-        self.remove_headers_on_redirect = remove_headers_on_redirect
++        self.remove_headers_on_redirect = frozenset([
++            h.lower() for h in remove_headers_on_redirect])
+ 
+     def new(self, **kw):
+         params = dict(
+diff --git a/src/pip/_vendor/urllib3/util/ssl_.py b/src/pip/_vendor/urllib3/util/ssl_.py
+index dfc553ff41..fbdef65d76 100644
+--- a/src/pip/_vendor/urllib3/util/ssl_.py
++++ b/src/pip/_vendor/urllib3/util/ssl_.py
+@@ -2,13 +2,14 @@
+ import errno
+ import warnings
+ import hmac
+-import socket
++import re
+ 
+ from binascii import hexlify, unhexlify
+ from hashlib import md5, sha1, sha256
+ 
+ from ..exceptions import SSLError, InsecurePlatformWarning, SNIMissingWarning
+ from ..packages import six
++from ..packages.rfc3986 import abnf_regexp
+ 
+ 
+ SSLContext = None
+@@ -40,14 +41,33 @@ def _const_compare_digest_backport(a, b):
+ _const_compare_digest = getattr(hmac, 'compare_digest',
+                                 _const_compare_digest_backport)
+ 
++# Borrow rfc3986's regular expressions for IPv4
++# and IPv6 addresses for use in is_ipaddress()
++_IP_ADDRESS_REGEX = re.compile(
++    r'^(?:%s|%s|%s)$' % (
++        abnf_regexp.IPv4_RE,
++        abnf_regexp.IPv6_RE,
++        abnf_regexp.IPv6_ADDRZ_RFC4007_RE
++    )
++)
+ 
+ try:  # Test for SSL features
+     import ssl
+-    from ssl import wrap_socket, CERT_NONE, PROTOCOL_SSLv23
++    from ssl import wrap_socket, CERT_REQUIRED
+     from ssl import HAS_SNI  # Has SNI?
+ except ImportError:
+     pass
+ 
++try:  # Platform-specific: Python 3.6
++    from ssl import PROTOCOL_TLS
++    PROTOCOL_SSLv23 = PROTOCOL_TLS
++except ImportError:
++    try:
++        from ssl import PROTOCOL_SSLv23 as PROTOCOL_TLS
++        PROTOCOL_SSLv23 = PROTOCOL_TLS
++    except ImportError:
++        PROTOCOL_SSLv23 = PROTOCOL_TLS = 2
++
+ 
+ try:
+     from ssl import OP_NO_SSLv2, OP_NO_SSLv3, OP_NO_COMPRESSION
+@@ -56,25 +76,6 @@ def _const_compare_digest_backport(a, b):
+     OP_NO_COMPRESSION = 0x20000
+ 
+ 
+-# Python 2.7 doesn't have inet_pton on non-Linux so we fallback on inet_aton in
+-# those cases. This means that we can only detect IPv4 addresses in this case.
+-if hasattr(socket, 'inet_pton'):
+-    inet_pton = socket.inet_pton
+-else:
+-    # Maybe we can use ipaddress if the user has urllib3[secure]?
+-    try:
+-        from pip._vendor import ipaddress
+-
+-        def inet_pton(_, host):
+-            if isinstance(host, bytes):
+-                host = host.decode('ascii')
+-            return ipaddress.ip_address(host)
+-
+-    except ImportError:  # Platform-specific: Non-Linux
+-        def inet_pton(_, host):
+-            return socket.inet_aton(host)
+-
+-
+ # A secure default.
+ # Sources for more information on TLS ciphers:
+ #
+@@ -83,37 +84,35 @@ def inet_pton(_, host):
+ # - https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
+ #
+ # The general intent is:
+-# - Prefer TLS 1.3 cipher suites
+ # - prefer cipher suites that offer perfect forward secrecy (DHE/ECDHE),
+ # - prefer ECDHE over DHE for better performance,
+ # - prefer any AES-GCM and ChaCha20 over any AES-CBC for better performance and
+ #   security,
+ # - prefer AES-GCM over ChaCha20 because hardware-accelerated AES is common,
+-# - disable NULL authentication, MD5 MACs and DSS for security reasons.
++# - disable NULL authentication, MD5 MACs, DSS, and other
++#   insecure ciphers for security reasons.
++# - NOTE: TLS 1.3 cipher suites are managed through a different interface
++#   not exposed by CPython (yet!) and are enabled by default if they're available.
+ DEFAULT_CIPHERS = ':'.join([
+-    'TLS13-AES-256-GCM-SHA384',
+-    'TLS13-CHACHA20-POLY1305-SHA256',
+-    'TLS13-AES-128-GCM-SHA256',
++    'ECDHE+AESGCM',
++    'ECDHE+CHACHA20',
++    'DHE+AESGCM',
++    'DHE+CHACHA20',
+     'ECDH+AESGCM',
+-    'ECDH+CHACHA20',
+     'DH+AESGCM',
+-    'DH+CHACHA20',
+-    'ECDH+AES256',
+-    'DH+AES256',
+-    'ECDH+AES128',
++    'ECDH+AES',
+     'DH+AES',
+     'RSA+AESGCM',
+     'RSA+AES',
+     '!aNULL',
+     '!eNULL',
+     '!MD5',
++    '!DSS',
+ ])
+ 
+ try:
+     from ssl import SSLContext  # Modern SSL?
+ except ImportError:
+-    import sys
+-
+     class SSLContext(object):  # Platform-specific: Python 2
+         def __init__(self, protocol_version):
+             self.protocol = protocol_version
+@@ -199,7 +198,7 @@ def resolve_cert_reqs(candidate):
+     constant which can directly be passed to wrap_socket.
+     """
+     if candidate is None:
+-        return CERT_NONE
++        return CERT_REQUIRED
+ 
+     if isinstance(candidate, str):
+         res = getattr(ssl, candidate, None)
+@@ -215,7 +214,7 @@ def resolve_ssl_version(candidate):
+     like resolve_cert_reqs
+     """
+     if candidate is None:
+-        return PROTOCOL_SSLv23
++        return PROTOCOL_TLS
+ 
+     if isinstance(candidate, str):
+         res = getattr(ssl, candidate, None)
+@@ -261,7 +260,7 @@ def create_urllib3_context(ssl_version=None, cert_reqs=None,
+         Constructed SSLContext object with specified options
+     :rtype: SSLContext
+     """
+-    context = SSLContext(ssl_version or ssl.PROTOCOL_SSLv23)
++    context = SSLContext(ssl_version or PROTOCOL_TLS)
+ 
+     context.set_ciphers(ciphers or DEFAULT_CIPHERS)
+ 
+@@ -291,7 +290,7 @@ def create_urllib3_context(ssl_version=None, cert_reqs=None,
+ def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None,
+                     ca_certs=None, server_hostname=None,
+                     ssl_version=None, ciphers=None, ssl_context=None,
+-                    ca_cert_dir=None):
++                    ca_cert_dir=None, key_password=None):
+     """
+     All arguments except for server_hostname, ssl_context, and ca_cert_dir have
+     the same meaning as they do when using :func:`ssl.wrap_socket`.
+@@ -307,6 +306,8 @@ def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None,
+         A directory containing CA certificates in multiple separate files, as
+         supported by OpenSSL's -CApath flag or the capath argument to
+         SSLContext.load_verify_locations().
++    :param key_password:
++        Optional password if the keyfile is encrypted.
+     """
+     context = ssl_context
+     if context is None:
+@@ -327,12 +328,22 @@ def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None,
+             if e.errno == errno.ENOENT:
+                 raise SSLError(e)
+             raise
+-    elif getattr(context, 'load_default_certs', None) is not None:
++
++    elif ssl_context is None and hasattr(context, 'load_default_certs'):
+         # try to load OS default certs; works well on Windows (require Python3.4+)
+         context.load_default_certs()
+ 
++    # Attempt to detect if we get the goofy behavior of the
++    # keyfile being encrypted and OpenSSL asking for the
++    # passphrase via the terminal and instead error out.
++    if keyfile and key_password is None and _is_key_file_encrypted(keyfile):
++        raise SSLError("Client private key is encrypted, password is required")
++
+     if certfile:
+-        context.load_cert_chain(certfile, keyfile)
++        if key_password is None:
++            context.load_cert_chain(certfile, keyfile)
++        else:
++            context.load_cert_chain(certfile, keyfile, key_password)
+ 
+     # If we detect server_hostname is an IP address then the SNI
+     # extension should not be used according to RFC3546 Section 3.1
+@@ -358,7 +369,8 @@ def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None,
+ 
+ 
+ def is_ipaddress(hostname):
+-    """Detects whether the hostname given is an IP address.
++    """Detects whether the hostname given is an IPv4 or IPv6 address.
++    Also detects IPv6 addresses with Zone IDs.
+ 
+     :param str hostname: Hostname to examine.
+     :return: True if the hostname is an IP address, False otherwise.
+@@ -366,16 +378,15 @@ def is_ipaddress(hostname):
+     if six.PY3 and isinstance(hostname, bytes):
+         # IDN A-label bytes are ASCII compatible.
+         hostname = hostname.decode('ascii')
++    return _IP_ADDRESS_REGEX.match(hostname) is not None
+ 
+-    families = [socket.AF_INET]
+-    if hasattr(socket, 'AF_INET6'):
+-        families.append(socket.AF_INET6)
+ 
+-    for af in families:
+-        try:
+-            inet_pton(af, hostname)
+-        except (socket.error, ValueError, OSError):
+-            pass
+-        else:
+-            return True
++def _is_key_file_encrypted(key_file):
++    """Detects if a key file is encrypted or not."""
++    with open(key_file, 'r') as f:
++        for line in f:
++            # Look for Proc-Type: 4,ENCRYPTED
++            if 'ENCRYPTED' in line:
++                return True
++
+     return False
+diff --git a/src/pip/_vendor/urllib3/util/timeout.py b/src/pip/_vendor/urllib3/util/timeout.py
+index cec817e6ef..a4d004a848 100644
+--- a/src/pip/_vendor/urllib3/util/timeout.py
++++ b/src/pip/_vendor/urllib3/util/timeout.py
+@@ -131,7 +131,8 @@ def _validate_timeout(cls, value, name):
+                 raise ValueError("Attempted to set %s timeout to %s, but the "
+                                  "timeout cannot be set to a value less "
+                                  "than or equal to 0." % (name, value))
+-        except TypeError:  # Python 3
++        except TypeError:
++            # Python 3
+             raise ValueError("Timeout value %s was %s, but it must be an "
+                              "int, float or None." % (name, value))
+ 
+diff --git a/src/pip/_vendor/urllib3/util/url.py b/src/pip/_vendor/urllib3/util/url.py
+index 6b6f9968d7..aefa119b59 100644
+--- a/src/pip/_vendor/urllib3/util/url.py
++++ b/src/pip/_vendor/urllib3/util/url.py
+@@ -1,7 +1,12 @@
+ from __future__ import absolute_import
++import re
+ from collections import namedtuple
+ 
+ from ..exceptions import LocationParseError
++from ..packages import six, rfc3986
++from ..packages.rfc3986.exceptions import RFC3986Exception, ValidationError
++from ..packages.rfc3986.validators import Validator
++from ..packages.rfc3986 import abnf_regexp, normalizers, compat, misc
+ 
+ 
+ url_attrs = ['scheme', 'auth', 'host', 'port', 'path', 'query', 'fragment']
+@@ -10,10 +15,16 @@
+ # urllib3 infers URLs without a scheme (None) to be http.
+ NORMALIZABLE_SCHEMES = ('http', 'https', None)
+ 
++# Regex for detecting URLs with schemes. RFC 3986 Section 3.1
++SCHEME_REGEX = re.compile(r"^(?:[a-zA-Z][a-zA-Z0-9+\-]*:|/)")
++
++PATH_CHARS = abnf_regexp.UNRESERVED_CHARS_SET | abnf_regexp.SUB_DELIMITERS_SET | {':', '@', '/'}
++QUERY_CHARS = FRAGMENT_CHARS = PATH_CHARS | {'?'}
++
+ 
+ class Url(namedtuple('Url', url_attrs)):
+     """
+-    Datastructure for representing an HTTP URL. Used as a return value for
++    Data structure for representing an HTTP URL. Used as a return value for
+     :func:`parse_url`. Both the scheme and host are normalized as they are
+     both case-insensitive according to RFC 3986.
+     """
+@@ -23,10 +34,8 @@ def __new__(cls, scheme=None, auth=None, host=None, port=None, path=None,
+                 query=None, fragment=None):
+         if path and not path.startswith('/'):
+             path = '/' + path
+-        if scheme:
++        if scheme is not None:
+             scheme = scheme.lower()
+-        if host and scheme in NORMALIZABLE_SCHEMES:
+-            host = host.lower()
+         return super(Url, cls).__new__(cls, scheme, auth, host, port, path,
+                                        query, fragment)
+ 
+@@ -72,23 +81,23 @@ def url(self):
+             'http://username:password@host.com:80/path?query#fragment'
+         """
+         scheme, auth, host, port, path, query, fragment = self
+-        url = ''
++        url = u''
+ 
+         # We use "is not None" we want things to happen with empty strings (or 0 port)
+         if scheme is not None:
+-            url += scheme + '://'
++            url += scheme + u'://'
+         if auth is not None:
+-            url += auth + '@'
++            url += auth + u'@'
+         if host is not None:
+             url += host
+         if port is not None:
+-            url += ':' + str(port)
++            url += u':' + str(port)
+         if path is not None:
+             url += path
+         if query is not None:
+-            url += '?' + query
++            url += u'?' + query
+         if fragment is not None:
+-            url += '#' + fragment
++            url += u'#' + fragment
+ 
+         return url
+ 
+@@ -98,6 +107,8 @@ def __str__(self):
+ 
+ def split_first(s, delims):
+     """
++    .. deprecated:: 1.25
++
+     Given a string and an iterable of delimiters, split on the first found
+     delimiter. Return two split parts and the matched delimiter.
+ 
+@@ -129,10 +140,44 @@ def split_first(s, delims):
+     return s[:min_idx], s[min_idx + 1:], min_delim
+ 
+ 
++def _encode_invalid_chars(component, allowed_chars, encoding='utf-8'):
++    """Percent-encodes a URI component without reapplying
++    onto an already percent-encoded component. Based on
++    rfc3986.normalizers.encode_component()
++    """
++    if component is None:
++        return component
++
++    # Try to see if the component we're encoding is already percent-encoded
++    # so we can skip all '%' characters but still encode all others.
++    percent_encodings = len(normalizers.PERCENT_MATCHER.findall(
++                            compat.to_str(component, encoding)))
++
++    uri_bytes = component.encode('utf-8', 'surrogatepass')
++    is_percent_encoded = percent_encodings == uri_bytes.count(b'%')
++
++    encoded_component = bytearray()
++
++    for i in range(0, len(uri_bytes)):
++        # Will return a single character bytestring on both Python 2 & 3
++        byte = uri_bytes[i:i+1]
++        byte_ord = ord(byte)
++        if ((is_percent_encoded and byte == b'%')
++                or (byte_ord < 128 and byte.decode() in allowed_chars)):
++            encoded_component.extend(byte)
++            continue
++        encoded_component.extend('%{0:02x}'.format(byte_ord).encode().upper())
++
++    return encoded_component.decode(encoding)
++
++
+ def parse_url(url):
+     """
+     Given a url, return a parsed :class:`.Url` namedtuple. Best-effort is
+     performed to parse incomplete urls. Fields not provided will be None.
++    This parser is RFC 3986 compliant.
++
++    :param str url: URL to parse into a :class:`.Url` namedtuple.
+ 
+     Partly backwards-compatible with :mod:`urlparse`.
+ 
+@@ -145,81 +190,95 @@ def parse_url(url):
+         >>> parse_url('/foo?bar')
+         Url(scheme=None, host=None, port=None, path='/foo', query='bar', ...)
+     """
+-
+-    # While this code has overlap with stdlib's urlparse, it is much
+-    # simplified for our needs and less annoying.
+-    # Additionally, this implementations does silly things to be optimal
+-    # on CPython.
+-
+     if not url:
+         # Empty
+         return Url()
+ 
+-    scheme = None
+-    auth = None
+-    host = None
+-    port = None
+-    path = None
+-    fragment = None
+-    query = None
+-
+-    # Scheme
+-    if '://' in url:
+-        scheme, url = url.split('://', 1)
+-
+-    # Find the earliest Authority Terminator
+-    # (http://tools.ietf.org/html/rfc3986#section-3.2)
+-    url, path_, delim = split_first(url, ['/', '?', '#'])
+-
+-    if delim:
+-        # Reassemble the path
+-        path = delim + path_
+-
+-    # Auth
+-    if '@' in url:
+-        # Last '@' denotes end of auth part
+-        auth, url = url.rsplit('@', 1)
+-
+-    # IPv6
+-    if url and url[0] == '[':
+-        host, url = url.split(']', 1)
+-        host += ']'
+-
+-    # Port
+-    if ':' in url:
+-        _host, port = url.split(':', 1)
+-
+-        if not host:
+-            host = _host
+-
+-        if port:
+-            # If given, ports must be integers. No whitespace, no plus or
+-            # minus prefixes, no non-integer digits such as ^2 (superscript).
+-            if not port.isdigit():
+-                raise LocationParseError(url)
+-            try:
+-                port = int(port)
+-            except ValueError:
+-                raise LocationParseError(url)
+-        else:
+-            # Blank ports are cool, too. (rfc3986#section-3.2.3)
+-            port = None
++    is_string = not isinstance(url, six.binary_type)
+ 
+-    elif not host and url:
+-        host = url
++    # RFC 3986 doesn't like URLs that have a host but don't start
++    # with a scheme and we support URLs like that so we need to
++    # detect that problem and add an empty scheme indication.
++    # We don't get hurt on path-only URLs here as it's stripped
++    # off and given an empty scheme anyways.
++    if not SCHEME_REGEX.search(url):
++        url = "//" + url
+ 
++    def idna_encode(name):
++        if name and any([ord(x) > 128 for x in name]):
++            try:
++                from pip._vendor import idna
++            except ImportError:
++                raise LocationParseError("Unable to parse URL without the 'idna' module")
++            try:
++                return idna.encode(name.lower(), strict=True, std3_rules=True)
++            except idna.IDNAError:
++                raise LocationParseError(u"Name '%s' is not a valid IDNA label" % name)
++        return name
++
++    try:
++        split_iri = misc.IRI_MATCHER.match(compat.to_str(url)).groupdict()
++        iri_ref = rfc3986.IRIReference(
++            split_iri['scheme'], split_iri['authority'],
++            _encode_invalid_chars(split_iri['path'], PATH_CHARS),
++            _encode_invalid_chars(split_iri['query'], QUERY_CHARS),
++            _encode_invalid_chars(split_iri['fragment'], FRAGMENT_CHARS)
++        )
++        has_authority = iri_ref.authority is not None
++        uri_ref = iri_ref.encode(idna_encoder=idna_encode)
++    except (ValueError, RFC3986Exception):
++        return six.raise_from(LocationParseError(url), None)
++
++    # rfc3986 strips the authority if it's invalid
++    if has_authority and uri_ref.authority is None:
++        raise LocationParseError(url)
++
++    # Only normalize schemes we understand to not break http+unix
++    # or other schemes that don't follow RFC 3986.
++    if uri_ref.scheme is None or uri_ref.scheme.lower() in NORMALIZABLE_SCHEMES:
++        uri_ref = uri_ref.normalize()
++
++    # Validate all URIReference components and ensure that all
++    # components that were set before are still set after
++    # normalization has completed.
++    validator = Validator()
++    try:
++        validator.check_validity_of(
++            *validator.COMPONENT_NAMES
++        ).validate(uri_ref)
++    except ValidationError:
++        return six.raise_from(LocationParseError(url), None)
++
++    # For the sake of backwards compatibility we put empty
++    # string values for path if there are any defined values
++    # beyond the path in the URL.
++    # TODO: Remove this when we break backwards compatibility.
++    path = uri_ref.path
+     if not path:
+-        return Url(scheme, auth, host, port, path, query, fragment)
+-
+-    # Fragment
+-    if '#' in path:
+-        path, fragment = path.split('#', 1)
+-
+-    # Query
+-    if '?' in path:
+-        path, query = path.split('?', 1)
+-
+-    return Url(scheme, auth, host, port, path, query, fragment)
++        if (uri_ref.query is not None
++                or uri_ref.fragment is not None):
++            path = ""
++        else:
++            path = None
++
++    # Ensure that each part of the URL is a `str` for
++    # backwards compatibility.
++    def to_input_type(x):
++        if x is None:
++            return None
++        elif not is_string and not isinstance(x, six.binary_type):
++            return x.encode('utf-8')
++        return x
++
++    return Url(
++        scheme=to_input_type(uri_ref.scheme),
++        auth=to_input_type(uri_ref.userinfo),
++        host=to_input_type(uri_ref.host),
++        port=int(uri_ref.port) if uri_ref.port is not None else None,
++        path=to_input_type(path),
++        query=to_input_type(uri_ref.query),
++        fragment=to_input_type(uri_ref.fragment)
++    )
+ 
+ 
+ def get_host(url):
+diff --git a/src/pip/_vendor/vendor.txt b/src/pip/_vendor/vendor.txt
+index db003aced7..d81c503e3c 100644
+--- a/src/pip/_vendor/vendor.txt
++++ b/src/pip/_vendor/vendor.txt
+@@ -16,7 +16,7 @@ requests==2.21.0
+     certifi==2019.3.9
+     chardet==3.0.4
+     idna==2.8
+-    urllib3==1.24.1
++    urllib3==1.25.3
+ retrying==1.3.3
+ setuptools==41.0.1
+ six==1.12.0

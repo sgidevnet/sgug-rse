@@ -1,0 +1,35 @@
+Ensure that $(LIBLTDL) is built first
+
+After Automake upstream commit f4e91bfc490d, the list in 'all-am:' is
+reordered for this test-case (*_LTLIBRARIES is before *_PROGRAMS), which
+means that linker will fail to link 'old' binary.
+
+Previously (with automake <= 1.16), it was matter of luck -- it worked if
+(a) the build was serial (-j1), and/or (b) libtool-ltdl-devel package was
+installed on the box so ./configure picked the system version of libltdl.
+
+Users should anyways use system's ltdl, so this has low priority.
+
+diff --git a/tests/old-ltdl-iface.at b/tests/old-ltdl-iface.at
+index cee29089..6f9c8001 100644
+--- a/tests/old-ltdl-iface.at
++++ b/tests/old-ltdl-iface.at
+@@ -62,6 +62,9 @@ MOSTLYCLEANFILES =
+ include ltdl/Makefile.inc
+ bin_PROGRAMS = old
+ old_LDADD = -Lltdl $(LIBLTDL)
++# TODO: if --with-included-ltdl was unused this would
++# generate useless dependency.
++old_DEPENDENCIES = $(LIBLTDL)
+ ]])
+ 
+ AT_DATA([old.c],
+@@ -131,7 +134,7 @@ LT_AT_CHECK_LIBTOOLIZE([--ltdl=ltdl --nonrecursive --install], 0, [expout], [exp
+ 
+ AT_CHECK([test -f ltdl/Makefile.inc])
+ 
+-LT_AT_BOOTSTRAP([ignore], [-I m4], [], [--add-missing], [--force])
++LT_AT_BOOTSTRAP([ignore], [-I m4], [], [--add-missing], [--force], [--with-included-ltdl])
+ 
+ LT_AT_EXEC_CHECK([./old], 0, [[...]])
+ 

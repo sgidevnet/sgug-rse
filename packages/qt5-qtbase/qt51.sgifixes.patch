@@ -1,0 +1,215 @@
+diff -Naur qtbase-everywhere-src-5.13.2.orig/mkspecs/irix-g++/qmake.conf qtbase-everywhere-src-5.13.2/mkspecs/irix-g++/qmake.conf
+--- qtbase-everywhere-src-5.13.2.orig/mkspecs/irix-g++/qmake.conf	1969-12-31 16:00:00.000000000 +0000
++++ qtbase-everywhere-src-5.13.2/mkspecs/irix-g++/qmake.conf	2020-12-26 22:54:28.518922336 +0000
+@@ -0,0 +1,93 @@
++#
++# qmake configuration for irix-g++
++#
++
++MAKEFILE_GENERATOR	= UNIX
++TARGET_PLATFORM		= unix
++TEMPLATE		= app
++CONFIG			+= qt warn_on release link_prl
++QT			+= core gui
++QMAKE_COMPILER_DEFINES  += __sgi __GNUC__
++
++QMAKE_CC		= gcc
++QMAKE_LEX		= flex
++QMAKE_LEXFLAGS		=
++QMAKE_YACC		= yacc
++QMAKE_YACCFLAGS		= -d
++QMAKE_CFLAGS		=
++QMAKE_CFLAGS_DEPS	= -M
++QMAKE_CFLAGS_WARN_ON	= -Wall -W
++QMAKE_CFLAGS_WARN_OFF	= -w
++QMAKE_CFLAGS_RELEASE	= -O2
++QMAKE_CFLAGS_DEBUG	= -g
++QMAKE_CFLAGS_SHLIB	= -fPIC
++QMAKE_CFLAGS_STATIC_LIB	= $$QMAKE_CFLAGS_SHLIB
++QMAKE_CFLAGS_YACC	= -Wno-unused -Wno-parentheses
++QMAKE_CFLAGS_THREAD	=
++
++QMAKE_CXX		= g++
++QMAKE_CXXFLAGS		= $$QMAKE_CFLAGS
++QMAKE_CXXFLAGS_DEPS	= $$QMAKE_CFLAGS_DEPS
++QMAKE_CXXFLAGS_WARN_ON	= $$QMAKE_CFLAGS_WARN_ON
++QMAKE_CXXFLAGS_WARN_OFF	= $$QMAKE_CFLAGS_WARN_OFF
++QMAKE_CXXFLAGS_RELEASE	= $$QMAKE_CFLAGS_RELEASE
++QMAKE_CXXFLAGS_DEBUG	= $$QMAKE_CFLAGS_DEBUG
++QMAKE_CXXFLAGS_SHLIB	= $$QMAKE_CFLAGS_SHLIB
++QMAKE_CXXFLAGS_STATIC_LIB = $$QMAKE_CFLAGS_STATIC_LIB
++QMAKE_CXXFLAGS_YACC	= $$QMAKE_CFLAGS_YACC
++QMAKE_CXXFLAGS_THREAD	=
++
++QMAKE_INCDIR		=
++QMAKE_LIBDIR		=
++QMAKE_INCDIR_X11	=
++QMAKE_LIBDIR_X11	=
++QMAKE_INCDIR_QT		= $$[QT_INSTALL_HEADERS]
++QMAKE_LIBDIR_QT		= $$[QT_INSTALL_LIBS]
++QMAKE_INCDIR_OPENGL	=
++QMAKE_LIBDIR_OPENGL	=
++
++QMAKE_LINK		= g++
++QMAKE_LINK_SHLIB	= g++
++QMAKE_LINK_C		= gcc
++QMAKE_LINK_C_SHLIB	= gcc
++QMAKE_LFLAGS		=
++QMAKE_LFLAGS_RELEASE	=
++QMAKE_LFLAGS_DEBUG	=
++QMAKE_LFLAGS_SHLIB	= -shared -Wl,-LD_LAYOUT:lgot_buffer=1000
++QMAKE_LFLAGS_PLUGIN	= $$QMAKE_LFLAGS_SHLIB
++QMAKE_LFLAGS_SONAME	= -Wl,-soname,
++QMAKE_LFLAGS_THREAD	=
++QMAKE_LFLAGS_NOUNDEF	= -Wl,-no_unresolved
++QMAKE_LFLAGS_RPATH	= -Wl,-rpath,
++
++QMAKE_LIBS		= -lC -lssl -lcrypto
++QMAKE_LIBS_DYNLOAD	=
++QMAKE_LIBS_X11		= -lXext -lX11 -lm
++QMAKE_LIBS_X11SM	= -lSM -lICE
++# libGLU is using the SGI C++ library internally and this somehow clashes
++# with the GNU C++ library (similar name mangling and symbol names?)
++# so we add -lC so that the SGI C++ library is used first...
++QMAKE_LIBS_OPENGL	= 
++QMAKE_LIBS_OPENGL_QT	= 
++QMAKE_LIBS_THREAD	= -lpthread
++
++QMAKE_MOC		= $$[QT_INSTALL_BINS]/moc
++QMAKE_UIC		= $$[QT_INSTALL_BINS]/uic
++
++QMAKE_AR		= ar cq
++QMAKE_OBJCOPY           = objcopy
++QMAKE_RANLIB		=
++
++QMAKE_CLEAN		= so_locations
++
++QMAKE_TAR		= tar -cf
++QMAKE_GZIP		= gzip -9f
++
++QMAKE_COPY		= cp -f
++QMAKE_MOVE		= mv -f
++QMAKE_DEL_FILE		= rm -f
++QMAKE_DEL_DIR		= rmdir
++QMAKE_CHK_DIR_EXISTS	= test -d
++QMAKE_MKDIR		= mkdir -p
++include(../common/unix.conf)
++load(qt_config)
+diff -Naur qtbase-everywhere-src-5.13.2.orig/mkspecs/irix-g++/qplatformdefs.h qtbase-everywhere-src-5.13.2/mkspecs/irix-g++/qplatformdefs.h
+--- qtbase-everywhere-src-5.13.2.orig/mkspecs/irix-g++/qplatformdefs.h	1969-12-31 16:00:00.000000000 +0000
++++ qtbase-everywhere-src-5.13.2/mkspecs/irix-g++/qplatformdefs.h	2020-12-26 22:54:28.520730016 +0000
+@@ -0,0 +1,102 @@
++/****************************************************************************
++**
++** Copyright (C) 2015 The Qt Company Ltd.
++** Contact: http://www.qt.io/licensing/
++**
++** This file is part of the qmake spec of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:LGPL$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see http://www.qt.io/terms-conditions. For further
++** information use the contact form at http://www.qt.io/contact-us.
++**
++** GNU Lesser General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU Lesser
++** General Public License version 2.1 or version 3 as published by the Free
++** Software Foundation and appearing in the file LICENSE.LGPLv21 and
++** LICENSE.LGPLv3 included in the packaging of this file. Please review the
++** following information to ensure the GNU Lesser General Public License
++** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
++** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++**
++** As a special exception, The Qt Company gives you certain additional
++** rights. These rights are described in The Qt Company LGPL Exception
++** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++**
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 3.0 as published by the Free Software
++** Foundation and appearing in the file LICENSE.GPL included in the
++** packaging of this file.  Please review the following information to
++** ensure the GNU General Public License version 3.0 requirements will be
++** met: http://www.gnu.org/copyleft/gpl.html.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++#ifndef QPLATFORMDEFS_H
++#define QPLATFORMDEFS_H
++
++// Get Qt defines/settings
++
++#include "qglobal.h"
++
++// Set any POSIX/XOPEN defines at the top of this file to turn on specific APIs
++
++#include <unistd.h>
++
++
++// We are hot - unistd.h should have turned on the specific APIs we requested
++
++
++#include <pthread.h>
++#include <dirent.h>
++#include <fcntl.h>
++#include <grp.h>
++#include <pwd.h>
++#include <signal.h>
++#include <dlfcn.h>
++
++#include <sys/types.h>
++#include <sys/ioctl.h>
++#include <sys/ipc.h>
++#include <sys/time.h>
++#include <sys/shm.h>
++#include <sys/socket.h>
++#include <sys/stat.h>
++#include <sys/wait.h>
++#include <netinet/in.h>
++#ifndef QT_NO_IPV6IFNAME
++#include <net/if.h>
++#endif
++
++#define QT_USE_XOPEN_LFS_EXTENSIONS
++#include "../common/posix/qplatformdefs.h"
++
++#undef QT_SOCKLEN_T
++#undef QT_SIGNAL_ARGS
++
++#if defined(_XOPEN_SOURCE) && (_XOPEN_SOURCE-0 >= 500)
++#define QT_SOCKLEN_T            size_t
++#else
++#define QT_SOCKLEN_T            int
++#endif
++
++#if defined(_LANGUAGE_C_PLUS_PLUS) || !defined(_SGIAPI)
++#define QT_SIGNAL_ARGS          int
++#else
++#define QT_SIGNAL_ARGS          void
++#endif
++
++// Irix 6.5 and better
++#if defined(_SGIAPI)
++#define QT_SNPRINTF		::snprintf
++#define QT_VSNPRINTF		::vsnprintf
++#endif
++
++#endif // QPLATFORMDEFS_H
+diff -Naur qtbase-everywhere-src-5.13.2.orig/src/corelib/global/qsystemdetection.h qtbase-everywhere-src-5.13.2/src/corelib/global/qsystemdetection.h
+--- qtbase-everywhere-src-5.13.2.orig/src/corelib/global/qsystemdetection.h	2019-10-25 00:16:48.000000000 +0000
++++ qtbase-everywhere-src-5.13.2/src/corelib/global/qsystemdetection.h	2020-12-26 22:56:30.588584059 +0000
+@@ -135,6 +135,8 @@
+ #  define Q_OS_SOLARIS
+ #elif defined(hpux) || defined(__hpux)
+ #  define Q_OS_HPUX
++#elif defined(mips) || defined(__sgi)
++#  define Q_OS_SGI
+ #elif defined(__native_client__)
+ #  define Q_OS_NACL
+ #elif defined(__EMSCRIPTEN__)

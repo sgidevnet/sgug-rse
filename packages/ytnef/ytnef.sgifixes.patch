@@ -1,0 +1,35 @@
+diff -Naur ytnef-1.9.3.orig/autogen.sh ytnef-1.9.3/autogen.sh
+--- ytnef-1.9.3.orig/autogen.sh	2018-07-20 13:35:04.000000000 +0000
++++ ytnef-1.9.3/autogen.sh	2021-04-23 15:47:20.086653370 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ mkdir -p m4
+ autoreconf -vfi
+ case `uname` in Darwin*) glibtoolize --copy --force ;;
+diff -Naur ytnef-1.9.3.orig/test-data/test.sh ytnef-1.9.3/test-data/test.sh
+--- ytnef-1.9.3.orig/test-data/test.sh	2018-07-20 13:35:04.000000000 +0000
++++ ytnef-1.9.3/test-data/test.sh	2021-04-23 15:46:58.252135343 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ 
+ set -ex
+ 
+diff -Naur ytnef-1.9.3.orig/travis-build.sh ytnef-1.9.3/travis-build.sh
+--- ytnef-1.9.3.orig/travis-build.sh	2018-07-20 13:35:04.000000000 +0000
++++ ytnef-1.9.3/travis-build.sh	2021-04-23 15:46:33.297456394 +0000
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/sgug/bin/bash
+ set -ev
+ mkdir -p m4
+ autoreconf -vfi
+@@ -10,6 +10,6 @@
+ fi
+ sudo make install
+ 
+-export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
++export LD_LIBRARY_PATH=/usr/sgug/lib32:${LD_LIBRARY_PATH}
+ cd test-data
+ ./test.sh

@@ -1,0 +1,37 @@
+--- libsndfile-1.0.28/src/rf64.c	2017-04-02 09:43:22.000000000 +0200
++++ libsndfile-1.0.27/src/rf64.c	2016-04-01 23:08:53.000000000 +0200
+@@ -735,25 +734,27 @@ rf64_write_header (SF_PRIVATE *psf, int
+ 
+ #endif
+ 
+-	pad_size = psf->dataoffset - 16 - psf->header.indx ;
+-	if (pad_size >= 0)
+-		psf_binheader_writef (psf, "m4z", PAD_MARKER, pad_size, make_size_t (pad_size)) ;
++	if (psf->header.indx + 8 < psf->dataoffset)
++	{	/* Add PAD data if necessary. */
++		int k = psf->dataoffset - 16 - psf->header.indx ;
++		psf_binheader_writef (psf, "m4z", PAD_MARKER, k, make_size_t (k)) ;
++		} ;
+ 
+ 	if (wpriv->rf64_downgrade && (psf->filelength < RIFF_DOWNGRADE_BYTES))
+ 		psf_binheader_writef (psf, "tm8", data_MARKER, psf->datalength) ;
+ 	else
+ 		psf_binheader_writef (psf, "m4", data_MARKER, 0xffffffff) ;
+ 
+-	psf_fwrite (psf->header.ptr, psf->header.indx, 1, psf) ;
++	psf_fwrite (psf->header.ptr, psf->header.indx, 1, psf) ;
+ 	if (psf->error)
+ 		return psf->error ;
+ 
+-	if (has_data && psf->dataoffset != psf->header.indx)
+-	{	psf_log_printf (psf, "Oooops : has_data && psf->dataoffset != psf->header.indx\n") ;
++	if (has_data && psf->dataoffset != psf->header.indx)
++	{	psf_log_printf (psf, "Oooops : has_data && psf->dataoffset != psf->header.indx\n") ;
+ 		return psf->error = SFE_INTERNAL ;
+ 		} ;
+ 
+-	psf->dataoffset = psf->header.indx ;
++	psf->dataoffset = psf->header.indx ;
+ 
+ 	if (NOT (has_data))
+ 		psf_fseek (psf, psf->dataoffset, SEEK_SET) ;

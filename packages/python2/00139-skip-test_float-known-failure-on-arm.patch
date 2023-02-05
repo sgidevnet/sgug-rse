@@ -1,0 +1,11 @@
+diff -up Python-2.7.2/Lib/test/test_float.py.skip-test_float-known-failure-on-arm Python-2.7.2/Lib/test/test_float.py
+--- Python-2.7.2/Lib/test/test_float.py.skip-test_float-known-failure-on-arm	2011-09-08 19:34:09.000986128 -0400
++++ Python-2.7.2/Lib/test/test_float.py	2011-09-08 19:34:57.969982779 -0400
+@@ -1072,6 +1072,7 @@ class HexFloatTestCase(unittest.TestCase
+                     self.identical(got, expected)
+ 
+ 
++    @unittest.skip('Known failure on ARM: http://bugs.python.org/issue8265')
+     def test_from_hex(self):
+         MIN = self.MIN;
+         MAX = self.MAX;

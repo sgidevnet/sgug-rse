@@ -1,0 +1,37 @@
+From c0b9f12ebb0a640e931e54c1f049016bdfdb9a07 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Mon, 14 Jan 2013 09:42:00 +1000
+Subject: [PATCH] configure: define XOPEN_SOURCE to 600 on linux
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+posix_openpt() is only defined for 600 and higher.
+
+sys.c: In function ‘allocatePty’:
+sys.c:339:5: error: implicit declaration of function ‘posix_openpt’
+[-Werror=implicit-function-declaration]
+sys.c:339:5: warning: nested extern declaration of ‘posix_openpt’
+[-Wnested-externs]
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git luit-1.1.1/configure.ac b/configure.ac
+index c214d85..67ef2c4 100644
+--- luit-1.1.1/configure.ac
++++ luit-1.1.1/configure.ac
+@@ -62,7 +62,7 @@ case $host_os in
+     linux*)
+         AC_CHECK_HEADERS([poll.h])
+         AC_CHECK_FUNCS([poll])
+-        OS_CFLAGS="-D_XOPEN_SOURCE=500"
++        OS_CFLAGS="-D_XOPEN_SOURCE=600"
+         ;;
+     *)
+         AC_CHECK_HEADERS([poll.h])
+-- 
+1.8.1
+

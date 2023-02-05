@@ -1,0 +1,160 @@
+diff -Naur devilutionX-1.0.orig/3rdParty/StormLib/src/FileStream.cpp devilutionX-1.0/3rdParty/StormLib/src/FileStream.cpp
+--- devilutionX-1.0.orig/3rdParty/StormLib/src/FileStream.cpp	2021-02-14 11:08:42.000000000 +0000
++++ devilutionX-1.0/3rdParty/StormLib/src/FileStream.cpp	2021-03-02 09:32:28.160075200 +0000
+@@ -143,7 +143,7 @@
+ 
+ #if defined(PLATFORM_MAC) || defined(PLATFORM_LINUX) || defined(PLATFORM_HAIKU) || defined(PLATFORM_AMIGA) || defined(PLATFORM_SWITCH)
+     {
+-        struct stat64 fileinfo;
++        struct stat fileinfo;
+         int oflag = (dwStreamFlags & STREAM_FLAG_READ_ONLY) ? O_RDONLY : O_RDWR;
+         intptr_t handle;
+ 
+@@ -157,7 +157,7 @@
+         }
+ 
+         // Get the file size
+-        if(fstat64(handle, &fileinfo) == -1)
++        if(fstat(handle, &fileinfo) == -1)
+         {
+             nLastError = errno;
+             close(handle);
+@@ -220,7 +220,7 @@
+         // we have to update the file position   xxx
+         if(ByteOffset != pStream->Base.File.FilePos)
+         {
+-            lseek64((intptr_t)pStream->Base.File.hFile, (off64_t)(ByteOffset), SEEK_SET);
++            lseek((intptr_t)pStream->Base.File.hFile, (off64_t)(ByteOffset), SEEK_SET);
+             pStream->Base.File.FilePos = ByteOffset;
+         }
+ 
+@@ -291,7 +291,7 @@
+         // we have to update the file position
+         if(ByteOffset != pStream->Base.File.FilePos)
+         {
+-            lseek64((intptr_t)pStream->Base.File.hFile, (off64_t)(ByteOffset), SEEK_SET);
++            lseek((intptr_t)pStream->Base.File.hFile, (off64_t)(ByteOffset), SEEK_SET);
+             pStream->Base.File.FilePos = ByteOffset;
+         }
+ 
+@@ -352,7 +352,7 @@
+ 
+ #if defined(PLATFORM_MAC) || defined(PLATFORM_LINUX) || defined(PLATFORM_HAIKU) || defined(PLATFORM_AMIGA) || defined(PLATFORM_SWITCH)
+     {
+-        if(ftruncate64((intptr_t)pStream->Base.File.hFile, (off64_t)NewFileSize) == -1)
++        if(ftruncate((intptr_t)pStream->Base.File.hFile, (off64_t)NewFileSize) == -1)
+         {
+             nLastError = errno;
+             return false;
+@@ -494,7 +494,7 @@
+ #endif
+ 
+ #if defined(PLATFORM_MAC) || defined(PLATFORM_LINUX) || defined(PLATFORM_HAIKU) || defined(PLATFORM_AMIGA) || defined(PLATFORM_SWITCH)
+-    struct stat64 fileinfo;
++    struct stat fileinfo;
+     intptr_t handle;
+     bool bResult = false;
+ 
+@@ -503,7 +503,7 @@
+     if(handle != -1)
+     {
+         // Get the file size
+-        if(fstat64(handle, &fileinfo) != -1)
++        if(fstat(handle, &fileinfo) != -1)
+         {
+ #if !defined(PLATFORM_AMIGA)
+ #if defined(PLATFORM_SWITCH)
+diff -Naur devilutionX-1.0.orig/3rdParty/StormLib/src/StormPort.h devilutionX-1.0/3rdParty/StormLib/src/StormPort.h
+--- devilutionX-1.0.orig/3rdParty/StormLib/src/StormPort.h	2021-02-14 11:08:42.000000000 +0000
++++ devilutionX-1.0/3rdParty/StormLib/src/StormPort.h	2021-03-02 09:37:09.866747200 +0000
+@@ -23,6 +23,7 @@
+ /* 31.12.06  1.05  XPinguin  Full GNU/Linux compatibility		             */
+ /* 17.10.12  1.05  Lad  Moved error codes so they don't overlap with errno.h */
+ /*****************************************************************************/
++#define __BIG_ENDIAN__
+ 
+ #ifndef __STORMPORT_H__
+ #define __STORMPORT_H__
+diff -Naur devilutionX-1.0.orig/SourceS/file_util.h devilutionX-1.0/SourceS/file_util.h
+--- devilutionX-1.0.orig/SourceS/file_util.h	2021-02-14 11:08:43.000000000 +0000
++++ devilutionX-1.0/SourceS/file_util.h	2021-03-02 09:32:42.316792000 +0000
+@@ -16,7 +16,7 @@
+ #include <windows.h>
+ #endif
+ 
+-#if _POSIX_C_SOURCE >= 200112L || defined(_BSD_SOURCE) || defined(__APPLE__)
++#if _POSIX_C_SOURCE >= 200112L || defined(_BSD_SOURCE) || defined(__APPLE__) || defined(_SGI_SOURCE)
+ #include <unistd.h>
+ #include <sys/stat.h>
+ #else
+@@ -27,7 +27,7 @@
+ 
+ inline bool FileExists(const char *path)
+ {
+-#if _POSIX_C_SOURCE >= 200112L || defined(_BSD_SOURCE) || defined(__APPLE__)
++#if _POSIX_C_SOURCE >= 200112L || defined(_BSD_SOURCE) || defined(__APPLE__) || defined(_SGI_SOURCE)
+ 	return ::access(path, F_OK) == 0;
+ #else
+ 	FILE *file = std::fopen(path, "rb");
+@@ -87,7 +87,7 @@
+ 	}
+ 	::CloseHandle(file);
+ 	return true;
+-#elif _POSIX_C_SOURCE >= 200112L || defined(_BSD_SOURCE) || defined(__APPLE__)
++#elif _POSIX_C_SOURCE >= 200112L || defined(_BSD_SOURCE) || defined(__APPLE__) || defined(_SGI_SOURCE)
+ 	return ::truncate(path, static_cast<off_t>(size)) == 0;
+ #else
+ 	static_assert(false, "truncate not implemented for the current platform");
+diff -Naur devilutionX-1.0.orig/SourceS/sdl2_to_1_2_backports.h devilutionX-1.0/SourceS/sdl2_to_1_2_backports.h
+--- devilutionX-1.0.orig/SourceS/sdl2_to_1_2_backports.h	2021-02-14 11:08:43.000000000 +0000
++++ devilutionX-1.0/SourceS/sdl2_to_1_2_backports.h	2021-03-02 09:32:42.333596800 +0000
+@@ -1,13 +1,14 @@
+ #pragma once
+ 
+ #include <SDL.h>
+-#include <unistd.h>
+ #include <errno.h>
++#include <stdlib.h>
+ #include <stdio.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ #include <math.h>
+ #include <cstddef>
++#include <unistd.h>
+ 
+ #include "../SourceX/stubs.h"
+ 
+@@ -678,13 +679,13 @@
+ //== Filesystem
+ 
+ #if !defined(__QNXNTO__)
+-inline char *
+-readSymLink(const char *path)
++inline char * readSymLink(const char *path)
+ {
+ 	// From sdl2-2.0.9/src/filesystem/unix/SDL_sysfilesystem.c
+ 	char *retval = NULL;
+ 	ssize_t len = 64;
+-	ssize_t rc = -1;
++	// ssize_t rc = -1;
++	int rc = -1;
+ 
+ 	while (1) {
+ 		char *ptr = (char *)SDL_realloc(retval, (size_t)len);
+diff -Naur devilutionX-1.0.orig/build/CMakeLists.txt devilutionX-1.0/build/CMakeLists.txt
+--- devilutionX-1.0.orig/build/CMakeLists.txt	2021-02-14 11:23:18.000000000 +0000
++++ devilutionX-1.0/build/CMakeLists.txt	2021-03-02 09:32:42.345994400 +0000
+@@ -527,10 +527,10 @@
+   endif()
+ endif()
+ 
+-if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL FreeBSD)
++# if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL FreeBSD)
+   # Enable POSIX extensions such as `readlink` and `ftruncate`.
+-  add_definitions(-D_POSIX_C_SOURCE=200809L)
+-endif()
++  #  add_definitions(-D_POSIX_C_SOURCE=200809L)
++#  endif()
+ 
+ if(HAIKU)
+   target_link_libraries(${BIN_TARGET} PRIVATE network)

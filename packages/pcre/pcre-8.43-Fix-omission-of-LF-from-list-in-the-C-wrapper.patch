@@ -1,0 +1,28 @@
+From f74e04f2d8755fdd5cf5e387735593354972ad23 Mon Sep 17 00:00:00 2001
+From: ph10 <ph10@2f5784b3-3f2a-0410-8824-cb99058d5e15>
+Date: Thu, 23 May 2019 16:27:33 +0000
+Subject: [PATCH] Fix omission of (*LF) from list in the C++ wrapper.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+git-svn-id: svn://vcs.exim.org/pcre/code/trunk@1753 2f5784b3-3f2a-0410-8824-cb99058d5e15
+Petr Písař: Ported to 8.43.
+---
+ pcrecpp.cc | 1 +
+
+diff --git a/pcrecpp.cc b/pcrecpp.cc
+index 6a3eff8..0d6b140 100644
+--- a/pcrecpp.cc
++++ b/pcrecpp.cc
+@@ -92,6 +92,7 @@ static const char *start_options[] = {
+   "(*LIMIT_RECURSION=",
+   "(*LIMIT_MATCH=",
+   "(*CRLF)",
++  "(*LF)", 
+   "(*CR)",
+   "(*BSR_UNICODE)",
+   "(*BSR_ANYCRLF)",
+-- 
+2.20.1
+

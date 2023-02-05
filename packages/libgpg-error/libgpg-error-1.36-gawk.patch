@@ -1,0 +1,1178 @@
+diff --git a/lang/cl/mkerrcodes.awk b/lang/cl/mkerrcodes.awk
+index ae29043..9a1fc18 100644
+--- a/lang/cl/mkerrcodes.awk
++++ b/lang/cl/mkerrcodes.awk
+@@ -1,154 +1,154 @@
+ # mkerrcodes.awk
+ # Copyright (C) 2004, 2005, 2006 g10 Code GmbH
+ # 
+ # This program is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU General Public License as
+ # published by the Free Software Foundation; either version 2 of
+ # the License, or (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program; if not, write to the Free Software
+ # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ #
+ # As a special exception, g10 Code GmbH gives unlimited permission to
+ # copy, distribute and modify the lisp source files that are the output
+ # of mkerrcodes.awk.  You need not follow the terms of the GNU General
+ # Public License when using or distributing such scripts, even though
+ # portions of the text of mkerrcodes.awk appear in them.  The GNU
+ # General Public License (GPL) does govern all other use of the material
+ # that constitutes the mkerrcodes.awk program.
+ #
+ # Certain portions of the mkerrcodes.awk source text are designed to be
+ # copied (in certain cases, depending on the input) into the output of
+ # mkerrcodes.awk.  We call these the "data" portions.  The rest of the
+ # mkerrcodes.awk source text consists of comments plus executable code
+ # that decides which of the data portions to output in any given case.
+ # We call these comments and executable code the "non-data" portions.
+ # mkerrcodes.awk never copies any of the non-data portions into its output.
+ #
+ # This special exception to the GPL applies to versions of mkerrcodes.awk
+ # released by g10 Code GmbH.  When you make and distribute a modified version
+ # of mkerrcodes.awk, you may extend this special exception to the GPL to
+ # apply to your modified version as well, *unless* your modified version
+ # has the potential to copy into its output some of the text that was the
+ # non-data portion of the version that you started with.  (In other words,
+ # unless your change moves or copies text from the non-data portions to the
+ # data portions.)  If your modification has such potential, you must delete
+ # any notice of this special exception to the GPL from your modified version.
+ 
+ # The input file is in the following format:
+ # [CODE SYMBOL...]
+ # @errnos@
+ # [CODE SYMBOL...]
+ #
+ # The difference between the sections is how symbol is transformed.
+ # The second section gets GPG_ERR_ prepended before processing.
+ #
+ # Comments (starting with # and ending at the end of the line) are removed,
+ # as is trailing whitespace.
+ 
+ BEGIN {
+   FS="[ \t]+";
+   print ";;;; Output of mkerrcodes.awk.  DO NOT EDIT.";
+   print "";
+   print ";;; Copyright (C) 2006 g10 Code GmbH";
+   print ";;;";
+   print ";;; This file is part of libgpg-error.";
+   print ";;;";
+   print ";;; libgpg-error is free software; you can redistribute it and/or";
+   print ";;; modify it under the terms of the GNU Lesser General Public License";
+   print ";;; as published by the Free Software Foundation; either version 2.1 of";
+   print ";;; the License, or (at your option) any later version.";
+   print ";;;";
+   print ";;; libgpg-error is distributed in the hope that it will be useful, but";
+   print ";;; WITHOUT ANY WARRANTY; without even the implied warranty of";
+   print ";;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU";
+   print ";;; Lesser General Public License for more details.";
+   print ";;;";
+   print ";;; You should have received a copy of the GNU Lesser General Public";
+   print ";;; License along with libgpg-error; if not, write to the Free";
+   print ";;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA";
+   print ";;; 02111-1307, USA.";
+   print "";
+ 
+   header = 1;
+   errnos = 0;
+ }
+ 
+ /^#/ { next; }
+ 
+ header {
+   if (errnos)
+     {
+       if ($1 ~ /^[0123456789]+$/)
+ 	{
+ 	  header = 0;
+ 
+ 	  print "";
+ 	  print "  ;; The following error codes map system errors.";
+ 	}
+     }
+   else
+     {
+       if ($1 ~ /^[0123456789]+$/)
+ 	{
+ 	  header = 0;
+ 	  
+ 	  print "(in-package :gpg-error)";
+ 	  print "";
+ 	  print ";;; The error code type gpg-err-code-t.";
+ 	  print "";
+ 	  print ";;; This is used for system error codes.";
+ 	  print "(defconstant +gpg-err-system-error+ (ash 1 15))";
+ 	  print "";
+ 	  print ";;; This is one more than the largest allowed entry.";
+ 	  print "(defconstant +gpg-err-code-dim+ 65536)";
+ 	  print "";
+ 	  print ";;; A helper macro to have the keyword values evaluated.";
+ 	  print "(defmacro defcenum-eval (type doc &rest vals)";
+ 	  print "  `(defcenum ,type ,doc";
+ 	  print "    ,@(loop for v in vals";
+ 	  print "            collect `(,(first v) ,(eval (second v))))))";
+ 	  print "";
+ 	  print "(defcenum-eval gpg-err-code-t";
+ 	  print "    \"The GPG error code type.\"";
+ 	}
+     }
+ }
+ 
+ !header {
+-  sub (/\#.+/, "");
++  sub (/#.+/, "");
+   sub (/[ 	]+$/, ""); # Strip trailing space and tab characters.
+ 
+   if (/^$/)
+     next;
+ 
+   # The following can happen for GPG_ERR_CODE_DIM.
+   if ($1 == "")
+     next;
+ 
+   if (/^@errnos@$/)
+     {
+       header = 1;
+       errnos = 1;
+       next;
+     }
+ 
+   $2 = tolower($2);
+   gsub ("_", "-", $2);
+ 
+   if (errnos)
+     print "  (:gpg-err-" $2 " (logior +gpg-err-system-error+ " $1 "))";
+   else
+     print "  (:" $2 " " $1 ")";
+ }
+ 
+ END {
+   # I am very sorry to break lisp coding style here.
+   print ")";
+ }
+diff --git a/src/Makefile.am b/src/Makefile.am
+index ce1b882..f2590cb 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -1,356 +1,356 @@
+ # Makefile.am for libgpg-error.
+ # Copyright (C) 2003, 2004, 2014 g10 Code GmbH
+ #
+ # This file is part of libgpg-error.
+ #
+ # libgpg-error is free software; you can redistribute it and/or modify
+ # it under the terms of the GNU Lesser General Public License as
+ # published by the Free Software Foundation; either version 2.1 of the
+ # License, or (at your option) any later version.
+ #
+ # libgpg-error is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ # GNU Lesser General Public License for more details.
+ #
+ # You should have received a copy of the GNU Lesser General Public
+ # License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ # SPDX-License-Identifier: LGPL-2.1+
+ 
+ 
+ #
+ # We distribute the generated sources err-sources.h and err-codes.h,
+ # because they are needed to build the po directory, and they don't
+ # depend on the configuration anyway.
+ #
+ 
+ if HAVE_W32CE_SYSTEM
+ gpg_extra_headers = gpg-extra/errno.h
+ extra_cppflags = -idirafter gpg-extra
+ else
+ gpg_extra_headers =
+ extra_cppflags =
+ endif
+ 
+ localedir = $(datadir)/locale
+ 
+ bin_PROGRAMS = gpg-error
+ 
+ if HAVE_W32_SYSTEM
+ noinst_PROGRAMS = gen-w32-lock-obj
+ else
+ noinst_PROGRAMS = gen-posix-lock-obj
+ endif
+ 
+ # Distributed lock object definitions for cross compilation.
+ lock_obj_pub = \
+         syscfg/lock-obj-pub.aarch64-unknown-linux-gnu.h     \
+         syscfg/lock-obj-pub.aarch64-unknown-linux-gnu_ilp32.h \
+ 	syscfg/lock-obj-pub.aarch64-apple-darwin.h          \
+         syscfg/lock-obj-pub.alpha-unknown-linux-gnu.h       \
+         syscfg/lock-obj-pub.arm-unknown-linux-androideabi.h \
+         syscfg/lock-obj-pub.arm-unknown-linux-gnueabi.h     \
+ 	syscfg/lock-obj-pub.arm-apple-darwin.h              \
+         syscfg/lock-obj-pub.hppa-unknown-linux-gnu.h        \
+ 	syscfg/lock-obj-pub.i386-apple-darwin.h             \
+         syscfg/lock-obj-pub.i686-unknown-gnu.h              \
+         syscfg/lock-obj-pub.i686-unknown-kfreebsd-gnu.h     \
+         syscfg/lock-obj-pub.i686-unknown-linux-gnu.h        \
+         syscfg/lock-obj-pub.m68k-unknown-linux-gnu.h        \
+         syscfg/lock-obj-pub.mips-unknown-linux-gnu.h        \
+         syscfg/lock-obj-pub.mips64el-unknown-linux-gnuabi64.h \
+         syscfg/lock-obj-pub.mipsel-unknown-linux-gnu.h      \
+ 	syscfg/lock-obj-pub.nios2-unknown-linux-gnu.h       \
+         syscfg/lock-obj-pub.or1k-unknown-linux-gnu.h        \
+         syscfg/lock-obj-pub.powerpc-unknown-linux-gnu.h     \
+         syscfg/lock-obj-pub.powerpc64-unknown-linux-gnu.h   \
+ 	syscfg/lock-obj-pub.powerpc64le-unknown-linux-gnu.h \
+ 	syscfg/lock-obj-pub.powerpc-unknown-linux-gnuspe.h  \
+ 	syscfg/lock-obj-pub.riscv64-unknown-linux-gnu.h     \
+ 	syscfg/lock-obj-pub.riscv32-unknown-linux-gnu.h     \
+         syscfg/lock-obj-pub.s390x-unknown-linux-gnu.h       \
+         syscfg/lock-obj-pub.sh3-unknown-linux-gnu.h         \
+         syscfg/lock-obj-pub.sh4-unknown-linux-gnu.h         \
+         syscfg/lock-obj-pub.sparc-unknown-linux-gnu.h       \
+         syscfg/lock-obj-pub.sparc64-unknown-linux-gnu.h     \
+ 	syscfg/lock-obj-pub.x86_64-apple-darwin.h           \
+         syscfg/lock-obj-pub.x86_64-unknown-kfreebsd-gnu.h   \
+         syscfg/lock-obj-pub.x86_64-unknown-linux-gnu.h      \
+         syscfg/lock-obj-pub.x86_64-unknown-linux-gnux32.h   \
+         syscfg/lock-obj-pub.x86_64-unknown-linux-musl.h     \
+ 	syscfg/lock-obj-pub.tilegx-unknown-linux-gnu.h      \
+ 	syscfg/lock-obj-pub.ia64-unknown-linux-gnu.h        \
+ 	syscfg/lock-obj-pub.mingw32.h
+ 
+ 
+ lib_LTLIBRARIES = libgpg-error.la
+ nodist_include_HEADERS = gpg-error.h gpgrt.h
+ dist_bin_SCRIPTS = gpgrt-config
+ bin_SCRIPTS = gpg-error-config
+ m4datadir = $(datadir)/aclocal
+ m4data_DATA = gpg-error.m4 gpgrt.m4
+ 
+ pkgconfigdir = $(libdir)/pkgconfig
+ pkgconfig_DATA = gpg-error.pc
+ 
+ EXTRA_DIST = mkstrtable.awk err-sources.h.in err-codes.h.in \
+ 	mkerrnos.awk errnos.in README \
+ 	mkerrcodes.awk mkerrcodes1.awk mkerrcodes2.awk mkerrcodes.c \
+ 	mkheader.c gpg-error.h.in mkw32errmap.c w32-add.h w32ce-add.h \
+ 	err-sources.h err-codes.h gpg-error-config.in gpg-error.m4 gpgrt.m4 \
+ 	gpg-error.vers gpg-error.def.in \
+         versioninfo.rc.in gpg-error.w32-manifest.in \
+ 	gpg-error-config-test.sh gpg-error.pc.in \
+ 	$(lock_obj_pub)
+ 
+ BUILT_SOURCES = $(srcdir)/err-sources.h $(srcdir)/err-codes.h \
+ 	code-to-errno.h code-from-errno.h \
+ 	err-sources-sym.h err-codes-sym.h errnos-sym.h gpg-error.h gpgrt.h \
+ 	gpg-error.def mkw32errmap.map.c
+ 
+ tmp_files = _mkerrcodes.h _gpg-error.def.h mkw32errmap.tab.h mkw32errmap.map.c
+ 
+ CLEANFILES = code-to-errno.h code-from-errno.h \
+ 	gpg-error.h gpgrt.h \
+         mkerrcodes$(EXEEXT_FOR_BUILD) mkerrcodes.h gpg-error.def mkw32errmap.tab.h \
+ 	mkw32errmap.map.c err-sources-sym.h err-codes-sym.h errnos-sym.h \
+ 	gpg-extra/errno.h mkheader$(EXEEXT_FOR_BUILD) \
+ 	gpg-error-config gpg-error-config-test.log \
+ 	$(tmp_files) lock-obj-pub.native.h
+ 
+ MAINTAINERCLEANFILES = $(srcdir)/err-sources.h $(srcdir)/err-codes.h
+ 
+ TESTS = gpg-error-config-test.sh
+ 
+ #
+ # {{{ Begin Windows part
+ #
+ if HAVE_W32_SYSTEM
+ arch_sources = w32-gettext.c w32-lock.c w32-lock-obj.h w32-thread.c \
+ 	       w32-iconv.c w32-estream.c w32-reg.c spawn-w32.c
+ RCCOMPILE = $(RC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+             -DLOCALEDIR=\"$(localedir)\" $(AM_CPPFLAGS) $(CPPFLAGS)
+ LTRCCOMPILE = $(LIBTOOL) --mode=compile --tag=RC $(RCCOMPILE)
+ 
+ SUFFIXES = .rc .lo
+ 
+ .rc.lo:
+ 	$(LTRCCOMPILE) -i "$<" -o "$@"
+ 
+ gpg_error_res = versioninfo.lo
+ no_undefined = -no-undefined
+ export_symbols = -export-symbols gpg-error.def
+ # i686-w64-mingw32.gcc version 4.9.1 takes the long long helper
+ # functions from libgcc_s_sjlj-1.dll and not from a static libgcc.  As
+ # a plain C program we do not use exception handler and thus there is
+ # no need to use this DLL.  Thus we force gcc to link that statically.
+ extra_ltoptions = -XCClinker -static-libgcc
+ 
+ versioninfo.lo : gpg-error.w32-manifest
+ 
+ install-def-file: gpg-error.def
+ 	-$(INSTALL) -d $(DESTDIR)$(libdir)
+ 	$(INSTALL) gpg-error.def $(DESTDIR)$(libdir)/gpg-error.def
+ 
+ uninstall-def-file:
+ 	-rm $(DESTDIR)$(libdir)/gpg-error.def
+ 
+ libgpg_error_la_DEPENDENCIES = $(gpg_error_res) gpg-error.def
+ intllibs =
+ socklibs = -lws2_32
+ 
+ #
+ # }}} End Windows part
+ #
+ else
+ #
+ # {{{ Begin Unix part
+ #
+ arch_sources = posix-lock.c posix-lock-obj.h posix-thread.c spawn-posix.c
+ gpg_error_res =
+ no_undefined =
+ export_symbols =
+ extra_ltoptions =
+ 
+ install-def-file:
+ uninstall-def-file:
+ 
+ intllibs = @LTLIBINTL@
+ socklibs =
+ 
+ endif
+ #
+ # }}} End Unix part
+ #
+ 
+ if HAVE_LD_VERSION_SCRIPT
+   libgpg_error_vers_opt = -Wl,--version-script=$(srcdir)/gpg-error.vers
+ else
+   libgpg_error_vers_opt =
+ endif
+ 
+ libgpg_error_la_LDFLAGS = \
+   $(no_undefined) $(export_symbols) $(libgpg_error_vers_opt) \
+   $(extra_ltoptions) -version-info \
+   @LIBGPG_ERROR_LT_CURRENT@:@LIBGPG_ERROR_LT_REVISION@:@LIBGPG_ERROR_LT_AGE@
+ 
+ libgpg_error_la_SOURCES = gettext.h $(arch_sources) \
+ 	gpgrt-int.h init.c init.h version.c lock.h thread.h \
+ 	estream.c estream-printf.c estream-printf.h \
+ 	strsource.c strerror.c code-to-errno.c code-from-errno.c \
+ 	visibility.c visibility.h \
+ 	sysutils.c \
+ 	syscall-clamp.c \
+ 	logging.c \
+ 	b64dec.c b64enc.c \
+ 	argparse.c
+ 
+ 
+ nodist_libgpg_error_la_SOURCES = gpg-error.h
+ 
+ # libgpg_error_la_DEPENDENCIES = \
+ #        $(srcdir)/gpg-error.vers
+ 
+ # Note that RCCOMPILE needs the same defines as ..._la_CPPFLAGS but
+ # without the extra_cppflags because they may include am -idirafter
+ # which is not supported by the RC compiler.
+ libgpg_error_la_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" $(extra_cppflags)
+ libgpg_error_la_LIBADD = $(gpg_error_res) $(intllibs) $(socklibs) $(LIBTHREAD)
+ 
+ gpg_error_SOURCES = strsource-sym.c strerror-sym.c gpg-error.c
+ gpg_error_CPPFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" \
+                      -DLOCALEDIR=\"$(localedir)\" $(extra_cppflags)
+ gpg_error_LDADD = libgpg-error.la $(LTLIBINTL)
+ 
+ # We build err-sources.h and err-codes.h in the source directory.
+ # This is needed because gettext does only look into the source
+ # directory to find the files listed in po/POTFILE.in.  To make these
+ # rules work we also need to depend on Makefile.am and not on the
+ # generated files Makefile.in or Makefile.
+ $(srcdir)/err-sources.h: Makefile.am mkstrtable.awk err-sources.h.in
+ 	$(AWK) -f $(srcdir)/mkstrtable.awk -v textidx=3 \
+ 		$(srcdir)/err-sources.h.in >$@
+ 
+ err-sources-sym.h: Makefile mkstrtable.awk err-sources.h.in
+ 	$(AWK) -f $(srcdir)/mkstrtable.awk -v textidx=2 -v nogettext=1 \
+ 		$(srcdir)/err-sources.h.in >$@
+ 
+ $(srcdir)/err-codes.h: Makefile.am mkstrtable.awk err-codes.h.in
+ 	$(AWK) -f $(srcdir)/mkstrtable.awk -v textidx=3 \
+ 		$(srcdir)/err-codes.h.in >$@
+ 
+ err-codes-sym.h: Makefile mkstrtable.awk err-codes.h.in
+ 	$(AWK) -f $(srcdir)/mkstrtable.awk -v textidx=2 -v nogettext=1 \
+ 		$(srcdir)/err-codes.h.in >$@
+ 
+ code-to-errno.h: Makefile mkerrnos.awk errnos.in
+ 	$(AWK) -f $(srcdir)/mkerrnos.awk $(srcdir)/errnos.in >$@
+ 
+ # It is correct to use $(CPP).  We want the host's idea of the error codes.
+ mkerrcodes.h: Makefile mkerrcodes.awk $(gpg_extra_headers)
+ 	$(AWK) -f $(srcdir)/mkerrcodes1.awk $(srcdir)/errnos.in >_$@
+ 	$(CPP) $(CPPFLAGS) $(extra_cppflags) -P _$@ | grep GPG_ERR_ | \
+                $(AWK) -f $(srcdir)/mkerrcodes.awk >$@
+ 	-rm _$@
+ 
+ if HAVE_W32CE_SYSTEM
+ # It is correct to use $(CPP).  We want the host's idea of the error codes.
+ mkw32errmap.tab.h: Makefile mkw32errmap.c
+ 	$(CPP) -DRESOLVE_MACROS $(srcdir)/mkw32errmap.c | \
+ 	      grep '{&mkw32errmap_marker' >$@
+ mkw32errmap.map.c: mkw32errmap$(EXEEXT_FOR_BUILD)
+ 	./mkw32errmap$(EXEEXT_FOR_BUILD) --map > $@
+ gpg-extra/errno.h: mkw32errmap$(EXEEXT_FOR_BUILD)
+ 	-$(MKDIR_P) gpg-extra
+ 	./mkw32errmap$(EXEEXT_FOR_BUILD) > $@
+ else
+ mkw32errmap.map.c:
+ 	echo "/*dummy*/" > $@
+ endif
+ 
+ # We use CC proper for preprocessing thus we have to convince it that
+ # the data is really to be preprocessed.
+ gpg-error.def: Makefile gpg-error.def.in
+ 	cat $(srcdir)/gpg-error.def.in >_$@.h
+ 	$(CPP) $(DEFAULT_INCLUDES) $(INCLUDES) $(extra_cppflags) _$@.h | \
+ 	  grep -v '^#' >$@
+ 	-rm _$@.h
+ 
+ # It is correct to use $(CC_FOR_BUILD) here.  We want to run the
+ # program at build time.
+ mkerrcodes$(EXEEXT_FOR_BUILD): mkerrcodes.c mkerrcodes.h Makefile
+ 	$(CC_FOR_BUILD) -I. -I$(srcdir) -o $@ $(srcdir)/mkerrcodes.c
+ 
+ if HAVE_W32CE_SYSTEM
+ # It is correct to use $(CC_FOR_BUILD) here.  We want to run the
+ # program at build time.
+ mkw32errmap$(EXEEXT_FOR_BUILD): mkw32errmap.c mkw32errmap.tab.h Makefile
+ 	$(CC_FOR_BUILD) -I. -I$(srcdir) -o $@ $(srcdir)/mkw32errmap.c
+ endif
+ 
+ code-from-errno.h: mkerrcodes$(EXEEXT_FOR_BUILD) Makefile
+ 	./mkerrcodes$(EXEEXT_FOR_BUILD) | $(AWK) -f $(srcdir)/mkerrcodes2.awk >$@
+ 
+ errnos-sym.h: Makefile mkstrtable.awk errnos.in
+ 	$(AWK) -f $(srcdir)/mkstrtable.awk -v textidx=2 -v nogettext=1 \
+-		-v prefix=GPG_ERR_ -v namespace=errnos_ \
++		-v prefix=GPG_ERR_ -v pkg_namespace=errnos_ \
+ 		$(srcdir)/errnos.in >$@
+ 
+ 
+ mkheader$(EXEEXT_FOR_BUILD): mkheader.c Makefile
+ 	$(CC_FOR_BUILD) -g -O0 -I. -I$(srcdir) -o $@ $(srcdir)/mkheader.c
+ 
+ parts_of_gpg_error_h = 	 	\
+ 	gpg-error.h.in  	\
+ 	err-sources.h.in 	\
+ 	err-codes.h.in 	 	\
+ 	errnos.in 	 	\
+ 	w32-add.h	 	\
+ 	w32ce-add.h      	\
+ 	$(lock_obj_pub)
+ 
+ # If we are cross-compiling or building on Windows we better make sure
+ # that no stale native lock include file will be found by mkheader.
+ if FORCE_USE_SYSCFG
+ pre_mkheader_cmds = if test -f lock-obj-pub.native.h; \
+                     then rm lock-obj-pub.native.h; fi
+ mkheader_opts = --cross
+ else
+ pre_mkheader_cmds = :
+ mkheader_opts =
+ parts_of_gpg_error_h += ./lock-obj-pub.native.h
+ 
+ ./lock-obj-pub.native.h: Makefile gen-posix-lock-obj$(EXEEXT) posix-lock-obj.h
+ 	./gen-posix-lock-obj >$@
+ endif
+ 
+ # We also depend on versioninfo.rc because that is build by
+ # config.status and thus has up-to-date version numbers.
+ gpg-error.h: Makefile mkheader$(EXEEXT_FOR_BUILD) $(parts_of_gpg_error_h) \
+              versioninfo.rc ../config.h
+ 	$(pre_mkheader_cmds)
+ 	./mkheader$(EXEEXT_FOR_BUILD) $(mkheader_opts)       \
+                    $(host_triplet)  $(srcdir)/gpg-error.h.in \
+                    ../config.h $(PACKAGE_VERSION) $(VERSION_NUMBER) >$@
+ 
+ gpgrt.h: gpg-error.h
+ 	cp gpg-error.h gpgrt.h
+ 
+ gpg-error-config: gpgrt-config gpg-error-config-old
+ 	@echo $(ECHO_N) "Confirm gpg-error-config works... $(ECHO_C)"
+ 	@if $(srcdir)/gpg-error-config-test.sh --old-new; then \
+ 	  echo "good";                                         \
+ 	else                                                   \
+ 	  echo "no";                                           \
+ 	  echo "***  Please report to <https://bugs.gnupg.org> with gpg-error-config-test.log"; \
+ 	fi
+ 	cp gpg-error-config-old $@
+ 
+ install-data-local:
+ if HAVE_W32CE_SYSTEM
+ 	-$(MKDIR_P) "$(DESTDIR)$(includedir)/gpg-extra"
+ 	$(INSTALL_DATA) gpg-extra/errno.h \
+                          "$(DESTDIR)$(includedir)/gpg-extra/errno.h"
+ else
+         :
+ endif
+diff --git a/src/mkerrcodes.awk b/src/mkerrcodes.awk
+index 46d436c..e9c857c 100644
+--- a/src/mkerrcodes.awk
++++ b/src/mkerrcodes.awk
+@@ -1,99 +1,99 @@
+ # mkerrcodes.awk
+ # Copyright (C) 2004, 2005 g10 Code GmbH
+ # 
+ # This program is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU General Public License as
+ # published by the Free Software Foundation; either version 2 of
+ # the License, or (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program; if not, write to the Free Software
+ # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ #
+ # As a special exception, g10 Code GmbH gives unlimited permission to
+ # copy, distribute and modify the C source files that are the output
+ # of mkerrcodes.awk.  You need not follow the terms of the GNU General
+ # Public License when using or distributing such scripts, even though
+ # portions of the text of mkerrcodes.awk appear in them.  The GNU
+ # General Public License (GPL) does govern all other use of the material
+ # that constitutes the mkerrcodes.awk program.
+ #
+ # Certain portions of the mkerrcodes.awk source text are designed to be
+ # copied (in certain cases, depending on the input) into the output of
+ # mkerrcodes.awk.  We call these the "data" portions.  The rest of the
+ # mkerrcodes.awk source text consists of comments plus executable code
+ # that decides which of the data portions to output in any given case.
+ # We call these comments and executable code the "non-data" portions.
+ # mkerrcodes.h never copies any of the non-data portions into its output.
+ #
+ # This special exception to the GPL applies to versions of mkerrcodes.awk
+ # released by g10 Code GmbH.  When you make and distribute a modified version
+ # of mkerrcodes.awk, you may extend this special exception to the GPL to
+ # apply to your modified version as well, *unless* your modified version
+ # has the potential to copy into its output some of the text that was the
+ # non-data portion of the version that you started with.  (In other words,
+ # unless your change moves or copies text from the non-data portions to the
+ # data portions.)  If your modification has such potential, you must delete
+ # any notice of this special exception to the GPL from your modified version.
+ 
+ # This script outputs an intermediate file that contains the following output:
+ # static struct
+ #   {
+ #     int err;
+ #     const char *err_sym;
+ #   } err_table[] =
+ # {
+ #   { 7, "GPG_ERR_E2BIG" },
+ #   [...]
+ # };
+ #
+ # The input file is a list of possible system errors, followed by a GPG_ERR_* name:
+ #
+ # 7 GPG_ERR_E2BIG
+ #
+ # Comments (starting with # and ending at the end of the line) are removed,
+ # as is trailing whitespace.
+ 
+ BEGIN {
+   FS="[ \t]+GPG_ERR_";
+   print "/* Output of mkerrcodes.awk.  DO NOT EDIT.  */";
+   print "";
+   header = 1;
+ }
+ 
+ /^#/ { next; }
+ 
+ header {
+   if (! /^[ \t]*$/)
+     {
+       header = 0;
+ 
+       print "static struct";
+       print "  {";
+       print "    int err;";
+       print "    const char *err_sym;";
+       print "  } err_table[] = ";
+       print "{";
+     }
+   else
+     print;
+ }
+ 
+ !header {
+-  sub (/\#.+/, "");
++  sub (/#.+/, "");
+   sub (/[ 	]+$/, ""); # Strip trailing space and tab characters.
+ 
+   if (/^$/)
+     next;
+ 
+     print "  { " $1 ", \"GPG_ERR_" $2 "\" },";
+ }
+ 
+ END {
+   print "};";
+ }
+diff --git a/src/mkerrcodes1.awk b/src/mkerrcodes1.awk
+index a771a73..4578e29 100644
+--- a/src/mkerrcodes1.awk
++++ b/src/mkerrcodes1.awk
+@@ -1,96 +1,96 @@
+ # mkerrcodes.awk
+ # Copyright (C) 2003, 2004 g10 Code GmbH
+ # 
+ # This program is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU General Public License as
+ # published by the Free Software Foundation; either version 2 of
+ # the License, or (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program; if not, write to the Free Software
+ # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ #
+ # As a special exception, g10 Code GmbH gives unlimited permission to
+ # copy, distribute and modify the C source files that are the output
+ # of mkerrcodes.awk.  You need not follow the terms of the GNU General
+ # Public License when using or distributing such scripts, even though
+ # portions of the text of mkerrcodes.awk appear in them.  The GNU
+ # General Public License (GPL) does govern all other use of the material
+ # that constitutes the mkerrcodes.awk program.
+ #
+ # Certain portions of the mkerrcodes.awk source text are designed to be
+ # copied (in certain cases, depending on the input) into the output of
+ # mkerrcodes.awk.  We call these the "data" portions.  The rest of the
+ # mkerrcodes.awk source text consists of comments plus executable code
+ # that decides which of the data portions to output in any given case.
+ # We call these comments and executable code the "non-data" portions.
+ # mkerrcodes.h never copies any of the non-data portions into its output.
+ #
+ # This special exception to the GPL applies to versions of mkerrcodes.awk
+ # released by g10 Code GmbH.  When you make and distribute a modified version
+ # of mkerrcodes.awk, you may extend this special exception to the GPL to
+ # apply to your modified version as well, *unless* your modified version
+ # has the potential to copy into its output some of the text that was the
+ # non-data portion of the version that you started with.  (In other words,
+ # unless your change moves or copies text from the non-data portions to the
+ # data portions.)  If your modification has such potential, you must delete
+ # any notice of this special exception to the GPL from your modified version.
+ 
+ # This script outputs an intermediate file that contains the following block
+ # for each error value symbol in the input file (example for EINVAL):
+ #
+ # #ifdef EINVAL
+ # EINVAL GPG_ERR_EINVAL
+ # #endif
+ #
+ # The input file is a list of possible system errors in the column errnoidx
+ # (defaults to 2).
+ #
+ # Comments (starting with # and ending at the end of the line) are removed,
+ # as is trailing whitespace.
+ 
+ BEGIN {
+   FS="[\t]+";
+   header = 1;
+   if (errnoidx == 0)
+     errnoidx = 2;
+ 
+   print "/* Output of mkerrcodes.awk.  DO NOT EDIT.  */";
+   print "";
+ }
+ 
+ /^#/ { next; }
+ 
+ header {
+   if ($1 ~ /^[0-9]/)
+     {
+       print "#include <errno.h>";
+       print "#ifdef _WIN32";
+       print "#include <winsock2.h>";
+       print "#endif";
+        print "";
+       header = 0;
+     }
+   else
+     print;
+ }
+ 
+ !header {
+-  sub (/\#.+/, "");
++  sub (/#.+/, "");
+   sub (/[ 	]+$/, ""); # Strip trailing space and tab characters.
+ 
+   if (/^$/)
+     next;
+ 
+     print "#ifdef " $errnoidx;
+     print $errnoidx "\tGPG_ERR_" $errnoidx;
+     print "#endif";
+     print "#ifdef WSA" $errnoidx;
+     print "WSA" $errnoidx "\tGPG_ERR_" $errnoidx;
+     print "#endif";
+ }
+diff --git a/src/mkerrcodes2.awk b/src/mkerrcodes2.awk
+index ea58503..188f7a4 100644
+--- a/src/mkerrcodes2.awk
++++ b/src/mkerrcodes2.awk
+@@ -1,134 +1,134 @@
+ # mkstrtable.awk
+ # Copyright (C) 2003 g10 Code GmbH
+ # 
+ # This program is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU General Public License as
+ # published by the Free Software Foundation; either version 2 of
+ # the License, or (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program; if not, write to the Free Software
+ # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ #
+ # As a special exception, g10 Code GmbH gives unlimited permission to
+ # copy, distribute and modify the C source files that are the output
+ # of mkerrcodes2.awk.  You need not follow the terms of the GNU General
+ # Public License when using or distributing such scripts, even though
+ # portions of the text of mkerrcodes2.awk appear in them.  The GNU
+ # General Public License (GPL) does govern all other use of the material
+ # that constitutes the mkerrcodes2.awk program.
+ #
+ # Certain portions of the mkerrcodes2.awk source text are designed to be
+ # copied (in certain cases, depending on the input) into the output of
+ # mkerrcodes2.awk.  We call these the "data" portions.  The rest of the
+ # mkerrcodes2.awk source text consists of comments plus executable code
+ # that decides which of the data portions to output in any given case.
+ # We call these comments and executable code the "non-data" portions.
+ # mkstrtable.h never copies any of the non-data portions into its output.
+ #
+ # This special exception to the GPL applies to versions of mkerrcodes2.awk
+ # released by g10 Code GmbH.  When you make and distribute a modified version
+ # of mkerrcodes2.awk, you may extend this special exception to the GPL to
+ # apply to your modified version as well, *unless* your modified version
+ # has the potential to copy into its output some of the text that was the
+ # non-data portion of the version that you started with.  (In other words,
+ # unless your change moves or copies text from the non-data portions to the
+ # data portions.)  If your modification has such potential, you must delete
+ # any notice of this special exception to the GPL from your modified version.
+ 
+ # This script outputs a source file that does define the following
+ # symbols:
+ #
+ # static const char msgstr[];
+ # A string containing all messages in the list.
+ #
+ # static const int msgidx[];
+ # A list of index numbers, one for each message, that points to the
+ # beginning of the string in msgstr.
+ #
+ # msgidxof (code);
+ # A macro that maps code numbers to idx numbers.  If a DEFAULT MESSAGE
+ # is provided (see below), its index will be returned for unknown codes.
+ # Otherwise -1 is returned for codes that do not appear in the list.
+ # You can lookup the message with code CODE with:
+ # msgstr + msgidx[msgidxof (code)].
+ #
+ # The input file has the following format:
+ # CODE1	MESSAGE1		(Code number, <tab>, message string)
+ # CODE2	MESSAGE2		(Code number, <tab>, message string)
+ # ...
+ # CODEn	MESSAGEn		(Code number, <tab>, message string)
+ # 	DEFAULT MESSAGE		(<tab>, fall-back message string)
+ #
+ # Comments (starting with # and ending at the end of the line) are removed,
+ # as is trailing whitespace.  The last line is optional; if no DEFAULT
+ # MESSAGE is given, msgidxof will return the number -1 for unknown
+ # index numbers.
+ 
+ BEGIN {
+ # msg holds the number of messages.
+   msg = 0;
+   print "/* Output of mkerrcodes2.awk.  DO NOT EDIT.  */";
+   print "";
+   header = 1;
+ }
+ 
+ /^#/ { next; }
+ 
+ header {
+   if ($1 ~ /^[0123456789]+$/)
+     {
+       print "static const int err_code_from_index[] = {";
+       header = 0;
+     }
+   else
+     print;
+ }
+ 
+ !header {
+-  sub (/\#.+/, "");
++  sub (/#.+/, "");
+   sub (/[ 	]+$/, ""); # Strip trailing space and tab characters.
+ 
+   if (/^$/)
+     next;
+ 
+ # Print the string msgstr line by line.  We delay output by one line to be able
+ # to treat the last line differently (see END).
+   print "  " $2 ",";
+ 
+ # Remember the error value and index of each error code.
+   code[msg] = $1;
+   pos[msg] = $2;
+   msg++;
+ }
+ END {
+   print "};";
+   print "";
+   print "#define errno_to_idx(code) (0 ? -1 \\";
+ 
+ # Gather the ranges.
+   skip = code[0];
+   start = code[0];
+   stop = code[0];
+   for (i = 1; i < msg; i++)
+     {
+       if (code[i] == stop + 1)
+ 	stop++;
+       else
+ 	{
+ 	  print "  : ((code >= " start ") && (code <= " stop ")) ? (code - " \
+             skip ") \\";
+ 	  skip += code[i] - stop - 1;
+ 	  start = code[i];
+ 	  stop = code[i];
+ 	}
+     }
+   print "  : ((code >= " start ") && (code <= " stop ")) ? (code - " \
+     skip ") \\";
+   print "  : -1)";
+ }
+diff --git a/src/mkerrnos.awk b/src/mkerrnos.awk
+index f79df66..15b1aad 100644
+--- a/src/mkerrnos.awk
++++ b/src/mkerrnos.awk
+@@ -1,104 +1,104 @@
+ # mkerrnos.awk
+ # Copyright (C) 2003, 2004 g10 Code GmbH
+ # 
+ # This program is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU General Public License as
+ # published by the Free Software Foundation; either version 2 of
+ # the License, or (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program; if not, write to the Free Software
+ # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ #
+ # As a special exception, g10 Code GmbH gives unlimited permission to
+ # copy, distribute and modify the C source files that are the output
+ # of mkerrnos.awk.  You need not follow the terms of the GNU General
+ # Public License when using or distributing such scripts, even though
+ # portions of the text of mkerrnos.awk appear in them.  The GNU
+ # General Public License (GPL) does govern all other use of the material
+ # that constitutes the mkerrnos.awk program.
+ #
+ # Certain portions of the mkerrnos.awk source text are designed to be
+ # copied (in certain cases, depending on the input) into the output of
+ # mkerrnos.awk.  We call these the "data" portions.  The rest of the
+ # mkerrnos.awk source text consists of comments plus executable code
+ # that decides which of the data portions to output in any given case.
+ # We call these comments and executable code the "non-data" portions.
+ # mkerrnos.h never copies any of the non-data portions into its output.
+ #
+ # This special exception to the GPL applies to versions of mkerrnos.awk
+ # released by g10 Code GmbH.  When you make and distribute a modified version
+ # of mkerrnos.awk, you may extend this special exception to the GPL to
+ # apply to your modified version as well, *unless* your modified version
+ # has the potential to copy into its output some of the text that was the
+ # non-data portion of the version that you started with.  (In other words,
+ # unless your change moves or copies text from the non-data portions to the
+ # data portions.)  If your modification has such potential, you must delete
+ # any notice of this special exception to the GPL from your modified version.
+ 
+ # This script outputs a source file that does define the following
+ # symbols:
+ #
+ # static const int err_code_to_errno[];
+ # A mapping of gpg_err_code_t numbers to system errno.  The index of an
+ # error code in the table can be obtained after removing the system error
+ # code indication bit.
+ #
+ # The input file is a list of possible system errors in the column errnoidx
+ # (defaults to 2).
+ #
+ # Comments (starting with # and ending at the end of the line) are removed,
+ # as is trailing whitespace.
+ 
+ BEGIN {
+   FS="[\t]+";
+   header = 1;
+   if (errnoidx == 0)
+     errnoidx = 2;
+ 
+   print "/* Output of mkerrnos.awk.  DO NOT EDIT.  */";
+   print "";
+ }
+ 
+ /^#/ { next; }
+ 
+ header {
+   if ($1 ~ /^[0-9]/)
+     {
+       print "#include <errno.h>";
+       print "#ifdef _WIN32";
+       print "#include <winsock2.h>";
+       print "#endif";
+       print "";
+       print "static const int err_code_to_errno [] = {";
+       header = 0;
+     }
+   else
+     print;
+ }
+ 
+ !header {
+-  sub (/\#.+/, "");
++  sub (/#.+/, "");
+   sub (/[ 	]+$/, ""); # Strip trailing space and tab characters.
+ 
+   if (/^$/)
+     next;
+ 
+     print "#ifdef " $errnoidx;
+     print "  " $errnoidx ",";
+     print "#else";
+     print "#ifdef WSA" $errnoidx;
+     print "  WSA" $errnoidx ",";
+     print "#else"; 
+     print "  0,";
+     print "#endif";
+     print "#endif";
+ }
+ END {
+   print "};";
+ }
+diff --git a/src/mkstrtable.awk b/src/mkstrtable.awk
+index c9de9c1..285e45f 100644
+--- a/src/mkstrtable.awk
++++ b/src/mkstrtable.awk
+@@ -1,189 +1,189 @@
+ # mkstrtable.awk
+ # Copyright (C) 2003, 2004, 2008 g10 Code GmbH
+ # 
+ # This program is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU General Public License as
+ # published by the Free Software Foundation; either version 2 of
+ # the License, or (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ # General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program; if not, write to the Free Software
+ # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ #
+ # As a special exception, g10 Code GmbH gives unlimited permission to
+ # copy, distribute and modify the C source files that are the output
+ # of mkstrtable.awk.  You need not follow the terms of the GNU General
+ # Public License when using or distributing such scripts, even though
+ # portions of the text of mkstrtable.awk appear in them.  The GNU
+ # General Public License (GPL) does govern all other use of the material
+ # that constitutes the mkstrtable.awk program.
+ #
+ # Certain portions of the mkstrtable.awk source text are designed to be
+ # copied (in certain cases, depending on the input) into the output of
+ # mkstrtable.awk.  We call these the "data" portions.  The rest of the
+ # mkstrtable.awk source text consists of comments plus executable code
+ # that decides which of the data portions to output in any given case.
+ # We call these comments and executable code the "non-data" portions.
+ # mkstrtable.h never copies any of the non-data portions into its output.
+ #
+ # This special exception to the GPL applies to versions of mkstrtable.awk
+ # released by g10 Code GmbH.  When you make and distribute a modified version
+ # of mkstrtable.awk, you may extend this special exception to the GPL to
+ # apply to your modified version as well, *unless* your modified version
+ # has the potential to copy into its output some of the text that was the
+ # non-data portion of the version that you started with.  (In other words,
+ # unless your change moves or copies text from the non-data portions to the
+ # data portions.)  If your modification has such potential, you must delete
+ # any notice of this special exception to the GPL from your modified version.
+ 
+ # This script outputs a source file that does define the following
+ # symbols:
+ #
+ # static const char msgstr[];
+ # A string containing all messages in the list.
+ #
+ # static const int msgidx[];
+ # A list of index numbers, one for each message, that points to the
+ # beginning of the string in msgstr.
+ #
+ # msgidxof (code);
+ # A macro that maps code numbers to idx numbers.  If a DEFAULT MESSAGE
+ # is provided (see below), its index will be returned for unknown codes.
+ # Otherwise -1 is returned for codes that do not appear in the list.
+ # You can lookup the message with code CODE with:
+ # msgstr + msgidx[msgidxof (code)].
+ #
+ # The input file has the following format:
+ # CODE1	...	MESSAGE1	(code nr, <tab>, something, <tab>, msg)
+ # CODE2	...	MESSAGE2	(code nr, <tab>, something, <tab>, msg)
+ # ...
+ # CODEn	...	MESSAGEn	(code nr, <tab>, something, <tab>, msg)
+ # 	...	DEFAULT-MESSAGE	(<tab>, something, <tab>, fall-back msg)
+ #
+ # Comments (starting with # and ending at the end of the line) are removed,
+ # as is trailing whitespace.  The last line is optional; if no DEFAULT
+ # MESSAGE is given, msgidxof will return the number -1 for unknown
+ # index numbers.
+ #
+ # The field to be used is specified with the variable "textidx" on
+ # the command line.  It defaults to 2.
+ #
+ # The variable nogettext can be set to 1 to suppress gettext markers.
+ #
+ # The variable prefix can be used to prepend a string to each message.
+ #
+-# The variable namespace can be used to prepend a string to each
++# The variable pkg_namespace can be used to prepend a string to each
+ # variable and macro name.
+ 
+ BEGIN {
+   FS = "[\t]+";
+ # cpos holds the current position in the message string.
+   cpos = 0;
+ # msg holds the number of messages.
+   msg = 0;
+   print "/* Output of mkstrtable.awk.  DO NOT EDIT.  */";
+   print "";
+   header = 1;
+   if (textidx == 0)
+     textidx = 2;
+ # nogettext can be set to 1 to suppress gettext noop markers.
+ }
+ 
+ /^#/ { next; }
+ 
+ header {
+   if ($1 ~ /^[0123456789]+$/)
+     {
+       print "/* The purpose of this complex string table is to produce";
+       print "   optimal code with a minimum of relocations.  */";
+       print "";
+-      print "static const char " namespace "msgstr[] = ";
++      print "static const char " pkg_namespace "msgstr[] = ";
+       header = 0;
+     }
+   else
+     print;
+ }
+ 
+ !header {
+-  sub (/\#.+/, "");
++  sub (/#.+/, "");
+   sub (/[ 	]+$/, ""); # Strip trailing space and tab characters.
+ 
+   if (/^$/)
+     next;
+ 
+ # Print the string msgstr line by line.  We delay output by one line to be able
+ # to treat the last line differently (see END).
+   if (last_msgstr)
+     {
+       if (nogettext)
+ 	print "  \"" last_msgstr "\" \"\\0\"";
+       else
+ 	print "  gettext_noop (\"" last_msgstr "\") \"\\0\"";
+     }
+   last_msgstr = prefix $textidx;
+ 
+ # Remember the error code and msgidx of each error message.
+   code[msg] = $1;
+   pos[msg] = cpos;
+   cpos += length (last_msgstr) + 1;
+   msg++;
+ 
+   if ($1 == "")
+     {
+       has_default = 1;
+       exit;
+     }
+ }
+ END {
+   if (has_default)
+     coded_msgs = msg - 1;
+   else
+     coded_msgs = msg;
+ 
+   if (nogettext)
+     print "  \"" last_msgstr "\";";
+   else
+     print "  gettext_noop (\"" last_msgstr "\");";
+   print "";
+-  print "static const int " namespace "msgidx[] =";
++  print "static const int " pkg_namespace "msgidx[] =";
+   print "  {";
+   for (i = 0; i < coded_msgs; i++)
+     print "    " pos[i] ",";
+   print "    " pos[coded_msgs];
+   print "  };";
+   print "";
+   print "static GPG_ERR_INLINE int";
+-  print namespace "msgidxof (int code)";
++  print pkg_namespace "msgidxof (int code)";
+   print "{";
+   print "  return (0 ? 0";
+ 
+ # Gather the ranges.
+   skip = code[0];
+   start = code[0];
+   stop = code[0];
+   for (i = 1; i < coded_msgs; i++)
+     {
+       if (code[i] == stop + 1)
+ 	stop++;
+       else
+ 	{
+ 	  print "  : ((code >= " start ") && (code <= " stop ")) ? (code - " \
+             skip ")";
+ 	  skip += code[i] - stop - 1;
+ 	  start = code[i];
+ 	  stop = code[i];
+ 	}
+     }
+   print "  : ((code >= " start ") && (code <= " stop ")) ? (code - " \
+     skip ")";
+   if (has_default)
+     print "  : " stop + 1 " - " skip ");";
+   else
+     print "  : -1);";
+   print "}";
+ }

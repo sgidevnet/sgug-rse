@@ -1,0 +1,389 @@
+From fd30a7c49a661aecfb361045646da264cdadea8f Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Fri, 23 Aug 2019 12:40:24 -0600
+Subject: [PATCH] PATCH: [perl #134329] Use after free in regcomp.c
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+A compiled regex is composed of nodes, forming a linked list, with
+normally a maximum of 16 bits used to specify the offset of the next
+link.  For patterns that require more space than this, the nodes that
+jump around are replaced with ones that have wider offsets.  Most nodes
+are unaffected, as they just contain the offset of the next node, and
+that number is always small.  The jump nodes are the ones affected.
+
+When compiling a pattern, the 16 bit mechanism is used, until it
+overflows, at which point the pattern is recompiled with the long jumps
+instead.
+
+When I rewrote the compiler last year to make it generally one pass, I
+noticed a lot of the cases where a node was added didn't check if the
+result overflowed (the function that does this returns FALSE in that
+case).  I presumed the prior authors knew better, and did not change
+things, except to put in a bogus value in the link (offset) field that
+should cause a crash if it were used.  That's what's happening in this
+ticket.
+
+But seeing this example, it's clear that the return value should be
+checked every time, because you can reach the limit at any time.  This
+commit changes to do that, and to require the function's return value to
+not be ignored, to guard against future changes.
+
+My guess is that the reason it generally worked when there were multiple
+passes is that the first pass didn't do anything except count space, and
+that at some point before the end of the pass the return value did get
+checked, so by the time the nodes were allocated for real, it knew
+enough to use the long jumps.
+
+Petr Písař: Ported to 5.30.0 from
+3b2e5620ed4a6b341f97ffd1d4b6466cc2c4bc5b.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ MANIFEST                 |   1 +
+ embed.fnc                |   4 +-
+ proto.h                  |   8 ++-
+ regcomp.c                | 109 ++++++++++++++++++++++++++++-----------
+ t/re/bigfuzzy_not_utf8.t | Bin 0 -> 36399 bytes
+ 5 files changed, 88 insertions(+), 34 deletions(-)
+ create mode 100644 t/re/bigfuzzy_not_utf8.t
+
+diff --git a/MANIFEST b/MANIFEST
+index 10e2cc0..cc24cd7 100644
+--- a/MANIFEST
++++ b/MANIFEST
+@@ -5839,6 +5839,7 @@ t/porting/test_bootstrap.t	Test that the instructions for test bootstrapping are
+ t/porting/utils.t		Check that utility scripts still compile
+ t/re/alpha_assertions.t		See if things like '(*postive_lookahed:...) work properly
+ t/re/anyof.t			See if bracketed char classes [...] compile properly
++t/re/bigfuzzy_not_utf8.t	Big and ugly tests not storable as UTF-8
+ t/re/charset.t			See if regex modifiers like /d, /u work properly
+ t/re/fold_grind.pl		Core file to see if regex case folding works properly
+ t/re/fold_grind_8.t		Wrapper for fold_grind.pl for /l testing with a UTF-8 locale
+diff --git a/embed.fnc b/embed.fnc
+index c977d39..c2c5f16 100644
+--- a/embed.fnc
++++ b/embed.fnc
+@@ -2427,7 +2427,7 @@ Es	|void	|reginsert	|NN RExC_state_t *pRExC_state \
+ 				|const U8 op				    \
+ 				|const regnode_offset operand		    \
+ 				|const U32 depth
+-Es	|bool	|regtail	|NN RExC_state_t * pRExC_state		    \
++EsR	|bool	|regtail	|NN RExC_state_t * pRExC_state		    \
+ 				|NN const regnode_offset p		    \
+ 				|NN const regnode_offset val		    \
+ 				|const U32 depth
+@@ -2561,7 +2561,7 @@ Es	|void	|dump_trie_interim_list|NN const struct _reg_trie_data *trie\
+ Es	|void	|dump_trie_interim_table|NN const struct _reg_trie_data *trie\
+ 				|NULLOK HV* widecharmap|NN AV *revcharmap\
+ 				|U32 next_alloc|U32 depth
+-Es	|bool	|regtail_study	|NN RExC_state_t *pRExC_state \
++EsR	|bool	|regtail_study	|NN RExC_state_t *pRExC_state \
+ 				|NN regnode_offset p|NN const regnode_offset val|U32 depth
+ #  endif
+ #endif
+diff --git a/proto.h b/proto.h
+index e0ea55b..2ef7ce2 100644
+--- a/proto.h
++++ b/proto.h
+@@ -4457,9 +4457,11 @@ PERL_CALLCONV int	Perl_re_indentf(pTHX_ const char *fmt, U32 depth, ...);
+ 	assert(fmt)
+ STATIC void	S_regdump_extflags(pTHX_ const char *lead, const U32 flags);
+ STATIC void	S_regdump_intflags(pTHX_ const char *lead, const U32 flags);
+-STATIC bool	S_regtail_study(pTHX_ RExC_state_t *pRExC_state, regnode_offset p, const regnode_offset val, U32 depth);
++STATIC bool	S_regtail_study(pTHX_ RExC_state_t *pRExC_state, regnode_offset p, const regnode_offset val, U32 depth)
++			__attribute__warn_unused_result__;
+ #define PERL_ARGS_ASSERT_REGTAIL_STUDY	\
+ 	assert(pRExC_state); assert(p); assert(val)
++
+ #  endif
+ #  if defined(PERL_IN_REGEXEC_C)
+ STATIC void	S_debug_start_match(pTHX_ const REGEXP *prog, const bool do_utf8, const char *start, const char *end, const char *blurb);
+@@ -5599,9 +5601,11 @@ STATIC regnode_offset	S_regnode_guts(pTHX_ RExC_state_t *pRExC_state, const U8 o
+ STATIC regnode_offset	S_regpiece(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, U32 depth);
+ #define PERL_ARGS_ASSERT_REGPIECE	\
+ 	assert(pRExC_state); assert(flagp)
+-STATIC bool	S_regtail(pTHX_ RExC_state_t * pRExC_state, const regnode_offset p, const regnode_offset val, const U32 depth);
++STATIC bool	S_regtail(pTHX_ RExC_state_t * pRExC_state, const regnode_offset p, const regnode_offset val, const U32 depth)
++			__attribute__warn_unused_result__;
+ #define PERL_ARGS_ASSERT_REGTAIL	\
+ 	assert(pRExC_state); assert(p); assert(val)
++
+ STATIC void	S_scan_commit(pTHX_ const RExC_state_t *pRExC_state, struct scan_data_t *data, SSize_t *minlenp, int is_inf);
+ #define PERL_ARGS_ASSERT_SCAN_COMMIT	\
+ 	assert(pRExC_state); assert(data); assert(minlenp)
+diff --git a/regcomp.c b/regcomp.c
+index dfc22bc..b93fbe7 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -11307,10 +11307,15 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+                         return 0;
+                     }
+ 
+-                    REGTAIL(pRExC_state, ret, atomic);
++                    if (! REGTAIL(pRExC_state, ret, atomic)) {
++                        REQUIRE_BRANCHJ(flagp, 0);
++                    }
+ 
+-                    REGTAIL(pRExC_state, atomic,
+-                           reg_node(pRExC_state, SRCLOSE));
++                    if (! REGTAIL(pRExC_state, atomic, reg_node(pRExC_state,
++                                                                SRCLOSE)))
++                    {
++                        REQUIRE_BRANCHJ(flagp, 0);
++                    }
+ 
+                     RExC_in_script_run = 0;
+                     return ret;
+@@ -11769,7 +11774,9 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+                                        RExC_flags & RXf_PMf_COMPILETIME
+                                       );
+                     FLAGS(REGNODE_p(ret)) = 2;
+-                    REGTAIL(pRExC_state, ret, eval);
++                    if (! REGTAIL(pRExC_state, ret, eval)) {
++                        REQUIRE_BRANCHJ(flagp, 0);
++                    }
+                     /* deal with the length of this later - MJD */
+ 		    return ret;
+ 		}
+@@ -11822,7 +11829,9 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+ 
+                     tail = reg(pRExC_state, 1, &flag, depth+1);
+                     RETURN_FAIL_ON_RESTART(flag, flagp);
+-                    REGTAIL(pRExC_state, ret, tail);
++                    if (! REGTAIL(pRExC_state, ret, tail)) {
++                        REQUIRE_BRANCHJ(flagp, 0);
++                    }
+                     goto insert_if;
+                 }
+ 		else if (   RExC_parse[0] == '<'     /* (?(<NAME>)...) */
+@@ -11914,15 +11923,22 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+ 		    }
+ 		    nextchar(pRExC_state);
+ 		  insert_if:
+-                    REGTAIL(pRExC_state, ret, reganode(pRExC_state, IFTHEN, 0));
++                    if (! REGTAIL(pRExC_state, ret, reganode(pRExC_state,
++                                                             IFTHEN, 0)))
++                    {
++                        REQUIRE_BRANCHJ(flagp, 0);
++                    }
+                     br = regbranch(pRExC_state, &flags, 1, depth+1);
+ 		    if (br == 0) {
+                         RETURN_FAIL_ON_RESTART(flags,flagp);
+                         FAIL2("panic: regbranch returned failure, flags=%#" UVxf,
+                               (UV) flags);
+                     } else
+-                        REGTAIL(pRExC_state, br, reganode(pRExC_state,
+-                                                          LONGJMP, 0));
++                    if (! REGTAIL(pRExC_state, br, reganode(pRExC_state,
++                                                             LONGJMP, 0)))
++                    {
++                        REQUIRE_BRANCHJ(flagp, 0);
++                    }
+ 		    c = UCHARAT(RExC_parse);
+                     nextchar(pRExC_state);
+ 		    if (flags&HASWIDTH)
+@@ -11939,7 +11955,9 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+                             FAIL2("panic: regbranch returned failure, flags=%#" UVxf,
+                                   (UV) flags);
+                         }
+-                        REGTAIL(pRExC_state, ret, lastbr);
++                        if (! REGTAIL(pRExC_state, ret, lastbr)) {
++                            REQUIRE_BRANCHJ(flagp, 0);
++                        }
+ 		 	if (flags&HASWIDTH)
+ 			    *flagp |= HASWIDTH;
+                         c = UCHARAT(RExC_parse);
+@@ -11954,16 +11972,26 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+                             vFAIL("Switch (?(condition)... contains too many branches");
+                     }
+ 		    ender = reg_node(pRExC_state, TAIL);
+-                    REGTAIL(pRExC_state, br, ender);
++                    if (! REGTAIL(pRExC_state, br, ender)) {
++                        REQUIRE_BRANCHJ(flagp, 0);
++                    }
+ 		    if (lastbr) {
+-                        REGTAIL(pRExC_state, lastbr, ender);
+-                        REGTAIL(pRExC_state, REGNODE_OFFSET(
+-                                                NEXTOPER(
+-                                                NEXTOPER(REGNODE_p(lastbr)))),
+-                                             ender);
++                        if (! REGTAIL(pRExC_state, lastbr, ender)) {
++                            REQUIRE_BRANCHJ(flagp, 0);
++                        }
++                        if (! REGTAIL(pRExC_state,
++                                      REGNODE_OFFSET(
++                                                 NEXTOPER(
++                                                 NEXTOPER(REGNODE_p(lastbr)))),
++                                      ender))
++                        {
++                            REQUIRE_BRANCHJ(flagp, 0);
++                        }
+ 		    }
+ 		    else
+-                        REGTAIL(pRExC_state, ret, ender);
++                        if (! REGTAIL(pRExC_state, ret, ender)) {
++                            REQUIRE_BRANCHJ(flagp, 0);
++                        }
+ #if 0  /* Removing this doesn't cause failures in the test suite -- khw */
+                     RExC_size++; /* XXX WHY do we need this?!!
+                                     For large programs it seems to be required
+@@ -12113,7 +12141,9 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+ 	*flagp |= flags&SIMPLE;
+     }
+     if (is_open) {				/* Starts with OPEN. */
+-        REGTAIL(pRExC_state, ret, br);          /* OPEN -> first. */
++        if (! REGTAIL(pRExC_state, ret, br)) {  /* OPEN -> first. */
++            REQUIRE_BRANCHJ(flagp, 0);
++        }
+     }
+     else if (paren != '?')		/* Not Conditional */
+ 	ret = br;
+@@ -12121,12 +12151,15 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+     lastbr = br;
+     while (*RExC_parse == '|') {
+ 	if (RExC_use_BRANCHJ) {
++            bool shut_gcc_up;
++
+ 	    ender = reganode(pRExC_state, LONGJMP, 0);
+ 
+             /* Append to the previous. */
+-            REGTAIL(pRExC_state,
+-                    REGNODE_OFFSET(NEXTOPER(NEXTOPER(REGNODE_p(lastbr)))),
+-                    ender);
++            shut_gcc_up = REGTAIL(pRExC_state,
++                         REGNODE_OFFSET(NEXTOPER(NEXTOPER(REGNODE_p(lastbr)))),
++                         ender);
++            PERL_UNUSED_VAR(shut_gcc_up);
+ 	}
+ 	nextchar(pRExC_state);
+ 	if (freeze_paren) {
+@@ -12237,9 +12270,10 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp, U32 depth)
+                         is_nothing= 0;
+ 		}
+ 		else if (op == BRANCHJ) {
+-                    REGTAIL_STUDY(pRExC_state,
+-                                  REGNODE_OFFSET(NEXTOPER(NEXTOPER(br))),
+-                                  ender);
++                    bool shut_gcc_up = REGTAIL_STUDY(pRExC_state,
++                                        REGNODE_OFFSET(NEXTOPER(NEXTOPER(br))),
++                                        ender);
++                    PERL_UNUSED_VAR(shut_gcc_up);
+                     /* for now we always disable this optimisation * /
+                     if ( OP(NEXTOPER(NEXTOPER(br))) != NOTHING
+                          || regnext(NEXTOPER(NEXTOPER(br))) != REGNODE_p(ender))
+@@ -12551,7 +12585,9 @@ S_regpiece(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, U32 depth)
+ 		const regnode_offset w = reg_node(pRExC_state, WHILEM);
+ 
+ 		FLAGS(REGNODE_p(w)) = 0;
+-                REGTAIL(pRExC_state, ret, w);
++                if (!  REGTAIL(pRExC_state, ret, w)) {
++                    REQUIRE_BRANCHJ(flagp, 0);
++                }
+ 		if (RExC_use_BRANCHJ) {
+ 		    reginsert(pRExC_state, LONGJMP, ret, depth+1);
+ 		    reginsert(pRExC_state, NOTHING, ret, depth+1);
+@@ -12566,7 +12602,11 @@ S_regpiece(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, U32 depth)
+ 		if (RExC_use_BRANCHJ)
+                     NEXT_OFF(REGNODE_p(ret)) = 3;   /* Go over NOTHING to
+                                                        LONGJMP. */
+-                REGTAIL(pRExC_state, ret, reg_node(pRExC_state, NOTHING));
++                if (! REGTAIL(pRExC_state, ret, reg_node(pRExC_state,
++                                                          NOTHING)))
++                {
++                    REQUIRE_BRANCHJ(flagp, 0);
++                }
+                 RExC_whilem_seen++;
+                 MARK_NAUGHTY_EXP(1, 4);     /* compound interest */
+ 	    }
+@@ -12638,16 +12678,22 @@ S_regpiece(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, U32 depth)
+     if (*RExC_parse == '?') {
+ 	nextchar(pRExC_state);
+ 	reginsert(pRExC_state, MINMOD, ret, depth+1);
+-        REGTAIL(pRExC_state, ret, ret + NODE_STEP_REGNODE);
++        if (! REGTAIL(pRExC_state, ret, ret + NODE_STEP_REGNODE)) {
++            REQUIRE_BRANCHJ(flagp, 0);
++        }
+     }
+     else if (*RExC_parse == '+') {
+         regnode_offset ender;
+         nextchar(pRExC_state);
+         ender = reg_node(pRExC_state, SUCCEED);
+-        REGTAIL(pRExC_state, ret, ender);
++        if (! REGTAIL(pRExC_state, ret, ender)) {
++            REQUIRE_BRANCHJ(flagp, 0);
++        }
+         reginsert(pRExC_state, SUSPEND, ret, depth+1);
+         ender = reg_node(pRExC_state, TAIL);
+-        REGTAIL(pRExC_state, ret, ender);
++        if (! REGTAIL(pRExC_state, ret, ender)) {
++            REQUIRE_BRANCHJ(flagp, 0);
++        }
+     }
+ 
+     if (ISMULT2(RExC_parse)) {
+@@ -19815,8 +19861,8 @@ S_regtail(pTHX_ RExC_state_t * pRExC_state,
+     }
+     else {
+         if (val - scan > U16_MAX) {
+-            /* Since not all callers check the return value, populate this with
+-             * something that won't loop and will likely lead to a crash if
++            /* Populate this with something that won't loop and will likely
++             * lead to a crash if the caller ignores the failure return, and
+              * execution continues */
+             NEXT_OFF(REGNODE_p(scan)) = U16_MAX;
+             return FALSE;
+@@ -19927,6 +19973,9 @@ S_regtail_study(pTHX_ RExC_state_t *pRExC_state, regnode_offset p,
+     }
+     else {
+         if (val - scan > U16_MAX) {
++            /* Populate this with something that won't loop and will likely
++             * lead to a crash if the caller ignores the failure return, and
++             * execution continues */
+             NEXT_OFF(REGNODE_p(scan)) = U16_MAX;
+             return FALSE;
+         }
+diff --git a/t/re/bigfuzzy_not_utf8.t b/t/re/bigfuzzy_not_utf8.t
+new file mode 100644
+index 0000000000000000000000000000000000000000..b4dfd150a9297172af5d8e7811357fd68931f8d7
+GIT binary patch
+literal 36399
+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
+
+literal 0
+HcmV?d00001
+
+-- 
+2.21.0
+

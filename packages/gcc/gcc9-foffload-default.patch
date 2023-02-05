@@ -1,0 +1,122 @@
+2019-01-17  Jakub Jelinek  <jakub@redhat.com>
+
+	* gcc.c (offload_targets_default): New variable.
+	(process_command): Set it if -foffload is defaulted.
+	(driver::maybe_putenv_OFFLOAD_TARGETS): Add OFFLOAD_TARGET_DEFAULT=1
+	into environment if -foffload has been defaulted.
+	* lto-wrapper.c (OFFLOAD_TARGET_DEFAULT_ENV): Define.
+	(compile_offload_image): If OFFLOAD_TARGET_DEFAULT
+	is in the environment, don't fail if corresponding mkoffload
+	can't be found.
+	(compile_images_for_offload_targets): Likewise.  Free and clear
+	offload_names if no valid offload is found.
+libgomp/
+	* target.c (gomp_load_plugin_for_device): If a plugin can't be
+	dlopened, assume it has no devices silently.
+
+--- gcc/gcc.c.jj	2017-01-17 10:28:40.000000000 +0100
++++ gcc/gcc.c	2017-01-20 16:26:29.649962902 +0100
+@@ -290,6 +290,10 @@ static const char *spec_host_machine = D
+ 
+ static char *offload_targets = NULL;
+ 
++/* Set to true if -foffload has not been used and offload_targets
++   is set to the configured in default.  */
++static bool offload_targets_default;
++
+ /* Nonzero if cross-compiling.
+    When -b is used, the value comes from the `specs' file.  */
+ 
+@@ -4457,7 +4461,10 @@ process_command (unsigned int decoded_op
+   /* If the user didn't specify any, default to all configured offload
+      targets.  */
+   if (ENABLE_OFFLOADING && offload_targets == NULL)
+-    handle_foffload_option (OFFLOAD_TARGETS);
++    {
++      handle_foffload_option (OFFLOAD_TARGETS);
++      offload_targets_default = true;
++    }
+ 
+   if (output_file
+       && strcmp (output_file, "-") != 0
+@@ -7693,6 +7700,8 @@ driver::maybe_putenv_OFFLOAD_TARGETS ()
+       obstack_grow (&collect_obstack, offload_targets,
+ 		    strlen (offload_targets) + 1);
+       xputenv (XOBFINISH (&collect_obstack, char *));
++      if (offload_targets_default)
++	  xputenv ("OFFLOAD_TARGET_DEFAULT=1");
+     }
+ 
+   free (offload_targets);
+--- gcc/lto-wrapper.c.jj	2017-01-01 12:45:34.000000000 +0100
++++ gcc/lto-wrapper.c	2017-01-20 16:34:18.294016997 +0100
+@@ -52,6 +52,7 @@ along with GCC; see the file COPYING3.
+ /* Environment variable, used for passing the names of offload targets from GCC
+    driver to lto-wrapper.  */
+ #define OFFLOAD_TARGET_NAMES_ENV	"OFFLOAD_TARGET_NAMES"
++#define OFFLOAD_TARGET_DEFAULT_ENV	"OFFLOAD_TARGET_DEFAULT"
+ 
+ enum lto_mode_d {
+   LTO_MODE_NONE,			/* Not doing LTO.  */
+@@ -820,6 +821,12 @@ compile_offload_image (const char *targe
+ 	break;
+       }
+ 
++  if (!compiler && getenv (OFFLOAD_TARGET_DEFAULT_ENV))
++    {
++      free_array_of_ptrs ((void **) paths, n_paths);
++      return NULL;
++    }
++
+   if (!compiler)
+     fatal_error (input_location,
+ 		 "could not find %s in %s (consider using %<-B%>)\n",
+@@ -883,6 +890,7 @@ compile_images_for_offload_targets (unsi
+   unsigned num_targets = parse_env_var (target_names, &names, NULL);
+ 
+   int next_name_entry = 0;
++  bool hsa_seen = false;
+   const char *compiler_path = getenv ("COMPILER_PATH");
+   if (!compiler_path)
+     goto out;
+@@ -895,18 +903,26 @@ compile_images_for_offload_targets (unsi
+       /* HSA does not use LTO-like streaming and a different compiler, skip
+ 	 it. */
+       if (strcmp (names[i], "hsa") == 0)
+-	continue;
++	{
++	  hsa_seen = true;
++	  continue;
++	}
+ 
+       offload_names[next_name_entry]
+ 	= compile_offload_image (names[i], compiler_path, in_argc, in_argv,
+ 				 compiler_opts, compiler_opt_count,
+ 				 linker_opts, linker_opt_count);
+       if (!offload_names[next_name_entry])
+-	fatal_error (input_location,
+-		     "problem with building target image for %s\n", names[i]);
++	continue;
+       next_name_entry++;
+     }
+ 
++  if (next_name_entry == 0 && !hsa_seen)
++    {
++      free (offload_names);
++      offload_names = NULL;
++    }
++
+  out:
+   free_array_of_ptrs ((void **) names, num_targets);
+ }
+--- libgomp/target.c.jj	2017-01-01 12:45:52.000000000 +0100
++++ libgomp/target.c	2017-01-20 20:12:13.756710875 +0100
+@@ -2356,7 +2356,7 @@ gomp_load_plugin_for_device (struct gomp
+ 
+   void *plugin_handle = dlopen (plugin_name, RTLD_LAZY);
+   if (!plugin_handle)
+-    goto dl_fail;
++    return 0;
+ 
+   /* Check if all required functions are available in the plugin and store
+      their handlers.  None of the symbols can legitimately be NULL,

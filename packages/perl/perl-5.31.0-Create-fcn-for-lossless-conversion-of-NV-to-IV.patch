@@ -1,0 +1,181 @@
+From 3a019afd6f6291c3249c254b5c01e244e4ec83ab Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Sun, 28 Apr 2019 17:42:44 -0600
+Subject: [PATCH 1/3] Create fcn for lossless conversion of NV to IV
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Essentially the same code was being used in three places, and had
+undefined C behavior for some inputs.
+
+This consolidates the code into one inline function, and rewrites it to
+avoid undefined behavior.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ embed.fnc |  1 +
+ embed.h   |  3 +++
+ inline.h  | 34 ++++++++++++++++++++++++++++++++++
+ pp.c      | 20 ++++----------------
+ pp_hot.c  | 10 ++--------
+ proto.h   |  7 +++++++
+ 6 files changed, 51 insertions(+), 24 deletions(-)
+
+diff --git a/embed.fnc b/embed.fnc
+index 45597f67b6..259affded0 100644
+--- a/embed.fnc
++++ b/embed.fnc
+@@ -2272,6 +2272,7 @@ sR	|SV*	|refto		|NN SV* sv
+ : Used in pp_hot.c
+ pRxo	|GV*	|softref2xv	|NN SV *const sv|NN const char *const what \
+ 				|const svtype type|NN SV ***spp
++inR	|bool	|lossless_NV_to_IV|const NV nv|NN IV * ivp
+ #endif
+ 
+ #if defined(PERL_IN_PP_PACK_C)
+diff --git a/embed.h b/embed.h
+index 75c91f77f4..9178c51e92 100644
+--- a/embed.h
++++ b/embed.h
+@@ -1924,6 +1924,9 @@
+ #define do_delete_local()	S_do_delete_local(aTHX)
+ #define refto(a)		S_refto(aTHX_ a)
+ #  endif
++#  if defined(PERL_IN_PP_C) || defined(PERL_IN_PP_HOT_C)
++#define lossless_NV_to_IV	S_lossless_NV_to_IV
++#  endif
+ #  if defined(PERL_IN_PP_CTL_C)
+ #define check_type_and_open(a)	S_check_type_and_open(aTHX_ a)
+ #define destroy_matcher(a)	S_destroy_matcher(aTHX_ a)
+diff --git a/inline.h b/inline.h
+index 654f801b75..de1e33e8ce 100644
+--- a/inline.h
++++ b/inline.h
+@@ -1913,6 +1913,40 @@ S_should_warn_nl(const char *pv) {
+ 
+ #endif
+ 
++#if defined(PERL_IN_PP_C) || defined(PERL_IN_PP_HOT_C)
++
++PERL_STATIC_INLINE bool
++S_lossless_NV_to_IV(const NV nv, IV *ivp)
++{
++    /* This function determines if the input NV 'nv' may be converted without
++     * loss of data to an IV.  If not, it returns FALSE taking no other action.
++     * But if it is possible, it does the conversion, returning TRUE, and
++     * storing the converted result in '*ivp' */
++
++    PERL_ARGS_ASSERT_LOSSLESS_NV_TO_IV;
++
++#  if  defined(Perl_isnan)
++
++    if (UNLIKELY(Perl_isnan(nv))) {
++        return FALSE;
++    }
++
++#  endif
++
++    if (UNLIKELY(nv < IV_MIN) || UNLIKELY(nv > IV_MAX)) {
++        return FALSE;
++    }
++
++    if ((IV) nv != nv) {
++        return FALSE;
++    }
++
++    *ivp = (IV) nv;
++    return TRUE;
++}
++
++#endif
++
+ /* ------------------ pp.c, regcomp.c, toke.c, universal.c ------------ */
+ 
+ #define MAX_CHARSET_NAME_LENGTH 2
+diff --git a/pp.c b/pp.c
+index c89cb7198c..0956121b27 100644
+--- a/pp.c
++++ b/pp.c
+@@ -1268,16 +1268,10 @@ PP(pp_multiply)
+             NV nr = SvNVX(svr);
+             NV result;
+ 
+-            if (
+-#if defined(NAN_COMPARE_BROKEN) && defined(Perl_isnan)
+-                !Perl_isnan(nl) && nl == (NV)(il = (IV)nl)
+-                && !Perl_isnan(nr) && nr == (NV)(ir = (IV)nr)
+-#else
+-                nl == (NV)(il = (IV)nl) && nr == (NV)(ir = (IV)nr)
+-#endif
+-                )
++            if (lossless_NV_to_IV(nl, &il) && lossless_NV_to_IV(nr, &ir)) {
+                 /* nothing was lost by converting to IVs */
+                 goto do_iv;
++            }
+             SP--;
+             result = nl * nr;
+ #  if defined(__sgi) && defined(USE_LONG_DOUBLE) && LONG_DOUBLEKIND == LONG_DOUBLE_IS_DOUBLEDOUBLE_128_BIT_BE_BE && NVSIZE == 16
+@@ -1849,16 +1843,10 @@ PP(pp_subtract)
+             NV nl = SvNVX(svl);
+             NV nr = SvNVX(svr);
+ 
+-            if (
+-#if defined(NAN_COMPARE_BROKEN) && defined(Perl_isnan)
+-                !Perl_isnan(nl) && nl == (NV)(il = (IV)nl)
+-                && !Perl_isnan(nr) && nr == (NV)(ir = (IV)nr)
+-#else
+-                nl == (NV)(il = (IV)nl) && nr == (NV)(ir = (IV)nr)
+-#endif
+-                )
++            if (lossless_NV_to_IV(nl, &il) && lossless_NV_to_IV(nr, &ir)) {
+                 /* nothing was lost by converting to IVs */
+                 goto do_iv;
++            }
+             SP--;
+             TARGn(nl - nr, 0); /* args not GMG, so can't be tainted */
+             SETs(TARG);
+diff --git a/pp_hot.c b/pp_hot.c
+index 7d5ffc02fd..2df5df8303 100644
+--- a/pp_hot.c
++++ b/pp_hot.c
+@@ -1435,16 +1435,10 @@ PP(pp_add)
+             NV nl = SvNVX(svl);
+             NV nr = SvNVX(svr);
+ 
+-            if (
+-#if defined(NAN_COMPARE_BROKEN) && defined(Perl_isnan)
+-                !Perl_isnan(nl) && nl == (NV)(il = (IV)nl)
+-                && !Perl_isnan(nr) && nr == (NV)(ir = (IV)nr)
+-#else
+-                nl == (NV)(il = (IV)nl) && nr == (NV)(ir = (IV)nr)
+-#endif
+-                )
++            if (lossless_NV_to_IV(nl, &il) && lossless_NV_to_IV(nr, &ir)) {
+                 /* nothing was lost by converting to IVs */
+                 goto do_iv;
++            }
+             SP--;
+             TARGn(nl + nr, 0); /* args not GMG, so can't be tainted */
+             SETs(TARG);
+diff --git a/proto.h b/proto.h
+index 0f8feed187..74a8e46ab7 100644
+--- a/proto.h
++++ b/proto.h
+@@ -5224,6 +5224,13 @@ STATIC SV*	S_refto(pTHX_ SV* sv)
+ 
+ #endif
+ #if defined(PERL_IN_PP_C) || defined(PERL_IN_PP_HOT_C)
++#ifndef PERL_NO_INLINE_FUNCTIONS
++PERL_STATIC_INLINE bool	S_lossless_NV_to_IV(const NV nv, IV * ivp)
++			__attribute__warn_unused_result__;
++#define PERL_ARGS_ASSERT_LOSSLESS_NV_TO_IV	\
++	assert(ivp)
++#endif
++
+ PERL_CALLCONV GV*	Perl_softref2xv(pTHX_ SV *const sv, const char *const what, const svtype type, SV ***spp)
+ 			__attribute__warn_unused_result__;
+ #define PERL_ARGS_ASSERT_SOFTREF2XV	\
+-- 
+2.20.1
+

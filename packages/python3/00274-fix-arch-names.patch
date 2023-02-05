@@ -1,0 +1,80 @@
+From 3b0d3a25576e74c2ac1eb25136ae811bdbdd7c6c Mon Sep 17 00:00:00 2001
+From: Tomas Orsava <torsava@redhat.com>
+Date: Thu, 14 Feb 2019 16:08:57 +0100
+Subject: [PATCH] Upstream uses Debian-style architecture naming. Change to
+ match Fedora / RHEL
+
+---
+ config.sub   |  2 +-
+ configure.ac | 16 ++++++++--------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/config.sub b/config.sub
+index 40ea5df..932128b 100755
+--- a/config.sub
++++ b/config.sub
+@@ -1045,7 +1045,7 @@ case $basic_machine in
+ 		;;
+ 	ppc64)	basic_machine=powerpc64-unknown
+ 		;;
+-	ppc64-*) basic_machine=powerpc64-`echo "$basic_machine" | sed 's/^[^-]*-//'`
++	ppc64-* | ppc64p7-*) basic_machine=powerpc64-`echo "$basic_machine" | sed 's/^[^-]*-//'`
+ 		;;
+ 	ppc64le | powerpc64little)
+ 		basic_machine=powerpc64le-unknown
+diff --git a/configure.ac b/configure.ac
+index a075ce3..b7f2ee3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -788,9 +788,9 @@ cat >> conftest.c <<EOF
+         alpha-linux-gnu
+ # elif defined(__ARM_EABI__) && defined(__ARM_PCS_VFP)
+ #  if defined(__ARMEL__)
+-        arm-linux-gnueabihf
++        arm-linux-gnueabi
+ #  else
+-        armeb-linux-gnueabihf
++        armeb-linux-gnueabi
+ #  endif
+ # elif defined(__ARM_EABI__) && !defined(__ARM_PCS_VFP)
+ #  if defined(__ARMEL__)
+@@ -810,7 +810,7 @@ cat >> conftest.c <<EOF
+ #  elif _MIPS_SIM == _ABIN32
+         mips64el-linux-gnuabin32
+ #  elif _MIPS_SIM == _ABI64
+-        mips64el-linux-gnuabi64
++        mips64el-linux-gnu
+ #  else
+ #   error unknown platform triplet
+ #  endif
+@@ -820,22 +820,22 @@ cat >> conftest.c <<EOF
+ #  elif _MIPS_SIM == _ABIN32
+         mips64-linux-gnuabin32
+ #  elif _MIPS_SIM == _ABI64
+-        mips64-linux-gnuabi64
++        mips64-linux-gnu
+ #  else
+ #   error unknown platform triplet
+ #  endif
+ # elif defined(__or1k__)
+         or1k-linux-gnu
+ # elif defined(__powerpc__) && defined(__SPE__)
+-        powerpc-linux-gnuspe
++        ppc-linux-gnuspe
+ # elif defined(__powerpc64__)
+ #  if defined(__LITTLE_ENDIAN__)
+-        powerpc64le-linux-gnu
++        ppc64le-linux-gnu
+ #  else
+-        powerpc64-linux-gnu
++        ppc64-linux-gnu
+ #  endif
+ # elif defined(__powerpc__)
+-        powerpc-linux-gnu
++        ppc-linux-gnu
+ # elif defined(__s390x__)
+         s390x-linux-gnu
+ # elif defined(__s390__)
+-- 
+2.20.1
+

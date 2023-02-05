@@ -1,0 +1,54 @@
+From 85d4e0a35b2d44cf06a9343d23a2f84b8ebb9024 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Wed, 17 Jul 2019 11:32:50 +1000
+Subject: [PATCH] (perl #134291) propagate non-PVs in $@ in bare die()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ pp_sys.c   | 2 +-
+ t/op/die.t | 6 +++++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/pp_sys.c b/pp_sys.c
+index 0214367ea6..251527785e 100644
+--- a/pp_sys.c
++++ b/pp_sys.c
+@@ -498,7 +498,7 @@ PP(pp_die)
+ 		}
+ 	    }
+ 	}
+-	else if (SvPOK(errsv) && SvCUR(errsv)) {
++	else if (SvOK(errsv) && (SvPV_nomg(errsv,len), len)) {
+ 	    exsv = sv_mortalcopy(errsv);
+ 	    sv_catpvs(exsv, "\t...propagated");
+ 	}
+diff --git a/t/op/die.t b/t/op/die.t
+index ef2b85f8f5..d6d7daffa5 100644
+--- a/t/op/die.t
++++ b/t/op/die.t
+@@ -6,7 +6,7 @@ BEGIN {
+     set_up_inc('../lib');
+ }
+ 
+-plan tests => 20;
++plan tests => 21;
+ 
+ eval {
+     eval {
+@@ -94,6 +94,10 @@ like($@, qr/\.{3}propagated at/, '... and appends a phrase');
+     local $SIG{__WARN__} = sub { $ok = 0 };
+     eval { undef $@; die };
+     is( $ok, 1, 'no warnings if $@ is undef' );
++
++    eval { $@ = 100; die };
++    like($@."", qr/100\t\.{3}propagated at/,
++         'check non-PVs in $@ are propagated');
+ }
+ 
+ TODO: {
+-- 
+2.20.1
+

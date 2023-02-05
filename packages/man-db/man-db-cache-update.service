@@ -1,0 +1,14 @@
+[Unit]
+DefaultDependencies=no
+After=local-fs.target
+Before=reboot.target shutdown.target halt.target
+JobTimeoutSec=15min
+
+[Service]
+Type=oneshot
+TimeoutStartSec=infinity
+Environment=MAN_NO_LOCALE_WARNING=1
+EnvironmentFile=/etc/sysconfig/man-db
+ExecStart=/bin/sh -c '[ "$SERVICE" != "no" ] && /usr/bin/mandb $OPTS || true'
+Nice=19
+IOWeight=20

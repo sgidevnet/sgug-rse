@@ -1,0 +1,84 @@
+From 40258daf9899686d934c460ba3630431312d7694 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Wed, 15 May 2019 15:59:49 +1000
+Subject: [PATCH] (perl #134072) allow \&foo = \&bar to work in main::
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+subs in main:: are stored as a RV referring to a CV as a space
+optimization, but the pp_refassign code expected to find a glob,
+which made the assignment a no-op.
+
+Fix this by upgrading the reference to a glob in the refassign check
+function.
+
+Note that this would be an issue in other packages if 1e2cfe157ca
+was reverted (allowing the space savings in other packages too.)
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ op.c         |  9 +++++++++
+ t/op/lvref.t | 15 ++++++++++++++-
+ 2 files changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/op.c b/op.c
+index f63eeadc36..6ad192307f 100644
+--- a/op.c
++++ b/op.c
+@@ -12462,7 +12462,16 @@ Perl_ck_refassign(pTHX_ OP *o)
+ 	OP * const kid = cUNOPx(kidparent)->op_first;
+ 	o->op_private |= OPpLVREF_CV;
+ 	if (kid->op_type == OP_GV) {
++            SV *sv = (SV*)cGVOPx_gv(kid);
+ 	    varop = kidparent;
++            if (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVCV) {
++                /* a CVREF here confuses pp_refassign, so make sure
++                   it gets a GV */
++                CV *const cv = (CV*)SvRV(sv);
++                SV *name_sv = sv_2mortal(newSVhek(CvNAME_HEK(cv)));
++                (void)gv_init_sv((GV*)sv, CvSTASH(cv), name_sv, 0);
++                assert(SvTYPE(sv) == SVt_PVGV);
++            }
+ 	    goto detach_and_stack;
+ 	}
+ 	if (kid->op_type != OP_PADCV)	goto bad;
+diff --git a/t/op/lvref.t b/t/op/lvref.t
+index 3d5e952fb0..3991a53780 100644
+--- a/t/op/lvref.t
++++ b/t/op/lvref.t
+@@ -1,10 +1,11 @@
++#!perl
+ BEGIN {
+     chdir 't';
+     require './test.pl';
+     set_up_inc("../lib");
+ }
+ 
+-plan 164;
++plan 167;
+ 
+ eval '\$x = \$y';
+ like $@, qr/^Experimental aliasing via reference not enabled/,
+@@ -291,6 +292,18 @@ package CodeTest {
+   my sub bs;
+   \(&cs) = expect_list_cx;
+   is \&cs, \&ThatSub, '\(&statesub)';
++
++  package main {
++    # this is only a problem in main:: due to 1e2cfe157ca
++    sub sx { "x" }
++    sub sy { "y" }
++    is sx(), "x", "check original";
++    my $temp = \&sx;
++    \&sx = \&sy;
++    is sx(), "y", "aliased";
++    \&sx = $temp;
++    is sx(), "x", "and restored";
++  }
+ }
+ 
+ # Mixed List Assignments
+-- 
+2.20.1
+

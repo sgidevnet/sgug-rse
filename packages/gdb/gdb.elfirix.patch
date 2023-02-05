@@ -1,0 +1,23 @@
+--- /usr/people/vladimir/tmp/mips-irix-tdep.c	2021-11-18 15:21:59.857384191 +0000
++++ gdb-7.6.2/gdb/mips-irix-tdep.c	2021-11-18 15:06:29.784909361 +0000
+@@ -28,6 +28,10 @@
+ #include "trad-frame.h"
+ #include "tramp-frame.h"
+ 
++#ifndef ELFOSABI_IRIX
++#define ELFOSABI_IRIX 8
++#endif
++
+ static void
+ mips_irix_elf_osabi_sniff_abi_tag_sections (bfd *abfd, asection *sect,
+                                             void *obj)
+@@ -63,6 +67,9 @@
+ 
+   elfosabi = elf_elfheader (abfd)->e_ident[EI_OSABI];
+ 
++  if (elfosabi == ELFOSABI_IRIX)
++    return GDB_OSABI_IRIX;
++
+   if (elfosabi == ELFOSABI_NONE)
+     {
+       /* When elfosabi is ELFOSABI_NONE (0), then the ELF structures in the

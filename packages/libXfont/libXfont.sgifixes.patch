@@ -1,0 +1,27 @@
+diff -Naur libXfont-1.5.4.orig/src/fontfile/dirfile.c libXfont-1.5.4/src/fontfile/dirfile.c
+--- libXfont-1.5.4.orig/src/fontfile/dirfile.c	2017-11-28 15:34:21.000000000 +0000
++++ libXfont-1.5.4/src/fontfile/dirfile.c	2021-04-15 17:46:14.965021530 +0000
+@@ -94,7 +94,11 @@
+ 	strcat(dir_file, "/");
+     strcat(dir_file, FontDirFile);
+ #ifndef WIN32
++#if defined(__sgi)    
++    file_fd = open(dir_file, O_RDONLY);
++#else
+     file_fd = open(dir_file, O_RDONLY | O_NOFOLLOW);
++#endif    
+     if (file_fd >= 0) {
+ 	file = fdopen(file_fd, "rt");
+     }
+@@ -291,7 +295,11 @@
+     }
+ 
+ #ifndef WIN32
++#if defined(__sgi)
++    file_fd = open(alias_file, O_RDONLY);
++#else
+     file_fd = open(alias_file, O_RDONLY | O_NOFOLLOW);
++#endif    
+     if (file_fd >= 0) {
+ 	file = fdopen(file_fd, "rt");
+     }

@@ -1,0 +1,31 @@
+commit d338fd6e949ef62e7eac4eb5c024059e02158b06
+Author: Miroslav Lichvar <mlichvar@redhat.com>
+Date:   Wed Jul 25 13:07:42 2018 +0200
+
+    Replaced memcpy in SLang_getkey
+    
+    memcpy() is not defined for overlapping buffers, i.e. it may copy bytes
+    in any direction. As SLMEMMOVE is not defined in slang, replace the
+    SLMEMCPY call with a for loop.
+
+diff --git a/src/slgetkey.c b/src/slgetkey.c
+index 86e7946..d9bc678 100644
+--- a/src/slgetkey.c
++++ b/src/slgetkey.c
+@@ -40,13 +40,13 @@ unsigned int SLang_getkey (void)
+ 
+    if (SLang_Input_Buffer_Len)
+      {
+-	unsigned int imax;
++	unsigned int i, imax;
+ 	ch = (unsigned int) *SLang_Input_Buffer;
+ 	SLang_Input_Buffer_Len--;
+ 	imax = SLang_Input_Buffer_Len;
+ 
+-	SLMEMCPY ((char *) SLang_Input_Buffer,
+-		(char *) (SLang_Input_Buffer + 1), imax);
++	for (i = 0; i < imax; i++)
++	  SLang_Input_Buffer[i] = SLang_Input_Buffer[i + 1];
+      }
+    else if (SLANG_GETKEY_ERROR == (ch = _pSLsys_getkey ())) return ch;
+ 

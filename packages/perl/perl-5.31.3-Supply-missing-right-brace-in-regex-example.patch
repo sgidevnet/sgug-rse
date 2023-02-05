@@ -1,0 +1,31 @@
+From 7ea7c4bb61d23965a7ad7041fe9c58b5075aac85 Mon Sep 17 00:00:00 2001
+From: James E Keenan <jkeenan@cpan.org>
+Date: Sat, 31 Aug 2019 19:18:36 -0400
+Subject: [PATCH] Supply missing right brace in regex example
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+As suggested by Jim Avera in RT 134395.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ pod/perlrebackslash.pod | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pod/perlrebackslash.pod b/pod/perlrebackslash.pod
+index cfd182a7e1..4a8717346d 100644
+--- a/pod/perlrebackslash.pod
++++ b/pod/perlrebackslash.pod
+@@ -446,7 +446,7 @@ Mnemonic: I<g>roup.
+ =head3 Relative referencing
+ 
+ C<\g-I<N>> (starting in Perl 5.10.0) is used for relative addressing.  (It can
+-be written as C<\g{-I<N>>.)  It refers to the I<N>th group before the
++be written as C<\g{-I<N>}>.)  It refers to the I<N>th group before the
+ C<\g{-I<N>}>.
+ 
+ The big advantage of this form is that it makes it much easier to write
+-- 
+2.21.0
+

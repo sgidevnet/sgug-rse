@@ -1,0 +1,49 @@
+diff -Naur cinepaint-0.21-0.original/app/main.c cinepaint-0.21-0/app/main.c
+--- cinepaint-0.21-0.original/app/main.c	2006-03-27 06:18:24.000000000 +0000
++++ cinepaint-0.21-0/app/main.c	2021-09-28 08:48:25.985737680 +0000
+@@ -60,6 +60,26 @@
+ static RETSIGTYPE on_sig_refresh (int);
+ static void       init (void);
+ 
++
++// SGI libc fix
++#ifdef __sgi
++
++int
++setenv(const char *name, const char *value, int o)
++{
++    size_t len = strlen(name) + strlen(value) + 2;
++    char *s = malloc(len+1);
++    int ret;
++
++    snprintf(s, len, "%s=%s", name, value);
++    ret = putenv(s);
++    free(s);
++    return ret;
++}
++
++#define unsetenv(x) setenv(x, "", 1)
++#endif
++
+ /* GLOBAL data */
+ int no_interface;
+ int no_data;
+diff -Naur cinepaint-0.21-0.original/plug-ins/Makefile.in cinepaint-0.21-0/plug-ins/Makefile.in
+--- cinepaint-0.21-0.original/plug-ins/Makefile.in	2006-03-23 14:39:20.000000000 +0000
++++ cinepaint-0.21-0/plug-ins/Makefile.in	2021-09-28 08:02:52.929924320 +0000
+@@ -255,7 +255,6 @@
+ 	gbr \
+ 	gifload \
+ 	hdr \
+-	@ICC_EXAMIN@ \
+ 	iff \
+ 	jpeg \
+ 	mblur \
+@@ -265,7 +264,6 @@
+ 	openexr \
+ 	@PDF@ \
+ 	pic \
+-	png \
+ 	pnm \
+ 	@PRINT@ \
+ 	psd \

@@ -1,0 +1,84 @@
+diff -up ncftp-3.2.5/ncftp/bookmark.h.me ncftp-3.2.5/ncftp/bookmark.h
+--- ncftp-3.2.5/ncftp/bookmark.h.me	2020-02-18 17:06:09.912983512 +0100
++++ ncftp-3.2.5/ncftp/bookmark.h	2020-02-18 17:06:49.646643869 +0100
+@@ -29,6 +29,8 @@ typedef struct Bookmark {
+ 	int				deleted;
+ } Bookmark;
+ 
++extern Bookmark gBm;
++
+ #define kBookmarkVersion		8
+ #define kBookmarkMinVersion		3
+ #if (defined(WIN32) || defined(_WINDOWS)) && !defined(__CYGWIN__)
+diff -up ncftp-3.2.5/ncftp/cmds.c.me ncftp-3.2.5/ncftp/cmds.c
+--- ncftp-3.2.5/ncftp/cmds.c.me	2020-02-18 17:04:00.959840371 +0100
++++ ncftp-3.2.5/ncftp/cmds.c	2020-02-18 17:04:11.686018634 +0100
+@@ -91,7 +91,7 @@ extern char gPager[], gHome[], gShell[];
+ extern char gOS[];
+ extern int gAutoResume;
+ extern int gAutoSaveChangesToExistingBookmarks;
+-extern Bookmark gBm;
++//extern Bookmark gBm;
+ extern int gLoadedBm, gConfirmClose, gSavePasswords, gScreenColumns;
+ extern char gLocalCWD[512], gPrevLocalCWD[512];
+ extern int gMayCancelJmp;
+diff -up ncftp-3.2.5/ncftp/main.c.me ncftp-3.2.5/ncftp/main.c
+--- ncftp-3.2.5/ncftp/main.c.me	2020-02-18 17:04:24.591233115 +0100
++++ ncftp-3.2.5/ncftp/main.c	2020-02-18 17:04:36.597432655 +0100
+@@ -38,7 +38,7 @@ extern int gUnprocessedJobs;
+ char gLocalCWD[512], gPrevLocalCWD[512];
+ 
+ extern char gRemoteCWD[512], gPrevRemoteCWD[512];
+-extern Bookmark gBm;
++//extern Bookmark gBm;
+ extern int gLoadedBm;
+ extern int gFirewallType;
+ extern char gAutoAscii[];
+diff -up ncftp-3.2.5/sh_util/gpshare.c.me ncftp-3.2.5/sh_util/gpshare.c
+--- ncftp-3.2.5/sh_util/gpshare.c.me	2020-02-18 17:04:44.079557006 +0100
++++ ncftp-3.2.5/sh_util/gpshare.c	2020-02-18 17:04:50.739667692 +0100
+@@ -28,7 +28,7 @@
+ 
+ static int gIsAtty1 = 1, gIsAtty2 = 1;
+ extern int gLoadedBm, gBookmarkMatchMode;
+-Bookmark gBm;
++//Bookmark gBm;
+ 
+ double
+ FileSize(double size, const char **uStr0, double *uMult0)
+diff -up ncftp-3.2.5/sh_util/ncftpget.c.me ncftp-3.2.5/sh_util/ncftpget.c
+--- ncftp-3.2.5/sh_util/ncftpget.c.me	2020-02-18 17:05:00.823835280 +0100
++++ ncftp-3.2.5/sh_util/ncftpget.c	2020-02-18 17:05:09.109972992 +0100
+@@ -40,7 +40,7 @@ extern unsigned int gFirewallPort;
+ extern char gFirewallExceptionList[256];
+ extern int gFwDataPortMode;
+ extern const char gOS[], gVersion[];
+-extern Bookmark gBm;
++//extern Bookmark gBm;
+ 
+ static void
+ Usage(void)
+diff -up ncftp-3.2.5/sh_util/ncftpls.c.me ncftp-3.2.5/sh_util/ncftpls.c
+--- ncftp-3.2.5/sh_util/ncftpls.c.me	2020-02-18 17:05:17.672115292 +0100
++++ ncftp-3.2.5/sh_util/ncftpls.c	2020-02-18 17:05:25.117239028 +0100
+@@ -39,7 +39,7 @@ extern unsigned int gFirewallPort;
+ extern char gFirewallExceptionList[256];
+ extern int gFwDataPortMode;
+ extern const char gOS[], gVersion[];
+-extern Bookmark gBm;
++//extern Bookmark gBm;
+ 
+ static int FTPRemoteRecursiveMList(FTPCIPtr cip, const char *const rdir, /* FTPFileInfoListPtr files, */ FTPLineListPtr lines);
+ 
+diff -up ncftp-3.2.5/sh_util/ncftpput.c.me ncftp-3.2.5/sh_util/ncftpput.c
+--- ncftp-3.2.5/sh_util/ncftpput.c.me	2020-02-18 17:05:33.696381610 +0100
++++ ncftp-3.2.5/sh_util/ncftpput.c	2020-02-18 17:06:03.150871130 +0100
+@@ -39,7 +39,7 @@ extern unsigned int gFirewallPort;
+ extern char gFirewallExceptionList[256];
+ extern int gFwDataPortMode;
+ extern const char gOS[], gVersion[];
+-extern Bookmark gBm;
++//extern Bookmark gBm;
+ 
+ static void
+ Usage(void)

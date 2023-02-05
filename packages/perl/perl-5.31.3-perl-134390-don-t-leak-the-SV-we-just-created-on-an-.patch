@@ -1,0 +1,29 @@
+From 05a03c0da6f3694904885fa1629a6e35e75d2875 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Mon, 2 Sep 2019 15:35:36 +1000
+Subject: [PATCH] (perl #134390) don't leak the SV we just created on an early
+ return
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ regexec.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/regexec.c b/regexec.c
+index c390bff72e..97ea458a20 100644
+--- a/regexec.c
++++ b/regexec.c
+@@ -10405,6 +10405,7 @@ S_to_byte_substr(pTHX_ regexp *prog)
+ 	    && !prog->substrs->data[i].substr) {
+ 	    SV* sv = newSVsv(prog->substrs->data[i].utf8_substr);
+ 	    if (! sv_utf8_downgrade(sv, TRUE)) {
++                SvREFCNT_dec_NN(sv);
+                 return FALSE;
+             }
+             if (SvVALID(prog->substrs->data[i].utf8_substr)) {
+-- 
+2.21.0
+

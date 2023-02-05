@@ -1,0 +1,77 @@
+From 042def505a4dd5cf22e61c0b85428c16766a5f46 Mon Sep 17 00:00:00 2001
+From: Jan Chaloupka <jchaloup@redhat.com>
+Date: Mon, 23 Mar 2015 14:17:24 +0100
+Subject: [PATCH] format-security
+
+---
+ joe/cmd.c    | 4 ++--
+ joe/uerror.c | 4 ++--
+ joe/ufile.c  | 6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/joe/cmd.c b/joe/cmd.c
+index 863edb9..150c1a5 100644
+--- a/joe/cmd.c
++++ b/joe/cmd.c
+@@ -235,7 +235,7 @@ static int steal_lock(W *w,int c,void *object,int *notify)
+ 			if(bf1[0])
+ 				joe_snprintf_1(bf,SIZEOF(bf),joe_gettext(LOCKMSG1),bf1);
+ 			else
+-				joe_snprintf_0(bf, SIZEOF(bf), joe_gettext(LOCKMSG2));
++				joe_snprintf_1(bf,SIZEOF(bf),"%s",joe_gettext(LOCKMSG2));
+ 			if (mkqw(w, sz(bf), steal_lock, NULL, b, notify)) {
+ 				return 0;
+ 			} else {
+@@ -293,7 +293,7 @@ int try_lock(BW *bw,B *b)
+ 			if(bf1[0])
+ 				joe_snprintf_1(bf,SIZEOF(bf),joe_gettext(LOCKMSG1),bf1);
+ 			else
+-				joe_snprintf_0(bf, SIZEOF(bf), joe_gettext(LOCKMSG2));
++				joe_snprintf_1(bf,SIZEOF(bf),"%s",joe_gettext(LOCKMSG2));
+ 			if (mkqw(bw->parent, sz(bf), steal_lock, NULL, b, NULL)) {
+ 				uquery(bw->parent, 0);
+ 				if (!b->locked)
+diff --git a/joe/uerror.c b/joe/uerror.c
+index ab58908..8e112b5 100644
+--- a/joe/uerror.c
++++ b/joe/uerror.c
+@@ -327,7 +327,7 @@ int parserrb(B *b)
+ 	if (n)
+ 		joe_snprintf_1(msgbuf, JOE_MSGBUFSIZE, joe_gettext(_("%d messages found")), (int)n);
+ 	else
+-		joe_snprintf_0(msgbuf, SIZEOF(msgbuf), joe_gettext(_("No messages found")));
++		joe_snprintf_1(msgbuf, JOE_MSGBUFSIZE, "%s", joe_gettext(_("No messages found")));
+ 	msgnw(bw->parent, msgbuf);
+ 	return 0;
+ }
+@@ -341,7 +341,7 @@ int uparserr(W *w, int k)
+ 	if (n)
+ 		joe_snprintf_1(msgbuf, JOE_MSGBUFSIZE, joe_gettext(_("%d messages found")), (int)n);
+ 	else
+-		joe_snprintf_0(msgbuf, SIZEOF(msgbuf), joe_gettext(_("No messages found")));
++		joe_snprintf_1(msgbuf, JOE_MSGBUFSIZE, "%s", joe_gettext(_("No messages found")));
+ 	msgnw(bw->parent, msgbuf);
+ 	return 0;
+ }
+diff --git a/joe/ufile.c b/joe/ufile.c
+index e0f7754..347ff66 100644
+--- a/joe/ufile.c
++++ b/joe/ufile.c
+@@ -62,11 +62,11 @@ static void genexmsgmulti(BW *bw, int saved, int skipped)
+ {
+ 	if (saved)
+ 		if (skipped)
+-			joe_snprintf_0(msgbuf, SIZEOF(msgbuf), joe_gettext(_("Some files have not been saved.")));
++			joe_snprintf_0(msgbuf, JOE_MSGBUFSIZE, joe_gettext(_("Some files have not been saved.")));
+ 		else
+-			joe_snprintf_0(msgbuf, SIZEOF(msgbuf), joe_gettext(_("All modified files have been saved.")));
++			joe_snprintf_0(msgbuf, JOE_MSGBUFSIZE, joe_gettext(_("All modified files have been saved.")));
+ 	else
+-		joe_snprintf_0(msgbuf, SIZEOF(msgbuf), joe_gettext(_("No modified files, so no updates needed.")));
++		joe_snprintf_1(msgbuf, JOE_MSGBUFSIZE, "%s", joe_gettext(_("No modified files, so no updates needed.")));
+ 
+ 	msgnw(bw->parent, msgbuf);
+ 
+-- 
+1.9.3
+

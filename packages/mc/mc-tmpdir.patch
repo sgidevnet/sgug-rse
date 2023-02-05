@@ -1,0 +1,32 @@
+diff -up mc-4.8.24/contrib/mc-wrapper.sh.in.tmpdir mc-4.8.24/contrib/mc-wrapper.sh.in
+--- mc-4.8.24/contrib/mc-wrapper.sh.in.tmpdir	2020-01-27 09:17:46.815515791 +0100
++++ mc-4.8.24/contrib/mc-wrapper.sh.in	2020-01-27 09:18:01.430712110 +0100
+@@ -1,5 +1,5 @@
+ MC_USER=`whoami`
+-MC_PWD_FILE="${TMPDIR-/tmp}/mc-$MC_USER/mc.pwd.$$"
++MC_PWD_FILE="${TMPDIR-/var/tmp}/mc-$MC_USER/mc.pwd.$$"
+ @bindir@/mc -P "$MC_PWD_FILE" "$@"
+ 
+ if test -r "$MC_PWD_FILE"; then
+--- mc-4.8.21/lib/global.h~
++++ mc-4.8.21/lib/global.h
+@@ -131,7 +131,7 @@
+ #define PATH_SEP_STR "/"
+ #define IS_PATH_SEP(c) ((c) == PATH_SEP)
+ #define PATH_ENV_SEP ':'
+-#define TMPDIR_DEFAULT "/tmp"
++#define TMPDIR_DEFAULT "/var/tmp"
+ #define SCRIPT_SUFFIX ""
+ #define get_default_editor() "vi"
+ #define OS_SORT_CASE_SENSITIVE_DEFAULT TRUE
+--- mc-4.8.22/contrib/mc-wrapper.csh.in~
++++ mc-4.8.22/contrib/mc-wrapper.csh.in
+@@ -3,7 +3,7 @@
+ if ($?TMPDIR) then
+ 	setenv MC_PWD_FILE $TMPDIR/mc-$MC_USER/mc.pwd.$$
+ else
+-	setenv MC_PWD_FILE /tmp/mc-$MC_USER/mc.pwd.$$
++	setenv MC_PWD_FILE /var/tmp/mc-$MC_USER/mc.pwd.$$
+ endif
+ 
+ @bindir@/mc -P "$MC_PWD_FILE" $*

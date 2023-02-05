@@ -1,0 +1,12 @@
+diff -up gnupg-2.1.21/g10/keygen.c.large-rsa gnupg-2.1.21/g10/keygen.c
+--- gnupg-2.1.21/g10/keygen.c.large-rsa	2017-05-15 14:13:22.000000000 +0200
++++ gnupg-2.1.21/g10/keygen.c	2017-07-18 16:12:37.738895016 +0200
+@@ -2091,7 +2091,7 @@ get_keysize_range (int algo, unsigned in
+ 
+     default:
+       *min = opt.compliance == CO_DE_VS ? 2048: 1024;
+-      *max = 4096;
++      *max = opt.flags.large_rsa == 1 ? 8192 : 4096;
+       def = 2048;
+       break;
+     }

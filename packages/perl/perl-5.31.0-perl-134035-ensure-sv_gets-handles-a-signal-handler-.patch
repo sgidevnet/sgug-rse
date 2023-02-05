@@ -1,0 +1,42 @@
+From 368ac47cccd4ffca6e83a26289c152a32c2ea385 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Wed, 17 Apr 2019 15:45:15 +1000
+Subject: [PATCH] (perl #134035) ensure sv_gets() handles a signal handler
+ modifying sv
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+At a very basic level at least.
+
+In the ticket cases, a signal handler is modifying (and reallocating
+PVX) the sv, while sv_gets() retained a pointer to the inside of the
+SV.
+
+This still has some problems, like if the signal handler ends up
+shortening SV, there may be old data left between the old position
+and the new position, but I think that's a case of user error.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ sv.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/sv.c b/sv.c
+index 8bc0af0c16..83de536ad7 100644
+--- a/sv.c
++++ b/sv.c
+@@ -8755,7 +8755,10 @@ Perl_sv_gets(pTHX_ SV *const sv, PerlIO *const fp, I32 append)
+ 
+             Note we have to deal with the char in 'i' if we are not at EOF
+         */
++        bpx = bp - (STDCHAR*)SvPVX_const(sv);
++        /* signals might be called here, possibly modifying sv */
+ 	i   = PerlIO_getc(fp);		/* get more characters */
++        bp = (STDCHAR*)SvPVX_const(sv) + bpx;
+ 
+ 	DEBUG_Pv(PerlIO_printf(Perl_debug_log,
+ 	   "Screamer: post: FILE * thinks ptr=%" UVuf ", cnt=%" IVdf ", base=%" UVuf "\n",
+-- 
+2.20.1
+

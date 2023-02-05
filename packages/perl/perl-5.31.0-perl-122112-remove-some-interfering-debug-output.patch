@@ -1,0 +1,28 @@
+From 2fe0d7f40a94163d6c242c3e695fdcd19e387422 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Tue, 11 Jun 2019 14:59:23 +1000
+Subject: [PATCH] (perl #122112) remove some interfering debug output
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ t/io/pipe.t | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/t/io/pipe.t b/t/io/pipe.t
+index fc3071300d..9f5bb3bcf8 100644
+--- a/t/io/pipe.t
++++ b/t/io/pipe.t
+@@ -253,7 +253,6 @@ my \$cmd = qq(\$Perl -e "sleep 3");
+ my \$pid = open my \$fh, "|\$cmd" or die "\$!\n";
+ close \$fh;
+ PROG
+-    print $prog;
+     my $out = fresh_perl($prog, {});
+     cmp_ok($out, '!~', qr/refcnt/, "no exception from PerlIO");
+     # checks that that program did something rather than failing to
+-- 
+2.20.1
+

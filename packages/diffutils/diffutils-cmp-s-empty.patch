@@ -1,0 +1,20 @@
+diff -up diffutils-3.6/src/cmp.c.cmp-s-empty diffutils-3.6/src/cmp.c
+--- diffutils-3.6/src/cmp.c.cmp-s-empty	2017-05-18 18:39:59.000000000 +0100
++++ diffutils-3.6/src/cmp.c	2017-05-22 10:53:28.477147864 +0100
+@@ -330,12 +330,15 @@ main (int argc, char **argv)
+ 
+   /* If only a return code is needed,
+      and if both input descriptors are associated with plain files,
++     and if both files are larger than 0 bytes (procfs files are always 0),
+      conclude that the files differ if they have different sizes
+      and if more bytes will be compared than are in the smaller file.  */
+ 
+   if (comparison_type == type_status
+       && S_ISREG (stat_buf[0].st_mode)
+-      && S_ISREG (stat_buf[1].st_mode))
++      && S_ISREG (stat_buf[1].st_mode)
++      && stat_buf[0].st_size > 0
++      && stat_buf[1].st_size > 0)
+     {
+       off_t s0 = stat_buf[0].st_size - file_position (0);
+       off_t s1 = stat_buf[1].st_size - file_position (1);

@@ -1,0 +1,44 @@
+diff -up texinfo-6.1/install-info/install-info.c.orig texinfo-6.1/install-info/install-info.c
+--- texinfo-6.1/install-info/install-info.c.orig	2016-06-22 09:49:38.766013018 +0200
++++ texinfo-6.1/install-info/install-info.c	2016-06-22 14:11:58.673780736 +0200
+@@ -973,18 +973,23 @@ output_dirfile (char *dirfile, int dir_n
+   int n_entries_added = 0;
+   int i;
+   FILE *output;
++  char *dirfile_tmp = NULL;
++
++  asprintf (&dirfile_tmp, "%s.tmp", dirfile);
++  if (!dirfile_tmp)
++    xalloc_die ();
+ 
+   if (compression_program)
+     {
+-      char *command = concat (compression_program, ">", dirfile);
++      char *command = concat (compression_program, ">", dirfile_tmp);
+       output = popen (command, "w");
+     }
+   else
+-    output = fopen (dirfile, "w");
++    output = fopen (dirfile_tmp, "w");
+ 
+   if (!output)
+     {
+-      perror (dirfile);
++      perror (dirfile_tmp);
+       exit (EXIT_FAILURE);
+     }
+ 
+@@ -1095,6 +1100,13 @@ output_dirfile (char *dirfile, int dir_n
+     pclose (output);
+   else
+     fclose (output);
++
++  if (rename (dirfile_tmp, dirfile) < 0)
++    {
++      perror (dirfile_tmp);
++      exit (EXIT_FAILURE);
++    }
++  free (dirfile_tmp);
+ }
+ 
+ /* Read through the input LINES, to find the section names and the

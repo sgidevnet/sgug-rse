@@ -1,0 +1,58 @@
+#! /bin/sh -e
+## 05_idelay-manpage.dpatch by James Troup <james@nocrew.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Update manpage for how -idelay/-delay actually work.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+diff -urNad 05.xloadimage.tmp/xloadimage.man 05.xloadimage/xloadimage.man
+--- 05.xloadimage.tmp/xloadimage.man	1993-10-21 22:29:05.000000000 +0100
++++ 05.xloadimage/xloadimage.man	2003-04-02 19:33:28.000000000 +0100
+@@ -84,9 +84,6 @@
+ debugging.  If an X error is seen while in this mode, a core will be
+ dumped.
+ .TP
+--delay \fIsecs\fR
+-Automatically advance to the next image after \fIsecs\fR seconds.
+-.TP
+ -display \fIdisplay_name\fR
+ X11 display name to send the image(s) to.
+ .TP
+@@ -237,6 +234,11 @@
+ Specify the maximum number of colors to use in the image.  This is a
+ way to forcibly reduce the depth of an image.
+ .TP
++-delay \fIsecs\fR
++Automatically advance to the next image after \fIsecs\fR seconds.  You
++may want to use the \fI-global\fR switch with this command to create a
++slideshow with multiple images.
++.TP
+ -dither
+ Dither a color image to monochrome using a Floyd-Steinberg dithering
+ algorithm.  This happens by default when viewing color images on a
+@@ -273,10 +275,8 @@
+ but will take longer to process and will be less accurate.
+ .TP
+ -idelay \fIsecs\fR
+-Set the delay to be used for this image to \fIsecs\fR seconds (see
+-\fI-delay\fR).  If \fI-delay\fR was specified, this overrides it.  If
+-it was not specified, this sets the automatic advance delay for this
+-image while others will wait for the user to advance them.
++This option is no longer supported due to the addition of
++\fI-global\fR.  The same functionality can be had with \fI-delay\fR.
+ .TP
+ -invert
+ Inverts a monochrome image.  This is shorthand for \fI-foreground

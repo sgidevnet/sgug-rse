@@ -1,0 +1,12 @@
+--- SDL_ttf-2.0.11.orig/configure	2020-12-30 17:35:08.957523400 +0000
++++ SDL_ttf-2.0.11/configure	2020-12-31 18:41:26.493064600 +0000
+@@ -13192,6 +13192,9 @@
+ 	fi
+         SYS_GL_LIBS=""
+         ;;
++    mips-sgi-irix6.5)
++        SYS_GL_LIBS="-lGL -lGLcore /usr/lib32/libXext.so -Wl,--allow-shlib-undefined"
++        ;;
+     *)
+         MATHLIB="-lm"
+         { echo "$as_me:$LINENO: checking for X" >&5

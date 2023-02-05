@@ -1,0 +1,33 @@
+diff -up gnupg-2.1.10/g10/gpg.c.secmem gnupg-2.1.10/g10/gpg.c
+--- gnupg-2.1.10/g10/gpg.c.secmem	2015-12-04 10:53:27.000000000 +0100
++++ gnupg-2.1.10/g10/gpg.c	2015-12-07 15:32:38.922812652 +0100
+@@ -889,7 +889,7 @@ make_libversion (const char *libname, co
+ 
+   if (maybe_setuid)
+     {
+-      gcry_control (GCRYCTL_INIT_SECMEM, 0, 0);  /* Drop setuid. */
++      gcry_control (GCRYCTL_INIT_SECMEM, 4096, 0);  /* Drop setuid. */
+       maybe_setuid = 0;
+     }
+   s = getfnc (NULL);
+@@ -1041,7 +1041,7 @@ build_list (const char *text, char lette
+   char *string;
+ 
+   if (maybe_setuid)
+-    gcry_control (GCRYCTL_INIT_SECMEM, 0, 0);  /* Drop setuid. */
++    gcry_control (GCRYCTL_INIT_SECMEM, 4096, 0);  /* Drop setuid. */
+ 
+   indent = utf8_charcount (text, -1);
+   len = 0;
+diff -up gnupg-2.1.10/sm/gpgsm.c.secmem gnupg-2.1.10/sm/gpgsm.c
+--- gnupg-2.1.10/sm/gpgsm.c.secmem	2015-11-30 17:39:52.000000000 +0100
++++ gnupg-2.1.10/sm/gpgsm.c	2015-12-07 15:31:17.226884207 +0100
+@@ -530,7 +530,7 @@ make_libversion (const char *libname, co
+ 
+   if (maybe_setuid)
+     {
+-      gcry_control (GCRYCTL_INIT_SECMEM, 0, 0);  /* Drop setuid. */
++      gcry_control (GCRYCTL_INIT_SECMEM, 4096, 0);  /* Drop setuid. */
+       maybe_setuid = 0;
+     }
+   s = getfnc (NULL);

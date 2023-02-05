@@ -1,0 +1,27 @@
+diff -up which-2.21/tilde/tilde.c.me which-2.21/tilde/tilde.c
+--- which-2.21/tilde/tilde.c.me	2018-07-23 14:32:47.002225732 +0200
++++ which-2.21/tilde/tilde.c	2018-07-23 14:49:06.363623898 +0200
+@@ -196,7 +196,8 @@ tilde_expand (string)
+   int result_size, result_index;
+ 
+   result_index = result_size = 0;
+-  if (result = strchr (string, '~'))
++  result = strchr (string, '~');
++  if (result)
+     result = (char *)xmalloc (result_size = (strlen (string) + 16));
+   else
+     result = (char *)xmalloc (result_size = (strlen (string) + 1));
+diff -up which-2.21/which.c.me which-2.21/which.c
+diff -up which-2.21/which.c.me which-2.21/which.c
+--- which-2.21/which.c.me	2018-07-23 15:09:04.355222509 +0200
++++ which-2.21/which.c	2018-07-25 14:57:43.696309701 +0200
+@@ -671,6 +671,9 @@ int main(int argc, char *argv[])
+     }
+   }
+ 
++  if (abs_path)
++    free(abs_path);
++
+   return fail_count;
+ }
+ 

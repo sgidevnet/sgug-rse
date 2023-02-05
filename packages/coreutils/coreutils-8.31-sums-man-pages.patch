@@ -1,0 +1,36 @@
+From ef6be60dcaf424bdb21392aff42331bd4dc272e0 Mon Sep 17 00:00:00 2001
+From: Kamil Dudka <kdudka@redhat.com>
+Date: Thu, 14 Mar 2019 13:48:01 +0100
+Subject: [PATCH] md5sum,b2sum,sha*sum: --help: add note about binary/text mode
+
+* src/md5sum.c (usage): Make it clear that there is no difference
+between binary mode and text mode on GNU systems.
+
+Bug: https://bugzilla.redhat.com/406981
+Bug: https://bugzilla.redhat.com/1688740
+
+Upstream-commit: ae61b1066351bb784b54fbfd7b52caf129ec286c
+Signed-off-by: Kamil Dudka <kdudka@redhat.com>
+---
+ src/md5sum.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/md5sum.c b/src/md5sum.c
+index 3532f7b7a..f75b6de02 100644
+--- a/src/md5sum.c
++++ b/src/md5sum.c
+@@ -287,7 +287,10 @@ The following five options are useful only when verifying checksums:\n\
+ The sums are computed as described in %s.  When checking, the input\n\
+ should be a former output of this program.  The default mode is to print a\n\
+ line with checksum, a space, a character indicating input mode ('*' for binary,\
+-\n' ' for text or where binary is insignificant), and name for each FILE.\n"),
++\n' ' for text or where binary is insignificant), and name for each FILE.\n\
++\n\
++Note: There is no difference between binary mode and text mode on GNU systems.\
++\n"),
+               DIGEST_REFERENCE);
+       emit_ancillary_info (PROGRAM_NAME);
+     }
+-- 
+2.17.2
+

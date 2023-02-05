@@ -1,0 +1,28 @@
+diff -up Python-2.7.3/Lib/pydoc.py.no_gui Python-2.7.3/Lib/pydoc.py
+--- Python-2.7.3/Lib/pydoc.py.no_gui	2012-04-09 19:07:31.000000000 -0400
++++ Python-2.7.3/Lib/pydoc.py	2013-02-19 13:48:44.480054515 -0500
+@@ -19,9 +19,6 @@ of all available modules.
+ local machine to generate documentation web pages.  Port number 0 can be
+ used to get an arbitrary unused port.
+ 
+-For platforms without a command line, "pydoc -g" starts the HTTP server
+-and also pops up a little window for controlling it.
+-
+ Run "pydoc -w <name>" to write out the HTML documentation for a module
+ to a file named "<name>.html".
+ 
+@@ -2346,13 +2340,10 @@ def cli():
+     Start an HTTP server on the given port on the local machine.  Port
+     number 0 can be used to get an arbitrary unused port.
+ 
+-%s -g
+-    Pop up a graphical interface for finding and serving documentation.
+-
+ %s -w <name> ...
+     Write out the HTML documentation for a module to a file in the current
+     directory.  If <name> contains a '%s', it is treated as a filename; if
+     it names a directory, documentation is written for all the contents.
+-""" % (cmd, os.sep, cmd, cmd, cmd, cmd, os.sep)
++""" % (cmd, os.sep, cmd, cmd, cmd, os.sep)
+ 
+ if __name__ == '__main__': cli()

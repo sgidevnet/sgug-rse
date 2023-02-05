@@ -1,0 +1,34 @@
+#! /bin/sh -e
+## 09_xloadimagerc-path.dpatch by Austin Donnelly <and1000@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Include ~images in path for system-wide configuration file.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+diff -urNad 09.xloadimage.tmp/xloadimagerc 09.xloadimage/xloadimagerc
+--- 09.xloadimage.tmp/xloadimagerc	1993-10-21 22:30:32.000000000 +0100
++++ 09.xloadimage/xloadimagerc	2003-04-02 23:44:16.000000000 +0100
+@@ -1,6 +1,9 @@
+ # Sample .xloadimagerc file
+ 
+-path = /usr/local/images
++# Directories to search for images
++path = ~/images /usr/local/images
++
++# Default extensions to try tacking onto the end of a filename, in order
+ extension = .niff             # NIFF image
+             .jpg .jpeg        # JPEG image
+             .gif              # CompuServe GIF image

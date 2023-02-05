@@ -1,0 +1,70 @@
+From 35608a1658fe75c79ca53d96aea6cf7cb2a98615 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Thu, 9 May 2019 09:52:30 +1000
+Subject: [PATCH] (perl #122112) a simpler fix for pclose() aborted by a signal
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This change results in a zombie child process for the lifetime of
+the process, but I think that's the responsibility of the signal
+handler that aborted pclose().
+
+We could add some magic to retry (and retry and retry) waiting on
+child process as we rewind (since there's no other way to remove
+the zombie), but the program has chosen implicitly to abort the
+wait() done by pclose() and it's best to honor that.
+
+If we do choose to retry the wait() we might be blocking an attempt
+by the process to terminate, whether by exit() or die().
+
+If a program does need more flexible handling there's always
+pipe()/fork()/exec() and/or the various event-driven frameworks on
+CPAN.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ doio.c      | 12 +++++++++++-
+ t/io/pipe.t |  2 --
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/doio.c b/doio.c
+index 0cc4e55404..05a06968dc 100644
+--- a/doio.c
++++ b/doio.c
+@@ -1779,7 +1779,17 @@ Perl_io_close(pTHX_ IO *io, GV *gv, bool not_implicit, bool warn_on_fail)
+ 
+     if (IoIFP(io)) {
+ 	if (IoTYPE(io) == IoTYPE_PIPE) {
+-	    const int status = PerlProc_pclose(IoIFP(io));
++            PerlIO *fh = IoIFP(io);
++            int status;
++
++            /* my_pclose() can propagate signals which might bypass any code
++               after the call here if the signal handler throws an exception.
++               This would leave the handle in the IO object and try to close it again
++               when the SV is destroyed on unwind or global destruction.
++               So NULL it early.
++            */
++            IoOFP(io) = IoIFP(io) = NULL;
++	    status = PerlProc_pclose(fh);
+ 	    if (not_implicit) {
+ 		STATUS_NATIVE_CHILD_SET(status);
+ 		retval = (STATUS_UNIX == 0);
+diff --git a/t/io/pipe.t b/t/io/pipe.t
+index 1d01db6af6..fc3071300d 100644
+--- a/t/io/pipe.t
++++ b/t/io/pipe.t
+@@ -255,9 +255,7 @@ close \$fh;
+ PROG
+     print $prog;
+     my $out = fresh_perl($prog, {});
+-    $::TODO = "not fixed yet";
+     cmp_ok($out, '!~', qr/refcnt/, "no exception from PerlIO");
+-    undef $::TODO;
+     # checks that that program did something rather than failing to
+     # compile
+     cmp_ok($out, '=~', qr/Died at/, "but we did get the exception from die");
+-- 
+2.20.1
+

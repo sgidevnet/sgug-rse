@@ -1,0 +1,99 @@
+--- lib/IO/Socket/SSL.pm
++++ lib/IO/Socket/SSL.pm
+@@ -172,11 +172,10 @@ my %DEFAULT_SSL_ARGS = (
+     SSL_npn_protocols => undef,    # meaning depends whether on server or client side
+     SSL_alpn_protocols => undef,   # list of protocols we'll accept/send, for example ['http/1.1','spdy/3.1']
+ 
+-    # https://wiki.mozilla.org/Security/Server_Side_TLS, 2019/03/05
+-    # "Old backward compatibility" for best compatibility
+-    # .. "Most ciphers that are not clearly broken and dangerous to use are supported"
+-    # slightly reordered to prefer AES since it is cheaper when hardware accelerated
+-    SSL_cipher_list => 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:DES-CBC3-SHA:HIGH:SEED:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!RSAPSK:!aDH:!aECDH:!EDH-DSS-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!SRP',
++    # Use system-wide default cipher list to support use of system-wide
++    # crypto policy (#1076390, #1127577, CPAN RT#97816)
++    # https://fedoraproject.org/wiki/Changes/CryptoPolicy
++    SSL_cipher_list => 'PROFILE=SYSTEM',
+ );
+ 
+ my %DEFAULT_SSL_CLIENT_ARGS = (
+@@ -186,63 +185,6 @@ my %DEFAULT_SSL_CLIENT_ARGS = (
+     SSL_ca_file => undef,
+     SSL_ca_path => undef,
+ 
+-    # older versions of F5 BIG-IP hang when getting SSL client hello >255 bytes
+-    # http://support.f5.com/kb/en-us/solutions/public/13000/000/sol13037.html
+-    # http://guest:guest@rt.openssl.org/Ticket/Display.html?id=2771
+-    # Ubuntu worked around this by disabling TLSv1_2 on the client side for
+-    # a while. Later a padding extension was added to OpenSSL to work around
+-    # broken F5 but then IronPort croaked because it did not understand this
+-    # extension so it was disabled again :(
+-    # Firefox, Chrome and IE11 use TLSv1_2 but use only a few ciphers, so
+-    # that packet stays small enough. We try the same here.
+-
+-    SSL_cipher_list => join(" ",
+-
+-	# SSLabs report for Chrome 48/OSX. 
+-	# This also includes the fewer ciphers Firefox uses.
+-	'ECDHE-ECDSA-AES128-GCM-SHA256',
+-	'ECDHE-RSA-AES128-GCM-SHA256',
+-	'DHE-RSA-AES128-GCM-SHA256',
+-	'ECDHE-ECDSA-CHACHA20-POLY1305',
+-	'ECDHE-RSA-CHACHA20-POLY1305',
+-	'ECDHE-ECDSA-AES256-SHA',
+-	'ECDHE-RSA-AES256-SHA',
+-	'DHE-RSA-AES256-SHA',
+-	'ECDHE-ECDSA-AES128-SHA',
+-	'ECDHE-RSA-AES128-SHA',
+-	'DHE-RSA-AES128-SHA',
+-	'AES128-GCM-SHA256',
+-	'AES256-SHA',
+-	'AES128-SHA',
+-	'DES-CBC3-SHA',
+-
+-	# IE11/Edge has some more ciphers, notably SHA384 and DSS
+-	# we don't offer the *-AES128-SHA256 and *-AES256-SHA384 non-GCM
+-	# ciphers IE/Edge offers because they look like a large mismatch
+-	# between a very strong HMAC and a comparably weak (but sufficient)
+-	# encryption. Similar all browsers which do SHA384 can do ECDHE
+-	# so skip the DHE*SHA384 ciphers.
+-	'ECDHE-RSA-AES256-GCM-SHA384',
+-	'ECDHE-ECDSA-AES256-GCM-SHA384',
+-	# 'ECDHE-RSA-AES256-SHA384',
+-	# 'ECDHE-ECDSA-AES256-SHA384',
+-	# 'ECDHE-RSA-AES128-SHA256',
+-	# 'ECDHE-ECDSA-AES128-SHA256',
+-	# 'DHE-RSA-AES256-GCM-SHA384',
+-	# 'AES256-GCM-SHA384',
+-	'AES256-SHA256',
+-	# 'AES128-SHA256',
+-	'DHE-DSS-AES256-SHA256',
+-	# 'DHE-DSS-AES128-SHA256',
+-	'DHE-DSS-AES256-SHA',
+-	'DHE-DSS-AES128-SHA',
+-	'EDH-DSS-DES-CBC3-SHA',
+-
+-	# Just to make sure, that we don't accidentally add bad ciphers above.
+-	# This includes dropping RC4 which is no longer supported by modern
+-	# browsers and also excluded in the SSL libraries of Python and Ruby.
+-	"!EXP !MEDIUM !LOW !eNULL !aNULL !RC4 !DES !MD5 !PSK !SRP"
+-    )
+ );
+ 
+ # set values inside _init to work with perlcc, RT#95452
+--- lib/IO/Socket/SSL.pod
++++ lib/IO/Socket/SSL.pod
+@@ -1054,12 +1054,8 @@ documentation (L<http://www.openssl.org/
+ for more details.
+ 
+ Unless you fail to contact your peer because of no shared ciphers it is
+-recommended to leave this option at the default setting. The default setting
+-prefers ciphers with forward secrecy, disables anonymous authentication and
+-disables known insecure ciphers like MD5, DES etc. This gives a grade A result
+-at the tests of SSL Labs.
+-To use the less secure OpenSSL builtin default (whatever this is) set
+-SSL_cipher_list to ''.
++recommended to leave this option at the default setting, which honors the
++system-wide PROFILE=SYSTEM cipher list.
+ 
+ In case different cipher lists are needed for different SNI hosts a hash can be
+ given with the host as key and the cipher suite as value, similar to

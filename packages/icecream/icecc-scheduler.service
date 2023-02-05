@@ -1,0 +1,12 @@
+[Unit]
+Description=Icecream distributed compiler scheduler
+
+[Service]
+Type=simple
+User=icecc
+Group=icecc
+SyslogIdentifier=icecc-scheduler
+ExecStart=/usr/libexec/icecc/icecc-scheduler-wrapper
+
+[Install]
+WantedBy=multi-user.target

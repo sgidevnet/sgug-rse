@@ -1,0 +1,134 @@
+diff -up libgcrypt-1.8.4/random/random.c.getrandom libgcrypt-1.8.4/random/random.c
+--- libgcrypt-1.8.4/random/random.c.getrandom	2017-11-23 19:16:58.000000000 +0100
++++ libgcrypt-1.8.4/random/random.c	2018-11-20 15:52:41.738708554 +0100
+@@ -110,8 +110,8 @@ _gcry_random_read_conf (void)
+   unsigned int result = 0;
+ 
+   fp = fopen (fname, "r");
+-  if (!fp)
+-    return result;
++  if (!fp) /* We make only_urandom the default. */
++    return RANDOM_CONF_ONLY_URANDOM;
+ 
+   for (;;)
+     {
+diff -up libgcrypt-1.8.4/random/random-csprng.c.getrandom libgcrypt-1.8.4/random/random-csprng.c
+--- libgcrypt-1.8.4/random/random-csprng.c.getrandom	2017-11-23 19:16:58.000000000 +0100
++++ libgcrypt-1.8.4/random/random-csprng.c	2018-11-20 15:52:41.738708554 +0100
+@@ -55,6 +55,10 @@
+ #ifdef __MINGW32__
+ #include <process.h>
+ #endif
++#if defined(__linux__) && defined(HAVE_SYSCALL)
++# include <sys/syscall.h>
++# include <linux/random.h>
++#endif
+ #include "g10lib.h"
+ #include "random.h"
+ #include "rand-internal.h"
+@@ -1116,6 +1120,22 @@ getfnc_gather_random (void))(void (*)(co
+              enum random_origins, size_t, int);
+ 
+ #if USE_RNDLINUX
++#if defined(__linux__) && defined(HAVE_SYSCALL) && defined(__NR_getrandom)
++  long ret;
++  char buffer[1];
++
++  _gcry_pre_syscall ();
++  ret = syscall (__NR_getrandom,
++                 (void*)buffer, (size_t)1, (unsigned int)GRND_NONBLOCK);
++  _gcry_post_syscall ();
++  if (ret != -1 || errno != ENOSYS)
++    {
++      fnc = _gcry_rndlinux_gather_random;
++      return fnc;
++    }
++  else
++          /* The syscall is not supported - fallback to /dev/urandom. */
++#endif
+   if ( !access (NAME_OF_DEV_RANDOM, R_OK)
+        && !access (NAME_OF_DEV_URANDOM, R_OK))
+     {
+diff -up libgcrypt-1.8.4/random/rndlinux.c.getrandom libgcrypt-1.8.4/random/rndlinux.c
+--- libgcrypt-1.8.4/random/rndlinux.c.getrandom	2018-11-20 15:52:41.731708393 +0100
++++ libgcrypt-1.8.4/random/rndlinux.c	2018-11-20 16:06:45.431207374 +0100
+@@ -35,6 +35,7 @@
+ #include <poll.h>
+ #if defined(__linux__) && defined(HAVE_SYSCALL)
+ # include <sys/syscall.h>
++# include <linux/random.h>
+ #endif
+ 
+ #include "types.h"
+@@ -147,12 +148,12 @@ _gcry_rndlinux_gather_random (void (*add
+   if (!add)
+     {
+       /* Special mode to close the descriptors.  */
+-      if (fd_random != -1)
++      if (fd_random >= 0)
+         {
+           close (fd_random);
+           fd_random = -1;
+         }
+-      if (fd_urandom != -1)
++      if (fd_urandom >= 0)
+         {
+           close (fd_urandom);
+           fd_urandom = -1;
+@@ -166,12 +167,12 @@ _gcry_rndlinux_gather_random (void (*add
+   apid = getpid ();
+   if (my_pid != apid)
+     {
+-      if (fd_random != -1)
++      if (fd_random >= 0)
+         {
+           close (fd_random);
+           fd_random = -1;
+         }
+-      if (fd_urandom != -1)
++      if (fd_urandom >= 0)
+         {
+           close (fd_urandom);
+           fd_urandom = -1;
+@@ -216,6 +217,22 @@ _gcry_rndlinux_gather_random (void (*add
+      that we always require the device to be existent but want a more
+      graceful behaviour if the rarely needed close operation has been
+      used and the device needs to be re-opened later. */
++#if defined(__linux__) && defined(HAVE_SYSCALL) && defined(__NR_getrandom)
++   if (fd_urandom != -2)
++     {
++       long ret;
++
++       _gcry_pre_syscall ();
++       ret = syscall (__NR_getrandom,
++                      (void*)buffer, (size_t)1, (unsigned int)GRND_NONBLOCK);
++       _gcry_post_syscall ();
++       if (ret > -1 || errno == EAGAIN || errno == EINTR)
++         {
++           fd_urandom = -2;
++           fd_random = -2;
++         }
++     }
++#endif
+   if (level >= GCRY_VERY_STRONG_RANDOM && !only_urandom)
+     {
+       if (fd_random == -1)
+@@ -255,6 +272,7 @@ _gcry_rndlinux_gather_random (void (*add
+        * syscall and not a new device and thus we are not able to use
+        * select(2) to have a timeout. */
+ #if defined(__linux__) && defined(HAVE_SYSCALL) && defined(__NR_getrandom)
++      if (fd == -2)
+         {
+           long ret;
+           size_t nbytes;
+@@ -270,9 +288,7 @@ _gcry_rndlinux_gather_random (void (*add
+               _gcry_post_syscall ();
+             }
+           while (ret == -1 && errno == EINTR);
+-          if (ret == -1 && errno == ENOSYS)
+-            ; /* The syscall is not supported - fallback to pulling from fd.  */
+-          else
++          if (1)
+             { /* The syscall is supported.  Some sanity checks.  */
+               if (ret == -1)
+                 log_fatal ("unexpected error from getrandom: %s\n",

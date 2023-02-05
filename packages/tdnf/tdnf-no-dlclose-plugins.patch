@@ -1,0 +1,11 @@
+--- tdnf-3.0.0-beta/client/plugins.c.orig	2021-11-19 14:57:30.307988836 +0000
++++ tdnf-3.0.0-beta/client/plugins.c	2021-11-19 14:57:15.299176437 +0000
+@@ -197,7 +197,7 @@
+     }
+     if (pPlugin->pModule)
+     {
+-        dlclose(pPlugin->pModule);
++        //dlclose(pPlugin->pModule);
+     }
+ }
+ 

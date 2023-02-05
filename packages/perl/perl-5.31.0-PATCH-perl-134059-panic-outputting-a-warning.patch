@@ -1,0 +1,75 @@
+From cc16d262eb72677cdda2aa9395e943818b85ba38 Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Mon, 29 Apr 2019 15:24:18 -0600
+Subject: [PATCH] PATCH: [perl #134059] panic outputting a warning
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This was due to a logic error on my part.  We need to save and restore a
+value.  Instead, it was getting restored to the wrong value.
+
+This particular instance of the bug was outputting a fatal error
+message, so that the only harm is not giving the user the correct info,
+and creating unnecessary work for them and us when it gets reported.
+But this bug could manifest itself when trying to output just a warning
+that the program otherwise would carry on from.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ regcomp.c       | 12 ++++++++++--
+ t/re/reg_mesg.t |  1 +
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/regcomp.c b/regcomp.c
+index 3ad09c52b2..1c54fe3f38 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -131,6 +131,8 @@ struct RExC_state_t {
+     char	*parse;			/* Input-scan pointer. */
+     char        *copy_start;            /* start of copy of input within
+                                            constructed parse string */
++    char        *save_copy_start;       /* Provides one level of saving
++                                           and restoring 'copy_start' */
+     char        *copy_start_in_input;   /* Position in input string
+                                            corresponding to copy_start */
+     SSize_t	whilem_seen;		/* number of WHILEM in this expr */
+@@ -229,6 +231,7 @@ struct RExC_state_t {
+ #define RExC_precomp	(pRExC_state->precomp)
+ #define RExC_copy_start_in_input (pRExC_state->copy_start_in_input)
+ #define RExC_copy_start_in_constructed  (pRExC_state->copy_start)
++#define RExC_save_copy_start_in_constructed  (pRExC_state->save_copy_start)
+ #define RExC_precomp_end (pRExC_state->precomp_end)
+ #define RExC_rx_sv	(pRExC_state->rx_sv)
+ #define RExC_rx		(pRExC_state->rx)
+@@ -821,8 +824,13 @@ static const scan_data_t zero_scan_data = {
+ } STMT_END
+ 
+ /* Setting this to NULL is a signal to not output warnings */
+-#define TURN_OFF_WARNINGS_IN_SUBSTITUTE_PARSE RExC_copy_start_in_constructed = NULL
+-#define RESTORE_WARNINGS RExC_copy_start_in_constructed = RExC_precomp
++#define TURN_OFF_WARNINGS_IN_SUBSTITUTE_PARSE                               \
++    STMT_START {                                                            \
++      RExC_save_copy_start_in_constructed  = RExC_copy_start_in_constructed;\
++      RExC_copy_start_in_constructed = NULL;                                \
++    } STMT_END
++#define RESTORE_WARNINGS                                                    \
++    RExC_copy_start_in_constructed = RExC_save_copy_start_in_constructed
+ 
+ /* Since a warning can be generated multiple times as the input is reparsed, we
+  * output it the first time we come to that point in the parse, but suppress it
+diff --git a/t/re/reg_mesg.t b/t/re/reg_mesg.t
+index c5c79f0323..d10fa2c09a 100644
+--- a/t/re/reg_mesg.t
++++ b/t/re/reg_mesg.t
+@@ -318,6 +318,7 @@ my @death =
+  '/\p{Is_Other_Alphabetic=F}/ ' => 'Can\'t find Unicode property definition "Is_Other_Alphabetic=F" {#} m/\p{Is_Other_Alphabetic=F}{#}/',
+  '/\x{100}(?(/' => 'Unknown switch condition (?(...)) {#} m/\\x{100}(?({#}/', # [perl #133896]
+  '/(?[\N{KEYCAP DIGIT NINE}/' => '\N{} in inverted character class or as a range end-point is restricted to one character {#} m/(?[\\N{U+39.FE0F.20E3{#}}/', # [perl #133988]
++ '/0000000000000000[\N{U+0.00}0000/' => 'Unmatched [ {#} m/0000000000000000[{#}\N{U+0.00}0000/', # [perl #134059]
+ );
+ 
+ # These are messages that are death under 'use re "strict"', and may or may
+-- 
+2.20.1
+

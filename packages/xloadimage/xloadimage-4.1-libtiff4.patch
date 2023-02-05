@@ -1,0 +1,20 @@
+diff -up xloadimage.4.1/tiff.c.tiff4 xloadimage.4.1/tiff.c
+--- xloadimage.4.1/tiff.c.tiff4	2012-05-07 18:00:10.384739299 -0400
++++ xloadimage.4.1/tiff.c	2012-05-07 18:01:16.685241646 -0400
+@@ -34,14 +34,14 @@ static TIFF *is_tiff(fullname, name, inf
+      struct tiff_info *info;
+ {
+   ZFILE *zf;
+-  TIFFHeader th;
++  TIFFHeaderCommon th;
+   TIFF *tiff;
+ 
+   zf = zopen(fullname);
+ 
+   /* read TIFF header and see if it looks right
+    */
+-  if ((zread(zf, (byte *)&th, sizeof(TIFFHeader)) == sizeof(TIFFHeader)) &&
++  if ((zread(zf, (byte *)&th, sizeof(TIFFHeaderCommon)) == sizeof(TIFFHeaderCommon)) &&
+       ((th.tiff_magic == TIFF_BIGENDIAN) ||
+        (th.tiff_magic == TIFF_LITTLEENDIAN))) {
+ 

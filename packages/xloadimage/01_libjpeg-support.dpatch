@@ -1,0 +1,4203 @@
+#! /bin/sh -e
+## 01_libjpeg-support.dpatch by Yoshida Hiroshi <BXH04165@nifty.ne.jp>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Add support for libjpeg6b and other misc fixes.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+				    
+diff -urNad 01.xloadimage.tmp/Makefile.in 01.xloadimage/Makefile.in
+--- 01.xloadimage.tmp/Makefile.in	1970-01-01 01:00:00.000000000 +0100
++++ 01.xloadimage/Makefile.in	2003-04-03 00:11:28.000000000 +0100
+@@ -0,0 +1,51 @@
++#
++# Makefile for autoconf tutorial
++#
++
++CC = @CC@
++DEFS = @DEFS@
++CFLAGS = @CFLAGS@
++XLIB = @X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
++LDFLAGS = @LDFLAGS@
++LIBS = @LIBS@
++
++SRCS = bright.c clip.c cmuwmraster.c compress.c config.c \
++dither.c faces.c fbm.c fill.c gif.c halftone.c imagetypes.c img.c jpeg.c \
++mac.c mc_tables.c mcidas.c merge.c misc.c new.c niff.c options.c \
++pbm.c pcx.c pdsuncomp.c reduce.c rle.c rlelib.c root.c rotate.c \
++send.c smooth.c sunraster.c tiff.c undither.c value.c vff.c \
++vicar.c window.c xbitmap.c xloadimage.c xpixmap.c xwd.c zio.c zoom.c
++
++OBJS = $(SRCS:.c=.o)
++PROG = xloadimage
++
++all: $(PROG) uufilter
++
++$(PROG): $(OBJS)
++	./build-info
++	$(CC) $(CFLAGS) -c $(DEFS) build.c 
++	$(CC) -o $@ $(OBJS) build.o$(LDFLAGS) $(XLIB) $(LIBS)
++
++uufilter: uufilter.c
++	$(CC) $(CFLAGS) $(DEFS) uufilter.c -o $@
++
++.c.o: config.h image.h
++	$(CC) $(CFLAGS) -c $(DEFS) $<
++
++build.c:
++	./build-info
++clean:
++	rm -f $(PROG) uufilter build.c *.o
++
++distclean:
++	make clean
++	rm -f config.log config.cache config.status config.h Makefile
++
++config.h.in: configure.in
++	autoheader
++
++configure: configure.in
++	autoconf
++
++Makefile: Makefile.in
++	./configure
+diff -urNad 01.xloadimage.tmp/config.h.in 01.xloadimage/config.h.in
+--- 01.xloadimage.tmp/config.h.in	1970-01-01 01:00:00.000000000 +0100
++++ 01.xloadimage/config.h.in	2003-04-03 00:11:28.000000000 +0100
+@@ -0,0 +1,40 @@
++/* config.h.in.  Generated automatically from configure.in by autoheader.  */
++
++/* Define as the return type of signal handlers (int or void).  */
++#undef RETSIGTYPE
++
++/* Define if you have the ANSI C header files.  */
++#undef STDC_HEADERS
++
++/* Define if the X Window System is missing or not being used.  */
++#undef X_DISPLAY_MISSING
++
++/* Define if you have the mkdir function.  */
++#undef HAVE_MKDIR
++
++/* Define if you have the select function.  */
++#undef HAVE_SELECT
++
++/* Define if you have the <malloc.h> header file.  */
++#undef HAVE_MALLOC_H
++
++/* Define if you have the <strings.h> header file.  */
++#undef HAVE_STRINGS_H
++
++/* Define if you have the <sys/time.h> header file.  */
++#undef HAVE_SYS_TIME_H
++
++/* Define if you have the <unistd.h> header file.  */
++#undef HAVE_UNISTD_H
++
++/* Define if you have the jpeg library (-ljpeg).  */
++#undef HAVE_LIBJPEG
++
++/* Define if you have the m library (-lm).  */
++#undef HAVE_LIBM
++
++/* Define if you have the tiff library (-ltiff).  */
++#undef HAVE_LIBTIFF
++
++/* Define if you have the z library (-lz).  */
++#undef HAVE_LIBZ
+diff -urNad 01.xloadimage.tmp/configure 01.xloadimage/configure
+--- 01.xloadimage.tmp/configure	1970-01-01 01:00:00.000000000 +0100
++++ 01.xloadimage/configure	2003-04-03 00:11:28.000000000 +0100
+@@ -0,0 +1,2357 @@
++#! /bin/sh
++
++# Guess values for system-dependent variables and create Makefiles.
++# Generated automatically using autoconf version 2.12 
++# Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
++#
++# This configure script is free software; the Free Software Foundation
++# gives unlimited permission to copy, distribute and modify it.
++
++# Defaults:
++ac_help=
++ac_default_prefix=/usr/local
++# Any additions from configure.in:
++ac_help="$ac_help
++  --with-x                use the X Window System"
++
++# Initialize some variables set by options.
++# The variables have the same names as the options, with
++# dashes changed to underlines.
++build=NONE
++cache_file=./config.cache
++exec_prefix=NONE
++host=NONE
++no_create=
++nonopt=NONE
++no_recursion=
++prefix=NONE
++program_prefix=NONE
++program_suffix=NONE
++program_transform_name=s,x,x,
++silent=
++site=
++srcdir=
++target=NONE
++verbose=
++x_includes=NONE
++x_libraries=NONE
++bindir='${exec_prefix}/bin'
++sbindir='${exec_prefix}/sbin'
++libexecdir='${exec_prefix}/libexec'
++datadir='${prefix}/share'
++sysconfdir='${prefix}/etc'
++sharedstatedir='${prefix}/com'
++localstatedir='${prefix}/var'
++libdir='${exec_prefix}/lib'
++includedir='${prefix}/include'
++oldincludedir='/usr/include'
++infodir='${prefix}/info'
++mandir='${prefix}/man'
++
++# Initialize some other variables.
++subdirs=
++MFLAGS= MAKEFLAGS=
++# Maximum number of lines to put in a shell here document.
++ac_max_here_lines=12
++
++ac_prev=
++for ac_option
++do
++
++  # If the previous option needs an argument, assign it.
++  if test -n "$ac_prev"; then
++    eval "$ac_prev=\$ac_option"
++    ac_prev=
++    continue
++  fi
++
++  case "$ac_option" in
++  -*=*) ac_optarg=`echo "$ac_option" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
++  *) ac_optarg= ;;
++  esac
++
++  # Accept the important Cygnus configure options, so we can diagnose typos.
++
++  case "$ac_option" in
++
++  -bindir | --bindir | --bindi | --bind | --bin | --bi)
++    ac_prev=bindir ;;
++  -bindir=* | --bindir=* | --bindi=* | --bind=* | --bin=* | --bi=*)
++    bindir="$ac_optarg" ;;
++
++  -build | --build | --buil | --bui | --bu)
++    ac_prev=build ;;
++  -build=* | --build=* | --buil=* | --bui=* | --bu=*)
++    build="$ac_optarg" ;;
++
++  -cache-file | --cache-file | --cache-fil | --cache-fi \
++  | --cache-f | --cache- | --cache | --cach | --cac | --ca | --c)
++    ac_prev=cache_file ;;
++  -cache-file=* | --cache-file=* | --cache-fil=* | --cache-fi=* \
++  | --cache-f=* | --cache-=* | --cache=* | --cach=* | --cac=* | --ca=* | --c=*)
++    cache_file="$ac_optarg" ;;
++
++  -datadir | --datadir | --datadi | --datad | --data | --dat | --da)
++    ac_prev=datadir ;;
++  -datadir=* | --datadir=* | --datadi=* | --datad=* | --data=* | --dat=* \
++  | --da=*)
++    datadir="$ac_optarg" ;;
++
++  -disable-* | --disable-*)
++    ac_feature=`echo $ac_option|sed -e 's/-*disable-//'`
++    # Reject names that are not valid shell variable names.
++    if test -n "`echo $ac_feature| sed 's/[-a-zA-Z0-9_]//g'`"; then
++      { echo "configure: error: $ac_feature: invalid feature name" 1>&2; exit 1; }
++    fi
++    ac_feature=`echo $ac_feature| sed 's/-/_/g'`
++    eval "enable_${ac_feature}=no" ;;
++
++  -enable-* | --enable-*)
++    ac_feature=`echo $ac_option|sed -e 's/-*enable-//' -e 's/=.*//'`
++    # Reject names that are not valid shell variable names.
++    if test -n "`echo $ac_feature| sed 's/[-_a-zA-Z0-9]//g'`"; then
++      { echo "configure: error: $ac_feature: invalid feature name" 1>&2; exit 1; }
++    fi
++    ac_feature=`echo $ac_feature| sed 's/-/_/g'`
++    case "$ac_option" in
++      *=*) ;;
++      *) ac_optarg=yes ;;
++    esac
++    eval "enable_${ac_feature}='$ac_optarg'" ;;
++
++  -exec-prefix | --exec_prefix | --exec-prefix | --exec-prefi \
++  | --exec-pref | --exec-pre | --exec-pr | --exec-p | --exec- \
++  | --exec | --exe | --ex)
++    ac_prev=exec_prefix ;;
++  -exec-prefix=* | --exec_prefix=* | --exec-prefix=* | --exec-prefi=* \
++  | --exec-pref=* | --exec-pre=* | --exec-pr=* | --exec-p=* | --exec-=* \
++  | --exec=* | --exe=* | --ex=*)
++    exec_prefix="$ac_optarg" ;;
++
++  -gas | --gas | --ga | --g)
++    # Obsolete; use --with-gas.
++    with_gas=yes ;;
++
++  -help | --help | --hel | --he)
++    # Omit some internal or obsolete options to make the list less imposing.
++    # This message is too long to be a string in the A/UX 3.1 sh.
++    cat << EOF
++Usage: configure [options] [host]
++Options: [defaults in brackets after descriptions]
++Configuration:
++  --cache-file=FILE       cache test results in FILE
++  --help                  print this message
++  --no-create             do not create output files
++  --quiet, --silent       do not print \`checking...' messages
++  --version               print the version of autoconf that created configure
++Directory and file names:
++  --prefix=PREFIX         install architecture-independent files in PREFIX
++                          [$ac_default_prefix]
++  --exec-prefix=EPREFIX   install architecture-dependent files in EPREFIX
++                          [same as prefix]
++  --bindir=DIR            user executables in DIR [EPREFIX/bin]
++  --sbindir=DIR           system admin executables in DIR [EPREFIX/sbin]
++  --libexecdir=DIR        program executables in DIR [EPREFIX/libexec]
++  --datadir=DIR           read-only architecture-independent data in DIR
++                          [PREFIX/share]
++  --sysconfdir=DIR        read-only single-machine data in DIR [PREFIX/etc]
++  --sharedstatedir=DIR    modifiable architecture-independent data in DIR
++                          [PREFIX/com]
++  --localstatedir=DIR     modifiable single-machine data in DIR [PREFIX/var]
++  --libdir=DIR            object code libraries in DIR [EPREFIX/lib]
++  --includedir=DIR        C header files in DIR [PREFIX/include]
++  --oldincludedir=DIR     C header files for non-gcc in DIR [/usr/include]
++  --infodir=DIR           info documentation in DIR [PREFIX/info]
++  --mandir=DIR            man documentation in DIR [PREFIX/man]
++  --srcdir=DIR            find the sources in DIR [configure dir or ..]
++  --program-prefix=PREFIX prepend PREFIX to installed program names
++  --program-suffix=SUFFIX append SUFFIX to installed program names
++  --program-transform-name=PROGRAM
++                          run sed PROGRAM on installed program names
++EOF
++    cat << EOF
++Host type:
++  --build=BUILD           configure for building on BUILD [BUILD=HOST]
++  --host=HOST             configure for HOST [guessed]
++  --target=TARGET         configure for TARGET [TARGET=HOST]
++Features and packages:
++  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
++  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
++  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
++  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
++  --x-includes=DIR        X include files are in DIR
++  --x-libraries=DIR       X library files are in DIR
++EOF
++    if test -n "$ac_help"; then
++      echo "--enable and --with options recognized:$ac_help"
++    fi
++    exit 0 ;;
++
++  -host | --host | --hos | --ho)
++    ac_prev=host ;;
++  -host=* | --host=* | --hos=* | --ho=*)
++    host="$ac_optarg" ;;
++
++  -includedir | --includedir | --includedi | --included | --include \
++  | --includ | --inclu | --incl | --inc)
++    ac_prev=includedir ;;
++  -includedir=* | --includedir=* | --includedi=* | --included=* | --include=* \
++  | --includ=* | --inclu=* | --incl=* | --inc=*)
++    includedir="$ac_optarg" ;;
++
++  -infodir | --infodir | --infodi | --infod | --info | --inf)
++    ac_prev=infodir ;;
++  -infodir=* | --infodir=* | --infodi=* | --infod=* | --info=* | --inf=*)
++    infodir="$ac_optarg" ;;
++
++  -libdir | --libdir | --libdi | --libd)
++    ac_prev=libdir ;;
++  -libdir=* | --libdir=* | --libdi=* | --libd=*)
++    libdir="$ac_optarg" ;;
++
++  -libexecdir | --libexecdir | --libexecdi | --libexecd | --libexec \
++  | --libexe | --libex | --libe)
++    ac_prev=libexecdir ;;
++  -libexecdir=* | --libexecdir=* | --libexecdi=* | --libexecd=* | --libexec=* \
++  | --libexe=* | --libex=* | --libe=*)
++    libexecdir="$ac_optarg" ;;
++
++  -localstatedir | --localstatedir | --localstatedi | --localstated \
++  | --localstate | --localstat | --localsta | --localst \
++  | --locals | --local | --loca | --loc | --lo)
++    ac_prev=localstatedir ;;
++  -localstatedir=* | --localstatedir=* | --localstatedi=* | --localstated=* \
++  | --localstate=* | --localstat=* | --localsta=* | --localst=* \
++  | --locals=* | --local=* | --loca=* | --loc=* | --lo=*)
++    localstatedir="$ac_optarg" ;;
++
++  -mandir | --mandir | --mandi | --mand | --man | --ma | --m)
++    ac_prev=mandir ;;
++  -mandir=* | --mandir=* | --mandi=* | --mand=* | --man=* | --ma=* | --m=*)
++    mandir="$ac_optarg" ;;
++
++  -nfp | --nfp | --nf)
++    # Obsolete; use --without-fp.
++    with_fp=no ;;
++
++  -no-create | --no-create | --no-creat | --no-crea | --no-cre \
++  | --no-cr | --no-c)
++    no_create=yes ;;
++
++  -no-recursion | --no-recursion | --no-recursio | --no-recursi \
++  | --no-recurs | --no-recur | --no-recu | --no-rec | --no-re | --no-r)
++    no_recursion=yes ;;
++
++  -oldincludedir | --oldincludedir | --oldincludedi | --oldincluded \
++  | --oldinclude | --oldinclud | --oldinclu | --oldincl | --oldinc \
++  | --oldin | --oldi | --old | --ol | --o)
++    ac_prev=oldincludedir ;;
++  -oldincludedir=* | --oldincludedir=* | --oldincludedi=* | --oldincluded=* \
++  | --oldinclude=* | --oldinclud=* | --oldinclu=* | --oldincl=* | --oldinc=* \
++  | --oldin=* | --oldi=* | --old=* | --ol=* | --o=*)
++    oldincludedir="$ac_optarg" ;;
++
++  -prefix | --prefix | --prefi | --pref | --pre | --pr | --p)
++    ac_prev=prefix ;;
++  -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
++    prefix="$ac_optarg" ;;
++
++  -program-prefix | --program-prefix | --program-prefi | --program-pref \
++  | --program-pre | --program-pr | --program-p)
++    ac_prev=program_prefix ;;
++  -program-prefix=* | --program-prefix=* | --program-prefi=* \
++  | --program-pref=* | --program-pre=* | --program-pr=* | --program-p=*)
++    program_prefix="$ac_optarg" ;;
++
++  -program-suffix | --program-suffix | --program-suffi | --program-suff \
++  | --program-suf | --program-su | --program-s)
++    ac_prev=program_suffix ;;
++  -program-suffix=* | --program-suffix=* | --program-suffi=* \
++  | --program-suff=* | --program-suf=* | --program-su=* | --program-s=*)
++    program_suffix="$ac_optarg" ;;
++
++  -program-transform-name | --program-transform-name \
++  | --program-transform-nam | --program-transform-na \
++  | --program-transform-n | --program-transform- \
++  | --program-transform | --program-transfor \
++  | --program-transfo | --program-transf \
++  | --program-trans | --program-tran \
++  | --progr-tra | --program-tr | --program-t)
++    ac_prev=program_transform_name ;;
++  -program-transform-name=* | --program-transform-name=* \
++  | --program-transform-nam=* | --program-transform-na=* \
++  | --program-transform-n=* | --program-transform-=* \
++  | --program-transform=* | --program-transfor=* \
++  | --program-transfo=* | --program-transf=* \
++  | --program-trans=* | --program-tran=* \
++  | --progr-tra=* | --program-tr=* | --program-t=*)
++    program_transform_name="$ac_optarg" ;;
++
++  -q | -quiet | --quiet | --quie | --qui | --qu | --q \
++  | -silent | --silent | --silen | --sile | --sil)
++    silent=yes ;;
++
++  -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
++    ac_prev=sbindir ;;
++  -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
++  | --sbi=* | --sb=*)
++    sbindir="$ac_optarg" ;;
++
++  -sharedstatedir | --sharedstatedir | --sharedstatedi \
++  | --sharedstated | --sharedstate | --sharedstat | --sharedsta \
++  | --sharedst | --shareds | --shared | --share | --shar \
++  | --sha | --sh)
++    ac_prev=sharedstatedir ;;
++  -sharedstatedir=* | --sharedstatedir=* | --sharedstatedi=* \
++  | --sharedstated=* | --sharedstate=* | --sharedstat=* | --sharedsta=* \
++  | --sharedst=* | --shareds=* | --shared=* | --share=* | --shar=* \
++  | --sha=* | --sh=*)
++    sharedstatedir="$ac_optarg" ;;
++
++  -site | --site | --sit)
++    ac_prev=site ;;
++  -site=* | --site=* | --sit=*)
++    site="$ac_optarg" ;;
++
++  -srcdir | --srcdir | --srcdi | --srcd | --src | --sr)
++    ac_prev=srcdir ;;
++  -srcdir=* | --srcdir=* | --srcdi=* | --srcd=* | --src=* | --sr=*)
++    srcdir="$ac_optarg" ;;
++
++  -sysconfdir | --sysconfdir | --sysconfdi | --sysconfd | --sysconf \
++  | --syscon | --sysco | --sysc | --sys | --sy)
++    ac_prev=sysconfdir ;;
++  -sysconfdir=* | --sysconfdir=* | --sysconfdi=* | --sysconfd=* | --sysconf=* \
++  | --syscon=* | --sysco=* | --sysc=* | --sys=* | --sy=*)
++    sysconfdir="$ac_optarg" ;;
++
++  -target | --target | --targe | --targ | --tar | --ta | --t)
++    ac_prev=target ;;
++  -target=* | --target=* | --targe=* | --targ=* | --tar=* | --ta=* | --t=*)
++    target="$ac_optarg" ;;
++
++  -v | -verbose | --verbose | --verbos | --verbo | --verb)
++    verbose=yes ;;
++
++  -version | --version | --versio | --versi | --vers)
++    echo "configure generated by autoconf version 2.12"
++    exit 0 ;;
++
++  -with-* | --with-*)
++    ac_package=`echo $ac_option|sed -e 's/-*with-//' -e 's/=.*//'`
++    # Reject names that are not valid shell variable names.
++    if test -n "`echo $ac_package| sed 's/[-_a-zA-Z0-9]//g'`"; then
++      { echo "configure: error: $ac_package: invalid package name" 1>&2; exit 1; }
++    fi
++    ac_package=`echo $ac_package| sed 's/-/_/g'`
++    case "$ac_option" in
++      *=*) ;;
++      *) ac_optarg=yes ;;
++    esac
++    eval "with_${ac_package}='$ac_optarg'" ;;
++
++  -without-* | --without-*)
++    ac_package=`echo $ac_option|sed -e 's/-*without-//'`
++    # Reject names that are not valid shell variable names.
++    if test -n "`echo $ac_package| sed 's/[-a-zA-Z0-9_]//g'`"; then
++      { echo "configure: error: $ac_package: invalid package name" 1>&2; exit 1; }
++    fi
++    ac_package=`echo $ac_package| sed 's/-/_/g'`
++    eval "with_${ac_package}=no" ;;
++
++  --x)
++    # Obsolete; use --with-x.
++    with_x=yes ;;
++
++  -x-includes | --x-includes | --x-include | --x-includ | --x-inclu \
++  | --x-incl | --x-inc | --x-in | --x-i)
++    ac_prev=x_includes ;;
++  -x-includes=* | --x-includes=* | --x-include=* | --x-includ=* | --x-inclu=* \
++  | --x-incl=* | --x-inc=* | --x-in=* | --x-i=*)
++    x_includes="$ac_optarg" ;;
++
++  -x-libraries | --x-libraries | --x-librarie | --x-librari \
++  | --x-librar | --x-libra | --x-libr | --x-lib | --x-li | --x-l)
++    ac_prev=x_libraries ;;
++  -x-libraries=* | --x-libraries=* | --x-librarie=* | --x-librari=* \
++  | --x-librar=* | --x-libra=* | --x-libr=* | --x-lib=* | --x-li=* | --x-l=*)
++    x_libraries="$ac_optarg" ;;
++
++  -*) { echo "configure: error: $ac_option: invalid option; use --help to show usage" 1>&2; exit 1; }
++    ;;
++
++  *)
++    if test -n "`echo $ac_option| sed 's/[-a-z0-9.]//g'`"; then
++      echo "configure: warning: $ac_option: invalid host type" 1>&2
++    fi
++    if test "x$nonopt" != xNONE; then
++      { echo "configure: error: can only configure for one host and one target at a time" 1>&2; exit 1; }
++    fi
++    nonopt="$ac_option"
++    ;;
++
++  esac
++done
++
++if test -n "$ac_prev"; then
++  { echo "configure: error: missing argument to --`echo $ac_prev | sed 's/_/-/g'`" 1>&2; exit 1; }
++fi
++
++trap 'rm -fr conftest* confdefs* core core.* *.core $ac_clean_files; exit 1' 1 2 15
++
++# File descriptor usage:
++# 0 standard input
++# 1 file creation
++# 2 errors and warnings
++# 3 some systems may open it to /dev/tty
++# 4 used on the Kubota Titan
++# 6 checking for... messages and results
++# 5 compiler messages saved in config.log
++if test "$silent" = yes; then
++  exec 6>/dev/null
++else
++  exec 6>&1
++fi
++exec 5>./config.log
++
++echo "\
++This file contains any messages produced by compilers while
++running configure, to aid debugging if configure makes a mistake.
++" 1>&5
++
++# Strip out --no-create and --no-recursion so they do not pile up.
++# Also quote any args containing shell metacharacters.
++ac_configure_args=
++for ac_arg
++do
++  case "$ac_arg" in
++  -no-create | --no-create | --no-creat | --no-crea | --no-cre \
++  | --no-cr | --no-c) ;;
++  -no-recursion | --no-recursion | --no-recursio | --no-recursi \
++  | --no-recurs | --no-recur | --no-recu | --no-rec | --no-re | --no-r) ;;
++  *" "*|*"	"*|*[\[\]\~\#\$\^\&\*\(\)\{\}\\\|\;\<\>\?]*)
++  ac_configure_args="$ac_configure_args '$ac_arg'" ;;
++  *) ac_configure_args="$ac_configure_args $ac_arg" ;;
++  esac
++done
++
++# NLS nuisances.
++# Only set these to C if already set.  These must not be set unconditionally
++# because not all systems understand e.g. LANG=C (notably SCO).
++# Fixing LC_MESSAGES prevents Solaris sh from translating var values in `set'!
++# Non-C LC_CTYPE values break the ctype check.
++if test "${LANG+set}"   = set; then LANG=C;   export LANG;   fi
++if test "${LC_ALL+set}" = set; then LC_ALL=C; export LC_ALL; fi
++if test "${LC_MESSAGES+set}" = set; then LC_MESSAGES=C; export LC_MESSAGES; fi
++if test "${LC_CTYPE+set}"    = set; then LC_CTYPE=C;    export LC_CTYPE;    fi
++
++# confdefs.h avoids OS command line length limits that DEFS can exceed.
++rm -rf conftest* confdefs.h
++# AIX cpp loses on an empty file, so make sure it contains at least a newline.
++echo > confdefs.h
++
++# A filename unique to this package, relative to the directory that
++# configure is in, which we can look for to find out if srcdir is correct.
++ac_unique_file=xloadimage.c
++
++# Find the source files, if location was not specified.
++if test -z "$srcdir"; then
++  ac_srcdir_defaulted=yes
++  # Try the directory containing this script, then its parent.
++  ac_prog=$0
++  ac_confdir=`echo $ac_prog|sed 's%/[^/][^/]*$%%'`
++  test "x$ac_confdir" = "x$ac_prog" && ac_confdir=.
++  srcdir=$ac_confdir
++  if test ! -r $srcdir/$ac_unique_file; then
++    srcdir=..
++  fi
++else
++  ac_srcdir_defaulted=no
++fi
++if test ! -r $srcdir/$ac_unique_file; then
++  if test "$ac_srcdir_defaulted" = yes; then
++    { echo "configure: error: can not find sources in $ac_confdir or .." 1>&2; exit 1; }
++  else
++    { echo "configure: error: can not find sources in $srcdir" 1>&2; exit 1; }
++  fi
++fi
++srcdir=`echo "${srcdir}" | sed 's%\([^/]\)/*$%\1%'`
++
++# Prefer explicitly selected file to automatically selected ones.
++if test -z "$CONFIG_SITE"; then
++  if test "x$prefix" != xNONE; then
++    CONFIG_SITE="$prefix/share/config.site $prefix/etc/config.site"
++  else
++    CONFIG_SITE="$ac_default_prefix/share/config.site $ac_default_prefix/etc/config.site"
++  fi
++fi
++for ac_site_file in $CONFIG_SITE; do
++  if test -r "$ac_site_file"; then
++    echo "loading site script $ac_site_file"
++    . "$ac_site_file"
++  fi
++done
++
++if test -r "$cache_file"; then
++  echo "loading cache $cache_file"
++  . $cache_file
++else
++  echo "creating cache $cache_file"
++  > $cache_file
++fi
++
++ac_ext=c
++# CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&5'
++ac_link='${CC-cc} -o conftest $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&5'
++cross_compiling=$ac_cv_prog_cc_cross
++
++if (echo "testing\c"; echo 1,2,3) | grep c >/dev/null; then
++  # Stardent Vistra SVR4 grep lacks -e, says ghazi@caip.rutgers.edu.
++  if (echo -n testing; echo 1,2,3) | sed s/-n/xn/ | grep xn >/dev/null; then
++    ac_n= ac_c='
++' ac_t='	'
++  else
++    ac_n=-n ac_c= ac_t=
++  fi
++else
++  ac_n= ac_c='\c' ac_t=
++fi
++
++
++
++
++# Extract the first word of "gcc", so it can be a program name with args.
++set dummy gcc; ac_word=$2
++echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
++echo "configure:529: checking for $ac_word" >&5
++if eval "test \"`echo '$''{'ac_cv_prog_CC'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  if test -n "$CC"; then
++  ac_cv_prog_CC="$CC" # Let the user override the test.
++else
++  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
++  for ac_dir in $PATH; do
++    test -z "$ac_dir" && ac_dir=.
++    if test -f $ac_dir/$ac_word; then
++      ac_cv_prog_CC="gcc"
++      break
++    fi
++  done
++  IFS="$ac_save_ifs"
++fi
++fi
++CC="$ac_cv_prog_CC"
++if test -n "$CC"; then
++  echo "$ac_t""$CC" 1>&6
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++if test -z "$CC"; then
++  # Extract the first word of "cc", so it can be a program name with args.
++set dummy cc; ac_word=$2
++echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
++echo "configure:558: checking for $ac_word" >&5
++if eval "test \"`echo '$''{'ac_cv_prog_CC'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  if test -n "$CC"; then
++  ac_cv_prog_CC="$CC" # Let the user override the test.
++else
++  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
++  ac_prog_rejected=no
++  for ac_dir in $PATH; do
++    test -z "$ac_dir" && ac_dir=.
++    if test -f $ac_dir/$ac_word; then
++      if test "$ac_dir/$ac_word" = "/usr/ucb/cc"; then
++        ac_prog_rejected=yes
++	continue
++      fi
++      ac_cv_prog_CC="cc"
++      break
++    fi
++  done
++  IFS="$ac_save_ifs"
++if test $ac_prog_rejected = yes; then
++  # We found a bogon in the path, so make sure we never use it.
++  set dummy $ac_cv_prog_CC
++  shift
++  if test $# -gt 0; then
++    # We chose a different compiler from the bogus one.
++    # However, it has the same basename, so the bogon will be chosen
++    # first if we set CC to just the basename; use the full file name.
++    shift
++    set dummy "$ac_dir/$ac_word" "$@"
++    shift
++    ac_cv_prog_CC="$@"
++  fi
++fi
++fi
++fi
++CC="$ac_cv_prog_CC"
++if test -n "$CC"; then
++  echo "$ac_t""$CC" 1>&6
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++  test -z "$CC" && { echo "configure: error: no acceptable cc found in \$PATH" 1>&2; exit 1; }
++fi
++
++echo $ac_n "checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works""... $ac_c" 1>&6
++echo "configure:606: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works" >&5
++
++ac_ext=c
++# CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&5'
++ac_link='${CC-cc} -o conftest $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&5'
++cross_compiling=$ac_cv_prog_cc_cross
++
++cat > conftest.$ac_ext <<EOF
++#line 616 "configure"
++#include "confdefs.h"
++main(){return(0);}
++EOF
++if { (eval echo configure:620: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  ac_cv_prog_cc_works=yes
++  # If we can't run a trivial program, we are probably using a cross compiler.
++  if (./conftest; exit) 2>/dev/null; then
++    ac_cv_prog_cc_cross=no
++  else
++    ac_cv_prog_cc_cross=yes
++  fi
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  ac_cv_prog_cc_works=no
++fi
++rm -fr conftest*
++
++echo "$ac_t""$ac_cv_prog_cc_works" 1>&6
++if test $ac_cv_prog_cc_works = no; then
++  { echo "configure: error: installation or configuration problem: C compiler cannot create executables." 1>&2; exit 1; }
++fi
++echo $ac_n "checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler""... $ac_c" 1>&6
++echo "configure:640: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler" >&5
++echo "$ac_t""$ac_cv_prog_cc_cross" 1>&6
++cross_compiling=$ac_cv_prog_cc_cross
++
++echo $ac_n "checking whether we are using GNU C""... $ac_c" 1>&6
++echo "configure:645: checking whether we are using GNU C" >&5
++if eval "test \"`echo '$''{'ac_cv_prog_gcc'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.c <<EOF
++#ifdef __GNUC__
++  yes;
++#endif
++EOF
++if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:654: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
++  ac_cv_prog_gcc=yes
++else
++  ac_cv_prog_gcc=no
++fi
++fi
++
++echo "$ac_t""$ac_cv_prog_gcc" 1>&6
++
++if test $ac_cv_prog_gcc = yes; then
++  GCC=yes
++  ac_test_CFLAGS="${CFLAGS+set}"
++  ac_save_CFLAGS="$CFLAGS"
++  CFLAGS=
++  echo $ac_n "checking whether ${CC-cc} accepts -g""... $ac_c" 1>&6
++echo "configure:669: checking whether ${CC-cc} accepts -g" >&5
++if eval "test \"`echo '$''{'ac_cv_prog_cc_g'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  echo 'void f(){}' > conftest.c
++if test -z "`${CC-cc} -g -c conftest.c 2>&1`"; then
++  ac_cv_prog_cc_g=yes
++else
++  ac_cv_prog_cc_g=no
++fi
++rm -f conftest*
++
++fi
++
++echo "$ac_t""$ac_cv_prog_cc_g" 1>&6
++  if test "$ac_test_CFLAGS" = set; then
++    CFLAGS="$ac_save_CFLAGS"
++  elif test $ac_cv_prog_cc_g = yes; then
++    CFLAGS="-g -O2"
++  else
++    CFLAGS="-O2"
++  fi
++else
++  GCC=
++  test "${CFLAGS+set}" = set || CFLAGS="-g"
++fi
++
++
++echo $ac_n "checking how to run the C preprocessor""... $ac_c" 1>&6
++echo "configure:698: checking how to run the C preprocessor" >&5
++# On Suns, sometimes $CPP names a directory.
++if test -n "$CPP" && test -d "$CPP"; then
++  CPP=
++fi
++if test -z "$CPP"; then
++if eval "test \"`echo '$''{'ac_cv_prog_CPP'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++    # This must be in double quotes, not single quotes, because CPP may get
++  # substituted into the Makefile and "${CC-cc}" will confuse make.
++  CPP="${CC-cc} -E"
++  # On the NeXT, cc -E runs the code through the compiler's parser,
++  # not just through cpp.
++  cat > conftest.$ac_ext <<EOF
++#line 713 "configure"
++#include "confdefs.h"
++#include <assert.h>
++Syntax Error
++EOF
++ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
++{ (eval echo configure:719: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
++ac_err=`grep -v '^ *+' conftest.out`
++if test -z "$ac_err"; then
++  :
++else
++  echo "$ac_err" >&5
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  CPP="${CC-cc} -E -traditional-cpp"
++  cat > conftest.$ac_ext <<EOF
++#line 730 "configure"
++#include "confdefs.h"
++#include <assert.h>
++Syntax Error
++EOF
++ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
++{ (eval echo configure:736: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
++ac_err=`grep -v '^ *+' conftest.out`
++if test -z "$ac_err"; then
++  :
++else
++  echo "$ac_err" >&5
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  CPP=/lib/cpp
++fi
++rm -f conftest*
++fi
++rm -f conftest*
++  ac_cv_prog_CPP="$CPP"
++fi
++  CPP="$ac_cv_prog_CPP"
++else
++  ac_cv_prog_CPP="$CPP"
++fi
++echo "$ac_t""$CPP" 1>&6
++
++# If we find X, set shell vars x_includes and x_libraries to the
++# paths, otherwise set no_x=yes.
++# Uses ac_ vars as temps to allow command line to override cache and checks.
++# --without-x overrides everything else, but does not touch the cache.
++echo $ac_n "checking for X""... $ac_c" 1>&6
++echo "configure:763: checking for X" >&5
++
++# Check whether --with-x or --without-x was given.
++if test "${with_x+set}" = set; then
++  withval="$with_x"
++  :
++fi
++
++# $have_x is `yes', `no', `disabled', or empty when we do not yet know.
++if test "x$with_x" = xno; then
++  # The user explicitly disabled X.
++  have_x=disabled
++else
++  if test "x$x_includes" != xNONE && test "x$x_libraries" != xNONE; then
++    # Both variables are already set.
++    have_x=yes
++  else
++if eval "test \"`echo '$''{'ac_cv_have_x'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  # One or both of the vars are not set, and there is no cached value.
++ac_x_includes=NO ac_x_libraries=NO
++rm -fr conftestdir
++if mkdir conftestdir; then
++  cd conftestdir
++  # Make sure to not put "make" in the Imakefile rules, since we grep it out.
++  cat > Imakefile <<'EOF'
++acfindx:
++	@echo 'ac_im_incroot="${INCROOT}"; ac_im_usrlibdir="${USRLIBDIR}"; ac_im_libdir="${LIBDIR}"'
++EOF
++  if (xmkmf) >/dev/null 2>/dev/null && test -f Makefile; then
++    # GNU make sometimes prints "make[1]: Entering...", which would confuse us.
++    eval `${MAKE-make} acfindx 2>/dev/null | grep -v make`
++    # Open Windows xmkmf reportedly sets LIBDIR instead of USRLIBDIR.
++    for ac_extension in a so sl; do
++      if test ! -f $ac_im_usrlibdir/libX11.$ac_extension &&
++        test -f $ac_im_libdir/libX11.$ac_extension; then
++        ac_im_usrlibdir=$ac_im_libdir; break
++      fi
++    done
++    # Screen out bogus values from the imake configuration.  They are
++    # bogus both because they are the default anyway, and because
++    # using them would break gcc on systems where it needs fixed includes.
++    case "$ac_im_incroot" in
++	/usr/include) ;;
++	*) test -f "$ac_im_incroot/X11/Xos.h" && ac_x_includes="$ac_im_incroot" ;;
++    esac
++    case "$ac_im_usrlibdir" in
++	/usr/lib | /lib) ;;
++	*) test -d "$ac_im_usrlibdir" && ac_x_libraries="$ac_im_usrlibdir" ;;
++    esac
++  fi
++  cd ..
++  rm -fr conftestdir
++fi
++
++if test "$ac_x_includes" = NO; then
++  # Guess where to find include files, by looking for this one X11 .h file.
++  test -z "$x_direct_test_include" && x_direct_test_include=X11/Intrinsic.h
++
++  # First, try using that file with no special directory specified.
++cat > conftest.$ac_ext <<EOF
++#line 825 "configure"
++#include "confdefs.h"
++#include <$x_direct_test_include>
++EOF
++ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
++{ (eval echo configure:830: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
++ac_err=`grep -v '^ *+' conftest.out`
++if test -z "$ac_err"; then
++  rm -rf conftest*
++  # We can compile using X headers with no special include directory.
++ac_x_includes=
++else
++  echo "$ac_err" >&5
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  # Look for the header file in a standard set of common directories.
++# Check X11 before X11Rn because it is often a symlink to the current release.
++  for ac_dir in               \
++    /usr/X11/include          \
++    /usr/X11R6/include        \
++    /usr/X11R5/include        \
++    /usr/X11R4/include        \
++                              \
++    /usr/include/X11          \
++    /usr/include/X11R6        \
++    /usr/include/X11R5        \
++    /usr/include/X11R4        \
++                              \
++    /usr/local/X11/include    \
++    /usr/local/X11R6/include  \
++    /usr/local/X11R5/include  \
++    /usr/local/X11R4/include  \
++                              \
++    /usr/local/include/X11    \
++    /usr/local/include/X11R6  \
++    /usr/local/include/X11R5  \
++    /usr/local/include/X11R4  \
++                              \
++    /usr/X386/include         \
++    /usr/x386/include         \
++    /usr/XFree86/include/X11  \
++                              \
++    /usr/include              \
++    /usr/local/include        \
++    /usr/unsupported/include  \
++    /usr/athena/include       \
++    /usr/local/x11r5/include  \
++    /usr/lpp/Xamples/include  \
++                              \
++    /usr/openwin/include      \
++    /usr/openwin/share/include \
++    ; \
++  do
++    if test -r "$ac_dir/$x_direct_test_include"; then
++      ac_x_includes=$ac_dir
++      break
++    fi
++  done
++fi
++rm -f conftest*
++fi # $ac_x_includes = NO
++
++if test "$ac_x_libraries" = NO; then
++  # Check for the libraries.
++
++  test -z "$x_direct_test_library" && x_direct_test_library=Xt
++  test -z "$x_direct_test_function" && x_direct_test_function=XtMalloc
++
++  # See if we find them without any special options.
++  # Don't add to $LIBS permanently.
++  ac_save_LIBS="$LIBS"
++  LIBS="-l$x_direct_test_library $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 899 "configure"
++#include "confdefs.h"
++
++int main() {
++${x_direct_test_function}()
++; return 0; }
++EOF
++if { (eval echo configure:906: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  LIBS="$ac_save_LIBS"
++# We can link X programs with no special library path.
++ac_x_libraries=
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  LIBS="$ac_save_LIBS"
++# First see if replacing the include by lib works.
++# Check X11 before X11Rn because it is often a symlink to the current release.
++for ac_dir in `echo "$ac_x_includes" | sed s/include/lib/` \
++    /usr/X11/lib          \
++    /usr/X11R6/lib        \
++    /usr/X11R5/lib        \
++    /usr/X11R4/lib        \
++                          \
++    /usr/lib/X11          \
++    /usr/lib/X11R6        \
++    /usr/lib/X11R5        \
++    /usr/lib/X11R4        \
++                          \
++    /usr/local/X11/lib    \
++    /usr/local/X11R6/lib  \
++    /usr/local/X11R5/lib  \
++    /usr/local/X11R4/lib  \
++                          \
++    /usr/local/lib/X11    \
++    /usr/local/lib/X11R6  \
++    /usr/local/lib/X11R5  \
++    /usr/local/lib/X11R4  \
++                          \
++    /usr/X386/lib         \
++    /usr/x386/lib         \
++    /usr/XFree86/lib/X11  \
++                          \
++    /usr/lib              \
++    /usr/local/lib        \
++    /usr/unsupported/lib  \
++    /usr/athena/lib       \
++    /usr/local/x11r5/lib  \
++    /usr/lpp/Xamples/lib  \
++    /lib/usr/lib/X11	  \
++                          \
++    /usr/openwin/lib      \
++    /usr/openwin/share/lib \
++    ; \
++do
++  for ac_extension in a so sl; do
++    if test -r $ac_dir/lib${x_direct_test_library}.$ac_extension; then
++      ac_x_libraries=$ac_dir
++      break 2
++    fi
++  done
++done
++fi
++rm -f conftest*
++fi # $ac_x_libraries = NO
++
++if test "$ac_x_includes" = NO || test "$ac_x_libraries" = NO; then
++  # Didn't find X anywhere.  Cache the known absence of X.
++  ac_cv_have_x="have_x=no"
++else
++  # Record where we found X for the cache.
++  ac_cv_have_x="have_x=yes \
++	        ac_x_includes=$ac_x_includes ac_x_libraries=$ac_x_libraries"
++fi
++fi
++  fi
++  eval "$ac_cv_have_x"
++fi # $with_x != no
++
++if test "$have_x" != yes; then
++  echo "$ac_t""$have_x" 1>&6
++  no_x=yes
++else
++  # If each of the values was on the command line, it overrides each guess.
++  test "x$x_includes" = xNONE && x_includes=$ac_x_includes
++  test "x$x_libraries" = xNONE && x_libraries=$ac_x_libraries
++  # Update the cache value to reflect the command line values.
++  ac_cv_have_x="have_x=yes \
++		ac_x_includes=$x_includes ac_x_libraries=$x_libraries"
++  echo "$ac_t""libraries $x_libraries, headers $x_includes" 1>&6
++fi
++
++if test "$no_x" = yes; then
++  # Not all programs may use this symbol, but it does not hurt to define it.
++  cat >> confdefs.h <<\EOF
++#define X_DISPLAY_MISSING 1
++EOF
++
++  X_CFLAGS= X_PRE_LIBS= X_LIBS= X_EXTRA_LIBS=
++else
++  if test -n "$x_includes"; then
++    X_CFLAGS="$X_CFLAGS -I$x_includes"
++  fi
++
++  # It would also be nice to do this for all -L options, not just this one.
++  if test -n "$x_libraries"; then
++    X_LIBS="$X_LIBS -L$x_libraries"
++    # For Solaris; some versions of Sun CC require a space after -R and
++    # others require no space.  Words are not sufficient . . . .
++    case "`(uname -sr) 2>/dev/null`" in
++    "SunOS 5"*)
++      echo $ac_n "checking whether -R must be followed by a space""... $ac_c" 1>&6
++echo "configure:1012: checking whether -R must be followed by a space" >&5
++      ac_xsave_LIBS="$LIBS"; LIBS="$LIBS -R$x_libraries"
++      cat > conftest.$ac_ext <<EOF
++#line 1015 "configure"
++#include "confdefs.h"
++
++int main() {
++
++; return 0; }
++EOF
++if { (eval echo configure:1022: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  ac_R_nospace=yes
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  ac_R_nospace=no
++fi
++rm -f conftest*
++      if test $ac_R_nospace = yes; then
++	echo "$ac_t""no" 1>&6
++	X_LIBS="$X_LIBS -R$x_libraries"
++      else
++	LIBS="$ac_xsave_LIBS -R $x_libraries"
++	cat > conftest.$ac_ext <<EOF
++#line 1038 "configure"
++#include "confdefs.h"
++
++int main() {
++
++; return 0; }
++EOF
++if { (eval echo configure:1045: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  ac_R_space=yes
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  ac_R_space=no
++fi
++rm -f conftest*
++	if test $ac_R_space = yes; then
++	  echo "$ac_t""yes" 1>&6
++	  X_LIBS="$X_LIBS -R $x_libraries"
++	else
++	  echo "$ac_t""neither works" 1>&6
++	fi
++      fi
++      LIBS="$ac_xsave_LIBS"
++    esac
++  fi
++
++  # Check for system-dependent libraries X programs must link with.
++  # Do this before checking for the system-independent R6 libraries
++  # (-lICE), since we may need -lsocket or whatever for X linking.
++
++  if test "$ISC" = yes; then
++    X_EXTRA_LIBS="$X_EXTRA_LIBS -lnsl_s -linet"
++  else
++    # Martyn.Johnson@cl.cam.ac.uk says this is needed for Ultrix, if the X
++    # libraries were built with DECnet support.  And karl@cs.umb.edu says
++    # the Alpha needs dnet_stub (dnet does not exist).
++    echo $ac_n "checking for dnet_ntoa in -ldnet""... $ac_c" 1>&6
++echo "configure:1077: checking for dnet_ntoa in -ldnet" >&5
++ac_lib_var=`echo dnet'_'dnet_ntoa | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-ldnet  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1085 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char dnet_ntoa();
++
++int main() {
++dnet_ntoa()
++; return 0; }
++EOF
++if { (eval echo configure:1096: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  X_EXTRA_LIBS="$X_EXTRA_LIBS -ldnet"
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    if test $ac_cv_lib_dnet_dnet_ntoa = no; then
++      echo $ac_n "checking for dnet_ntoa in -ldnet_stub""... $ac_c" 1>&6
++echo "configure:1118: checking for dnet_ntoa in -ldnet_stub" >&5
++ac_lib_var=`echo dnet_stub'_'dnet_ntoa | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-ldnet_stub  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1126 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char dnet_ntoa();
++
++int main() {
++dnet_ntoa()
++; return 0; }
++EOF
++if { (eval echo configure:1137: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  X_EXTRA_LIBS="$X_EXTRA_LIBS -ldnet_stub"
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    fi
++
++    # msh@cis.ufl.edu says -lnsl (and -lsocket) are needed for his 386/AT,
++    # to get the SysV transport functions.
++    # chad@anasazi.com says the Pyramis MIS-ES running DC/OSx (SVR4)
++    # needs -lnsl.
++    # The nsl library prevents programs from opening the X display
++    # on Irix 5.2, according to dickey@clark.net.
++    echo $ac_n "checking for gethostbyname""... $ac_c" 1>&6
++echo "configure:1166: checking for gethostbyname" >&5
++if eval "test \"`echo '$''{'ac_cv_func_gethostbyname'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1171 "configure"
++#include "confdefs.h"
++/* System header to define __stub macros and hopefully few prototypes,
++    which can conflict with char gethostbyname(); below.  */
++#include <assert.h>
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char gethostbyname();
++
++int main() {
++
++/* The GNU C library defines this for functions which it implements
++    to always fail with ENOSYS.  Some functions are actually named
++    something starting with __ and the normal name is an alias.  */
++#if defined (__stub_gethostbyname) || defined (__stub___gethostbyname)
++choke me
++#else
++gethostbyname();
++#endif
++
++; return 0; }
++EOF
++if { (eval echo configure:1194: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_func_gethostbyname=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_func_gethostbyname=no"
++fi
++rm -f conftest*
++fi
++
++if eval "test \"`echo '$ac_cv_func_'gethostbyname`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  :
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    if test $ac_cv_func_gethostbyname = no; then
++      echo $ac_n "checking for gethostbyname in -lnsl""... $ac_c" 1>&6
++echo "configure:1215: checking for gethostbyname in -lnsl" >&5
++ac_lib_var=`echo nsl'_'gethostbyname | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lnsl  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1223 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char gethostbyname();
++
++int main() {
++gethostbyname()
++; return 0; }
++EOF
++if { (eval echo configure:1234: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  X_EXTRA_LIBS="$X_EXTRA_LIBS -lnsl"
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    fi
++
++    # lieder@skyler.mavd.honeywell.com says without -lsocket,
++    # socket/setsockopt and other routines are undefined under SCO ODT
++    # 2.0.  But -lsocket is broken on IRIX 5.2 (and is not necessary
++    # on later versions), says simon@lia.di.epfl.ch: it contains
++    # gethostby* variants that don't use the nameserver (or something).
++    # -lsocket must be given before -lnsl if both are needed.
++    # We assume that if connect needs -lnsl, so does gethostbyname.
++    echo $ac_n "checking for connect""... $ac_c" 1>&6
++echo "configure:1264: checking for connect" >&5
++if eval "test \"`echo '$''{'ac_cv_func_connect'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1269 "configure"
++#include "confdefs.h"
++/* System header to define __stub macros and hopefully few prototypes,
++    which can conflict with char connect(); below.  */
++#include <assert.h>
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char connect();
++
++int main() {
++
++/* The GNU C library defines this for functions which it implements
++    to always fail with ENOSYS.  Some functions are actually named
++    something starting with __ and the normal name is an alias.  */
++#if defined (__stub_connect) || defined (__stub___connect)
++choke me
++#else
++connect();
++#endif
++
++; return 0; }
++EOF
++if { (eval echo configure:1292: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_func_connect=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_func_connect=no"
++fi
++rm -f conftest*
++fi
++
++if eval "test \"`echo '$ac_cv_func_'connect`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  :
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    if test $ac_cv_func_connect = no; then
++      echo $ac_n "checking for connect in -lsocket""... $ac_c" 1>&6
++echo "configure:1313: checking for connect in -lsocket" >&5
++ac_lib_var=`echo socket'_'connect | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lsocket $X_EXTRA_LIBS $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1321 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char connect();
++
++int main() {
++connect()
++; return 0; }
++EOF
++if { (eval echo configure:1332: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  X_EXTRA_LIBS="-lsocket $X_EXTRA_LIBS"
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    fi
++
++    # gomez@mi.uni-erlangen.de says -lposix is necessary on A/UX.
++    echo $ac_n "checking for remove""... $ac_c" 1>&6
++echo "configure:1356: checking for remove" >&5
++if eval "test \"`echo '$''{'ac_cv_func_remove'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1361 "configure"
++#include "confdefs.h"
++/* System header to define __stub macros and hopefully few prototypes,
++    which can conflict with char remove(); below.  */
++#include <assert.h>
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char remove();
++
++int main() {
++
++/* The GNU C library defines this for functions which it implements
++    to always fail with ENOSYS.  Some functions are actually named
++    something starting with __ and the normal name is an alias.  */
++#if defined (__stub_remove) || defined (__stub___remove)
++choke me
++#else
++remove();
++#endif
++
++; return 0; }
++EOF
++if { (eval echo configure:1384: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_func_remove=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_func_remove=no"
++fi
++rm -f conftest*
++fi
++
++if eval "test \"`echo '$ac_cv_func_'remove`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  :
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    if test $ac_cv_func_remove = no; then
++      echo $ac_n "checking for remove in -lposix""... $ac_c" 1>&6
++echo "configure:1405: checking for remove in -lposix" >&5
++ac_lib_var=`echo posix'_'remove | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lposix  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1413 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char remove();
++
++int main() {
++remove()
++; return 0; }
++EOF
++if { (eval echo configure:1424: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  X_EXTRA_LIBS="$X_EXTRA_LIBS -lposix"
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    fi
++
++    # BSDI BSD/OS 2.1 needs -lipc for XOpenDisplay.
++    echo $ac_n "checking for shmat""... $ac_c" 1>&6
++echo "configure:1448: checking for shmat" >&5
++if eval "test \"`echo '$''{'ac_cv_func_shmat'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1453 "configure"
++#include "confdefs.h"
++/* System header to define __stub macros and hopefully few prototypes,
++    which can conflict with char shmat(); below.  */
++#include <assert.h>
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char shmat();
++
++int main() {
++
++/* The GNU C library defines this for functions which it implements
++    to always fail with ENOSYS.  Some functions are actually named
++    something starting with __ and the normal name is an alias.  */
++#if defined (__stub_shmat) || defined (__stub___shmat)
++choke me
++#else
++shmat();
++#endif
++
++; return 0; }
++EOF
++if { (eval echo configure:1476: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_func_shmat=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_func_shmat=no"
++fi
++rm -f conftest*
++fi
++
++if eval "test \"`echo '$ac_cv_func_'shmat`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  :
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    if test $ac_cv_func_shmat = no; then
++      echo $ac_n "checking for shmat in -lipc""... $ac_c" 1>&6
++echo "configure:1497: checking for shmat in -lipc" >&5
++ac_lib_var=`echo ipc'_'shmat | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lipc  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1505 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char shmat();
++
++int main() {
++shmat()
++; return 0; }
++EOF
++if { (eval echo configure:1516: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  X_EXTRA_LIBS="$X_EXTRA_LIBS -lipc"
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++    fi
++  fi
++
++  # Check for libraries that X11R6 Xt/Xaw programs need.
++  ac_save_LDFLAGS="$LDFLAGS"
++  test -n "$x_libraries" && LDFLAGS="$LDFLAGS -L$x_libraries"
++  # SM needs ICE to (dynamically) link under SunOS 4.x (so we have to
++  # check for ICE first), but we must link in the order -lSM -lICE or
++  # we get undefined symbols.  So assume we have SM if we have ICE.
++  # These have to be linked with before -lX11, unlike the other
++  # libraries we check for below, so use a different variable.
++  #  --interran@uluru.Stanford.EDU, kb@cs.umb.edu.
++  echo $ac_n "checking for IceConnectionNumber in -lICE""... $ac_c" 1>&6
++echo "configure:1549: checking for IceConnectionNumber in -lICE" >&5
++ac_lib_var=`echo ICE'_'IceConnectionNumber | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lICE  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1557 "configure"
++#include "confdefs.h"
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char IceConnectionNumber();
++
++int main() {
++IceConnectionNumber()
++; return 0; }
++EOF
++if { (eval echo configure:1568: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++  X_PRE_LIBS="$X_PRE_LIBS -lSM -lICE"
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++  LDFLAGS="$ac_save_LDFLAGS"
++
++fi
++
++echo $ac_n "checking for ANSI C header files""... $ac_c" 1>&6
++echo "configure:1593: checking for ANSI C header files" >&5
++if eval "test \"`echo '$''{'ac_cv_header_stdc'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1598 "configure"
++#include "confdefs.h"
++#include <stdlib.h>
++#include <stdarg.h>
++#include <string.h>
++#include <float.h>
++EOF
++ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
++{ (eval echo configure:1606: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
++ac_err=`grep -v '^ *+' conftest.out`
++if test -z "$ac_err"; then
++  rm -rf conftest*
++  ac_cv_header_stdc=yes
++else
++  echo "$ac_err" >&5
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  ac_cv_header_stdc=no
++fi
++rm -f conftest*
++
++if test $ac_cv_header_stdc = yes; then
++  # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
++cat > conftest.$ac_ext <<EOF
++#line 1623 "configure"
++#include "confdefs.h"
++#include <string.h>
++EOF
++if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
++  egrep "memchr" >/dev/null 2>&1; then
++  :
++else
++  rm -rf conftest*
++  ac_cv_header_stdc=no
++fi
++rm -f conftest*
++
++fi
++
++if test $ac_cv_header_stdc = yes; then
++  # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
++cat > conftest.$ac_ext <<EOF
++#line 1641 "configure"
++#include "confdefs.h"
++#include <stdlib.h>
++EOF
++if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
++  egrep "free" >/dev/null 2>&1; then
++  :
++else
++  rm -rf conftest*
++  ac_cv_header_stdc=no
++fi
++rm -f conftest*
++
++fi
++
++if test $ac_cv_header_stdc = yes; then
++  # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
++if test "$cross_compiling" = yes; then
++  :
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1662 "configure"
++#include "confdefs.h"
++#include <ctype.h>
++#define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
++#define TOUPPER(c) (ISLOWER(c) ? 'A' + ((c) - 'a') : (c))
++#define XOR(e, f) (((e) && !(f)) || (!(e) && (f)))
++int main () { int i; for (i = 0; i < 256; i++)
++if (XOR (islower (i), ISLOWER (i)) || toupper (i) != TOUPPER (i)) exit(2);
++exit (0); }
++
++EOF
++if { (eval echo configure:1673: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
++then
++  :
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -fr conftest*
++  ac_cv_header_stdc=no
++fi
++rm -fr conftest*
++fi
++
++fi
++fi
++
++echo "$ac_t""$ac_cv_header_stdc" 1>&6
++if test $ac_cv_header_stdc = yes; then
++  cat >> confdefs.h <<\EOF
++#define STDC_HEADERS 1
++EOF
++
++fi
++
++for ac_hdr in malloc.h strings.h sys/time.h unistd.h
++do
++ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
++echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
++echo "configure:1700: checking for $ac_hdr" >&5
++if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1705 "configure"
++#include "confdefs.h"
++#include <$ac_hdr>
++EOF
++ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
++{ (eval echo configure:1710: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
++ac_err=`grep -v '^ *+' conftest.out`
++if test -z "$ac_err"; then
++  rm -rf conftest*
++  eval "ac_cv_header_$ac_safe=yes"
++else
++  echo "$ac_err" >&5
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_header_$ac_safe=no"
++fi
++rm -f conftest*
++fi
++if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++    ac_tr_hdr=HAVE_`echo $ac_hdr | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
++  cat >> confdefs.h <<EOF
++#define $ac_tr_hdr 1
++EOF
++ 
++else
++  echo "$ac_t""no" 1>&6
++fi
++done
++
++
++echo $ac_n "checking for main in -lm""... $ac_c" 1>&6
++echo "configure:1738: checking for main in -lm" >&5
++ac_lib_var=`echo m'_'main | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lm  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1746 "configure"
++#include "confdefs.h"
++
++int main() {
++main()
++; return 0; }
++EOF
++if { (eval echo configure:1753: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++    ac_tr_lib=HAVE_LIB`echo m | sed -e 's/[^a-zA-Z0-9_]/_/g' \
++    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
++  cat >> confdefs.h <<EOF
++#define $ac_tr_lib 1
++EOF
++
++  LIBS="-lm $LIBS"
++
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++echo $ac_n "checking for main in -lz""... $ac_c" 1>&6
++echo "configure:1781: checking for main in -lz" >&5
++ac_lib_var=`echo z'_'main | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-lz  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1789 "configure"
++#include "confdefs.h"
++
++int main() {
++main()
++; return 0; }
++EOF
++if { (eval echo configure:1796: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++    ac_tr_lib=HAVE_LIB`echo z | sed -e 's/[^a-zA-Z0-9_]/_/g' \
++    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
++  cat >> confdefs.h <<EOF
++#define $ac_tr_lib 1
++EOF
++
++  LIBS="-lz $LIBS"
++
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++echo $ac_n "checking for main in -ljpeg""... $ac_c" 1>&6
++echo "configure:1824: checking for main in -ljpeg" >&5
++ac_lib_var=`echo jpeg'_'main | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-ljpeg  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1832 "configure"
++#include "confdefs.h"
++
++int main() {
++main()
++; return 0; }
++EOF
++if { (eval echo configure:1839: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++    ac_tr_lib=HAVE_LIB`echo jpeg | sed -e 's/[^a-zA-Z0-9_]/_/g' \
++    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
++  cat >> confdefs.h <<EOF
++#define $ac_tr_lib 1
++EOF
++
++  LIBS="-ljpeg $LIBS"
++
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++echo $ac_n "checking for main in -ltiff""... $ac_c" 1>&6
++echo "configure:1867: checking for main in -ltiff" >&5
++ac_lib_var=`echo tiff'_'main | sed 'y%./+-%__p_%'`
++if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  ac_save_LIBS="$LIBS"
++LIBS="-ltiff  $LIBS"
++cat > conftest.$ac_ext <<EOF
++#line 1875 "configure"
++#include "confdefs.h"
++
++int main() {
++main()
++; return 0; }
++EOF
++if { (eval echo configure:1882: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_lib_$ac_lib_var=no"
++fi
++rm -f conftest*
++LIBS="$ac_save_LIBS"
++
++fi
++if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++    ac_tr_lib=HAVE_LIB`echo tiff | sed -e 's/[^a-zA-Z0-9_]/_/g' \
++    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
++  cat >> confdefs.h <<EOF
++#define $ac_tr_lib 1
++EOF
++
++  LIBS="-ltiff $LIBS"
++
++else
++  echo "$ac_t""no" 1>&6
++fi
++
++
++
++
++echo $ac_n "checking return type of signal handlers""... $ac_c" 1>&6
++echo "configure:1913: checking return type of signal handlers" >&5
++if eval "test \"`echo '$''{'ac_cv_type_signal'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1918 "configure"
++#include "confdefs.h"
++#include <sys/types.h>
++#include <signal.h>
++#ifdef signal
++#undef signal
++#endif
++#ifdef __cplusplus
++extern "C" void (*signal (int, void (*)(int)))(int);
++#else
++void (*signal ()) ();
++#endif
++
++int main() {
++int i;
++; return 0; }
++EOF
++if { (eval echo configure:1935: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++  rm -rf conftest*
++  ac_cv_type_signal=void
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  ac_cv_type_signal=int
++fi
++rm -f conftest*
++fi
++
++echo "$ac_t""$ac_cv_type_signal" 1>&6
++cat >> confdefs.h <<EOF
++#define RETSIGTYPE $ac_cv_type_signal
++EOF
++
++
++for ac_func in mkdir select
++do
++echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
++echo "configure:1956: checking for $ac_func" >&5
++if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 1961 "configure"
++#include "confdefs.h"
++/* System header to define __stub macros and hopefully few prototypes,
++    which can conflict with char $ac_func(); below.  */
++#include <assert.h>
++/* Override any gcc2 internal prototype to avoid an error.  */
++/* We use char because int might match the return type of a gcc2
++    builtin and then its argument prototype would still apply.  */
++char $ac_func();
++
++int main() {
++
++/* The GNU C library defines this for functions which it implements
++    to always fail with ENOSYS.  Some functions are actually named
++    something starting with __ and the normal name is an alias.  */
++#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
++choke me
++#else
++$ac_func();
++#endif
++
++; return 0; }
++EOF
++if { (eval echo configure:1984: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
++  rm -rf conftest*
++  eval "ac_cv_func_$ac_func=yes"
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  eval "ac_cv_func_$ac_func=no"
++fi
++rm -f conftest*
++fi
++
++if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
++  echo "$ac_t""yes" 1>&6
++    ac_tr_func=HAVE_`echo $ac_func | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
++  cat >> confdefs.h <<EOF
++#define $ac_tr_func 1
++EOF
++ 
++else
++  echo "$ac_t""no" 1>&6
++fi
++done
++
++
++trap '' 1 2 15
++cat > confcache <<\EOF
++# This file is a shell script that caches the results of configure
++# tests run on this system so they can be shared between configure
++# scripts and configure runs.  It is not useful on other systems.
++# If it contains results you don't want to keep, you may remove or edit it.
++#
++# By default, configure uses ./config.cache as the cache file,
++# creating it if it does not exist already.  You can give configure
++# the --cache-file=FILE option to use a different cache file; that is
++# what configure does when it calls configure scripts in
++# subdirectories, so they share the cache.
++# Giving --cache-file=/dev/null disables caching, for debugging configure.
++# config.status only pays attention to the cache file if you give it the
++# --recheck option to rerun configure.
++#
++EOF
++# The following way of writing the cache mishandles newlines in values,
++# but we know of no workaround that is simple, portable, and efficient.
++# So, don't put newlines in cache variables' values.
++# Ultrix sh set writes to stderr and can't be redirected directly,
++# and sets the high bit in the cache file unless we assign to the vars.
++(set) 2>&1 |
++  case `(ac_space=' '; set) 2>&1` in
++  *ac_space=\ *)
++    # `set' does not quote correctly, so add quotes (double-quote substitution
++    # turns \\\\ into \\, and sed turns \\ into \).
++    sed -n \
++      -e "s/'/'\\\\''/g" \
++      -e "s/^\\([a-zA-Z0-9_]*_cv_[a-zA-Z0-9_]*\\)=\\(.*\\)/\\1=\${\\1='\\2'}/p"
++    ;;
++  *)
++    # `set' quotes correctly as required by POSIX, so do not add quotes.
++    sed -n -e 's/^\([a-zA-Z0-9_]*_cv_[a-zA-Z0-9_]*\)=\(.*\)/\1=${\1=\2}/p'
++    ;;
++  esac >> confcache
++if cmp -s $cache_file confcache; then
++  :
++else
++  if test -w $cache_file; then
++    echo "updating cache $cache_file"
++    cat confcache > $cache_file
++  else
++    echo "not updating unwritable cache $cache_file"
++  fi
++fi
++rm -f confcache
++
++trap 'rm -fr conftest* confdefs* core core.* *.core $ac_clean_files; exit 1' 1 2 15
++
++test "x$prefix" = xNONE && prefix=$ac_default_prefix
++# Let make expand exec_prefix.
++test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
++
++# Any assignment to VPATH causes Sun make to only execute
++# the first set of double-colon rules, so remove it if not needed.
++# If there is a colon in the path, we need to keep it.
++if test "x$srcdir" = x.; then
++  ac_vpsub='/^[ 	]*VPATH[ 	]*=[^:]*$/d'
++fi
++
++trap 'rm -f $CONFIG_STATUS conftest*; exit 1' 1 2 15
++
++DEFS=-DHAVE_CONFIG_H
++
++# Without the "./", some shells look in PATH for config.status.
++: ${CONFIG_STATUS=./config.status}
++
++echo creating $CONFIG_STATUS
++rm -f $CONFIG_STATUS
++cat > $CONFIG_STATUS <<EOF
++#! /bin/sh
++# Generated automatically by configure.
++# Run this file to recreate the current configuration.
++# This directory was configured as follows,
++# on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
++#
++# $0 $ac_configure_args
++#
++# Compiler output produced by configure, useful for debugging
++# configure, is in ./config.log if it exists.
++
++ac_cs_usage="Usage: $CONFIG_STATUS [--recheck] [--version] [--help]"
++for ac_option
++do
++  case "\$ac_option" in
++  -recheck | --recheck | --rechec | --reche | --rech | --rec | --re | --r)
++    echo "running \${CONFIG_SHELL-/bin/sh} $0 $ac_configure_args --no-create --no-recursion"
++    exec \${CONFIG_SHELL-/bin/sh} $0 $ac_configure_args --no-create --no-recursion ;;
++  -version | --version | --versio | --versi | --vers | --ver | --ve | --v)
++    echo "$CONFIG_STATUS generated by autoconf version 2.12"
++    exit 0 ;;
++  -help | --help | --hel | --he | --h)
++    echo "\$ac_cs_usage"; exit 0 ;;
++  *) echo "\$ac_cs_usage"; exit 1 ;;
++  esac
++done
++
++ac_given_srcdir=$srcdir
++
++trap 'rm -fr `echo "Makefile config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
++EOF
++cat >> $CONFIG_STATUS <<EOF
++
++# Protect against being on the right side of a sed subst in config.status.
++sed 's/%@/@@/; s/@%/@@/; s/%g\$/@g/; /@g\$/s/[\\\\&%]/\\\\&/g;
++ s/@@/%@/; s/@@/@%/; s/@g\$/%g/' > conftest.subs <<\\CEOF
++$ac_vpsub
++$extrasub
++s%@CFLAGS@%$CFLAGS%g
++s%@CPPFLAGS@%$CPPFLAGS%g
++s%@CXXFLAGS@%$CXXFLAGS%g
++s%@DEFS@%$DEFS%g
++s%@LDFLAGS@%$LDFLAGS%g
++s%@LIBS@%$LIBS%g
++s%@exec_prefix@%$exec_prefix%g
++s%@prefix@%$prefix%g
++s%@program_transform_name@%$program_transform_name%g
++s%@bindir@%$bindir%g
++s%@sbindir@%$sbindir%g
++s%@libexecdir@%$libexecdir%g
++s%@datadir@%$datadir%g
++s%@sysconfdir@%$sysconfdir%g
++s%@sharedstatedir@%$sharedstatedir%g
++s%@localstatedir@%$localstatedir%g
++s%@libdir@%$libdir%g
++s%@includedir@%$includedir%g
++s%@oldincludedir@%$oldincludedir%g
++s%@infodir@%$infodir%g
++s%@mandir@%$mandir%g
++s%@CC@%$CC%g
++s%@CPP@%$CPP%g
++s%@X_CFLAGS@%$X_CFLAGS%g
++s%@X_PRE_LIBS@%$X_PRE_LIBS%g
++s%@X_LIBS@%$X_LIBS%g
++s%@X_EXTRA_LIBS@%$X_EXTRA_LIBS%g
++
++CEOF
++EOF
++
++cat >> $CONFIG_STATUS <<\EOF
++
++# Split the substitutions into bite-sized pieces for seds with
++# small command number limits, like on Digital OSF/1 and HP-UX.
++ac_max_sed_cmds=90 # Maximum number of lines to put in a sed script.
++ac_file=1 # Number of current file.
++ac_beg=1 # First line for current file.
++ac_end=$ac_max_sed_cmds # Line after last line for current file.
++ac_more_lines=:
++ac_sed_cmds=""
++while $ac_more_lines; do
++  if test $ac_beg -gt 1; then
++    sed "1,${ac_beg}d; ${ac_end}q" conftest.subs > conftest.s$ac_file
++  else
++    sed "${ac_end}q" conftest.subs > conftest.s$ac_file
++  fi
++  if test ! -s conftest.s$ac_file; then
++    ac_more_lines=false
++    rm -f conftest.s$ac_file
++  else
++    if test -z "$ac_sed_cmds"; then
++      ac_sed_cmds="sed -f conftest.s$ac_file"
++    else
++      ac_sed_cmds="$ac_sed_cmds | sed -f conftest.s$ac_file"
++    fi
++    ac_file=`expr $ac_file + 1`
++    ac_beg=$ac_end
++    ac_end=`expr $ac_end + $ac_max_sed_cmds`
++  fi
++done
++if test -z "$ac_sed_cmds"; then
++  ac_sed_cmds=cat
++fi
++EOF
++
++cat >> $CONFIG_STATUS <<EOF
++
++CONFIG_FILES=\${CONFIG_FILES-"Makefile"}
++EOF
++cat >> $CONFIG_STATUS <<\EOF
++for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
++  # Support "outfile[:infile[:infile...]]", defaulting infile="outfile.in".
++  case "$ac_file" in
++  *:*) ac_file_in=`echo "$ac_file"|sed 's%[^:]*:%%'`
++       ac_file=`echo "$ac_file"|sed 's%:.*%%'` ;;
++  *) ac_file_in="${ac_file}.in" ;;
++  esac
++
++  # Adjust a relative srcdir, top_srcdir, and INSTALL for subdirectories.
++
++  # Remove last slash and all that follows it.  Not all systems have dirname.
++  ac_dir=`echo $ac_file|sed 's%/[^/][^/]*$%%'`
++  if test "$ac_dir" != "$ac_file" && test "$ac_dir" != .; then
++    # The file is in a subdirectory.
++    test ! -d "$ac_dir" && mkdir "$ac_dir"
++    ac_dir_suffix="/`echo $ac_dir|sed 's%^\./%%'`"
++    # A "../" for each directory in $ac_dir_suffix.
++    ac_dots=`echo $ac_dir_suffix|sed 's%/[^/]*%../%g'`
++  else
++    ac_dir_suffix= ac_dots=
++  fi
++
++  case "$ac_given_srcdir" in
++  .)  srcdir=.
++      if test -z "$ac_dots"; then top_srcdir=.
++      else top_srcdir=`echo $ac_dots|sed 's%/$%%'`; fi ;;
++  /*) srcdir="$ac_given_srcdir$ac_dir_suffix"; top_srcdir="$ac_given_srcdir" ;;
++  *) # Relative path.
++    srcdir="$ac_dots$ac_given_srcdir$ac_dir_suffix"
++    top_srcdir="$ac_dots$ac_given_srcdir" ;;
++  esac
++
++
++  echo creating "$ac_file"
++  rm -f "$ac_file"
++  configure_input="Generated automatically from `echo $ac_file_in|sed 's%.*/%%'` by configure."
++  case "$ac_file" in
++  *Makefile*) ac_comsub="1i\\
++# $configure_input" ;;
++  *) ac_comsub= ;;
++  esac
++
++  ac_file_inputs=`echo $ac_file_in|sed -e "s%^%$ac_given_srcdir/%" -e "s%:% $ac_given_srcdir/%g"`
++  sed -e "$ac_comsub
++s%@configure_input@%$configure_input%g
++s%@srcdir@%$srcdir%g
++s%@top_srcdir@%$top_srcdir%g
++" $ac_file_inputs | (eval "$ac_sed_cmds") > $ac_file
++fi; done
++rm -f conftest.s*
++
++# These sed commands are passed to sed as "A NAME B NAME C VALUE D", where
++# NAME is the cpp macro being defined and VALUE is the value it is being given.
++#
++# ac_d sets the value in "#define NAME VALUE" lines.
++ac_dA='s%^\([ 	]*\)#\([ 	]*define[ 	][ 	]*\)'
++ac_dB='\([ 	][ 	]*\)[^ 	]*%\1#\2'
++ac_dC='\3'
++ac_dD='%g'
++# ac_u turns "#undef NAME" with trailing blanks into "#define NAME VALUE".
++ac_uA='s%^\([ 	]*\)#\([ 	]*\)undef\([ 	][ 	]*\)'
++ac_uB='\([ 	]\)%\1#\2define\3'
++ac_uC=' '
++ac_uD='\4%g'
++# ac_e turns "#undef NAME" without trailing blanks into "#define NAME VALUE".
++ac_eA='s%^\([ 	]*\)#\([ 	]*\)undef\([ 	][ 	]*\)'
++ac_eB='$%\1#\2define\3'
++ac_eC=' '
++ac_eD='%g'
++
++if test "${CONFIG_HEADERS+set}" != set; then
++EOF
++cat >> $CONFIG_STATUS <<EOF
++  CONFIG_HEADERS="config.h"
++EOF
++cat >> $CONFIG_STATUS <<\EOF
++fi
++for ac_file in .. $CONFIG_HEADERS; do if test "x$ac_file" != x..; then
++  # Support "outfile[:infile[:infile...]]", defaulting infile="outfile.in".
++  case "$ac_file" in
++  *:*) ac_file_in=`echo "$ac_file"|sed 's%[^:]*:%%'`
++       ac_file=`echo "$ac_file"|sed 's%:.*%%'` ;;
++  *) ac_file_in="${ac_file}.in" ;;
++  esac
++
++  echo creating $ac_file
++
++  rm -f conftest.frag conftest.in conftest.out
++  ac_file_inputs=`echo $ac_file_in|sed -e "s%^%$ac_given_srcdir/%" -e "s%:% $ac_given_srcdir/%g"`
++  cat $ac_file_inputs > conftest.in
++
++EOF
++
++# Transform confdefs.h into a sed script conftest.vals that substitutes
++# the proper values into config.h.in to produce config.h.  And first:
++# Protect against being on the right side of a sed subst in config.status.
++# Protect against being in an unquoted here document in config.status.
++rm -f conftest.vals
++cat > conftest.hdr <<\EOF
++s/[\\&%]/\\&/g
++s%[\\$`]%\\&%g
++s%#define \([A-Za-z_][A-Za-z0-9_]*\) *\(.*\)%${ac_dA}\1${ac_dB}\1${ac_dC}\2${ac_dD}%gp
++s%ac_d%ac_u%gp
++s%ac_u%ac_e%gp
++EOF
++sed -n -f conftest.hdr confdefs.h > conftest.vals
++rm -f conftest.hdr
++
++# This sed command replaces #undef with comments.  This is necessary, for
++# example, in the case of _POSIX_SOURCE, which is predefined and required
++# on some systems where configure will not decide to define it.
++cat >> conftest.vals <<\EOF
++s%^[ 	]*#[ 	]*undef[ 	][ 	]*[a-zA-Z_][a-zA-Z_0-9]*%/* & */%
++EOF
++
++# Break up conftest.vals because some shells have a limit on
++# the size of here documents, and old seds have small limits too.
++
++rm -f conftest.tail
++while :
++do
++  ac_lines=`grep -c . conftest.vals`
++  # grep -c gives empty output for an empty file on some AIX systems.
++  if test -z "$ac_lines" || test "$ac_lines" -eq 0; then break; fi
++  # Write a limited-size here document to conftest.frag.
++  echo '  cat > conftest.frag <<CEOF' >> $CONFIG_STATUS
++  sed ${ac_max_here_lines}q conftest.vals >> $CONFIG_STATUS
++  echo 'CEOF
++  sed -f conftest.frag conftest.in > conftest.out
++  rm -f conftest.in
++  mv conftest.out conftest.in
++' >> $CONFIG_STATUS
++  sed 1,${ac_max_here_lines}d conftest.vals > conftest.tail
++  rm -f conftest.vals
++  mv conftest.tail conftest.vals
++done
++rm -f conftest.vals
++
++cat >> $CONFIG_STATUS <<\EOF
++  rm -f conftest.frag conftest.h
++  echo "/* $ac_file.  Generated automatically by configure.  */" > conftest.h
++  cat conftest.in >> conftest.h
++  rm -f conftest.in
++  if cmp -s $ac_file conftest.h 2>/dev/null; then
++    echo "$ac_file is unchanged"
++    rm -f conftest.h
++  else
++    # Remove last slash and all that follows it.  Not all systems have dirname.
++      ac_dir=`echo $ac_file|sed 's%/[^/][^/]*$%%'`
++      if test "$ac_dir" != "$ac_file" && test "$ac_dir" != .; then
++      # The file is in a subdirectory.
++      test ! -d "$ac_dir" && mkdir "$ac_dir"
++    fi
++    rm -f $ac_file
++    mv conftest.h $ac_file
++  fi
++fi; done
++
++EOF
++cat >> $CONFIG_STATUS <<EOF
++
++EOF
++cat >> $CONFIG_STATUS <<\EOF
++
++exit 0
++EOF
++chmod +x $CONFIG_STATUS
++rm -fr confdefs* $ac_clean_files
++test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
++
+diff -urNad 01.xloadimage.tmp/configure.in 01.xloadimage/configure.in
+--- 01.xloadimage.tmp/configure.in	1970-01-01 01:00:00.000000000 +0100
++++ 01.xloadimage/configure.in	2003-04-03 00:11:28.000000000 +0100
+@@ -0,0 +1,30 @@
++dnl Process this file with autoconf to produce a configure script.
++AC_INIT(xloadimage.c)
++AC_CONFIG_HEADER(config.h)
++
++dnl Checks for programs.
++AC_PROG_CC
++
++dnl Checks for header files.
++AC_PATH_XTRA
++AC_HEADER_STDC
++AC_CHECK_HEADERS(malloc.h strings.h sys/time.h unistd.h)
++
++dnl Checks for libraries.
++dnl Replace `main' with a function in -lm:
++AC_CHECK_LIB(m, main)
++dnl Replace `main' with a function in -lz:
++AC_CHECK_LIB(z, main)
++dnl Replace `main' with a function in -ljpeg:
++AC_CHECK_LIB(jpeg, main)
++dnl Replace `main' with a function in -ltiff:
++AC_CHECK_LIB(tiff, main)
++
++
++dnl Checks for typedefs, structures, and compiler characteristics.
++
++dnl Checks for library functions.
++AC_TYPE_SIGNAL
++AC_CHECK_FUNCS(mkdir select)
++
++AC_OUTPUT(Makefile)
+diff -urNad 01.xloadimage.tmp/configure.scan 01.xloadimage/configure.scan
+--- 01.xloadimage.tmp/configure.scan	1970-01-01 01:00:00.000000000 +0100
++++ 01.xloadimage/configure.scan	2003-04-03 00:11:28.000000000 +0100
+@@ -0,0 +1,32 @@
++dnl Process this file with autoconf to produce a configure script.
++AC_INIT(buildshar.c)
++
++dnl Checks for programs.
++AC_PROG_CC
++
++dnl Checks for libraries.
++dnl Replace `main' with a function in -lX11:
++AC_CHECK_LIB(X11, main)
++dnl Replace `main' with a function in -lXext:
++AC_CHECK_LIB(Xext, main)
++dnl Replace `main' with a function in -ljpeg:
++AC_CHECK_LIB(jpeg, main)
++dnl Replace `main' with a function in -lm:
++AC_CHECK_LIB(m, main)
++dnl Replace `main' with a function in -ltiff:
++AC_CHECK_LIB(tiff, main)
++dnl Replace `main' with a function in -lz:
++AC_CHECK_LIB(z, main)
++
++dnl Checks for header files.
++AC_PATH_X
++AC_HEADER_STDC
++AC_CHECK_HEADERS(malloc.h strings.h sys/time.h unistd.h)
++
++dnl Checks for typedefs, structures, and compiler characteristics.
++
++dnl Checks for library functions.
++AC_TYPE_SIGNAL
++AC_CHECK_FUNCS(mkdir select)
++
++AC_OUTPUT(Makefile)
+diff -urNad 01.xloadimage.tmp/fbm.c 01.xloadimage/fbm.c
+--- 01.xloadimage.tmp/fbm.c	1993-10-21 22:28:37.000000000 +0100
++++ 01.xloadimage/fbm.c	2003-04-03 00:11:28.000000000 +0100
+@@ -45,12 +45,12 @@
+ static int  fbmin_img_rowlen;	       /* length of one row of data */
+ static int  fbmin_img_plnlen;	       /* length of one plane of data */
+ static int  fbmin_img_clrlen;	       /* length of the colormap */
+-static int  fbmin_img_aspect;	       /* image aspect ratio */
++static double  fbmin_img_aspect;	       /* image aspect ratio */
+ static int  fbmin_img_physbits;	       /* physical bits per pixel */
+ static char *fbmin_img_title;		/* name of image */
+ static char *fbmin_img_credit;		/* credit for image */
+ 
+-static fbmin_image_test()
++static int fbmin_image_test()
+ {
+   if (fbmin_img_width < 1 || fbmin_img_width > 32767) {
+     fprintf (stderr, "Invalid width (%d) on input\n", fbmin_img_width);
+@@ -93,7 +93,7 @@
+   }
+ 
+   if (fbmin_img_aspect < 0.01 || fbmin_img_aspect > 100.0) {
+-    fprintf (stderr, "Invalid aspect ratio %lg on input\n",
++    fprintf (stderr, "Invalid aspect ratio %1.3f on input\n",
+ 	     fbmin_img_aspect);
+     return FBMIN_ERR_BAD_SD;
+   }
+@@ -133,7 +133,7 @@
+   fbmin_img_rowlen   = atoi(phdr.rowlen);
+   fbmin_img_plnlen   = atoi(phdr.plnlen);
+   fbmin_img_clrlen   = atoi(phdr.clrlen);
+-  fbmin_img_aspect   = atoi(phdr.aspect);
++  fbmin_img_aspect   = atof(phdr.aspect);
+   fbmin_img_physbits = atoi(phdr.physbits);
+   fbmin_img_title    = phdr.title;
+   fbmin_img_credit   = phdr.credits;
+diff -urNad 01.xloadimage.tmp/image.h 01.xloadimage/image.h
+--- 01.xloadimage.tmp/image.h	1993-10-28 18:14:56.000000000 +0000
++++ 01.xloadimage/image.h	2003-04-03 00:11:28.000000000 +0100
+@@ -8,6 +8,10 @@
+  * copyright information.
+  */
+ 
++#ifdef HAVE_CONFIG_H
++#include "config.h"
++#endif
++
+ #include "copyright.h"
+ 
+ #include <stdio.h>
+diff -urNad 01.xloadimage.tmp/imagetypes.c 01.xloadimage/imagetypes.c
+--- 01.xloadimage.tmp/imagetypes.c	1993-10-28 16:35:18.000000000 +0000
++++ 01.xloadimage/imagetypes.c	2003-04-03 00:11:28.000000000 +0100
+@@ -17,6 +17,7 @@
+ /* SUPPRESS 560 */
+ 
+ extern int errno;
++extern int findImage(char *name, char *fullname);
+ 
+ /* load a named image
+  */
+diff -urNad 01.xloadimage.tmp/imagetypes.h 01.xloadimage/imagetypes.h
+--- 01.xloadimage.tmp/imagetypes.h	1993-10-27 14:25:04.000000000 +0000
++++ 01.xloadimage/imagetypes.h	2003-04-03 00:11:28.000000000 +0100
+@@ -28,10 +28,10 @@
+ #else
+ Image *vicarLoad();
+ #endif
+-#ifdef HAS_JPEG
++#ifdef HAVE_LIBJPEG
+ Image *jpegLoad();
+ #endif
+-#ifdef HAS_TIFF
++#ifdef HAVE_LIBTIFF
+ Image *tiffLoad();
+ #endif
+ 
+@@ -56,18 +56,18 @@
+ #else
+ int vicarIdent();
+ #endif
+-#ifdef HAS_JPEG
++#ifdef HAVE_LIBJPEG
+ int jpegIdent();
+ #endif
+-#ifdef HAS_TIFF
++#ifdef HAVE_LIBTIFF
+ int tiffIdent();
+ #endif
+ 
+ void niffDump();
+-#ifdef HAS_JPEG
++#ifdef HAVE_LIBJPEG
+ void jpegDump();
+ #endif
+-#ifdef HAS_TIFF
++#ifdef HAVE_LIBTIFF
+ void tiffDump();
+ #endif
+ void pbmDump();
+@@ -85,10 +85,10 @@
+   niffIdent,      niffLoad,      niffDump,    "niff",      "Native Image File Format (NIFF)",
+   sunRasterIdent, sunRasterLoad, NULL,        "sunraster", "Sun Rasterfile",
+   gifIdent,       gifLoad,       NULL,        "gif",       "GIF Image",
+-#ifdef HAS_JPEG
++#ifdef HAVE_LIBJPEG
+   jpegIdent,      jpegLoad,      jpegDump,    "jpeg",      "JFIF-style JPEG Image",
+ #endif
+-#ifdef HAS_TIFF
++#ifdef HAVE_LIBTIFF
+   tiffIdent,      tiffLoad,      tiffDump,    "tiff",      "TIFF image",
+ #endif
+   fbmIdent,       fbmLoad,       NULL,        "fbm",       "FBM Image",
+diff -urNad 01.xloadimage.tmp/img.c 01.xloadimage/img.c
+--- 01.xloadimage.tmp/img.c	1993-10-28 16:18:15.000000000 +0000
++++ 01.xloadimage/img.c	2003-04-03 00:11:28.000000000 +0100
+@@ -413,7 +413,7 @@
+      char *name;
+ {
+   ZFILE           *file;
+-  Image           *image;
++  Image           *image = NULL;
+   unsigned long    w, h, nplanes, headlength, scanwidth;
+   int              colors;
+   long             i, dummy;
+@@ -632,9 +632,9 @@
+ {
+   void            transferRGBMap();
+   ZFILE          *file;
+-  Image          *image;
++  Image          *image = NULL;
+   unsigned long   w, h, nplanes, scanwidth;
+-  int             i, color, colors;
++  int             color, colors;
+   struct RGB_LIST
+   {
+     unsigned int red;
+diff -urNad 01.xloadimage.tmp/install-sh 01.xloadimage/install-sh
+--- 01.xloadimage.tmp/install-sh	1970-01-01 01:00:00.000000000 +0100
++++ 01.xloadimage/install-sh	2003-04-03 00:11:28.000000000 +0100
+@@ -0,0 +1,238 @@
++#! /bin/sh
++#
++# install - install a program, script, or datafile
++# This comes from X11R5.
++#
++# Calling this script install-sh is preferred over install.sh, to prevent
++# `make' implicit rules from creating a file called install from it
++# when there is no Makefile.
++#
++# This script is compatible with the BSD install script, but was written
++# from scratch.
++#
++
++
++# set DOITPROG to echo to test this script
++
++# Don't use :- since 4.3BSD and earlier shells don't like it.
++doit="${DOITPROG-}"
++
++
++# put in absolute paths if you don't have them in your path; or use env. vars.
++
++mvprog="${MVPROG-mv}"
++cpprog="${CPPROG-cp}"
++chmodprog="${CHMODPROG-chmod}"
++chownprog="${CHOWNPROG-chown}"
++chgrpprog="${CHGRPPROG-chgrp}"
++stripprog="${STRIPPROG-strip}"
++rmprog="${RMPROG-rm}"
++mkdirprog="${MKDIRPROG-mkdir}"
++
++tranformbasename=""
++transform_arg=""
++instcmd="$mvprog"
++chmodcmd="$chmodprog 0755"
++chowncmd=""
++chgrpcmd=""
++stripcmd=""
++rmcmd="$rmprog -f"
++mvcmd="$mvprog"
++src=""
++dst=""
++dir_arg=""
++
++while [ x"$1" != x ]; do
++    case $1 in
++	-c) instcmd="$cpprog"
++	    shift
++	    continue;;
++
++	-d) dir_arg=true
++	    shift
++	    continue;;
++
++	-m) chmodcmd="$chmodprog $2"
++	    shift
++	    shift
++	    continue;;
++
++	-o) chowncmd="$chownprog $2"
++	    shift
++	    shift
++	    continue;;
++
++	-g) chgrpcmd="$chgrpprog $2"
++	    shift
++	    shift
++	    continue;;
++
++	-s) stripcmd="$stripprog"
++	    shift
++	    continue;;
++
++	-t=*) transformarg=`echo $1 | sed 's/-t=//'`
++	    shift
++	    continue;;
++
++	-b=*) transformbasename=`echo $1 | sed 's/-b=//'`
++	    shift
++	    continue;;
++
++	*)  if [ x"$src" = x ]
++	    then
++		src=$1
++	    else
++		# this colon is to work around a 386BSD /bin/sh bug
++		:
++		dst=$1
++	    fi
++	    shift
++	    continue;;
++    esac
++done
++
++if [ x"$src" = x ]
++then
++	echo "install:	no input file specified"
++	exit 1
++else
++	true
++fi
++
++if [ x"$dir_arg" != x ]; then
++	dst=$src
++	src=""
++	
++	if [ -d $dst ]; then
++		instcmd=:
++	else
++		instcmd=mkdir
++	fi
++else
++
++# Waiting for this to be detected by the "$instcmd $src $dsttmp" command
++# might cause directories to be created, which would be especially bad 
++# if $src (and thus $dsttmp) contains '*'.
++
++	if [ -f $src -o -d $src ]
++	then
++		true
++	else
++		echo "install:  $src does not exist"
++		exit 1
++	fi
++	
++	if [ x"$dst" = x ]
++	then
++		echo "install:	no destination specified"
++		exit 1
++	else
++		true
++	fi
++
++# If destination is a directory, append the input filename; if your system
++# does not like double slashes in filenames, you may need to add some logic
++
++	if [ -d $dst ]
++	then
++		dst="$dst"/`basename $src`
++	else
++		true
++	fi
++fi
++
++## this sed command emulates the dirname command
++dstdir=`echo $dst | sed -e 's,[^/]*$,,;s,/$,,;s,^$,.,'`
++
++# Make sure that the destination directory exists.
++#  this part is taken from Noah Friedman's mkinstalldirs script
++
++# Skip lots of stat calls in the usual case.
++if [ ! -d "$dstdir" ]; then
++defaultIFS='	
++'
++IFS="${IFS-${defaultIFS}}"
++
++oIFS="${IFS}"
++# Some sh's can't handle IFS=/ for some reason.
++IFS='%'
++set - `echo ${dstdir} | sed -e 's@/@%@g' -e 's@^%@/@'`
++IFS="${oIFS}"
++
++pathcomp=''
++
++while [ $# -ne 0 ] ; do
++	pathcomp="${pathcomp}${1}"
++	shift
++
++	if [ ! -d "${pathcomp}" ] ;
++        then
++		$mkdirprog "${pathcomp}"
++	else
++		true
++	fi
++
++	pathcomp="${pathcomp}/"
++done
++fi
++
++if [ x"$dir_arg" != x ]
++then
++	$doit $instcmd $dst &&
++
++	if [ x"$chowncmd" != x ]; then $doit $chowncmd $dst; else true ; fi &&
++	if [ x"$chgrpcmd" != x ]; then $doit $chgrpcmd $dst; else true ; fi &&
++	if [ x"$stripcmd" != x ]; then $doit $stripcmd $dst; else true ; fi &&
++	if [ x"$chmodcmd" != x ]; then $doit $chmodcmd $dst; else true ; fi
++else
++
++# If we're going to rename the final executable, determine the name now.
++
++	if [ x"$transformarg" = x ] 
++	then
++		dstfile=`basename $dst`
++	else
++		dstfile=`basename $dst $transformbasename | 
++			sed $transformarg`$transformbasename
++	fi
++
++# don't allow the sed command to completely eliminate the filename
++
++	if [ x"$dstfile" = x ] 
++	then
++		dstfile=`basename $dst`
++	else
++		true
++	fi
++
++# Make a temp file name in the proper directory.
++
++	dsttmp=$dstdir/#inst.$$#
++
++# Move or copy the file name to the temp name
++
++	$doit $instcmd $src $dsttmp &&
++
++	trap "rm -f ${dsttmp}" 0 &&
++
++# and set any options; do chmod last to preserve setuid bits
++
++# If any of these fail, we abort the whole thing.  If we want to
++# ignore errors from any of these, just make sure not to ignore
++# errors from the above "$doit $instcmd $src $dsttmp" command.
++
++	if [ x"$chowncmd" != x ]; then $doit $chowncmd $dsttmp; else true;fi &&
++	if [ x"$chgrpcmd" != x ]; then $doit $chgrpcmd $dsttmp; else true;fi &&
++	if [ x"$stripcmd" != x ]; then $doit $stripcmd $dsttmp; else true;fi &&
++	if [ x"$chmodcmd" != x ]; then $doit $chmodcmd $dsttmp; else true;fi &&
++
++# Now rename the file to the real destination.
++
++	$doit $rmcmd -f $dstdir/$dstfile &&
++	$doit $mvcmd $dsttmp $dstdir/$dstfile 
++
++fi &&
++
++
++exit 0
+diff -urNad 01.xloadimage.tmp/jpeg.c 01.xloadimage/jpeg.c
+--- 01.xloadimage.tmp/jpeg.c	1993-11-08 18:36:03.000000000 +0000
++++ 01.xloadimage/jpeg.c	2003-04-03 00:13:08.000000000 +0100
+@@ -4,509 +4,314 @@
+  * free JPEG software.  See jpeg.README for more information.
+  *
+  * This code is based on example.c from the IJG v4 distribution.
++ * 1998/08/19: Change for IJG v6.0a. dump Progressive JPEG support.
+  */
+ 
+ #include "image.h"	/* xloadimage declarations */
+-#include "jpeg.conf.h"  /* definitions used in jpeg directory */
+-#include "jpeg/jinclude.h" /* IJG declarations */
++#ifdef HAVE_LIBJPEG
++#include "options.h"
++#include <jpeglib.h>
++#include <jerror.h>
+ #include <setjmp.h>	/* need setjmp/longjmp */
+ 
+-/* Error-catching routines */
++#undef  DEBUG
++/* #define  DEBUG */
++#undef  debug
++
++#ifdef DEBUG
++# define debug(xx)	fprintf(stderr,xx)
++#else
++# define debug(xx)
++#endif
++
++static Image *image;    /* xloadimage image being returned */
+ 
+ static char *filename;
+-static unsigned int verbose;
+-static unsigned int identify;
+ static jmp_buf setjmp_buffer;	/* for return to caller */
+-static external_methods_ptr emethods; /* needed for access to message_parm */
++ZFILE * zinput_file;	/* tells input routine where to read JPEG */
++static JOCTET jpeg_read_buff[1024 * 16];
+ 
+-static void
+-trace_message (msgtext)
+-     char *msgtext;
++/*
++ * source manager
++ */
++static void init_source( j_decompress_ptr cinfo)
+ {
+-  fprintf(stderr, "jpegLoad: %s - ", filename);
+-  fprintf(stderr, msgtext,
+-	  emethods->message_parm[0], emethods->message_parm[1],
+-	  emethods->message_parm[2], emethods->message_parm[3],
+-	  emethods->message_parm[4], emethods->message_parm[5],
+-	  emethods->message_parm[6], emethods->message_parm[7]);
+-  fprintf(stderr, "\n");	/* there is no \n in the format string! */
+-}
+ 
+-static void
+-error_exit (msgtext)
+-     char *msgtext;
+-{
+-  trace_message(msgtext);	/* report the error message */
+-  (*emethods->free_all) ();	/* clean up memory allocation & temp files */
+-  longjmp(setjmp_buffer, 1);	/* return control to outer routine */
++    debug("init_source()");
+ }
+ 
+-
+-/* Output-acceptance routines */
+-
+-static Image *image;		/* xloadimage image being returned */
+-static int rows_put;		/* Number of rows copied to image */
+-
+-
+-static void
+-output_init (cinfo)
+-     decompress_info_ptr cinfo;
+-/* Initialize for output */
++static boolean fill_input_buffer( j_decompress_ptr cinfo)
+ {
+-  int i;
++    struct jpeg_source_mgr *src = cinfo->src;
+ 
+-  if (cinfo->out_color_space == CS_GRAYSCALE) {
+-    image = newRGBImage(cinfo->image_width,cinfo->image_height,8);
+-    image->title = dupString(filename);
+-    /* set a linear map */
+-    for(i=0;i<256;i++) {
+-      *(image->rgb.red + i) = 
+-	*(image->rgb.green + i) = 
+-	  *(image->rgb.blue + i) = i<<8;
++    debug("fill_input_buffer()");
++#ifdef DEBUG
++    fprintf( stderr,"fill_input_buffer(): %d  ",src->bytes_in_buffer);
++#endif
++    src->next_input_byte = jpeg_read_buff;
++    src->bytes_in_buffer = zread(zinput_file,
++				 jpeg_read_buff, sizeof(jpeg_read_buff));
++    if(src->bytes_in_buffer <= 0){
++	WARNMS(cinfo, JWRN_JPEG_EOF);
++	jpeg_read_buff[0] = 0xFF;
++	jpeg_read_buff[1] = JPEG_EOI;
++	src->bytes_in_buffer = 2;
+     }
+-    image->rgb.used = 256;
+-  } else if (cinfo->out_color_space == CS_RGB) {
+-    image = newTrueImage(cinfo->image_width,cinfo->image_height);
+-    image->title = dupString(filename);
+-  } else {
+-    image = NULL;
+-    ERREXIT(cinfo->emethods, "Cannot cope with JPEG image colorspace");
+-  }
+-  rows_put = 0;
++    return TRUE;
+ }
+ 
+-
+-static void
+-put_color_map (cinfo, num_colors, colormap)
+-     decompress_info_ptr cinfo;
+-     int num_colors;
+-     JSAMPARRAY colormap;
+-/* Write the color map -- should not be called */
++static void skip_input_data( j_decompress_ptr cinfo, long num_bytes)
+ {
+-  fprintf(stderr, "put_color_map called: there is a bug here somewhere!\n");
+-}
+-
++    int rest;
++    struct jpeg_source_mgr *src = cinfo->src;
+ 
+-static void
+-put_pixel_rows (cinfo, num_rows, pixel_data)
+-     decompress_info_ptr cinfo;
+-     int num_rows;
+-     JSAMPIMAGE pixel_data;
+-/* Write some rows of output data */
+-{
+-  register unsigned char *bufp;
+-  register JSAMPROW ptr0, ptr1, ptr2;
+-  register long col;
+-  long width = cinfo->image_width;
+-  int row;
+-  
+-  if (cinfo->out_color_space == CS_GRAYSCALE) {
+-    bufp = image->data + rows_put * width;
+-    /* Assume JSAMPLE == chars */
+-    for (row = 0; row < num_rows; row++) {
+-      bcopy(pixel_data[0][row],bufp,width);
+-      bufp += width;
++    debug("skip_input_data()");
++#ifdef DEBUG
++    fprintf(stderr,": %ld,%d  ", num_bytes, src->bytes_in_buffer);
++#endif
++    if( num_bytes < 1) return;
++    rest = src->bytes_in_buffer;
++    if( num_bytes < rest) {
++	src->next_input_byte += num_bytes;
++	src->bytes_in_buffer -= num_bytes;;
++	return;
+     }
+-  } else {
+-    bufp = image->data + rows_put * width * 3;
+-    for (row = 0; row < num_rows; row++) {
+-      ptr0 = pixel_data[0][row];
+-      ptr1 = pixel_data[1][row];
+-      ptr2 = pixel_data[2][row];
+-      for (col = width; col > 0; col--) {
+-	*bufp++ = *ptr0++;
+-	*bufp++ = *ptr1++;
+-	*bufp++ = *ptr2++;
+-      }
++    num_bytes -= rest;
++    while( num_bytes--) {
++	zgetc(zinput_file);
+     }
+-  }
+-  rows_put += num_rows;
++    fill_input_buffer(cinfo);
+ }
+ 
+-
+-static void
+-output_term (cinfo)
+-     decompress_info_ptr cinfo;
+-/* Finish up at the end of the output */
++static boolean resync_to_restart( j_decompress_ptr cinfo, int desired)
+ {
+-  /* No work here */
++    return jpeg_resync_to_restart( cinfo, desired);
+ }
+ 
+-
+-/* Input-file-reading routine */
+-
+-
+-static ZFILE * input_file;	/* tells input routine where to read JPEG */
+-
+-
+-static int
+-read_jpeg_data (cinfo)
+-     decompress_info_ptr cinfo;
++static void term_source( j_decompress_ptr cinfo)
+ {
+-  cinfo->next_input_byte = cinfo->input_buffer + MIN_UNGET;
++    debug("term_source()");
++}
+ 
+-  cinfo->bytes_in_buffer = zread(input_file,
+-				 (byte *)cinfo->next_input_byte,
+-				 JPEG_BUF_SIZE);
+-  
+-  if (cinfo->bytes_in_buffer <= 0) {
+-    WARNMS(cinfo->emethods, "Premature EOF in JPEG file");
+-    cinfo->next_input_byte[0] = (char) 0xFF;
+-    cinfo->next_input_byte[1] = (char) 0xD9; /* EOI marker */
+-    cinfo->bytes_in_buffer = 2;
+-  }
++/*
++ *  error manager
++ */
++static void
++output_message ( j_common_ptr cominfo)
++{
++    char buf[JMSG_LENGTH_MAX];
+ 
+-  return JGETC(cinfo);
++    (*cominfo->err->format_message)(cominfo, buf);
++    fprintf(stderr, "jpegLoad: %s - %s\n", filename, buf);
+ }
+ 
+ 
+-/*  Required control-hook routine */
++static void error_exit (j_common_ptr cominfo)
++{
++    output_message( cominfo);
++    longjmp(setjmp_buffer, 1);	/* return control to outer routine */
++}
+ 
+ 
+ static void
+-d_ui_method_selection (cinfo)
+-     decompress_info_ptr cinfo;
++jpegInfo (cinfo)
++     j_decompress_ptr cinfo;
+ {
+-  /* if grayscale input, force grayscale output; */
+-  /* else leave the output colorspace as set by main routine. */
+-  if (cinfo->jpeg_color_space == CS_GRAYSCALE)
+-    cinfo->out_color_space = CS_GRAYSCALE;
+-
+-  /* Create display of image parameters */
+-  if (verbose) {
++    /* Create display of image parameters */
+     printf("%s is a %dx%d JPEG image, color space ", filename,
+ 	   cinfo->image_width, cinfo->image_height);
+     switch (cinfo->jpeg_color_space) {
+-    case CS_UNKNOWN:
+-      printf("Unknown");
+-      break;
+-    case CS_GRAYSCALE:
+-      printf("Grayscale");
+-      break;
+-    case CS_RGB:
+-      printf("RGB");
+-      break;
+-    case CS_YCbCr:
+-      printf("YCbCr");
+-      break;
+-    case CS_YIQ:
+-      printf("YIQ");
+-      break;
+-    case CS_CMYK:
+-      printf("CMYK");
+-      break;
++    case JCS_GRAYSCALE:
++	printf("Grayscale");
++	break;
++    case JCS_RGB:
++	printf("RGB");
++	break;
++    case JCS_YCbCr:
++	printf("YCbCr");
++	break;
++    case JCS_CMYK:
++	printf("CMYK");
++	break;
++    case JCS_YCCK:
++	printf("YCCK");
++	break;
++    case JCS_UNKNOWN:
++    default:
++	printf("Unknown");
++	break;
+     }
+     printf(", %d comp%s,", cinfo->num_components,
+-	   cinfo->num_components ? "s." : ".");
++	   (cinfo->num_components - 1) ? "s" : "");
++    if (cinfo->progressive_mode)
++	printf(" Progressive,");
+     if (cinfo->arith_code)
+-      printf(" Arithmetic coding\n");
++	printf(" Arithmetic coding.\n");
+     else
+-      printf(" Huffman coding\n");
+-  }
+-
+-  /* Turn off caching beyond this point of the file */
+-  znocache(input_file);
+-
+-  /* If we only wanted to identify the image, abort now */
+-  if (identify) {
+-    (*emethods->free_all) ();	/* clean up memory allocation & temp files */
+-    longjmp(setjmp_buffer, 10);	/* return control with success code */
+-  }
+-
+-  /* select output routines */
+-  cinfo->methods->output_init = output_init;
+-  cinfo->methods->put_color_map = put_color_map;
+-  cinfo->methods->put_pixel_rows = put_pixel_rows;
+-  cinfo->methods->output_term = output_term;
++	printf(" Huffman coding.\n");
+ }
+ 
+ 
+ /* Main control routine for loading */
+ 
+-
+ Image *
+-jpegLoad (fullname, name, vbose)
++jpegLoad (fullname, name, verbose)
+      char *fullname, *name;
+-     unsigned int vbose;
++     unsigned int verbose;
+ {
+-  struct Decompress_info_struct cinfo;
+-  struct Decompress_methods_struct dc_methods;
+-  struct External_methods_struct e_methods;
+-
+-  input_file = zopen(fullname);	/* Open the input file */
+-  if (input_file == NULL)
+-    return NULL;
+-
+-  /* Quick check to see if file starts with JPEG SOI marker */
+-  if (zgetc(input_file) != 0xFF || zgetc(input_file) != 0xD8) {
+-    zclose(input_file);
+-    return NULL;
+-  }
+-
+-  filename = name;		/* copy parms to static vars */
+-  verbose = vbose;
+-  identify = 0;
+-
+-  image = NULL;			/* in case we fail before creating image */
+-
+-  cinfo.methods = &dc_methods;	/* links to method structs */
+-  cinfo.emethods = &e_methods;
+-  emethods = &e_methods;	/* save struct addr for possible access */
+-  e_methods.error_exit = error_exit; /* supply error-exit routine */
+-  e_methods.trace_message = trace_message; /* supply trace-message routine */
+-  e_methods.trace_level = 0;	/* default = no tracing */
+-  e_methods.num_warnings = 0;	/* no warnings emitted yet */
+-  e_methods.first_warning_level = 0; /* display first corrupt-data warning */
+-  e_methods.more_warning_level = 3; /* but suppress additional ones */
+-
+-  /* prepare setjmp context for possible exit from error_exit */
+-  if (setjmp(setjmp_buffer)) {
+-    /* If we get here, the JPEG code has signaled an error. */
+-    /* Return as much of the image as we could get. */
+-    zclose(input_file);
+-    return image;
+-  }
++    struct jpeg_decompress_struct cinfo;
++    struct jpeg_source_mgr src_mgr;
++    struct jpeg_error_mgr err_mgr;
++    int i, row_stride;
++    byte *bufp;
+ 
+-  jselmemmgr(&e_methods);	/* select std memory allocation routines */
++    zinput_file = zopen(fullname);	/* Open the input file */
++    if (zinput_file == NULL)
++	return NULL;
++    filename = name;		/* copy parms to static vars */
++    image = NULL;		/* in case we fail before creating image */
+ 
+-  /* Set up default decompression parameters. */
+-  j_d_defaults(&cinfo, TRUE);
++    jpeg_create_decompress(&cinfo);
++    src_mgr.init_source = init_source;
++    src_mgr.fill_input_buffer = fill_input_buffer;
++    src_mgr.skip_input_data = skip_input_data;
++    src_mgr.resync_to_restart = resync_to_restart;
++    src_mgr.term_source = term_source;
++    cinfo.src = &src_mgr;	/* links to method structs */
++    err_mgr.error_exit = error_exit; /* supply error-exit routine */
++    err_mgr.output_message = output_message;
++    err_mgr.trace_level = 0;	/* default = no tracing */
++    err_mgr.num_warnings = 0;	/* no warnings emitted yet */
++    cinfo.err = jpeg_std_error(&err_mgr);
+ 
+-  /* Override default methods */
+-  dc_methods.d_ui_method_selection = d_ui_method_selection;
+-  dc_methods.read_jpeg_data = read_jpeg_data;
++    src_mgr.bytes_in_buffer = 0;
++    fill_input_buffer( &cinfo);
++    /* Quick check to see if file starts with JPEG SOI marker */
++    if(jpeg_read_buff[0] != 0xFF || jpeg_read_buff[1] != 0xD8) {
++	zclose(zinput_file);
++	return NULL;
++    }
+ 
+-  /* Insert fake SOI into the input buffer --- needed cause we read it above */
+-  cinfo.next_input_byte = cinfo.input_buffer + MIN_UNGET;
+-  cinfo.next_input_byte[0] = (char) 0xFF;
+-  cinfo.next_input_byte[1] = (char) 0xD8; /* SOI marker */
+-  cinfo.bytes_in_buffer = 2;
++    /* prepare setjmp context for possible exit from error_exit */
++    if (setjmp(setjmp_buffer)) {
++	/* If we get here, the JPEG code has signaled an error. */
++	/* Return as much of the image as we could get. */
++	jpeg_destroy_decompress(&cinfo);
++	zclose(zinput_file);
++	return image;
++    }
++      
++    jpeg_read_header(&cinfo, TRUE);
++    if (verbose) jpegInfo(&cinfo);
++    /* Turn off caching beyond this point of the file */
++    znocache(zinput_file);
++    jpeg_start_decompress(&cinfo);
+ 
+-  /* Set up to read a JFIF or baseline-JPEG file. */
+-  /* This is the only JPEG file format currently supported. */
+-  jselrjfif(&cinfo);
++    switch (cinfo.out_color_space) {
++    case JCS_GRAYSCALE:
++	image = newRGBImage(cinfo.image_width,cinfo.image_height,8);
++	image->title = dupString(filename);
++	/* set a linear map */
++	for(i=0;i<256;i++) {
++	    *(image->rgb.red + i) = 
++		*(image->rgb.green + i) = 
++		*(image->rgb.blue + i) = i << 8;
++	}
++	image->rgb.used = 256;
++	break;
++    case JCS_RGB:
++	image = newTrueImage(cinfo.image_width,cinfo.image_height);
++	image->title = dupString(filename);
++	break;
++    default:
++	image = NULL;
++	ERREXITS(&cinfo, 1, "Cannot cope with JPEG image colorspace");
++    }
+ 
+-  /* Here we go! */
+-  jpeg_decompress(&cinfo);
++    row_stride = cinfo.output_width * cinfo.output_components;
++    bufp = image->data;
++    while (cinfo.output_scanline < cinfo.output_height) {
++	jpeg_read_scanlines(&cinfo, &bufp, 1);
++	bufp += row_stride;
++    }
+ 
+-  zclose(input_file);		/* Done, close the input file */
++    jpeg_finish_decompress(&cinfo);
++    jpeg_destroy_decompress(&cinfo);
++    zclose(zinput_file);		/* Done, close the input file */
+ 
+-  return image;
++    return image;
+ }
+ 
+ 
+-/* Main control routine for identifying JPEG without loading */
+-
+-
++/*
++  Main control routine for identifying JPEG without loading
++  return 0: Not jpeg file.
++  */
+ int
+ jpegIdent (fullname, name)
+      char *fullname, *name;
+ {
+-  struct Decompress_info_struct cinfo;
+-  struct Decompress_methods_struct dc_methods;
+-  struct External_methods_struct e_methods;
+-
+-  input_file = zopen(fullname);	/* Open the input file */
+-  if (input_file == NULL)
+-    return 0;
+-
+-  /* Quick check to see if file starts with JPEG SOI marker */
+-  if (zgetc(input_file) != 0xFF || zgetc(input_file) != 0xD8) {
+-    zclose(input_file);
+-    return 0;
+-  }
+-
+-  /* We want to find and display the image dimensions, and also
+-   * verify that the header markers are not corrupt.  To do this,
+-   * we fire up the JPEG decoder as normal, but when d_ui_method_selection
+-   * is called, we abort the process by longjmp'ing back here.
+-   * This works nicely since the headers are all read at that point.
+-   */
+-
+-  filename = name;		/* copy parms to static vars */
+-  verbose = 1;
+-  identify = 1;
+-
+-  cinfo.methods = &dc_methods;	/* links to method structs */
+-  cinfo.emethods = &e_methods;
+-  emethods = &e_methods;	/* save struct addr for possible access */
+-  e_methods.error_exit = error_exit; /* supply error-exit routine */
+-  e_methods.trace_message = trace_message; /* supply trace-message routine */
+-  e_methods.trace_level = 0;	/* default = no tracing */
+-  e_methods.num_warnings = 0;	/* no warnings emitted yet */
+-  e_methods.first_warning_level = 0; /* display first corrupt-data warning */
+-  e_methods.more_warning_level = 3; /* but suppress additional ones */
+-
+-  /* prepare setjmp context for expected exit via longjmp */
+-  switch (setjmp(setjmp_buffer)) {
+-  case 0:
+-    /* First time thru, keep going */
+-    break;
+-  case 10:
+-    /* Successful exit from d_ui_method_selection; return A-OK */
+-    zclose(input_file);
+-    return 1;
+-  default:
+-    /* If we get here, the JPEG code has signaled an error. */
+-    /* Return 0 since error in the headers means the image is unloadable. */
+-    zclose(input_file);
+-    return 0;
+-  }
+-
+-  jselmemmgr(&e_methods);	/* select std memory allocation routines */
+-
+-  /* Set up default decompression parameters. */
+-  j_d_defaults(&cinfo, TRUE);
+-
+-  /* Override default methods */
+-  dc_methods.d_ui_method_selection = d_ui_method_selection;
+-  dc_methods.read_jpeg_data = read_jpeg_data;
+-
+-  /* Insert fake SOI into the input buffer --- needed cause we read it above */
+-  cinfo.next_input_byte = cinfo.input_buffer + MIN_UNGET;
+-  cinfo.next_input_byte[0] = (char) 0xFF;
+-  cinfo.next_input_byte[1] = (char) 0xD8; /* SOI marker */
+-  cinfo.bytes_in_buffer = 2;
+-
+-  /* Set up to read a JFIF or baseline-JPEG file. */
+-  /* This is the only JPEG file format currently supported. */
+-  jselrjfif(&cinfo);
+-
+-  /* Here we go! */
+-  jpeg_decompress(&cinfo);
+-
+-  /* Don't expect to get here since d_ui_method_selection should do longjmp */
+-
+-  zclose(input_file);
+-  return 0;
+-}
+-
+-/* information necessary to extract image data
+- */
+-static struct {
+-  Image *image;
+-  byte *current_row;
+-  unsigned int bytes_per_row;
+-} ReadInfo;
+-
+-static void input_init(cinfo)
+-compress_info_ptr cinfo;
+-{
+-  /* this is done in jpegDump()
+-   */
+-}
++    struct jpeg_decompress_struct cinfo;
++    struct jpeg_source_mgr src_mgr;
++    struct jpeg_error_mgr err_mgr;
+ 
+-static void input_term(cinfo)
+-compress_info_ptr cinfo;
+-{
+-  /* there is no shutdown necessary
+-   */
+-}
++    zinput_file = zopen(fullname);	/* Open the input file */
++    if (zinput_file == NULL)
++	return 0;
+ 
+-/* this reads a single raster line
+- */
+-static void read_row(cinfo, pixel_rows)
+-     compress_info_ptr cinfo;
+-     JSAMPARRAY pixel_rows;
+-{
+-  register int x;
+-  register int pixlen;
+-  register byte *src_row_ptr;
+-  register byte *dest_red_ptr;
+-  register byte *dest_green_ptr;
+-  register byte *dest_blue_ptr;
+-  register Pixel pixval;
+-  register byte mask;
++    filename = name;		/* copy parms to static vars */
+ 
+-  switch (ReadInfo.image->type) {
+-  case IBITMAP:
+-    mask = 0x80;
+-    src_row_ptr = ReadInfo.current_row;
+-    dest_red_ptr = (byte *)pixel_rows[0];
+-    for (x = 0; x < cinfo->image_width; x++) {
+-      pixval = ((*src_row_ptr & mask) > 0 ? 1 : 0);
++    jpeg_create_decompress(&cinfo);
++    src_mgr.init_source = init_source;
++    src_mgr.fill_input_buffer = fill_input_buffer;
++    src_mgr.skip_input_data = skip_input_data;
++    src_mgr.resync_to_restart = resync_to_restart;
++    src_mgr.term_source = term_source;
++    cinfo.src = &src_mgr;	/* links to method structs */
++    err_mgr.error_exit = error_exit; /* supply error-exit routine */
++    err_mgr.output_message = output_message;
++    err_mgr.trace_level = 0;	/* default = no tracing */
++    err_mgr.num_warnings = 0;	/* no warnings emitted yet */
++    cinfo.err = jpeg_std_error(&err_mgr);
+ 
+-      /* we use the "red" color value under the assumption that they
+-       * are all equal.  that can be wrong if the user used -foreground
+-       * or -background.  I don't care right now.
+-       */
+-      *(dest_red_ptr++) = ReadInfo.image->rgb.red[pixval] >> 8;
+-      mask >>= 1;
+-      if (mask == 0) {
+-	mask = 0x80;
+-	src_row_ptr++;
+-      }
++    src_mgr.bytes_in_buffer = 0;
++    fill_input_buffer( &cinfo);
++    /* Quick check to see if file starts with JPEG SOI marker */
++    if(jpeg_read_buff[0] != 0xFF || jpeg_read_buff[1] != 0xD8) {
++	jpeg_destroy_decompress(&cinfo);
++	zclose(zinput_file);
++	return 0;
+     }
+-    break;
+ 
+-  case IRGB:
+-    /* this expands the pixel value into its components
+-     */
+-    pixlen = ReadInfo.image->pixlen;
+-    src_row_ptr = ReadInfo.current_row;
+-    dest_red_ptr = (byte *)pixel_rows[0];
+-    dest_green_ptr = (byte *)pixel_rows[1];
+-    dest_blue_ptr = (byte *)pixel_rows[2];
+-    for (x = 0; x < cinfo->image_width; x++) {
+-      pixval = memToVal(src_row_ptr, pixlen);
+-      *(dest_red_ptr++) = ReadInfo.image->rgb.red[pixval] >> 8;
+-      *(dest_green_ptr++) = ReadInfo.image->rgb.green[pixval] >> 8;
+-      *(dest_blue_ptr++) = ReadInfo.image->rgb.blue[pixval] >> 8;
+-      src_row_ptr += pixlen;
++    /* prepare setjmp context for expected exit via longjmp */
++    if (setjmp(setjmp_buffer)) {
++	/* If we get here, the JPEG code has signaled an error. */
++	/* Return 0 since error in the headers means the image is unloadable. */
++	jpeg_destroy_decompress(&cinfo);
++	zclose(zinput_file);
++	return 0;
+     }
+-    break;
+ 
+-  case ITRUE:
+-    src_row_ptr = ReadInfo.current_row;
+-    dest_red_ptr = (byte *)pixel_rows[0];
+-    dest_green_ptr = (byte *)pixel_rows[1];
+-    dest_blue_ptr = (byte *)pixel_rows[2];
+-    for (x = 0; x < cinfo->image_width; x++) {
+-      *(dest_red_ptr++) = *(src_row_ptr++);
+-      *(dest_green_ptr++) = *(src_row_ptr++);
+-      *(dest_blue_ptr++) = *(src_row_ptr++);
+-    }
+-    break;
+-  }
+-  ReadInfo.current_row += ReadInfo.bytes_per_row;
++    jpeg_read_header(&cinfo, TRUE);
++    jpegInfo(&cinfo);
++    /* Turn off caching beyond this point of the file */
++    znocache(zinput_file);
++    jpeg_destroy_decompress(&cinfo);
++    zclose(zinput_file);
++
++    return 1;
+ }
+ 
+ /*
+- * This routine gets control after the input file header has been read.
+- * It must determine what output JPEG file format is to be written,
+- * and make any other compression parameter changes that are desirable.
++ * Dump Jpeg
+  */
+ 
+-static void
+-c_ui_method_selection (cinfo)
+-     compress_info_ptr cinfo;
+-{
+-  /* If the input is gray scale, generate a monochrome JPEG file. */
+-  if (cinfo->in_color_space == CS_GRAYSCALE)
+-    j_monochrome_default(cinfo);
+-  jselwjfif(cinfo);
+-}
+-
+ /* parse options passed to jpegDump
+  */
+-static void parseOptions(cinfo, options, verbose)
+-     compress_info_ptr cinfo;
+-     char *options;
+-     int verbose;
++static void parseOptions(j_compress_ptr cinfo, char *options, int verbose)
+ {
+   char *name, *value;
+ 
+-  /* (Re-)initialize the system-dependent error and memory managers. */
+-  jselerror(cinfo->emethods);	/* error/trace message routines */
+-  jselmemmgr(cinfo->emethods);	/* memory allocation routines */
+-  cinfo->methods->c_ui_method_selection = c_ui_method_selection;
+-
+-  /* Set up default JPEG parameters. */
+-  /* Note that default -quality level here need not, and does not,
+-   * match the default scaling for an explicit -qtables argument.
+-   */
+-  j_c_defaults(cinfo, 75, FALSE); /* default quality level = 75 */
+-
+   while (getNextTypeOption(&options, &name, &value) > 0) {
+     if (!strncmp("arithmetic", name, strlen(name))) {
+       /* Use arithmetic coding. */
+@@ -524,7 +329,7 @@
+       /* Force a monochrome JPEG file to be generated. */
+       if (verbose)
+ 	printf("  Creating a grayscale/monochrome file.\n");
+-      j_monochrome_default(cinfo);
++      jpeg_set_colorspace(cinfo, JCS_GRAYSCALE);
+     }
+     else if (!strncmp("nointerleave", name, strlen(name))) {
+       /* Create noninterleaved file. */
+@@ -536,16 +341,18 @@
+       fprintf(stderr, "jpegDump: sorry, multiple-scan support was not compiled\n");
+ #endif
+     }
++    else if (!strncmp("progressive", name, strlen(name))) {
++      /* Enable progressive JPEG. */
++      if (verbose)
++	printf("  Progressive JPEG.\n");
++      jpeg_simple_progression (cinfo);
++    }
+     else if (!strncmp("optimize", name, strlen(name)) ||
+ 	     !strncmp("optimise", name, strlen(name))) {
+       /* Enable entropy parm optimization. */
+-#ifdef ENTROPY_OPT_SUPPORTED
+       if (verbose)
+ 	printf("  Optimizing entropy.\n");
+       cinfo->optimize_coding = TRUE;
+-#else
+-      fprintf(stderr, "jpegDump: sorry, entropy optimization was not compiled\n");
+-#endif
+     }
+     else if (!strncmp("quality", name, strlen(name))) {
+       /* Quality factor (quantization table scaling factor). */
+@@ -561,7 +368,7 @@
+ 	 */
+ 	if (verbose)
+ 	  printf("  Using a quality factor of %d.\n", val);
+-	j_set_quality(cinfo, val, FALSE);
++	jpeg_set_quality(cinfo, val, FALSE);
+ #if 0
+ 	/* Change scale factor in case -qtables is present. */
+ 	q_scale_factor = j_quality_scaling(val);
+@@ -626,74 +433,134 @@
+   }
+ }
+ 
+-void jpegDump(image, options, file, verbose)
+-    Image *image;
+-    char *options;
+-    char *file;
++/* this reads a single raster line
++ */
++
++byte *current_row;
++unsigned int bytes_per_row;
++
++static byte *read_row(Image *image, byte *pixel_rows)
+ {
+-  struct Compress_info_struct cinfo;
+-  struct Compress_methods_struct c_methods;
+-  struct External_methods_struct e_methods;
++    int x;
++    int pixlen;
++    byte *src_row_ptr = current_row;
++    byte *dest_row_ptr = pixel_rows;
++    Pixel pixval;
++    byte mask;
+ 
+-  if (verbose)
+-    printf("Dumping JFIF-style JPEG image to %s.\n", file);
++    switch (image->type) {
++    case IBITMAP:
++	mask = 0x80;
++	for (x = 0; x < image->width; x++) {
++	    pixval = ((*src_row_ptr & mask) > 0 ? 1 : 0);
+ 
+-  /* Set up links to method structures. */
+-  cinfo.methods = &c_methods;
+-  cinfo.emethods = &e_methods;
++	    /* we use the "red" color value under the assumption that they
++	     * are all equal.  that can be wrong if the user used -foreground
++	     * or -background.  I don't care right now.
++	     */
++	    *dest_row_ptr++ = image->rgb.red[pixval] >> 8;
++	    mask >>= 1;
++	    if (mask == 0) {
++		mask = 0x80;
++		src_row_ptr++;
++	    }
++	}
++	break;
+ 
+-  /* set up "input methods" that handle "reading" from our image file
+-   */
+-  cinfo.methods->input_init = input_init;
+-  cinfo.methods->input_term = input_term;
+-  cinfo.methods->get_input_row = read_row;
++    case IRGB:
++	/* this expands the pixel value into its components
++	 */
++	pixlen = image->pixlen;
++	for (x = 0; x < image->width; x++) {
++	    pixval = memToVal(src_row_ptr, pixlen);
++	    *dest_row_ptr++ = image->rgb.red[pixval] >> 8;
++	    *dest_row_ptr++ = image->rgb.green[pixval] >> 8;
++	    *dest_row_ptr++ = image->rgb.blue[pixval] >> 8;
++	    src_row_ptr += pixlen;
++	}
++	break;
+ 
+-  /* set up output file; there is no input file
+-   */
+-  cinfo.input_file = NULL;
+-  cinfo.output_file = fopen(file, "w");
+-  if (cinfo.output_file == NULL) {
+-    perror(file);
+-    return;
+-  }
++    case ITRUE:
++	return current_row;
++	break;
++    }
++    return pixel_rows;
++}
+ 
+-  ReadInfo.image = image;
+-  ReadInfo.current_row = image->data;
++void jpegDump(Image *image, char *options, char *file, int verbose)
++{
++    struct jpeg_compress_struct cinfo;
++    struct jpeg_error_mgr jerr;
++    FILE * outfile;		/* target file */
++    JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
+ 
+-  /* parse the options the user gave us
+-   */
+-  parseOptions(&cinfo, options, verbose);
++    cinfo.err = jpeg_std_error(&jerr);
++    jpeg_create_compress(&cinfo);
+ 
+-  /* set up image information
+-   */
+-  cinfo.image_width = image->width;
+-  cinfo.image_height = image->height;
++    if ((outfile = fopen(file, "w")) == NULL) {
++	perror(file);
++	return;
++    }
++    jpeg_stdio_dest(&cinfo, outfile);
+ 
+-  switch (image->type) {
+-  case IBITMAP:
+-    ReadInfo.bytes_per_row = (image->width / 8) + (image->width % 8 ? 1 : 0);
+-    cinfo.input_components = 1;
+-    cinfo.in_color_space = CS_GRAYSCALE;
+-    cinfo.data_precision = 8;
+-    break;
+-  case IRGB:
+-    ReadInfo.bytes_per_row = image->width * image->pixlen;
+-    cinfo.input_components = 3;
+-    cinfo.in_color_space = CS_RGB;
+-    cinfo.data_precision = 8;
+-    break;
+-  case ITRUE:
+-    ReadInfo.bytes_per_row = image->width * image->pixlen;
+-    cinfo.input_components = 3;
+-    cinfo.in_color_space = CS_RGB;
+-    cinfo.data_precision = 8;
+-    break;
+-  }
++    cinfo.image_width = image->width;
++    cinfo.image_height = image->height;
+ 
+-  /* compress, baby
+-   */
+-  jpeg_compress(&cinfo);
++    /* set # of color components per pixel & colospace fo input image */
++    switch (image->type) {
++    case IBITMAP:
++	bytes_per_row = (image->width / 8) + (image->width % 8 ? 1 : 0);
++	cinfo.input_components = 1;
++	cinfo.in_color_space = JCS_GRAYSCALE;
++	row_pointer[0] = lmalloc( cinfo.image_width * cinfo.input_components);
++	break;
++    case IRGB:
++	bytes_per_row = image->width * image->pixlen;
++	cinfo.input_components = 3;
++	cinfo.in_color_space = JCS_RGB;    /* colorspace of input image */
++	row_pointer[0] = lmalloc( cinfo.image_width * cinfo.input_components);
++	break;
++    case ITRUE:
++	bytes_per_row = image->width * image->pixlen;
++	cinfo.input_components = 3;
++	cinfo.in_color_space = JCS_RGB;    /* colorspace of input image */
++	row_pointer[0] = image->data;
++	break;
++    }
++    /* Now use the library's routine to set default compression parameters.
++     * (You must set at least cinfo.in_color_space before calling this,
++     * since the defaults depend on the source color space.)
++     */
++    jpeg_set_defaults(&cinfo);
++    /* Now you can set any non-default parameters you wish to.
++     * Here we just illustrate the use of quality (quantization table) scaling:
++     */
++    jpeg_set_quality(&cinfo, 75, TRUE /* limit to baseline-JPEG values */);
++    if( cinfo.in_color_space == JCS_GRAYSCALE)
++	jpeg_set_colorspace(&cinfo, JCS_GRAYSCALE);
++    parseOptions(&cinfo, options, verbose);
+ 
+-  fclose(cinfo.output_file);
+-  return;
++    jpeg_start_compress(&cinfo, TRUE);
++  
++    current_row = image->data;
++    while (cinfo.next_scanline < cinfo.image_height) {
++	/* jpeg_write_scanlines expects an array of pointers to scanlines.
++	 * Here the array is only one element long, but you could pass
++	 * more than one scanline at a time if that's more convenient.
++	 */
++	row_pointer[0] = read_row(image, row_pointer[0]);
++	(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
++	current_row += bytes_per_row;
++    }
++
++    jpeg_finish_compress(&cinfo);
++    fclose(outfile);
++    jpeg_destroy_compress(&cinfo);
++    if (image->type == IBITMAP || image->type == IRGB) {
++	lfree( row_pointer[0]);
++    }
+ }
++
++#else /* !HAVE_LIBJPEG */
++static int unused;
++#endif /* !HAVE_LIBJPEG */
+diff -urNad 01.xloadimage.tmp/misc.c 01.xloadimage/misc.c
+--- 01.xloadimage.tmp/misc.c	1993-10-21 22:28:39.000000000 +0100
++++ 01.xloadimage/misc.c	2003-04-03 00:11:28.000000000 +0100
+@@ -32,8 +32,10 @@
+   switch (sig) {
+   case SIGSEGV:
+     return("SEGV");
++#ifdef	SIGBUS
+   case SIGBUS:
+     return("BUS");
++#endif
+   case SIGFPE:
+     return("FPE");
+   case SIGILL:
+diff -urNad 01.xloadimage.tmp/niff.c 01.xloadimage/niff.c
+--- 01.xloadimage.tmp/niff.c	1993-10-28 16:16:03.000000000 +0000
++++ 01.xloadimage/niff.c	2003-04-03 00:11:28.000000000 +0100
+@@ -8,6 +8,7 @@
+  * this is in the public domain.
+  */
+ 
++#include <unistd.h>
+ #include "image.h"
+ #include "niff.h"
+ 
+@@ -17,8 +18,7 @@
+ {
+   printf("%s is a %dx%d ", name,
+ 	 memToVal(header->width, 4),
+-	 memToVal(header->height, 4),
+-	 memToVal(header->depth, 4));
++	 memToVal(header->height, 4));
+   if (memToVal(header->version, 4) != NIFF_VERSION)
+     printf("version %d ", memToVal(header->version, 4));
+   printf("NIFF ");
+@@ -121,8 +121,8 @@
+   struct niff_header header;
+   char *title;
+   unsigned int width, height, depth;
+-  Image *image;
+-  unsigned int data_size;
++  Image *image = NULL;
++  unsigned int data_size = 0;
+ 
+   if (! (zf= zopen(fullname)))
+     return(NULL);
+@@ -191,7 +191,7 @@
+   unsigned int a;
+   struct niff_header header;
+   struct niff_cmap cmap;
+-  unsigned int data_size;
++  unsigned int data_size = 0;
+ 
+   if (verbose)
+     printf("Dumping NIFF image to %s.\n", filename);
+diff -urNad 01.xloadimage.tmp/pbm.c 01.xloadimage/pbm.c
+--- 01.xloadimage.tmp/pbm.c	1993-10-28 17:39:47.000000000 +0000
++++ 01.xloadimage/pbm.c	2003-04-03 00:11:28.000000000 +0100
+@@ -12,6 +12,7 @@
+  */
+ 
+ #include "image.h"
++#include "options.h"
+ #include "pbm.h"
+ 
+ /* SUPPRESS 558 */
+@@ -188,14 +189,14 @@
+      char         *fullname, *name;
+      unsigned int  verbose;
+ { ZFILE        *zf;
+-  Image        *image;
++  Image        *image = NULL;
+   int           pbm_type;
+   int           x, y;
+   int           width, height, maxval, depth;
+   unsigned int  linelen;
+   byte          srcmask, destmask;
+   byte         *destptr, *destline;
+-  int           src, size;
++  int           src = 0, size;
+   int           red, grn, blu;
+ 
+   if (! (zf= zopen(fullname)))
+diff -urNad 01.xloadimage.tmp/rlelib.c 01.xloadimage/rlelib.c
+--- 01.xloadimage.tmp/rlelib.c	1993-10-21 22:28:41.000000000 +0100
++++ 01.xloadimage/rlelib.c	2003-04-03 00:11:28.000000000 +0100
+@@ -980,7 +980,8 @@
+  *	Returns code.
+  */
+ 
+-rle_get_error( code, pgmname, fname )
++int rle_get_error( code, pgmname, fname )
++int code;
+ char *pgmname;
+ char *fname;
+ {
+@@ -1595,7 +1596,7 @@
+ 
+ 	total = size * size;
+ 
+-	i = 0;
++	i = bx = by = 0;
+ 	li = -1;
+ 	for(j=0;j<total;j++)	
+ 	{
+diff -urNad 01.xloadimage.tmp/sunraster.c 01.xloadimage/sunraster.c
+--- 01.xloadimage.tmp/sunraster.c	1993-10-21 22:28:42.000000000 +0100
++++ 01.xloadimage/sunraster.c	2003-04-03 00:11:28.000000000 +0100
+@@ -240,7 +240,8 @@
+   case RTIFF: /* sorry, don't even know what these are */
+   case RIFF:
+   default:
+-    fprintf(stderr, "%s: Unsupported Sun Rasterfile image type (sorry)\n");
++    fprintf(stderr, "%s: Unsupported Sun Rasterfile image type (sorry)\n",
++	    name);
+     return(NULL);
+   }
+ 
+diff -urNad 01.xloadimage.tmp/tiff.c 01.xloadimage/tiff.c
+--- 01.xloadimage.tmp/tiff.c	1993-11-08 15:15:42.000000000 +0000
++++ 01.xloadimage/tiff.c	2003-04-03 00:11:28.000000000 +0100
+@@ -5,10 +5,10 @@
+  * jim frost 09.05.93
+  */
+ 
+-#ifdef HAS_TIFF
+-
+ #include "image.h"
+-#include "tiff/tiffio.h"
++#ifdef HAVE_LIBTIFF
++
++#include <tiffio.h>
+ 
+ /* this structure contains all the information we care about WRT a TIFF
+  * image.
+@@ -217,7 +217,7 @@
+ 	   compressionName(info->compression));
+   }
+   if (info->title)
+-    printf("Titled \"%s\"");
++    printf("Titled \"%s\"", info->title);
+   printf("\n");
+ }
+ 
+@@ -227,14 +227,14 @@
+   struct tiff_info info;
+ 
+   tiff = is_tiff(fullname, name, &info);
+-  babble(name, info);
+   if (tiff == NULL)
+     return(0);
++  babble(name, &info);
+   if (tiff == (TIFF *)-1) /* is TIFF, but can't open it */
+     return(1);
+   TIFFClose(tiff);
+ 
+-  babble(fullname, name, info);
++/*  babble(fullname, name, info); */
+   return(1);
+ }
+ 
+@@ -404,6 +404,7 @@
+     if (info.samplesperpixel != 3) {
+       fprintf(stderr,
+ 	      "%s: Can't handle TIFF RGB images with %d samples per pixel, sorry\n",
++	      fullname,
+ 	      info.samplesperpixel);
+       image = NULL;
+       break;
+@@ -624,6 +625,6 @@
+   TIFFClose(out);
+ }
+ 
+-#else /* !HAS_TIFF */
++#else /* !HAVE_LIBTIFF */
+ static int unused;
+-#endif /* !HAS_TIFF */
++#endif /* !HAVE_LIBTIFF */
+diff -urNad 01.xloadimage.tmp/uufilter.c 01.xloadimage/uufilter.c
+--- 01.xloadimage.tmp/uufilter.c	1993-10-28 16:03:31.000000000 +0000
++++ 01.xloadimage/uufilter.c	2003-04-03 00:11:28.000000000 +0100
+@@ -11,8 +11,9 @@
+  */
+ 
+ #include <stdio.h>
++#include <string.h>
+ 
+-main(argc, argv)
++int main(argc, argv)
+      int argc;
+      char **argv;
+ {
+@@ -64,7 +65,7 @@
+       fprintf(stderr, "Ignoring header line: %s\n", buf);
+   }
+   if (feof(inf)) {
+-    fprintf(stderr, "No 'begin' line, sorry.\n", infilename);
++    fprintf(stderr, "%s: No 'begin' line, sorry.\n", infilename);
+     exit(1);
+   }
+ 
+diff -urNad 01.xloadimage.tmp/vff.c 01.xloadimage/vff.c
+--- 01.xloadimage.tmp/vff.c	1993-10-27 14:22:58.000000000 +0000
++++ 01.xloadimage/vff.c	2003-04-03 00:11:28.000000000 +0100
+@@ -29,6 +29,7 @@
+  */
+ 
+ 
++#include <ctype.h>
+ #include "image.h"
+ 
+ #define HEAD_BUF_SIZE	2048
+diff -urNad 01.xloadimage.tmp/window.c 01.xloadimage/window.c
+--- 01.xloadimage.tmp/window.c	1993-11-08 21:06:02.000000000 +0000
++++ 01.xloadimage/window.c	2003-04-03 00:11:28.000000000 +0100
+@@ -15,7 +15,7 @@
+ #include <X11/Xatom.h>
+ #include <signal.h>
+ #include <errno.h>
+-#include <sys/types.h>
++#include <sys/time.h>
+ #ifdef HAS_POLL
+ #include <poll.h>
+ #else /* !HAS_POLL */
+@@ -616,13 +616,13 @@
+     lastx= (winwidth || winheight); /* user set size flag */
+     if (!winwidth) {
+       winwidth= image->width;
+-      if (winwidth > DisplayWidth(disp, scrn) * 0.9)
+-	winwidth= DisplayWidth(disp, scrn) * 0.9;
++      if (winwidth > DisplayWidth(disp, scrn) * 0.98)
++	winwidth= DisplayWidth(disp, scrn) * 0.98;
+     }
+     if (!winheight) {
+       winheight= image->height;
+-      if (winheight > DisplayHeight(disp, scrn) * 0.9)
+-	winheight= DisplayHeight(disp, scrn) * 0.9;
++      if (winheight > DisplayHeight(disp, scrn) * 0.95)
++	winheight= DisplayHeight(disp, scrn) * 0.95;
+     }
+   }
+ 
+@@ -902,10 +902,25 @@
+ 
+     switch (event.any.type) {
+     case ButtonPress:
+-      if (event.button.button == 1) {
++      switch (event.button.button) {
++      case 1:
+ 	lastx= event.button.x;
+ 	lasty= event.button.y;
+ 	break;
++      case 3:
++	if (delay)
++	  alarm(0);
++	{
++	   Cursor cursor;
++	   cursor= swa_view.cursor;
++	   swa_view.cursor= XCreateFontCursor(disp, XC_watch);
++	   XChangeWindowAttributes(disp, ViewportWin, CWCursor, &swa_view);
++	   XFreeCursor(disp, cursor);
++	   XFlush(disp);
++	   cleanUpImage(disp, scrn, swa_view.cursor, pixmap,
++			image, ximageinfo);
++	}
++	return(' ');
+       }
+       break;
+ 
+diff -urNad 01.xloadimage.tmp/xbitmap.c 01.xloadimage/xbitmap.c
+--- 01.xloadimage.tmp/xbitmap.c	1993-10-21 22:28:43.000000000 +0100
++++ 01.xloadimage/xbitmap.c	2003-04-03 00:11:28.000000000 +0100
+@@ -132,7 +132,7 @@
+   char          name_and_type[MAX_SIZE];
+   char         *type;
+   int           value;
+-  int           v10p;
++  int           v10p = 0;
+   unsigned int  linelen, dlinelen;
+   unsigned int  x, y;
+   unsigned int  w = 0, h = 0;
+diff -urNad 01.xloadimage.tmp/xloadimage.c 01.xloadimage/xloadimage.c
+--- 01.xloadimage.tmp/xloadimage.c	1993-11-05 14:11:46.000000000 +0000
++++ 01.xloadimage/xloadimage.c	2003-04-03 00:11:28.000000000 +0100
+@@ -18,8 +18,6 @@
+ #endif
+ #include <signal.h>
+ 
+-extern double atof();
+-
+ char *ProgramName= "xloadimage";
+ 
+ /* if an image loader needs to have our display and screen, it will get
+@@ -192,7 +190,9 @@
+    */
+ 
+   signal(SIGSEGV, internalError);
++#ifdef	SIGBUS
+   signal(SIGBUS, internalError);
++#endif
+   signal(SIGFPE, internalError);
+   signal(SIGILL, internalError);
+ #if defined(_AIX) && defined(_IBMR2)

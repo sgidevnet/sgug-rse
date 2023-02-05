@@ -1,0 +1,56 @@
+diff --git a/config/config_python.py b/config/config_python.py
+index b747045..2b1ac8d 100644
+--- a/config/config_python.py
++++ b/config/config_python.py
+@@ -1,12 +1,13 @@
++from __future__ import print_function
++
+ import sys
+ from distutils import sysconfig
+ 
+ if sys.argv[1] == "archlib":
+-    print sysconfig.get_python_lib(1,1)
++    print(sysconfig.get_python_lib(1,1))
+ elif sys.argv[1] == "lib":
+-    print sysconfig.get_python_lib(0,1)
++    print(sysconfig.get_python_lib(0,1))
+ elif sys.argv[1] == "archsitelib":
+-    print sysconfig.get_python_lib(1,0)
++    print(sysconfig.get_python_lib(1,0))
+ elif sys.argv[1] == "sitelib":
+-    print sysconfig.get_python_lib(0,0)
+-
++    print(sysconfig.get_python_lib(0,0))
+diff --git a/configure.ac b/configure.ac
+index 51166c3..0f18965 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1142,7 +1142,7 @@ else
+     if test `$SWIG -help 2>&1 | $EGREP -c '\-python *- Generate'` = 0; then
+       use_python="No (swig does not support -python option)"
+     else
+-      AC_CHECK_PROG(PYTHON,python,python)
++      AC_CHECK_PROGS(PYTHON,[python3 python])
+       if test "x$PYTHON" = "x"; then
+         use_python="No (python not available)"
+       else
+@@ -1167,8 +1167,8 @@ else
+       if test "x$PYTHON" = "x"; then
+ 	use_python="No (python is too old)"
+       else
+-        PYTHON_PREFIX=`$PYTHON -c "import sys; print sys.prefix"`
+-        PYTHON_INCLUDES=-I$PYTHON_PREFIX/include/python$PYTHON_VERSION_SHORT
++        PYTHON_PREFIX=`$PYTHON -c "import sys; print(sys.prefix)"`
++        PYTHON_INCLUDES=`$PYTHON-config --includes`
+ #        PYTHON_LIBS="-lpython$PYTHON_VERSION_SHORT"
+ 	PYTHON_LIBS="-undefined dynamic_lookup"
+         PYTHON_INSTALL_DIR="`$PYTHON $srcdir/config/config_python.py archsitelib`"
+@@ -1548,7 +1548,7 @@ else
+       if test "x$PYTHON34" = "x"; then
+ 	    use_python34="No (python34 is too old)"
+       else
+-        PYTHON34_PREFIX=`$PYTHON3 -c "import sys; print sys.prefix"`
++        PYTHON34_PREFIX=`$PYTHON3 -c "import sys; print(sys.prefix)"`
+ #        PYTHON34_INCLUDES=-I$PYTHON34_PREFIX/include/python$PYTHON34_VERSION_SHORT
+ # FIXME - whats the stupid "m" for?
+         PYTHON34_INCLUDES=-I/usr/include/python3.4m

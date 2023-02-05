@@ -1,0 +1,51 @@
+diff -up patchutils-0.3.4/Makefile.am.bz1226985 patchutils-0.3.4/Makefile.am
+--- patchutils-0.3.4/Makefile.am.bz1226985	2015-04-14 17:32:18.000000000 +0100
++++ patchutils-0.3.4/Makefile.am	2015-06-09 17:13:52.497904051 +0100
+@@ -216,7 +216,8 @@ TESTS = tests/newline1/run-test \
+ 	tests/stdin/run-test \
+ 	tests/splitdiffD/run-test \
+ 	tests/fullheader1/run-test \
+-	tests/fullheader2/run-test
++	tests/fullheader2/run-test \
++	tests/fullheader3/run-test
+ 
+ # These ones don't work yet.
+ # Feel free to send me patches. :-)
+diff -up patchutils-0.3.4/src/filterdiff.c.bz1226985 patchutils-0.3.4/src/filterdiff.c
+--- patchutils-0.3.4/src/filterdiff.c.bz1226985	2015-04-14 17:13:07.000000000 +0100
++++ patchutils-0.3.4/src/filterdiff.c	2015-06-09 17:13:52.498904087 +0100
+@@ -910,7 +910,7 @@ out:
+ 	return ret;
+ }
+ 
+-#define MAX_HEADERS 5
++#define MAX_HEADERS 6
+ static int filterdiff (FILE *f, const char *patchname)
+ {
+ 	static unsigned long linenum = 1;
+diff -up patchutils-0.3.4/tests/fullheader3/run-test.bz1226985 patchutils-0.3.4/tests/fullheader3/run-test
+--- patchutils-0.3.4/tests/fullheader3/run-test.bz1226985	2015-06-09 17:13:52.498904087 +0100
++++ patchutils-0.3.4/tests/fullheader3/run-test	2015-06-09 17:13:52.498904087 +0100
+@@ -0,0 +1,22 @@
++#!/bin/sh
++
++# This is a filterdiff(1) testcase.
++# Handle git format-patch output containing remove-file diffs.
++# From: https://bugzilla.redhat.com/show_bug.cgi?id=1226985
++
++. ${top_srcdir-.}/tests/common.sh
++
++cat <<"EOF" > git-output
++diff --git a/a b/a
++deleted file mode 100644
++index 7898192..0000000
++--- a/a
+++++ /dev/null
++@@ -1 +0,0 @@
++-a
++EOF
++
++${FILTERDIFF} git-output 2>errors >output || { cat errors; exit 1; }
++[ -s errors ] && { cat errors; exit 1; }
++cmp git-output output || exit 1
++exit 0

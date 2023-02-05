@@ -1,0 +1,12 @@
+diff --git a/Lib/test/test_smtplib.py b/Lib/test/test_smtplib.py
+index 1bb6690..28ed25d 100644
+--- a/Lib/test/test_smtplib.py
++++ b/Lib/test/test_smtplib.py
+@@ -182,6 +182,7 @@ class DebuggingServerTests(unittest.TestCase):
+         smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=15)
+         smtp.quit()
+ 
++    @unittest._skipInRpmBuild("Does not work in network-free environment")
+     def testNOOP(self):
+         smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=15)
+         expected = (250, 'Ok')

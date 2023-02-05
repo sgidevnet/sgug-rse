@@ -1,0 +1,50 @@
+diff -Naur gnumeric-1.12.47.orig/configure gnumeric-1.12.47/configure
+--- gnumeric-1.12.47.orig/configure	2020-02-24 23:42:05.000000000 +0000
++++ gnumeric-1.12.47/configure	2021-04-23 11:18:18.229610356 +0000
+@@ -17219,7 +17219,6 @@
+ 			 -Wdeclaration-after-statement -Wnested-externs \
+ 			 -Wmissing-noreturn \
+ 			 -Werror=missing-prototypes -Werror=nested-externs \
+-			 -Werror=implicit-function-declaration \
+ 			 -Wmissing-declarations -Wno-pointer-sign \
+ 			 -Werror=format-security -Wbitwise -Wcast-to-as \
+ 			 -Wdefault-bitfield-sign -Wdo-while -Wparen-string \
+diff -Naur gnumeric-1.12.47.orig/configure.ac gnumeric-1.12.47/configure.ac
+--- gnumeric-1.12.47.orig/configure.ac	2020-01-31 17:21:39.000000000 +0000
++++ gnumeric-1.12.47/configure.ac	2021-04-23 11:18:44.438246483 +0000
+@@ -711,7 +711,6 @@
+ 			 -Wdeclaration-after-statement -Wnested-externs \
+ 			 -Wmissing-noreturn \
+ 			 -Werror=missing-prototypes -Werror=nested-externs \
+-			 -Werror=implicit-function-declaration \
+ 			 -Wmissing-declarations -Wno-pointer-sign \
+ 			 -Werror=format-security -Wbitwise -Wcast-to-as \
+ 			 -Wdefault-bitfield-sign -Wdo-while -Wparen-string \
+diff -Naur gnumeric-1.12.47.orig/src/gnm-so-line.c gnumeric-1.12.47/src/gnm-so-line.c
+--- gnumeric-1.12.47.orig/src/gnm-so-line.c	2020-01-31 17:21:40.000000000 +0000
++++ gnumeric-1.12.47/src/gnm-so-line.c	2021-04-23 11:20:41.371962059 +0000
+@@ -32,6 +32,10 @@
+ #include <glib/gi18n-lib.h>
+ #include <string.h>
+ 
++#ifndef M_PI_2
++#define M_PI_2            1.57079632679489661923
++#endif
++
+ #define CXML2C(s) ((char const *)(s))
+ 
+ static inline gboolean
+diff -Naur gnumeric-1.12.47.orig/src/mathfunc.c gnumeric-1.12.47/src/mathfunc.c
+--- gnumeric-1.12.47.orig/src/mathfunc.c	2020-01-31 17:21:40.000000000 +0000
++++ gnumeric-1.12.47/src/mathfunc.c	2021-04-23 11:19:54.637466291 +0000
+@@ -50,6 +50,10 @@
+ #include <value.h>
+ #include <gutils.h>
+ 
++#ifndef M_1_PI
++#define M_1_PI            0.31830988618379067154
++#endif
++
+ /* R code wants this, so provide it.  */
+ #ifndef IEEE_754
+ #define IEEE_754

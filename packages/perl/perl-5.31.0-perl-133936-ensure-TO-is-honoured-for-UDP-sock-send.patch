@@ -1,0 +1,107 @@
+From f1000aa2d58fbed2741dbb2887b668f872ef0cb8 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Mon, 18 Mar 2019 15:05:32 +1100
+Subject: [PATCH] (perl #133936) ensure TO is honoured for UDP $sock->send()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ dist/IO/lib/IO/Socket.pm |  7 ++++---
+ dist/IO/t/io_udp.t       | 31 +++++++++++++++++++++++++++----
+ 2 files changed, 31 insertions(+), 7 deletions(-)
+
+diff --git a/dist/IO/lib/IO/Socket.pm b/dist/IO/lib/IO/Socket.pm
+index 1bf57ab826..a34a10b232 100644
+--- a/dist/IO/lib/IO/Socket.pm
++++ b/dist/IO/lib/IO/Socket.pm
+@@ -282,9 +282,10 @@ sub send {
+     croak 'send: Cannot determine peer address'
+ 	 unless(defined $peer);
+ 
+-    my $r = defined(getpeername($sock))
+-	? send($sock, $_[1], $flags)
+-	: send($sock, $_[1], $flags, $peer);
++    my $type = $sock->socktype;
++    my $r = $type == SOCK_DGRAM || $type == SOCK_RAW
++      ? send($sock, $_[1], $flags, $peer)
++      : send($sock, $_[1], $flags);
+ 
+     # remember who we send to, if it was successful
+     ${*$sock}{'io_socket_peername'} = $peer
+diff --git a/dist/IO/t/io_udp.t b/dist/IO/t/io_udp.t
+index d7e95a8829..571e4303bb 100644
+--- a/dist/IO/t/io_udp.t
++++ b/dist/IO/t/io_udp.t
+@@ -15,6 +15,8 @@ BEGIN {
+     skip_all($reason) if $reason;
+ }
+ 
++use strict;
++
+ sub compare_addr {
+     no utf8;
+     my $a = shift;
+@@ -36,18 +38,18 @@ sub compare_addr {
+     "$a[0]$a[1]" eq "$b[0]$b[1]";
+ }
+ 
+-plan(7);
++plan(15);
+ watchdog(15);
+ 
+ use Socket;
+ use IO::Socket qw(AF_INET SOCK_DGRAM INADDR_ANY);
+ 
+-$udpa = IO::Socket::INET->new(Proto => 'udp', LocalAddr => 'localhost')
++my $udpa = IO::Socket::INET->new(Proto => 'udp', LocalAddr => 'localhost')
+      || IO::Socket::INET->new(Proto => 'udp', LocalAddr => '127.0.0.1')
+     or die "$! (maybe your system does not have a localhost at all, 'localhost' or 127.0.0.1)";
+ ok(1);
+ 
+-$udpb = IO::Socket::INET->new(Proto => 'udp', LocalAddr => 'localhost')
++my $udpb = IO::Socket::INET->new(Proto => 'udp', LocalAddr => 'localhost')
+      || IO::Socket::INET->new(Proto => 'udp', LocalAddr => '127.0.0.1')
+     or die "$! (maybe your system does not have a localhost at all, 'localhost' or 127.0.0.1)";
+ ok(1);
+@@ -56,6 +58,7 @@ $udpa->send('BORK', 0, $udpb->sockname);
+ 
+ ok(compare_addr($udpa->peername,$udpb->sockname, 'peername', 'sockname'));
+ 
++my $buf;
+ my $where = $udpb->recv($buf="", 4);
+ is($buf, 'BORK');
+ 
+@@ -69,7 +72,27 @@ $udpb->send('FOObar', @xtra);
+ $udpa->recv($buf="", 6);
+ is($buf, 'FOObar');
+ 
+-ok(! $udpa->connected);
++{
++    # check the TO parameter passed to $sock->send() is honoured for UDP sockets
++    # [perl #133936]
++    my $udpc = IO::Socket::INET->new(Proto => 'udp', LocalAddr => 'localhost')
++      || IO::Socket::INET->new(Proto => 'udp', LocalAddr => '127.0.0.1')
++      or die "$! (maybe your system does not have a localhost at all, 'localhost' or 127.0.0.1)";
++    pass("created C socket");
++
++    ok($udpc->connect($udpa->sockname), "connect C to A");
++
++    ok($udpc->connected, "connected a UDP socket");
++
++    ok($udpc->send("fromctoa"), "send to a");
++
++    ok($udpa->recv($buf = "", 8), "recv it");
++    is($buf, "fromctoa", "check value received");
++
++    ok($udpc->send("fromctob", 0, $udpb->sockname), "send to non-connected socket");
++    ok($udpb->recv($buf = "", 8), "recv it");
++    is($buf, "fromctob", "check value received");
++}
+ 
+ exit(0);
+ 
+-- 
+2.20.1
+

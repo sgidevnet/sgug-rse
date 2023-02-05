@@ -1,0 +1,88 @@
+From 7703890e459da2399f4def7f8fd1c53f46e53a0e Mon Sep 17 00:00:00 2001
+From: Jan Chaloupka <jchaloup@redhat.com>
+Date: Mon, 23 Mar 2015 11:57:53 +0100
+Subject: [PATCH] indent-ow
+
+---
+ joe/uformat.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/joe/uformat.c b/joe/uformat.c
+index 8e1caa8..e552896 100644
+--- a/joe/uformat.c
++++ b/joe/uformat.c
+@@ -330,6 +330,7 @@ void wrapword(BW *bw, P *p, off_t indent, int french, int no_over, char *indent
+ 	int c;
+ 	off_t to = p->byte;
+ 	int my_indents = 0;
++	off_t indents_size = 0;
+ 	
+ 	/* autoindent when called by utype */
+ 	if (!indents) {
+@@ -347,7 +348,8 @@ void wrapword(BW *bw, P *p, off_t indent, int french, int no_over, char *indent
+ 
+ 			indent = nindent(bw, q, 0);
+ 			pcol(tr, indent);
+-			indents = brs(q, tr->byte - q->byte); /* Risky */
++			indents_size = tr->byte - q->byte;
++			indents = brs(q, indents_size);
+ 			prm(tr);
+ 		} else {
+ 			/* First line */
+@@ -356,7 +358,8 @@ void wrapword(BW *bw, P *p, off_t indent, int french, int no_over, char *indent
+ 
+ 			indent = nindent(bw, s, 1);
+ 			pcol(tr, indent);
+-			indents = brs(s, tr->byte - s->byte); /* Risky */
++			indents_size = tr->byte - s->byte;
++			indents = brs(s, indents_size);
+ 			prm(tr);
+ 			if (!bw->o.autoindent) {
+ 				/* Don't indent second line of single-line paragraphs if autoindent is off */
+@@ -364,7 +367,7 @@ void wrapword(BW *bw, P *p, off_t indent, int french, int no_over, char *indent
+ 				ptrdiff_t orgx = tx;
+ 				while (tx && (indents[tx - 1] == ' ' || indents[tx - 1] == '\t'))
+ 					indents[--tx] = 0;
+-				if (tx && orgx != tx) {
++				if (tx && orgx != tx && (tx < indents_size)) {
+ 					indents[tx++] = ' ';
+ 					indents[tx] = 0;
+ 				}
+@@ -523,6 +526,7 @@ int uformat(W *w, int k)
+ 	BW *bw;
+ 	int flag;
+ 	WIND_BW(bw, w);
++	off_t indents_size = 0;
+ 
+ 	p = pdup(bw->cursor, "uformat");
+ 	p_goto_bol(p);
+@@ -553,21 +557,23 @@ int uformat(W *w, int k)
+ 
+ 		indent = nindent(bw, q, 0);
+ 		pcol(r, indent);
+-		indents = brs(q, r->byte - q->byte); /* Risky */
++		indents_size = r->byte - q->byte;
++		indents = brs(q, indents_size);
+ 		prm(r);
+ 	} else {
+ 		P *r = pdup(p, "uformat");
+ 		ptrdiff_t x, y;
+ 		indent = nindent(bw, p, 1); /* allowing * and - here */
+ 		pcol(r, indent);
+-		indents = brs(p, r->byte - p->byte); /* Risky */
++		indents_size = r->byte - p->byte;
++		indents = brs(p, indents_size);
+ 		prm(r);
+ 		if (!bw->o.autoindent) {
+ 			/* Don't indent second line of single-line paragraphs if autoindent is off */
+ 			ptrdiff_t tx = zlen(indents);
+ 			while (tx && (indents[tx - 1] == ' ' || indents[tx - 1] == '\t'))
+ 				indents[--tx] = 0;
+-			if (tx) {
++			if ((tx) && (tx < indents_size)) {
+ 				indents[tx++] = ' ';
+ 				indents[tx] = 0;
+ 			}
+-- 
+1.9.3
+

@@ -1,0 +1,21 @@
+diff -urN Python-2.7.13/Modules/Setup.dist Python-2.7.13_modul/Modules/Setup.dist
+--- Python-2.7.13/Modules/Setup.dist	2017-04-21 14:57:13.767444374 +0200
++++ Python-2.7.13_modul/Modules/Setup.dist	2017-04-21 14:56:49.658953833 +0200
+@@ -326,7 +326,7 @@
+ # every system.
+ 
+ # *** Always uncomment this (leave the leading underscore in!):
+-_tkinter _tkinter.c tkappinit.c -DWITH_APPINIT \
++#_tkinter _tkinter.c tkappinit.c -DWITH_APPINIT \
+ # *** Uncomment and edit to reflect where your Tcl/Tk libraries are:
+ #	-L/usr/local/lib \
+ # *** Uncomment and edit to reflect where your Tcl/Tk headers are:
+@@ -345,7 +345,7 @@
+ # *** Uncomment and edit for TOGL extension only:
+ #	-DWITH_TOGL togl.c \
+ # *** Uncomment and edit to reflect your Tcl/Tk versions:
+-	-ltk -ltcl \
++#	-ltk -ltcl \
+ # *** Uncomment and edit to reflect where your X11 libraries are:
+ #	-L/usr/X11R6/lib \
+ # *** Or uncomment this for Solaris:

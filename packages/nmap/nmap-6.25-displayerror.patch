@@ -1,0 +1,17 @@
+diff -up nmap-6.25/zenmap/zenmapGUI/App.py.displayerror nmap-6.25/zenmap/zenmapGUI/App.py
+--- nmap-6.25/zenmap/zenmapGUI/App.py.displayerror	2013-05-23 15:11:46.595569883 +0200
++++ nmap-6.25/zenmap/zenmapGUI/App.py	2013-05-23 15:12:44.786049525 +0200
+@@ -116,7 +116,12 @@ except Exception:
+     # startup scripts, and for some reason the first connection (the one that
+     # caused the launch) is rejected. But somehow subsequent connections work
+     # fine! So if the import fails, try one more time.
+-    import gtk
++    try:
++        import gtk
++    except Exception, e:
++        print >> sys.stderr, 'Error:', str(e)
++        sys.exit(1)
++
+ warnings.resetwarnings()
+ 
+ from zenmapGUI.higwidgets.higdialogs import HIGAlertDialog

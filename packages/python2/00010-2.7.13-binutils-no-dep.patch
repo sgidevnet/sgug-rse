@@ -1,0 +1,21 @@
+diff --git a/Lib/ctypes/util.py b/Lib/ctypes/util.py
+index ab10ec5..923d1b7 100644
+--- a/Lib/ctypes/util.py
++++ b/Lib/ctypes/util.py
+@@ -140,11 +140,15 @@ elif os.name == "posix":
+             # assuming GNU binutils / ELF
+             if not f:
+                 return None
+-            cmd = 'if ! type objdump >/dev/null 2>&1; then exit; fi;' \
++            cmd = 'if ! type objdump >/dev/null 2>&1; then exit 10; fi;' \
+                   'objdump -p -j .dynamic 2>/dev/null "$1"'
+             proc = subprocess.Popen((cmd, '_get_soname', f), shell=True,
+                                     stdout=subprocess.PIPE)
+             [dump, _] = proc.communicate()
++            if proc.returncode == 10:
++                return os.path.basename(f) #  This is good for GLibc, I think,
++                                           # and a dep on binutils is big (for
++                                           # live CDs).
+             res = re.search(br'\sSONAME\s+([^\s]+)', dump)
+             if not res:
+                 return None

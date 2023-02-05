@@ -1,0 +1,279 @@
+diff --git a/Lib/test/test_gc.py b/Lib/test/test_gc.py
+index 7e47b2d..12a210d 100644
+--- a/Lib/test/test_gc.py
++++ b/Lib/test/test_gc.py
+@@ -1,7 +1,8 @@
+ import unittest
+ from test.support import (verbose, run_unittest, start_threads,
+-                          requires_type_collecting)
++                          requires_type_collecting, import_module)
+ import sys
++import sysconfig
+ import time
+ import gc
+ import weakref
+@@ -39,6 +40,8 @@ class GC_Detector(object):
+         self.wr = weakref.ref(C1055820(666), it_happened)
+ 
+ 
++BUILT_WITH_NDEBUG = ('-DNDEBUG' in sysconfig.get_config_vars()['PY_CFLAGS'])
++
+ ### Tests
+ ###############################################################################
+ 
+@@ -537,6 +540,49 @@ class GCTests(unittest.TestCase):
+             # would be damaged, with an empty __dict__.
+             self.assertEqual(x, None)
+ 
++    @unittest.skipIf(BUILT_WITH_NDEBUG,
++                     'built with -NDEBUG')
++    def test_refcount_errors(self):
++        # Verify the "handling" of objects with broken refcounts
++ 
++        import_module("ctypes") #skip if not supported
++
++        import subprocess
++        code = '''if 1:
++        a = []
++        b = [a]
++
++        # Simulate the refcount of "a" being too low (compared to the
++        # references held on it by live data), but keeping it above zero
++        # (to avoid deallocating it):
++        import ctypes
++        ctypes.pythonapi.Py_DecRef(ctypes.py_object(a))
++
++        # The garbage collector should now have a fatal error when it reaches
++        # the broken object:
++        import gc
++        gc.collect()
++        '''
++        p = subprocess.Popen([sys.executable, "-c", code],
++                             stdout=subprocess.PIPE,
++                             stderr=subprocess.PIPE)
++        stdout, stderr = p.communicate()
++        p.stdout.close()
++        p.stderr.close()
++        # Verify that stderr has a useful error message:
++        self.assertRegexpMatches(stderr,
++            b'Modules/gcmodule.c:[0-9]+: visit_decref: Assertion "gc->gc.gc_refs != 0" failed.')
++        self.assertRegexpMatches(stderr,
++            b'refcount was too small')
++        self.assertRegexpMatches(stderr,
++            b'object  : \[\]')
++        self.assertRegexpMatches(stderr,
++            b'type    : list')
++        self.assertRegexpMatches(stderr,
++            b'refcount: 1')
++        self.assertRegexpMatches(stderr,
++            b'address : 0x[0-9a-f]+')
++
+ class GCTogglingTests(unittest.TestCase):
+     def setUp(self):
+         gc.enable()
+diff --git a/Modules/gcmodule.c b/Modules/gcmodule.c
+index 916e481..0233ce2 100644
+--- a/Modules/gcmodule.c
++++ b/Modules/gcmodule.c
+@@ -21,6 +21,73 @@
+ #include "Python.h"
+ #include "frameobject.h"        /* for PyFrame_ClearFreeList */
+ 
++/* 
++   Define a pair of assertion macros.
++
++   These work like the regular C assert(), in that they will abort the
++   process with a message on stderr if the given condition fails to hold,
++   but compile away to nothing if NDEBUG is defined.
++
++   However, before aborting, Python will also try to call _PyObject_Dump() on
++   the given object.  This may be of use when investigating bugs in which a
++   particular object is corrupt (e.g. buggy a tp_visit method in an extension
++   module breaking the garbage collector), to help locate the broken objects.
++
++   The WITH_MSG variant allows you to supply an additional message that Python
++   will attempt to print to stderr, after the object dump.
++*/
++#ifdef NDEBUG
++/* No debugging: compile away the assertions: */
++#define PyObject_ASSERT_WITH_MSG(obj, expr, msg) ((void)0)
++#else
++/* With debugging: generate checks: */
++#define PyObject_ASSERT_WITH_MSG(obj, expr, msg) \
++  ((expr)                                           \
++   ? (void)(0)                                      \
++   : _PyObject_AssertFailed((obj),                  \
++                            (msg),                  \
++                            (__STRING(expr)),       \
++                            (__FILE__),             \
++                            (__LINE__),             \
++                            (__PRETTY_FUNCTION__)))
++#endif
++
++#define PyObject_ASSERT(obj, expr) \
++  PyObject_ASSERT_WITH_MSG(obj, expr, NULL)
++
++static void _PyObject_AssertFailed(PyObject *,  const char *,
++				   const char *, const char *, int,
++				   const char *);
++
++static void
++_PyObject_AssertFailed(PyObject *obj, const char *msg, const char *expr,
++		       const char *file, int line, const char *function)
++{
++    fprintf(stderr,
++            "%s:%d: %s: Assertion \"%s\" failed.\n",
++            file, line, function, expr);
++    if (msg) {
++        fprintf(stderr, "%s\n", msg);
++    }
++
++    fflush(stderr);
++
++    if (obj) {
++        /* This might succeed or fail, but we're about to abort, so at least
++           try to provide any extra info we can: */
++        _PyObject_Dump(obj);
++    }
++    else {
++        fprintf(stderr, "NULL object\n");
++    }
++
++    fflush(stdout);
++    fflush(stderr);
++
++    /* Terminate the process: */
++    abort();
++}
++
+ /* Get an object's GC head */
+ #define AS_GC(o) ((PyGC_Head *)(o)-1)
+ 
+@@ -328,7 +395,8 @@ update_refs(PyGC_Head *containers)
+ {
+     PyGC_Head *gc = containers->gc.gc_next;
+     for (; gc != containers; gc = gc->gc.gc_next) {
+-        assert(gc->gc.gc_refs == GC_REACHABLE);
++        PyObject_ASSERT(FROM_GC(gc),
++                        gc->gc.gc_refs == GC_REACHABLE);
+         gc->gc.gc_refs = Py_REFCNT(FROM_GC(gc));
+         /* Python's cyclic gc should never see an incoming refcount
+          * of 0:  if something decref'ed to 0, it should have been
+@@ -348,7 +416,8 @@ update_refs(PyGC_Head *containers)
+          * so serious that maybe this should be a release-build
+          * check instead of an assert?
+          */
+-        assert(gc->gc.gc_refs != 0);
++        PyObject_ASSERT(FROM_GC(gc),
++                        gc->gc.gc_refs != 0);
+     }
+ }
+ 
+@@ -363,7 +432,9 @@ visit_decref(PyObject *op, void *data)
+          * generation being collected, which can be recognized
+          * because only they have positive gc_refs.
+          */
+-        assert(gc->gc.gc_refs != 0); /* else refcount was too small */
++        PyObject_ASSERT_WITH_MSG(FROM_GC(gc),
++                                 gc->gc.gc_refs != 0,
++                                 "refcount was too small");
+         if (gc->gc.gc_refs > 0)
+             gc->gc.gc_refs--;
+     }
+@@ -423,9 +494,10 @@ visit_reachable(PyObject *op, PyGC_Head *reachable)
+          * If gc_refs == GC_UNTRACKED, it must be ignored.
+          */
+          else {
+-            assert(gc_refs > 0
+-                   || gc_refs == GC_REACHABLE
+-                   || gc_refs == GC_UNTRACKED);
++             PyObject_ASSERT(FROM_GC(gc),
++                             gc_refs > 0
++                             || gc_refs == GC_REACHABLE
++                             || gc_refs == GC_UNTRACKED);
+          }
+     }
+     return 0;
+@@ -467,7 +539,7 @@ move_unreachable(PyGC_Head *young, PyGC_Head *unreachable)
+              */
+             PyObject *op = FROM_GC(gc);
+             traverseproc traverse = Py_TYPE(op)->tp_traverse;
+-            assert(gc->gc.gc_refs > 0);
++            PyObject_ASSERT(op, gc->gc.gc_refs > 0);
+             gc->gc.gc_refs = GC_REACHABLE;
+             (void) traverse(op,
+                             (visitproc)visit_reachable,
+@@ -545,7 +617,8 @@ move_finalizers(PyGC_Head *unreachable, PyGC_Head *finalizers)
+     for (gc = unreachable->gc.gc_next; gc != unreachable; gc = next) {
+         PyObject *op = FROM_GC(gc);
+ 
+-        assert(IS_TENTATIVELY_UNREACHABLE(op));
++        PyObject_ASSERT(op, IS_TENTATIVELY_UNREACHABLE(op));
++
+         next = gc->gc.gc_next;
+ 
+         if (has_finalizer(op)) {
+@@ -621,7 +694,7 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
+         PyWeakReference **wrlist;
+ 
+         op = FROM_GC(gc);
+-        assert(IS_TENTATIVELY_UNREACHABLE(op));
++        PyObject_ASSERT(op, IS_TENTATIVELY_UNREACHABLE(op));
+         next = gc->gc.gc_next;
+ 
+         if (! PyType_SUPPORTS_WEAKREFS(Py_TYPE(op)))
+@@ -642,9 +715,9 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
+              * the callback pointer intact.  Obscure:  it also
+              * changes *wrlist.
+              */
+-            assert(wr->wr_object == op);
++            PyObject_ASSERT(wr->wr_object, wr->wr_object == op);
+             _PyWeakref_ClearRef(wr);
+-            assert(wr->wr_object == Py_None);
++            PyObject_ASSERT(wr->wr_object, wr->wr_object == Py_None);
+             if (wr->wr_callback == NULL)
+                 continue;                       /* no callback */
+ 
+@@ -678,7 +751,7 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
+      */
+             if (IS_TENTATIVELY_UNREACHABLE(wr))
+                 continue;
+-            assert(IS_REACHABLE(wr));
++            PyObject_ASSERT(op, IS_REACHABLE(wr));
+ 
+             /* Create a new reference so that wr can't go away
+              * before we can process it again.
+@@ -687,7 +760,8 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
+ 
+             /* Move wr to wrcb_to_call, for the next pass. */
+             wrasgc = AS_GC(wr);
+-            assert(wrasgc != next); /* wrasgc is reachable, but
++            PyObject_ASSERT(op, wrasgc != next);
++                                    /* wrasgc is reachable, but
+                                        next isn't, so they can't
+                                        be the same */
+             gc_list_move(wrasgc, &wrcb_to_call);
+@@ -703,11 +777,11 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
+ 
+         gc = wrcb_to_call.gc.gc_next;
+         op = FROM_GC(gc);
+-        assert(IS_REACHABLE(op));
+-        assert(PyWeakref_Check(op));
++        PyObject_ASSERT(op, IS_REACHABLE(op));
++        PyObject_ASSERT(op, PyWeakref_Check(op));
+         wr = (PyWeakReference *)op;
+         callback = wr->wr_callback;
+-        assert(callback != NULL);
++        PyObject_ASSERT(op, callback != NULL);
+ 
+         /* copy-paste of weakrefobject.c's handle_callback() */
+         temp = PyObject_CallFunctionObjArgs(callback, wr, NULL);
+@@ -810,7 +884,7 @@ delete_garbage(PyGC_Head *collectable, PyGC_Head *old)
+         PyGC_Head *gc = collectable->gc.gc_next;
+         PyObject *op = FROM_GC(gc);
+ 
+-        assert(IS_TENTATIVELY_UNREACHABLE(op));
++        PyObject_ASSERT(op, IS_TENTATIVELY_UNREACHABLE(op));
+         if (debug & DEBUG_SAVEALL) {
+             PyList_Append(garbage, op);
+         }

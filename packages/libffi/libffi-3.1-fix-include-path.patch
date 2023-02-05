@@ -1,0 +1,17 @@
+diff -up libffi-3.1/libffi.pc.in.fixpath libffi-3.1/libffi.pc.in
+--- libffi-3.1/libffi.pc.in.fixpath	2014-04-25 19:45:13.000000000 +0200
++++ libffi-3.1/libffi.pc.in	2014-06-12 12:06:06.000000000 +0200
+@@ -1,11 +1,10 @@
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ libdir=@libdir@
+-toolexeclibdir=@toolexeclibdir@
+-includedir=${libdir}/@PACKAGE_NAME@-@PACKAGE_VERSION@/include
++includedir=@includedir@
+ 
+ Name: @PACKAGE_NAME@
+ Description: Library supporting Foreign Function Interfaces
+ Version: @PACKAGE_VERSION@
+-Libs: -L${toolexeclibdir} -lffi
++Libs: -L${libdir} -lffi
+ Cflags: -I${includedir}

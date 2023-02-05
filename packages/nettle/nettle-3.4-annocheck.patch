@@ -1,0 +1,12 @@
+diff -up nettle-3.4/Makefile.in.annocheck nettle-3.4/Makefile.in
+--- nettle-3.4/Makefile.in.annocheck	2018-10-16 15:06:53.340138708 +0200
++++ nettle-3.4/Makefile.in	2018-10-16 15:12:25.150276379 +0200
+@@ -377,7 +377,7 @@ ecc-25519.$(OBJEXT): ecc-25519.h
+ 
+ .asm.$(OBJEXT): $(srcdir)/asm.m4 machine.m4 config.m4
+ 	$(M4) $(srcdir)/asm.m4 machine.m4 config.m4 $< >$*.s
+-	$(COMPILE) -c $*.s
++	$(COMPILE) -c -Wa,--generate-missing-build-notes=yes $*.s
+ 	@echo "$@ : $< $(srcdir)/asm.m4 machine.m4 config.m4" >$@.d 
+ 
+ # Texinfo rules

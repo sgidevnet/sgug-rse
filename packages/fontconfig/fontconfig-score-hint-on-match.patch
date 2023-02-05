@@ -1,0 +1,36 @@
+From cb1036a7c7f1cb79fa799b1db368c86b018ec368 Mon Sep 17 00:00:00 2001
+From: Akira TAGOH <akira@tagoh.org>
+Date: Fri, 9 Aug 2019 12:22:08 +0000
+Subject: [PATCH] Affect FC_FONT_HAS_HINT property to score on matcher
+
+---
+ src/fcmatch.c | 1 +
+ src/fcobjs.h  | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/fcmatch.c b/src/fcmatch.c
+index c3d2b8ad..78bcf7b4 100644
+--- a/src/fcmatch.c
++++ b/src/fcmatch.c
+@@ -342,6 +342,7 @@ typedef enum _FcMatcherPriority {
+     PRI1(SLANT),
+     PRI1(WEIGHT),
+     PRI1(WIDTH),
++    PRI1(FONT_HAS_HINT),
+     PRI1(DECORATIVE),
+     PRI1(ANTIALIAS),
+     PRI1(RASTERIZER),
+diff --git a/src/fcobjs.h b/src/fcobjs.h
+index 7bb97d09..dd4a6ec3 100644
+--- a/src/fcobjs.h
++++ b/src/fcobjs.h
+@@ -72,5 +72,5 @@ FC_OBJECT (COLOR,		FcTypeBool,	FcCompareBool)
+ FC_OBJECT (SYMBOL,		FcTypeBool,	FcCompareBool)
+ FC_OBJECT (FONT_VARIATIONS,	FcTypeString,	NULL)
+ FC_OBJECT (VARIABLE,		FcTypeBool,	FcCompareBool)
+-FC_OBJECT (FONT_HAS_HINT,	FcTypeBool,	NULL)
++FC_OBJECT (FONT_HAS_HINT,	FcTypeBool,	FcCompareBool)
+ /* ^-------------- Add new objects here. */
+-- 
+2.22.0
+

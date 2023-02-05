@@ -1,0 +1,61 @@
+diff -up graphviz-stable_release_2.40.1/configure.ac.swig4 graphviz-stable_release_2.40.1/configure.ac
+--- graphviz-stable_release_2.40.1/configure.ac.swig4	2019-03-12 16:17:45.243092580 +0100
++++ graphviz-stable_release_2.40.1/configure.ac	2019-03-12 16:19:43.436206447 +0100
+@@ -1023,8 +1023,13 @@ else
+   if test "x$use_swig" != "xYes"; then
+     use_perl="No (swig not available)"
+   else
+-    if test `$SWIG -help 2>&1 | $EGREP -c '\-perl *- Generate'` = 0; then
+-      use_perl="No (swig does not support -perl option)"
++    if test `$SWIG -perl5 2>&1 | $EGREP -c '(Unable|No target)'` -eq 1; then
++      SWIG_PERL_OPT='-perl'
++    else
++      SWIG_PERL_OPT='-perl5'
++    fi
++    if test `$SWIG -help 2>&1 | $EGREP -c "(-perl|-perl5) *- Generate"` = 0; then
++      use_perl="No (swig does not support -perl or -perl5 option)"
+     else
+       AC_CHECK_PROG(PERL,perl,perl)
+       if test "x$PERL" = "x"; then
+@@ -1057,6 +1062,7 @@ else
+ 	  AC_SUBST([PERL_INCLUDES])
+           AC_SUBST([PERL_LIBS])
+ 	  AC_SUBST([PERL_INSTALL_DIR])
++	  AC_SUBST([SWIG_PERL_OPT])
+         fi
+       fi
+     fi
+@@ -1077,8 +1083,8 @@ else
+   if test "x$use_swig" != "xYes"; then
+     use_php="No (swig not available)"
+   else
+-    if test `$SWIG -php7 2>&1 | $EGREP -c 'Unable'` -eq 1; then
+-      if test `$SWIG -php5 2>&1 | $EGREP -c 'Unable'` -eq 1; then
++    if test `$SWIG -php7 2>&1 | $EGREP -c '(Unable|No target)'` -eq 1; then
++      if test `$SWIG -php5 2>&1 | $EGREP -c '(Unable|No target)'` -eq 1; then
+         SWIG_PHP_OPT='-php'
+       else
+         SWIG_PHP_OPT='-php5'
+@@ -1086,8 +1092,8 @@ else
+     else
+       SWIG_PHP_OPT='-php7'
+     fi
+-    if test `$SWIG -help 2>&1 | $EGREP -c '\-php5* *- Generate'` = 0 ; then
+-      use_php="No (swig does not support -php or -php5 option)"
++    if test `$SWIG -help 2>&1 | $EGREP -c "(-php|-php5|-php7) *- Generate"` = 0 ; then
++      use_php="No (swig does not support -php or -php5 or -php7 option)"
+     else
+       AC_CHECK_PROGS(PHP,php7,php,php5)
+       if test "x$PHP" = "x"; then
+diff -up graphviz-stable_release_2.40.1/tclpkg/gv/Makefile.am.swig4 graphviz-stable_release_2.40.1/tclpkg/gv/Makefile.am
+--- graphviz-stable_release_2.40.1/tclpkg/gv/Makefile.am.swig4	2016-12-25 04:04:04.000000000 +0100
++++ graphviz-stable_release_2.40.1/tclpkg/gv/Makefile.am	2019-03-12 16:17:45.248092670 +0100
+@@ -171,7 +171,7 @@ libgv_perl_la_LDFLAGS = -module -avoid-v
+ libgv_perl_la_CPPFLAGS = $(BASECPPFLAGS) $(PERL_CC)
+ $(PERL_data): gv_perl.cpp
+ gv_perl.cpp: gv.i
+-	$(SWIG) -c++ -perl -o gv_perl.cpp $(srcdir)/gv.i
++	$(SWIG) -c++ $(SWIG_PERL_OPT) -o gv_perl.cpp $(srcdir)/gv.i
+ 
+ pkgphpdir = $(pkglibdir)/php
+ PHP_data = gv.php

@@ -1,0 +1,189 @@
+From 48641275c0cd018441685f2d3145038017f1ea42 Mon Sep 17 00:00:00 2001
+From: Kamil Dudka <kdudka@redhat.com>
+Date: Tue, 6 Nov 2018 16:31:32 +0100
+Subject: [PATCH] tree: fix programming mistakes detected by static analysis
+
+---
+ html.c |  5 +++--
+ json.c | 11 +++++------
+ tree.c |  2 +-
+ unix.c |  5 +++--
+ xml.c  | 11 +++++------
+ 5 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/html.c b/html.c
+index 75e2ed1..35fb525 100644
+--- a/html.c
++++ b/html.c
+@@ -221,7 +221,7 @@ off_t html_listdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ 	    if (*(*dir)->lnk == '/')
+ 	      listdir((*dir)->lnk,dt,ft,lev+1,dev);
+ 	    else {
+-	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->name)+1024));
++	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->lnk)+1024));
+ 	      if (fflag && !strcmp(d,"/")) sprintf(path,"%s%s",d,(*dir)->lnk);
+ 	      else sprintf(path,"%s/%s",d,(*dir)->lnk);
+ 	      listdir(path,dt,ft,lev+1,dev);
+@@ -254,7 +254,7 @@ off_t html_rlistdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ {
+   struct _info **dir;
+   off_t size = 0;
+-  char *err;
++  char *err = NULL;
+   
+   dir = getfulltree(d, lev, dev, &size, &err);
+   
+@@ -262,6 +262,7 @@ off_t html_rlistdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+   
+   htmlr_listdir(dir, d, dt, ft, lev);
+   
++  free(err);
+   return size;
+ }
+ 
+diff --git a/json.c b/json.c
+index 4b15e0d..8c71324 100644
+--- a/json.c
++++ b/json.c
+@@ -98,8 +98,7 @@ off_t json_listdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+   while(*dir) {
+     if (!noindent) json_indent(lev);
+ 
+-    if ((*dir)->lnk) mt = (*dir)->mode & S_IFMT;
+-    else mt = (*dir)->mode & S_IFMT;
++    mt = (*dir)->mode & S_IFMT;
+     for(t=0;ifmt[t];t++)
+       if (ifmt[t] == mt) break;
+     fprintf(outfile,"{\"type\":\"%s\"", ftype[t]);
+@@ -141,7 +140,7 @@ off_t json_listdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ 	    if (*(*dir)->lnk == '/')
+ 	      listdir((*dir)->lnk,dt,ft,lev+1,dev);
+ 	    else {
+-	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->name)+1024));
++	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->lnk)+1024));
+ 	      if (fflag && !strcmp(d,"/")) sprintf(path,"%s%s",d,(*dir)->lnk);
+ 	      else sprintf(path,"%s/%s",d,(*dir)->lnk);
+ 	      listdir(path,dt,ft,lev+1,dev);
+@@ -181,7 +180,7 @@ off_t json_rlistdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ {
+   struct _info **dir;
+   off_t size = 0;
+-  char *err;
++  char *err = NULL;
+ 
+   dir = getfulltree(d, lev, dev, &size, &err);
+ 
+@@ -189,6 +188,7 @@ off_t json_rlistdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ 
+   jsonr_listdir(dir, d, dt, ft, lev);
+ 
++  free(err);
+   return size;
+ }
+ 
+@@ -211,8 +211,7 @@ void jsonr_listdir(struct _info **dir, char *d, int *dt, int *ft, u_long lev)
+   while(*dir) {
+     if (!noindent) json_indent(lev);
+ 
+-    if ((*dir)->lnk) mt = (*dir)->mode & S_IFMT;
+-    else mt = (*dir)->mode & S_IFMT;
++    mt = (*dir)->mode & S_IFMT;
+     for(t=0;ifmt[t];t++)
+       if (ifmt[t] == mt) break;
+     fprintf(outfile,"{\"type\":\"%s\"", ftype[t]);
+diff --git a/tree.c b/tree.c
+index 03140fe..73dd101 100644
+--- a/tree.c
++++ b/tree.c
+@@ -882,7 +882,7 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
+ 	    if (*(*dir)->lnk == '/')
+ 	      (*dir)->child = unix_getfulltree((*dir)->lnk,lev+1,dev,&((*dir)->size),&((*dir)->err));
+ 	    else {
+-	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->name)+1024));
++	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->lnk)+1024));
+ 	      if (fflag && !strcmp(d,"/")) sprintf(path,"%s%s",d,(*dir)->lnk);
+ 	      else sprintf(path,"%s/%s",d,(*dir)->lnk);
+ 	      (*dir)->child = unix_getfulltree(path,lev+1,dev,&((*dir)->size),&((*dir)->err));
+diff --git a/unix.c b/unix.c
+index ca5f76f..9476307 100644
+--- a/unix.c
++++ b/unix.c
+@@ -129,7 +129,7 @@ off_t unix_listdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ 	    if (*(*dir)->lnk == '/')
+ 	      listdir((*dir)->lnk,dt,ft,lev+1,dev);
+ 	    else {
+-	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->name)+1024));
++	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->lnk)+1024));
+ 	      if (fflag && !strcmp(d,"/")) sprintf(path,"%s%s",d,(*dir)->lnk);
+ 	      else sprintf(path,"%s/%s",d,(*dir)->lnk);
+ 	      listdir(path,dt,ft,lev+1,dev);
+@@ -162,7 +162,7 @@ off_t unix_rlistdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ {
+   struct _info **dir;
+   off_t size = 0;
+-  char *err;
++  char *err = NULL;
+   
+   dir = getfulltree(d, lev, dev, &size, &err);
+ 
+@@ -170,6 +170,7 @@ off_t unix_rlistdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ 
+   r_listdir(dir, d, dt, ft, lev);
+ 
++  free(err);
+   return size;
+ }
+ 
+diff --git a/xml.c b/xml.c
+index 32f3c0c..512eed7 100644
+--- a/xml.c
++++ b/xml.c
+@@ -106,8 +106,7 @@ off_t xml_listdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+   while(*dir) {
+     if (!noindent) xml_indent(lev);
+ 
+-    if ((*dir)->lnk) mt = (*dir)->mode & S_IFMT;
+-    else mt = (*dir)->mode & S_IFMT;
++    mt = (*dir)->mode & S_IFMT;
+     for(t=0;ifmt[t];t++)
+       if (ifmt[t] == mt) break;
+     fprintf(outfile,"<%s", ftype[t]);
+@@ -145,7 +144,7 @@ off_t xml_listdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ 	    if (*(*dir)->lnk == '/')
+ 	      listdir((*dir)->lnk,dt,ft,lev+1,dev);
+ 	    else {
+-	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->name)+1024));
++	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->lnk)+1024));
+ 	      if (fflag && !strcmp(d,"/")) sprintf(path,"%s%s",d,(*dir)->lnk);
+ 	      else sprintf(path,"%s/%s",d,(*dir)->lnk);
+ 	      listdir(path,dt,ft,lev+1,dev);
+@@ -181,7 +180,7 @@ off_t xml_rlistdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+ {
+   struct _info **dir;
+   off_t size = 0;
+-  char *err;
++  char *err = NULL;
+   
+   dir = getfulltree(d, lev, dev, &size, &err);
+   
+@@ -189,6 +188,7 @@ off_t xml_rlistdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
+   
+   xmlr_listdir(dir, d, dt, ft, lev);
+   
++  free(err);
+   return size;
+ }
+ 
+@@ -211,8 +211,7 @@ void xmlr_listdir(struct _info **dir, char *d, int *dt, int *ft, u_long lev)
+   while(*dir) {
+     if (!noindent) xml_indent(lev);
+ 
+-    if ((*dir)->lnk) mt = (*dir)->mode & S_IFMT;
+-    else mt = (*dir)->mode & S_IFMT;
++    mt = (*dir)->mode & S_IFMT;
+     for(t=0;ifmt[t];t++)
+       if (ifmt[t] == mt) break;
+     fprintf(outfile,"<%s", ftype[t]);
+-- 
+2.17.2
+

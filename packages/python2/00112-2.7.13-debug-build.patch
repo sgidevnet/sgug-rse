@@ -1,0 +1,324 @@
+From 898f93aa206e577dfe854c59bc62d0cea09cd5ed Mon Sep 17 00:00:00 2001
+From: Tomas Orsava <torsava@redhat.com>
+Date: Tue, 10 Jan 2017 16:19:50 +0100
+Subject: [PATCH] Patch to support building both optimized vs debug stacks DSO
+ ABIs,
+
+sharing the same .py and .pyc files, using "_d.so" to signify a debug build of
+an extension module.
+---
+ Lib/distutils/command/build_ext.py  |  7 ++++-
+ Lib/distutils/sysconfig.py          |  5 ++--
+ Lib/distutils/tests/test_install.py |  3 +-
+ Makefile.pre.in                     | 56 ++++++++++++++++++++-----------------
+ Misc/python-config.in               |  2 +-
+ Modules/makesetup                   |  2 +-
+ Python/dynload_shlib.c              | 11 ++++++--
+ Python/sysmodule.c                  |  6 ++++
+ configure.ac                        | 14 ++++++++--
+ 9 files changed, 69 insertions(+), 37 deletions(-)
+
+diff --git a/Lib/distutils/command/build_ext.py b/Lib/distutils/command/build_ext.py
+index 2c68be3..029d144 100644
+--- a/Lib/distutils/command/build_ext.py
++++ b/Lib/distutils/command/build_ext.py
+@@ -677,7 +677,10 @@ class build_ext (Command):
+         so_ext = get_config_var('SO')
+         if os.name == 'nt' and self.debug:
+             return os.path.join(*ext_path) + '_d' + so_ext
+-        return os.path.join(*ext_path) + so_ext
++        
++        # Similarly, extensions in debug mode are named 'module_d.so', to
++        # avoid adding the _d to the SO config variable:
++        return os.path.join(*ext_path) + (sys.pydebug and "_d" or "") + so_ext
+ 
+     def get_export_symbols (self, ext):
+         """Return the list of symbols that a shared extension has to
+@@ -762,6 +765,8 @@ class build_ext (Command):
+                 template = "python%d.%d"
+                 pythonlib = (template %
+                              (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff))
++                if sys.pydebug:
++                    pythonlib += '_d'
+                 return ext.libraries + [pythonlib]
+             else:
+                 return ext.libraries
+diff --git a/Lib/distutils/sysconfig.py b/Lib/distutils/sysconfig.py
+index 3e7f077..ec5d584 100644
+--- a/Lib/distutils/sysconfig.py
++++ b/Lib/distutils/sysconfig.py
+@@ -90,7 +90,8 @@ def get_python_inc(plat_specific=0, prefix=None):
+                 # Include is located in the srcdir
+                 inc_dir = os.path.join(srcdir, "Include")
+             return inc_dir
+-        return os.path.join(prefix, "include", "python" + get_python_version())
++        return os.path.join(prefix, "include",
++            "python" + get_python_version() + (sys.pydebug and '-debug' or ''))
+     elif os.name == "nt":
+         return os.path.join(prefix, "include")
+     elif os.name == "os2":
+@@ -248,7 +249,7 @@ def get_makefile_filename():
+     if python_build:
+         return os.path.join(project_base, "Makefile")
+     lib_dir = get_python_lib(plat_specific=1, standard_lib=1)
+-    return os.path.join(lib_dir, "config", "Makefile")
++    return os.path.join(lib_dir, "config" + (sys.pydebug and "-debug" or ""), "Makefile")
+ 
+ 
+ def parse_config_h(fp, g=None):
+diff --git a/Lib/distutils/tests/test_install.py b/Lib/distutils/tests/test_install.py
+index 78fac46..d1d0931 100644
+--- a/Lib/distutils/tests/test_install.py
++++ b/Lib/distutils/tests/test_install.py
+@@ -20,8 +20,9 @@ from distutils.tests import support
+ 
+ 
+ def _make_ext_name(modname):
+-    if os.name == 'nt' and sys.executable.endswith('_d.exe'):
++    if sys.pydebug:
+         modname += '_d'
++        
+     return modname + sysconfig.get_config_var('SO')
+ 
+ 
+diff --git a/Makefile.pre.in b/Makefile.pre.in
+index 997a2fc..467e782 100644
+--- a/Makefile.pre.in
++++ b/Makefile.pre.in
+@@ -116,8 +116,8 @@ SCRIPTDIR=	$(prefix)/lib64
+ # Detailed destination directories
+ BINLIBDEST=	$(LIBDIR)/python$(VERSION)
+ LIBDEST=	$(SCRIPTDIR)/python$(VERSION)
+-INCLUDEPY=	$(INCLUDEDIR)/python$(VERSION)
+-CONFINCLUDEPY=	$(CONFINCLUDEDIR)/python$(VERSION)
++INCLUDEPY=	$(INCLUDEDIR)/python$(VERSION)$(DEBUG_SUFFIX)
++CONFINCLUDEPY=	$(CONFINCLUDEDIR)/python$(VERSION)$(DEBUG_SUFFIX)
+ LIBP=		$(LIBDIR)/python$(VERSION)
+ 
+ # Symbols used for using shared libraries
+@@ -131,6 +131,12 @@ DESTSHARED=	$(BINLIBDEST)/lib-dynload
+ EXE=		@EXEEXT@
+ BUILDEXE=	@BUILDEXEEXT@
+ 
++# DEBUG_EXT is used by ELF files (names and SONAMEs); it will be "_d" for a debug build
++# DEBUG_SUFFIX is used by filesystem paths; it will be "-debug" for a debug build
++# Both will be empty in an optimized build
++DEBUG_EXT=	@DEBUG_EXT@
++DEBUG_SUFFIX=	@DEBUG_SUFFIX@
++
+ # Short name and location for Mac OS X Python framework
+ UNIVERSALSDK=@UNIVERSALSDK@
+ PYTHONFRAMEWORK=	@PYTHONFRAMEWORK@
+@@ -197,8 +203,8 @@ LIBOBJDIR=	Python/
+ LIBOBJS=	@LIBOBJS@
+ UNICODE_OBJS=   @UNICODE_OBJS@
+ 
+-PYTHON=		python$(EXE)
+-BUILDPYTHON=	python$(BUILDEXE)
++PYTHON=		python$(DEBUG_SUFFIX)$(EXE)
++BUILDPYTHON=	python$(DEBUG_SUFFIX)$(BUILDEXE)
+ 
+ PYTHON_FOR_REGEN=@PYTHON_FOR_REGEN@
+ PYTHON_FOR_BUILD=@PYTHON_FOR_BUILD@
+@@ -547,7 +553,7 @@ sharedmods: $(BUILDPYTHON) pybuilddir.txt Modules/_math.o
+ 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
+ 		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
+ 
+-libpython$(VERSION).so: $(LIBRARY_OBJS)
++libpython$(VERSION)$(DEBUG_EXT).so: $(LIBRARY_OBJS)
+ 	if test $(INSTSONAME) != $(LDLIBRARY); then \
+ 		$(BLDSHARED) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
+ 		$(LN) -f $(INSTSONAME) $@; \
+@@ -954,18 +960,18 @@ bininstall:	altbininstall
+ 	then rm -f $(DESTDIR)$(BINDIR)/$(PYTHON); \
+ 	else true; \
+ 	fi
+-	(cd $(DESTDIR)$(BINDIR); $(LN) -s python2$(EXE) $(PYTHON))
+-	-rm -f $(DESTDIR)$(BINDIR)/python2$(EXE)
+-	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)$(EXE) python2$(EXE))
+-	-rm -f $(DESTDIR)$(BINDIR)/python2-config
+-	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)-config python2-config)
+-	-rm -f $(DESTDIR)$(BINDIR)/python-config
+-	(cd $(DESTDIR)$(BINDIR); $(LN) -s python2-config python-config)
++	(cd $(DESTDIR)$(BINDIR); $(LN) -s python2$(DEBUG_SUFFIX)$(EXE) $(PYTHON))
++	-rm -f $(DESTDIR)$(BINDIR)/python2$(DEBUG_SUFFIX)$(EXE)
++	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)$(DEBUG_SUFFIX)$(EXE) python2$(DEBUG_SUFFIX)$(EXE))
++	-rm -f $(DESTDIR)$(BINDIR)/python2$(DEBUG_SUFFIX)-config
++	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)$(DEBUG_SUFFIX)-config python2$(DEBUG_SUFFIX)-config)
++	-rm -f $(DESTDIR)$(BINDIR)/python$(DEBUG_SUFFIX)-config
++	(cd $(DESTDIR)$(BINDIR); $(LN) -s python2$(DEBUG_SUFFIX)-config python$(DEBUG_SUFFIX)-config)
+ 	-test -d $(DESTDIR)$(LIBPC) || $(INSTALL) -d -m $(DIRMODE) $(DESTDIR)$(LIBPC)
+-	-rm -f $(DESTDIR)$(LIBPC)/python2.pc
+-	(cd $(DESTDIR)$(LIBPC); $(LN) -s python-$(VERSION).pc python2.pc)
+-	-rm -f $(DESTDIR)$(LIBPC)/python.pc
+-	(cd $(DESTDIR)$(LIBPC); $(LN) -s python2.pc python.pc)
++	-rm -f $(DESTDIR)$(LIBPC)/python2$(DEBUG_SUFFIX).pc
++	(cd $(DESTDIR)$(LIBPC); $(LN) -s python-$(VERSION)$(DEBUG_SUFFIX).pc python2$(DEBUG_SUFFIX).pc)
++	-rm -f $(DESTDIR)$(LIBPC)/python$(DEBUG_SUFFIX).pc
++	(cd $(DESTDIR)$(LIBPC); $(LN) -s python2$(DEBUG_SUFFIX).pc python$(DEBUG_SUFFIX).pc)
+ 
+ # Install the interpreter with $(VERSION) affixed
+ # This goes into $(exec_prefix)
+@@ -978,7 +984,7 @@ altbininstall:	$(BUILDPYTHON)
+ 		else	true; \
+ 		fi; \
+ 	done
+-	$(INSTALL_PROGRAM) $(BUILDPYTHON) $(DESTDIR)$(BINDIR)/python$(VERSION)$(EXE)
++	$(INSTALL_PROGRAM) $(BUILDPYTHON) $(DESTDIR)$(BINDIR)/python$(VERSION)$(DEBUG_SUFFIX)$(EXE)
+ 	if test -f $(LDLIBRARY); then \
+ 		if test -n "$(DLLLIBRARY)" ; then \
+ 			$(INSTALL_SHARED) $(DLLLIBRARY) $(DESTDIR)$(BINDIR); \
+@@ -1148,10 +1154,11 @@ $(srcdir)/Lib/$(PLATDIR):
+ 	fi; \
+ 	cd $(srcdir)/Lib/$(PLATDIR); $(RUNSHARED) ./regen
+ 
+-python-config: $(srcdir)/Misc/python-config.in
++python$(DEBUG_SUFFIX)-config: $(srcdir)/Misc/python-config.in
+ 	# Substitution happens here, as the completely-expanded BINDIR
+ 	# is not available in configure
+-	sed -e "s,@EXENAME@,$(BINDIR)/python$(VERSION)$(EXE)," < $(srcdir)/Misc/python-config.in >python-config
++	sed -e "s,@EXENAME@,$(BINDIR)/python$(VERSION)$(DEBUG_SUFFIX)$(EXE)," < $(srcdir)/Misc/python-config.in >python$(DEBUG_SUFFIX)-config
++	
+ 
+ # Install the include files
+ INCLDIRSTOMAKE=$(INCLUDEDIR) $(CONFINCLUDEDIR) $(INCLUDEPY) $(CONFINCLUDEPY)
+@@ -1172,13 +1179,13 @@ inclinstall:
+ 	$(INSTALL_DATA) pyconfig.h $(DESTDIR)$(CONFINCLUDEPY)/pyconfig.h
+ 
+ # Install the library and miscellaneous stuff needed for extending/embedding
+-# This goes into $(exec_prefix)
+-LIBPL=		$(LIBP)/config
++# This goes into $(exec_prefix)$(DEBUG_SUFFIX)
++LIBPL=		$(LIBP)/config$(DEBUG_SUFFIX)
+ 
+ # pkgconfig directory
+ LIBPC=		$(LIBDIR)/pkgconfig
+ 
+-libainstall:	@DEF_MAKE_RULE@ python-config
++libainstall:	@DEF_MAKE_RULE@ python$(DEBUG_SUFFIX)-config
+ 	@for i in $(LIBDIR) $(LIBP) $(LIBPL) $(LIBPC); \
+ 	do \
+ 		if test ! -d $(DESTDIR)$$i; then \
+@@ -1194,11 +1201,10 @@ libainstall:	all python-config
+ 	$(INSTALL_DATA) Modules/Setup $(DESTDIR)$(LIBPL)/Setup
+ 	$(INSTALL_DATA) Modules/Setup.local $(DESTDIR)$(LIBPL)/Setup.local
+ 	$(INSTALL_DATA) Modules/Setup.config $(DESTDIR)$(LIBPL)/Setup.config
+-	$(INSTALL_DATA) Misc/python.pc $(DESTDIR)$(LIBPC)/python-$(VERSION).pc
++	$(INSTALL_DATA) Misc/python.pc $(DESTDIR)$(LIBPC)/python-$(VERSION)$(DEBUG_SUFFIX).pc
+ 	$(INSTALL_SCRIPT) $(srcdir)/Modules/makesetup $(DESTDIR)$(LIBPL)/makesetup
+ 	$(INSTALL_SCRIPT) $(srcdir)/install-sh $(DESTDIR)$(LIBPL)/install-sh
+-	$(INSTALL_SCRIPT) python-config $(DESTDIR)$(BINDIR)/python$(VERSION)-config
+-	rm python-config
++	$(INSTALL_SCRIPT) python$(DEBUG_SUFFIX)-config $(DESTDIR)$(BINDIR)/python$(VERSION)$(DEBUG_SUFFIX)-config
+ 	@if [ -s Modules/python.exp -a \
+ 		"`echo $(MACHDEP) | sed 's/^\(...\).*/\1/'`" = "aix" ]; then \
+ 		echo; echo "Installing support files for building shared extension modules on AIX:"; \
+diff --git a/Misc/python-config.in b/Misc/python-config.in
+index a09e07c..c1691ef 100644
+--- a/Misc/python-config.in
++++ b/Misc/python-config.in
+@@ -44,7 +44,7 @@ for opt in opt_flags:
+         print ' '.join(flags)
+ 
+     elif opt in ('--libs', '--ldflags'):
+-        libs = ['-lpython' + pyver]
++        libs = ['-lpython' + pyver + (sys.pydebug and "_d" or "")]
+         libs += getvar('LIBS').split()
+         libs += getvar('SYSLIBS').split()
+         # add the prefix/lib/pythonX.Y/config dir, but only if there is no
+diff --git a/Modules/makesetup b/Modules/makesetup
+index 1bffcbf..f0bc743 100755
+--- a/Modules/makesetup
++++ b/Modules/makesetup
+@@ -233,7 +233,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
+ 			*$mod.o*)	base=$mod;;
+ 			*)		base=${mod}module;;
+ 			esac
+-			file="$srcdir/$base\$(SO)"
++			file="$srcdir/$base\$(DEBUG_EXT)\$(SO)"
+ 			case $doconfig in
+ 			no)	SHAREDMODS="$SHAREDMODS $file";;
+ 			esac
+diff --git a/Python/dynload_shlib.c b/Python/dynload_shlib.c
+index 17ebab1..02a94aa 100644
+--- a/Python/dynload_shlib.c
++++ b/Python/dynload_shlib.c
+@@ -46,11 +46,16 @@ const struct filedescr _PyImport_DynLoadFiletab[] = {
+     {"module.exe", "rb", C_EXTENSION},
+     {"MODULE.EXE", "rb", C_EXTENSION},
+ #else
++#ifdef Py_DEBUG
++    {"_d.so", "rb", C_EXTENSION},
++    {"module_d.so", "rb", C_EXTENSION},
++#else
+     {".so", "rb", C_EXTENSION},
+     {"module.so", "rb", C_EXTENSION},
+-#endif
+-#endif
+-#endif
++#endif /* Py_DEBUG */
++#endif /* __VMS */
++#endif /* defined(PYOS_OS2) && defined(PYCC_GCC) */
++#endif /* __CYGWIN__ */
+     {0, 0}
+ };
+ 
+diff --git a/Python/sysmodule.c b/Python/sysmodule.c
+index aeff38a..183e3cc 100644
+--- a/Python/sysmodule.c
++++ b/Python/sysmodule.c
+@@ -1524,6 +1524,12 @@ _PySys_Init(void)
+                         PyString_FromString("legacy"));
+ #endif
+ 
++#ifdef Py_DEBUG
++    PyDict_SetItemString(sysdict, "pydebug", Py_True);
++#else
++    PyDict_SetItemString(sysdict, "pydebug", Py_False);
++#endif
++
+ #undef SET_SYS_FROM_STRING
+     if (PyErr_Occurred())
+         return NULL;
+diff --git a/configure.ac b/configure.ac
+index 0a902c7..5caedb7 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -764,7 +764,7 @@ AC_SUBST(LIBRARY)
+ AC_MSG_CHECKING(LIBRARY)
+ if test -z "$LIBRARY"
+ then
+-	LIBRARY='libpython$(VERSION).a'
++	LIBRARY='libpython$(VERSION)$(DEBUG_EXT).a'
+ fi
+ AC_MSG_RESULT($LIBRARY)
+ 
+@@ -910,8 +910,8 @@ if test $enable_shared = "yes"; then
+ 	  INSTSONAME="$LDLIBRARY".$SOVERSION
+           ;;
+     Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*)
+-	  LDLIBRARY='libpython$(VERSION).so'
+-	  BLDLIBRARY='-L. -lpython$(VERSION)'
++	  LDLIBRARY='libpython$(VERSION)$(DEBUG_EXT).so'
++	  BLDLIBRARY='-L. -lpython$(VERSION)$(DEBUG_EXT)'
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+ 	  case $ac_sys_system in
+ 	      FreeBSD*)
+@@ -1040,6 +1040,14 @@ else AC_MSG_RESULT(no); Py_DEBUG='false'
+ fi],
+ [AC_MSG_RESULT(no)])
+ 
++if test "$Py_DEBUG" = 'true'
++then
++	DEBUG_EXT=_d
++	DEBUG_SUFFIX=-debug
++fi
++AC_SUBST(DEBUG_EXT)
++AC_SUBST(DEBUG_SUFFIX)
++
+ # XXX Shouldn't the code above that fiddles with BASECFLAGS and OPT be
+ # merged with this chunk of code?
+ 
+-- 
+2.11.0
+

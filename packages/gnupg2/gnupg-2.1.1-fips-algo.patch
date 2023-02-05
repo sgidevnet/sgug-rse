@@ -1,0 +1,13 @@
+diff -up gnupg-2.1.1/g10/mainproc.c.fips gnupg-2.1.1/g10/mainproc.c
+--- gnupg-2.1.1/g10/mainproc.c.fips	2015-01-29 17:19:49.266031504 +0100
++++ gnupg-2.1.1/g10/mainproc.c	2015-01-29 17:27:13.938088122 +0100
+@@ -719,7 +719,8 @@ proc_plaintext( CTX c, PACKET *pkt )
+          according to 2440, so hopefully it won't come up that often.
+          There is no good way to specify what algorithms to use in
+          that case, so these there are the historical answer. */
+-	gcry_md_enable (c->mfx.md, DIGEST_ALGO_RMD160);
++	if (!gcry_fips_mode_active())
++            gcry_md_enable (c->mfx.md, DIGEST_ALGO_RMD160);
+ 	gcry_md_enable (c->mfx.md, DIGEST_ALGO_SHA1);
+     }
+   if (DBG_HASHING)

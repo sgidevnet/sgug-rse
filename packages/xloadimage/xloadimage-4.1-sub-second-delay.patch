@@ -1,0 +1,51 @@
+diff -up xloadimage.4.1/options.c.sub-second-delay xloadimage.4.1/options.c
+--- xloadimage.4.1/options.c.sub-second-delay	2013-01-02 13:23:23.726173587 -0500
++++ xloadimage.4.1/options.c	2013-01-02 13:23:37.706185351 -0500
+@@ -720,7 +720,7 @@ void processOptions(argc, argv, rglobal,
+       
+       continue;
+ #else /* !NO_DELAY */
+-      newopt->info.delay= getInteger(DELAY, argv[a]);
++      newopt->info.delay= getFloat(DELAY, argv[a]);
+       break;
+ #endif /* !NO_DELAY */
+ 
+diff -up xloadimage.4.1/options.h.sub-second-delay xloadimage.4.1/options.h
+--- xloadimage.4.1/options.h.sub-second-delay	2013-01-02 13:25:44.297294626 -0500
++++ xloadimage.4.1/options.h	2013-01-02 13:26:25.338329430 -0500
+@@ -49,7 +49,7 @@ typedef struct option {
+       unsigned int x, y, w, h; /* area of image to be used */
+     } clip;
+     unsigned int  colors;     /* max # of colors to use for this image */
+-    unsigned int  delay;      /* # of seconds delay before auto pic advance */
++    double  delay;            /* # of seconds delay before auto pic advance */
+     char         *display;    /* display name */
+     struct {
+       char *type; /* image type */
+diff -up xloadimage.4.1/window.c.sub-second-delay xloadimage.4.1/window.c
+--- xloadimage.4.1/window.c.sub-second-delay	2013-01-02 13:24:13.903216792 -0500
++++ xloadimage.4.1/window.c	2013-01-02 13:25:35.928287337 -0500
+@@ -583,9 +583,9 @@ char imageInWindow(disp, scrn, image, gl
+   install= (getOption(global_options, INSTALL) != NULL);
+   private_cmap= (getOption(global_options, PRIVATE) != NULL);
+   if ((opt= getOption(image_options, DELAY)))
+-    delay= opt->info.delay;
++    delay= opt->info.delay*1000000;
+   else if ((opt= getOption(global_options, DELAY)))
+-    delay= opt->info.delay;
++    delay= opt->info.delay*1000000;
+   else
+     delay= 0;
+   if ((opt= getOption(image_options, VISUAL)))
+@@ -872,7 +872,10 @@ char imageInWindow(disp, scrn, image, gl
+ #ifdef ENABLE_TIMEOUT
+       AlarmWentOff = 0;
+       signal(SIGALRM, delayAlarmHandler);
+-      alarm(delay);
++      if (delay > 999999)
++	alarm(delay/1000000);
++      else
++	ualarm(delay,0);
+ #endif /* ENABLE_TIMEOUT */
+   }
+ 

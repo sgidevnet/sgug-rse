@@ -1,0 +1,29 @@
+diff -r -u -w alpine-2.24/configure.ac alpine-2.24-patched/configure.ac
+--- alpine-2.24/configure.ac  2020-10-10 08:24:28.180553000 +0000
++++ alpine-2.24-patched/configure.ac    2021-11-05 16:17:25.348337548 +0000
+@@ -1337,6 +1337,13 @@
+     alpine_c_client_target="bso"
+     LIBS="$LIBS $LIBINTL"
+     ;;
++  *-*-irix*)
++    systype="IRX"
++    alpine_path_delim="/"
++    alpine_mode_readonly="(0600)"
++    alpine_c_client_target="gsg"
++    LIBS="$LIBS $LIBINTL"
++    ;;
+   *-*-aix5*)
+     systype="A52"
+     alpine_path_delim="/"
+diff -r -u -w alpine-2.24/imap/src/osdep/unix/os_sgi.h alpine-2.24-patched/imap/src/osdep/unix/os_sgi.h
+--- alpine-2.24/imap/src/osdep/unix/os_sgi.h  2021-11-06 10:42:10.700011641 +0000
++++ alpine-2.24-patched/imap/src/osdep/unix/os_sgi.h    2021-11-06 10:41:31.693186813 +0000
+@@ -46,7 +46,7 @@
+
+ #define direct dirent
+
+-#define fatal cclient_fatal
++/* #define fatal cclient_fatal */
+
+ #define utime portable_utime
+ int portable_utime (char *file,time_t timep[2]);

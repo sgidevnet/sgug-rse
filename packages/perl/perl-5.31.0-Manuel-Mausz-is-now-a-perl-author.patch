@@ -1,0 +1,28 @@
+From f83193f25095f9353c8e34c187184bc25fdadf51 Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Wed, 19 Jun 2019 11:25:13 +1000
+Subject: [PATCH] Manuel Mausz is now a perl author
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ AUTHORS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/AUTHORS b/AUTHORS
+index 8d5f5b0ad3..0091100600 100644
+--- a/AUTHORS
++++ b/AUTHORS
+@@ -772,6 +772,7 @@ Maik Hentsche			<maik@mm-double.de>
+ Major Sébastien			<sebastien.major@crdp.ac-caen.fr>
+ Makoto MATSUSHITA		<matusita@ics.es.osaka-u.ac.jp>
+ Malcolm Beattie			<mbeattie@sable.ox.ac.uk>
++Manuel Mausz			<manuel@mausz.at>
+ Manuel Valente			<mvalente@idealx.com>
+ Marc Green			<marcgreen@cpan.org>
+ Marc Lehmann			<pcg@goof.com>
+-- 
+2.20.1
+

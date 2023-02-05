@@ -1,0 +1,16 @@
+ tree.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/tree.c b/tree.c
+index 5b56afe..3b4a263 100644
+--- a/tree.c
++++ b/tree.c
+@@ -653,6 +653,8 @@ void usage(int n)
+ 	"  --filelimit # Do not descend dirs with more than # files in them.\n"
+ 	"  --timefmt <f> Print and format time according to the format <f>.\n"
+ 	"  -o filename   Output to file instead of stdout.\n"
++	"  --du          Print directory sizes.\n"
++	"  --prune       Prune empty directories from the output.\n"
+ 	"  ------- File options -------\n"
+ 	"  -q            Print non-printable characters as '?'.\n"
+ 	"  -N            Print non-printable characters as is.\n"

@@ -1,0 +1,11 @@
+--- a/guile/src/Makefile.in	2019-03-27 11:51:55.984398001 +0100
++++ b/guile/src/Makefile.in	2019-03-27 11:52:27.259626076 +0100
+@@ -1472,7 +1472,7 @@
+ # Use '-module' to build a "dlopenable module", in Libtool terms.
+ # Use '-undefined' to placate Libtool on Windows; see
+ # <https://lists.gnutls.org/pipermail/gnutls-devel/2014-December/007294.html>.
+-guile_gnutls_v_2_la_LDFLAGS = -module -no-undefined
++guile_gnutls_v_2_la_LDFLAGS = -module -no-undefined -Wl,-z,lazy
+ 
+ # Linking against GnuTLS.
+ GNUTLS_CORE_LIBS = $(top_builddir)/lib/libgnutls.la

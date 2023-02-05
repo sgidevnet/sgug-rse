@@ -1,0 +1,168 @@
+Index: cmake-3.17.0-rc1/Modules/Compiler/Absoft-Fortran.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/Absoft-Fortran.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/Absoft-Fortran.cmake
+@@ -1,7 +1,7 @@
+ string(APPEND CMAKE_Fortran_FLAGS_INIT " ")
+ string(APPEND CMAKE_Fortran_FLAGS_DEBUG_INIT " -g")
+ string(APPEND CMAKE_Fortran_FLAGS_MINSIZEREL_INIT " ")
+-string(APPEND CMAKE_Fortran_FLAGS_RELEASE_INIT " -O3")
++string(APPEND CMAKE_Fortran_FLAGS_RELEASE_INIT " -O2")
+ string(APPEND CMAKE_Fortran_FLAGS_RELWITHDEBINFO_INIT " -O2 -g")
+ set(CMAKE_Fortran_MODDIR_FLAG "-YMOD_OUT_DIR=")
+ set(CMAKE_Fortran_MODPATH_FLAG "-p")
+Index: cmake-3.17.0-rc1/Modules/Compiler/G95-Fortran.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/G95-Fortran.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/G95-Fortran.cmake
+@@ -1,7 +1,7 @@
+ string(APPEND CMAKE_Fortran_FLAGS_INIT " ")
+ string(APPEND CMAKE_Fortran_FLAGS_DEBUG_INIT " -g")
+ string(APPEND CMAKE_Fortran_FLAGS_MINSIZEREL_INIT " -Os")
+-string(APPEND CMAKE_Fortran_FLAGS_RELEASE_INIT " -O3")
++string(APPEND CMAKE_Fortran_FLAGS_RELEASE_INIT " -O2")
+ string(APPEND CMAKE_Fortran_FLAGS_RELWITHDEBINFO_INIT " -O2 -g")
+ set(CMAKE_Fortran_MODDIR_FLAG "-fmod=")
+ set(CMAKE_Fortran_VERBOSE_FLAG "-v")
+Index: cmake-3.17.0-rc1/Modules/Compiler/GNU.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/GNU.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/GNU.cmake
+@@ -55,7 +55,7 @@ macro(__compiler_gnu lang)
+   string(APPEND CMAKE_${lang}_FLAGS_INIT " ")
+   string(APPEND CMAKE_${lang}_FLAGS_DEBUG_INIT " -g")
+   string(APPEND CMAKE_${lang}_FLAGS_MINSIZEREL_INIT " -Os -DNDEBUG")
+-  string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O3 -DNDEBUG")
++  string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O2 -DNDEBUG")
+   string(APPEND CMAKE_${lang}_FLAGS_RELWITHDEBINFO_INIT " -O2 -g -DNDEBUG")
+   set(CMAKE_${lang}_CREATE_PREPROCESSED_SOURCE "<CMAKE_${lang}_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -E <SOURCE> > <PREPROCESSED_SOURCE>")
+   set(CMAKE_${lang}_CREATE_ASSEMBLY_SOURCE "<CMAKE_${lang}_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -S <SOURCE> -o <ASSEMBLY_SOURCE>")
+Index: cmake-3.17.0-rc1/Modules/Compiler/GNU-Fortran.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/GNU-Fortran.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/GNU-Fortran.cmake
+@@ -14,7 +14,7 @@ set(CMAKE_Fortran_POSTPROCESS_FLAG "-fpr
+ 
+ # No -DNDEBUG for Fortran.
+ string(APPEND CMAKE_Fortran_FLAGS_MINSIZEREL_INIT " -Os")
+-string(APPEND CMAKE_Fortran_FLAGS_RELEASE_INIT " -O3")
++string(APPEND CMAKE_Fortran_FLAGS_RELEASE_INIT " -O2")
+ 
+ # No -isystem for Fortran because it will not find .mod files.
+ unset(CMAKE_INCLUDE_SYSTEM_FLAG_Fortran)
+Index: cmake-3.17.0-rc1/Modules/Compiler/Intel.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/Intel.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/Intel.cmake
+@@ -22,7 +22,7 @@ else()
+     string(APPEND CMAKE_${lang}_FLAGS_INIT " ")
+     string(APPEND CMAKE_${lang}_FLAGS_DEBUG_INIT " -g")
+     string(APPEND CMAKE_${lang}_FLAGS_MINSIZEREL_INIT " -Os")
+-    string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O3")
++    string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O2")
+     string(APPEND CMAKE_${lang}_FLAGS_RELWITHDEBINFO_INIT " -O2 -g")
+ 
+     set(CMAKE_${lang}_COMPILER_PREDEFINES_COMMAND "${CMAKE_${lang}_COMPILER}")
+Index: cmake-3.17.0-rc1/Modules/Compiler/NVIDIA-CUDA.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/NVIDIA-CUDA.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/NVIDIA-CUDA.cmake
+@@ -36,7 +36,7 @@ if(NOT "x${CMAKE_CUDA_SIMULATE_ID}" STRE
+   set(CMAKE_SHARED_LIBRARY_CUDA_FLAGS -fPIC)
+   string(APPEND CMAKE_CUDA_FLAGS_INIT " ")
+   string(APPEND CMAKE_CUDA_FLAGS_DEBUG_INIT " -g")
+-  string(APPEND CMAKE_CUDA_FLAGS_RELEASE_INIT " -O3 -DNDEBUG")
++  string(APPEND CMAKE_CUDA_FLAGS_RELEASE_INIT " -O2 -DNDEBUG")
+   string(APPEND CMAKE_CUDA_FLAGS_MINSIZEREL_INIT " -O1 -DNDEBUG")
+   string(APPEND CMAKE_CUDA_FLAGS_RELWITHDEBINFO_INIT " -O2 -g -DNDEBUG")
+ endif()
+Index: cmake-3.17.0-rc1/Modules/Compiler/PathScale.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/PathScale.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/PathScale.cmake
+@@ -16,6 +16,6 @@ macro(__compiler_pathscale lang)
+   string(APPEND CMAKE_${lang}_FLAGS_INIT " ")
+   string(APPEND CMAKE_${lang}_FLAGS_DEBUG_INIT " -g -O0")
+   string(APPEND CMAKE_${lang}_FLAGS_MINSIZEREL_INIT " -Os")
+-  string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O3")
++  string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O2")
+   string(APPEND CMAKE_${lang}_FLAGS_RELWITHDEBINFO_INIT " -g -O2")
+ endmacro()
+Index: cmake-3.17.0-rc1/Modules/Compiler/PGI.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/PGI.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/PGI.cmake
+@@ -18,7 +18,7 @@ macro(__compiler_pgi lang)
+   string(APPEND CMAKE_${lang}_FLAGS_INIT " ")
+   string(APPEND CMAKE_${lang}_FLAGS_DEBUG_INIT " -g -O0")
+   string(APPEND CMAKE_${lang}_FLAGS_MINSIZEREL_INIT " -O2 -s")
+-  string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -fast -O3")
++  string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -fast -O2")
+   string(APPEND CMAKE_${lang}_FLAGS_RELWITHDEBINFO_INIT " -O2 -gopt")
+ 
+   if(CMAKE_HOST_WIN32)
+Index: cmake-3.17.0-rc1/Modules/Compiler/SunPro-ASM.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/SunPro-ASM.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/SunPro-ASM.cmake
+@@ -11,7 +11,7 @@ set(CMAKE_SHARED_LIBRARY_SONAME_ASM_FLAG
+ string(APPEND CMAKE_ASM_FLAGS_INIT " ")
+ string(APPEND CMAKE_ASM_FLAGS_DEBUG_INIT " -g")
+ string(APPEND CMAKE_ASM_FLAGS_MINSIZEREL_INIT " -xO2 -xspace -DNDEBUG")
+-string(APPEND CMAKE_ASM_FLAGS_RELEASE_INIT " -xO3 -DNDEBUG")
++string(APPEND CMAKE_ASM_FLAGS_RELEASE_INIT " -xO2 -DNDEBUG")
+ string(APPEND CMAKE_ASM_FLAGS_RELWITHDEBINFO_INIT " -g -xO2 -DNDEBUG")
+ 
+ # Initialize ASM link type selection flags.  These flags are used when
+Index: cmake-3.17.0-rc1/Modules/Compiler/SunPro-C.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/SunPro-C.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/SunPro-C.cmake
+@@ -19,7 +19,7 @@ set(CMAKE_SHARED_LIBRARY_SONAME_C_FLAG "
+ string(APPEND CMAKE_C_FLAGS_INIT " ")
+ string(APPEND CMAKE_C_FLAGS_DEBUG_INIT " -g")
+ string(APPEND CMAKE_C_FLAGS_MINSIZEREL_INIT " -xO2 -xspace -DNDEBUG")
+-string(APPEND CMAKE_C_FLAGS_RELEASE_INIT " -xO3 -DNDEBUG")
++string(APPEND CMAKE_C_FLAGS_RELEASE_INIT " -xO2 -DNDEBUG")
+ string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO_INIT " -g -xO2 -DNDEBUG")
+ 
+ set(CMAKE_DEPFILE_FLAGS_C "-xMD -xMF <DEPFILE>")
+Index: cmake-3.17.0-rc1/Modules/Compiler/SunPro-CXX.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/SunPro-CXX.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/SunPro-CXX.cmake
+@@ -19,7 +19,7 @@ set(CMAKE_SHARED_LIBRARY_SONAME_CXX_FLAG
+ string(APPEND CMAKE_CXX_FLAGS_INIT " ")
+ string(APPEND CMAKE_CXX_FLAGS_DEBUG_INIT " -g")
+ string(APPEND CMAKE_CXX_FLAGS_MINSIZEREL_INIT " -xO2 -xspace -DNDEBUG")
+-string(APPEND CMAKE_CXX_FLAGS_RELEASE_INIT " -xO3 -DNDEBUG")
++string(APPEND CMAKE_CXX_FLAGS_RELEASE_INIT " -xO2 -DNDEBUG")
+ string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT " -g -xO2 -DNDEBUG")
+ 
+ set(CMAKE_DEPFILE_FLAGS_CXX "-xMD -xMF <DEPFILE>")
+Index: cmake-3.17.0-rc1/Modules/Compiler/SunPro-Fortran.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Compiler/SunPro-Fortran.cmake
++++ cmake-3.17.0-rc1/Modules/Compiler/SunPro-Fortran.cmake
+@@ -17,7 +17,7 @@ set(CMAKE_EXECUTABLE_RUNTIME_Fortran_FLA
+ string(APPEND CMAKE_Fortran_FLAGS_INIT " ")
+ string(APPEND CMAKE_Fortran_FLAGS_DEBUG_INIT " -g")
+ string(APPEND CMAKE_Fortran_FLAGS_MINSIZEREL_INIT " -xO2 -xspace -DNDEBUG")
+-string(APPEND CMAKE_Fortran_FLAGS_RELEASE_INIT " -xO3 -DNDEBUG")
++string(APPEND CMAKE_Fortran_FLAGS_RELEASE_INIT " -xO2 -DNDEBUG")
+ string(APPEND CMAKE_Fortran_FLAGS_RELWITHDEBINFO_INIT " -g -xO2 -DNDEBUG")
+ set(CMAKE_Fortran_MODDIR_FLAG "-moddir=")
+ set(CMAKE_Fortran_MODPATH_FLAG "-M")
+Index: cmake-3.17.0-rc1/Modules/Platform/Windows-Clang.cmake
+===================================================================
+--- cmake-3.17.0-rc1.orig/Modules/Platform/Windows-Clang.cmake
++++ cmake-3.17.0-rc1/Modules/Platform/Windows-Clang.cmake
+@@ -79,7 +79,7 @@ macro(__windows_compiler_clang_gnu lang)
+ 
+     string(APPEND CMAKE_${lang}_FLAGS_DEBUG_INIT " -g -Xclang -gcodeview -O0 ${__ADDED_FLAGS_DEBUG}")
+     string(APPEND CMAKE_${lang}_FLAGS_MINSIZEREL_INIT " -Os -DNDEBUG ${__ADDED_FLAGS}")
+-    string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O3 -DNDEBUG ${__ADDED_FLAGS}")
++    string(APPEND CMAKE_${lang}_FLAGS_RELEASE_INIT " -O2 -DNDEBUG ${__ADDED_FLAGS}")
+     string(APPEND CMAKE_${lang}_FLAGS_RELWITHDEBINFO_INIT " -O2 -g -DNDEBUG -Xclang -gcodeview ${__ADDED_FLAGS}")
+   endif()
+   set(CMAKE_INCLUDE_SYSTEM_FLAG_${lang} "-isystem ")

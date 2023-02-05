@@ -1,0 +1,56 @@
+From 3121d45269f99e4f103ab5b830d517ded30081a8 Mon Sep 17 00:00:00 2001
+From: Manuel Mausz <manuel@mausz.at>
+Date: Mon, 17 Jun 2019 10:24:03 +0200
+Subject: [PATCH] Add test for perl #134169
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ t/op/groups.t | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/t/op/groups.t b/t/op/groups.t
+index e50c50a8c1..7e064cc21f 100644
+--- a/t/op/groups.t
++++ b/t/op/groups.t
+@@ -51,7 +51,7 @@ sub Test {
+     my %basegroup = basegroups( $pwgid, $pwgnam );
+     my @extracted_supplementary_groups = remove_basegroup( \ %basegroup, \ @extracted_groups );
+ 
+-    plan 2;
++    plan 3;
+ 
+ 
+     # Test: The supplementary groups in $( should match the
+@@ -121,6 +121,26 @@ sub Test {
+     $gid_count->{0} //= 0;
+     ok 0 == $pwgid || $gid_count->{0} < 2, "groupstype should be type short, not long";
+ 
++    SKIP: {
++        # try to add a group as supplementary group
++        my $root_uid = 0;
++        skip "uid!=0", 1 if $< != $root_uid and $> != $root_uid;
++        my @groups = split ' ', $);
++        my @sup_group;
++        setgrent;
++        while(my @ent = getgrent) {
++            next if grep { $_ == $ent[2] } @groups;
++            @sup_group = @ent;
++            last;
++        }
++        endgrent;
++        skip "No group found we could add as a supplementary group", 1
++            if (!@sup_group);
++        $) = "$) @sup_group[2]";
++        my $ok = grep { $_ == $sup_group[2] } split ' ', $);
++        ok $ok, "Group `$sup_group[0]' added as supplementary group";
++    }
++
+     return;
+ }
+ 
+-- 
+2.20.1
+

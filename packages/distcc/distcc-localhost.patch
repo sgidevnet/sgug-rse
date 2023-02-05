@@ -1,0 +1,11 @@
+--- contrib/redhat/sysconfig~	2011-10-26 07:42:02.000000000 -0500
++++ contrib/redhat/sysconfig	2019-02-21 08:55:03.921586180 -0600
+@@ -1,7 +1,7 @@
+ ### See distcc(1) manual page for more information on these options.
+ ###
+ 
+-#OPTIONS="--nice 5 --jobs 5 --allow 10.0.0.0/24 --port 1234"
++OPTIONS="--nice 5 --jobs 5 --allow 127.0.0.0/8 --port 1234"
+ #USER="distcc"
+ 
+ ### Set this if don't want distccd to use gcc or g++ by accident.

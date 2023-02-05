@@ -1,0 +1,12 @@
+diff -up libgcrypt-1.8.3/cipher/md.c.fips-enforce libgcrypt-1.8.3/cipher/md.c
+--- libgcrypt-1.8.3/cipher/md.c.fips-enforce	2018-11-01 15:40:36.051865535 +0100
++++ libgcrypt-1.8.3/cipher/md.c	2019-06-03 11:50:21.435401753 +0200
+@@ -409,7 +409,7 @@ md_enable (gcry_md_hd_t hd, int algorith
+     }
+ 
+ 
+-  if (!err && algorithm == GCRY_MD_MD5 && fips_mode ())
++  if (!err && !spec->flags.fips && fips_mode ())
+     {
+       if (_gcry_enforced_fips_mode () )
+         {
