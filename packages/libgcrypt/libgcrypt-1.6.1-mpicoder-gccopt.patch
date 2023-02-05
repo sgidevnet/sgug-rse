@@ -1,0 +1,104 @@
+diff -up libgcrypt-1.6.1/mpi/mpicoder.c.gccopt libgcrypt-1.6.1/mpi/mpicoder.c
+--- libgcrypt-1.6.1/mpi/mpicoder.c.gccopt	2014-02-28 15:37:53.983139821 +0100
++++ libgcrypt-1.6.1/mpi/mpicoder.c	2014-02-28 15:47:35.312576387 +0100
+@@ -627,16 +627,16 @@ _gcry_mpi_print (enum gcry_mpi_format fo
+           extra = 1;
+ 	}
+ 
+-      if (buffer && n > len)
+-        {
+-          /* The provided buffer is too short. */
+-          xfree (tmp);
+-          return GPG_ERR_TOO_SHORT;
+-	}
+       if (buffer)
+         {
+           unsigned char *s = buffer;
+ 
++          if (n > len)
++            {
++              /* The provided buffer is too short. */
++              xfree (tmp);
++              return GPG_ERR_TOO_SHORT;
++            }
+           if (extra == 1)
+             *s++ = 0;
+           else if (extra)
+@@ -654,13 +654,12 @@ _gcry_mpi_print (enum gcry_mpi_format fo
+       /* Note:  We ignore the sign for this format.  */
+       /* FIXME: for performance reasons we should put this into
+ 	 mpi_aprint because we can then use the buffer directly.  */
+-
+-      if (buffer && n > len)
+-        return GPG_ERR_TOO_SHORT;
+       if (buffer)
+         {
+           unsigned char *tmp;
+ 
++          if (n > len)
++            return GPG_ERR_TOO_SHORT;
+           tmp = _gcry_mpi_get_buffer (a, 0, &n, NULL);
+           if (!tmp)
+             return gpg_err_code_from_syserror ();
+@@ -678,14 +677,14 @@ _gcry_mpi_print (enum gcry_mpi_format fo
+       if (negative)
+         return GPG_ERR_INV_ARG;
+ 
+-      if (buffer && n+2 > len)
+-        return GPG_ERR_TOO_SHORT;
+-
+       if (buffer)
+         {
+           unsigned char *tmp;
+           unsigned char *s = buffer;
+ 
++          if (n+2 > len)
++            return GPG_ERR_TOO_SHORT;
++
+           s[0] = nbits >> 8;
+           s[1] = nbits;
+ 
+@@ -724,16 +723,16 @@ _gcry_mpi_print (enum gcry_mpi_format fo
+           extra=1;
+ 	}
+ 
+-      if (buffer && n+4 > len)
+-        {
+-          xfree(tmp);
+-          return GPG_ERR_TOO_SHORT;
+-	}
+-
+       if (buffer)
+         {
+           unsigned char *s = buffer;
+ 
++          if (n+4 > len)
++            {
++              xfree(tmp);
++              return GPG_ERR_TOO_SHORT;
++            }
++
+           *s++ = n >> 24;
+           *s++ = n >> 16;
+           *s++ = n >> 8;
+@@ -761,15 +760,15 @@ _gcry_mpi_print (enum gcry_mpi_format fo
+       if (!n || (*tmp & 0x80))
+         extra = 2;
+ 
+-      if (buffer && 2*n + extra + negative + 1 > len)
+-        {
+-          xfree(tmp);
+-          return GPG_ERR_TOO_SHORT;
+-	}
+       if (buffer)
+         {
+           unsigned char *s = buffer;
+ 
++          if (2*n + extra + negative + 1 > len)
++            {
++              xfree(tmp);
++              return GPG_ERR_TOO_SHORT;
++	    }
+           if (negative)
+             *s++ = '-';
+           if (extra)

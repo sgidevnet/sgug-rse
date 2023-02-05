@@ -1,0 +1,19 @@
+/*
+    Example usage of the Python systemtap tapset to show a nested view of all
+    Python function calls (and returns) across the whole system.
+
+    Run this using
+        stap systemtap-example.stp
+    to instrument all Python processes on the system, or (for example) using
+        stap systemtap-example.stp -c COMMAND
+    to instrument a specific program (implemented in Python)
+*/
+probe python.function.entry
+{
+  printf("%s => %s in %s:%d\n", thread_indent(1), funcname, filename, lineno);
+}
+
+probe python.function.return
+{
+  printf("%s <= %s in %s:%d\n", thread_indent(-1), funcname, filename, lineno);
+}

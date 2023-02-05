@@ -1,0 +1,48 @@
+From 21dce8f4eb9136875a886371016aa25788f5144f Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Tue, 6 Aug 2019 21:29:22 -0600
+Subject: [PATCH] locale.c: Stop Coverity warning
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Coverity is right, so re-order these clauses.  This code is executed
+only if some very strange error occurs.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ locale.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/locale.c b/locale.c
+index db83d993de..af7af60038 100644
+--- a/locale.c
++++ b/locale.c
+@@ -4349,11 +4349,6 @@ Perl__mem_collxfrm(pTHX_ const char *input_string,
+     return xbuf;
+ 
+   bad:
+-    Safefree(xbuf);
+-    if (s != input_string) {
+-        Safefree(s);
+-    }
+-    *xlen = 0;
+ 
+ #  ifdef DEBUGGING
+ 
+@@ -4363,6 +4358,12 @@ Perl__mem_collxfrm(pTHX_ const char *input_string,
+ 
+ #  endif
+ 
++    Safefree(xbuf);
++    if (s != input_string) {
++        Safefree(s);
++    }
++    *xlen = 0;
++
+     return NULL;
+ }
+ 
+-- 
+2.20.1
+

@@ -1,0 +1,256 @@
+diff -up libgcrypt-1.8.3/cipher/md.c.fips-ctor libgcrypt-1.8.3/cipher/md.c
+--- libgcrypt-1.8.3/cipher/md.c.fips-ctor	2017-11-23 19:16:58.000000000 +0100
++++ libgcrypt-1.8.3/cipher/md.c	2018-07-12 13:24:54.088403006 +0200
+@@ -411,11 +411,8 @@ md_enable (gcry_md_hd_t hd, int algorith
+ 
+   if (!err && algorithm == GCRY_MD_MD5 && fips_mode ())
+     {
+-      _gcry_inactivate_fips_mode ("MD5 used");
+       if (_gcry_enforced_fips_mode () )
+         {
+-          /* We should never get to here because we do not register
+-             MD5 in enforced fips mode. But better throw an error.  */
+           err = GPG_ERR_DIGEST_ALGO;
+         }
+     }
+diff -up libgcrypt-1.8.3/src/fips.c.fips-ctor libgcrypt-1.8.3/src/fips.c
+--- libgcrypt-1.8.3/src/fips.c.fips-ctor	2018-07-12 13:24:54.075402698 +0200
++++ libgcrypt-1.8.3/src/fips.c	2018-07-12 13:24:54.088403006 +0200
+@@ -91,6 +91,31 @@ static void fips_new_state (enum module_
+ 
+ 
+ 
++/* Initialize the FSM lock - this function may only
++   be called once and is intended to be run from the library
++   constructor  */
++void
++_gcry_initialize_fsm_lock (void)
++{
++  gpg_error_t err;
++  /* Intitialize the lock to protect the FSM.  */
++  err = gpgrt_lock_init (&fsm_lock);
++  if (err)
++    {
++      /* If that fails we can't do anything but abort the
++         process. We need to use log_info so that the FSM won't
++         get involved.  */
++      log_info ("FATAL: failed to create the FSM lock in libgcrypt: %s\n",
++                gpg_strerror (err));
++#ifdef HAVE_SYSLOG
++      syslog (LOG_USER|LOG_ERR, "Libgcrypt error: "
++              "creating FSM lock failed: %s - abort",
++              gpg_strerror (err));
++#endif /*HAVE_SYSLOG*/
++      abort ();
++    }
++}
++
+ /* Check whether the OS is in FIPS mode and record that in a module
+    local variable.  If FORCE is passed as true, fips mode will be
+    enabled anyway. Note: This function is not thread-safe and should
+@@ -100,7 +125,6 @@ void
+ _gcry_initialize_fips_mode (int force)
+ {
+   static int done;
+-  gpg_error_t err;
+ 
+   /* Make sure we are not accidentally called twice.  */
+   if (done)
+@@ -179,24 +203,6 @@ _gcry_initialize_fips_mode (int force)
+       /* Yes, we are in FIPS mode.  */
+       FILE *fp;
+ 
+-      /* Intitialize the lock to protect the FSM.  */
+-      err = gpgrt_lock_init (&fsm_lock);
+-      if (err)
+-        {
+-          /* If that fails we can't do anything but abort the
+-             process. We need to use log_info so that the FSM won't
+-             get involved.  */
+-          log_info ("FATAL: failed to create the FSM lock in libgcrypt: %s\n",
+-                    gpg_strerror (err));
+-#ifdef HAVE_SYSLOG
+-          syslog (LOG_USER|LOG_ERR, "Libgcrypt error: "
+-                  "creating FSM lock failed: %s - abort",
+-                  gpg_strerror (err));
+-#endif /*HAVE_SYSLOG*/
+-          abort ();
+-        }
+-
+-
+       /* If the FIPS force files exists, is readable and has a number
+          != 0 on its first line, we enable the enforced fips mode.  */
+       fp = fopen (FIPS_FORCE_FILE, "r");
+@@ -359,16 +365,20 @@ _gcry_fips_is_operational (void)
+ {
+   int result;
+ 
+-  if (!fips_mode ())
++  lock_fsm ();
++  if (current_state == STATE_POWERON && !fips_mode ())
++    /* If we are at this point in POWERON state it means the FIPS
++       module installation was not completed. (/etc/system-fips
++      is not present.) */
+     result = 1;
+   else
+     {
+-      lock_fsm ();
+-      if (current_state == STATE_INIT)
++      if (current_state == STATE_INIT || current_state == STATE_SELFTEST)
+         {
+-          /* If we are still in the INIT state, we need to run the
+-             selftests so that the FSM can eventually get into
+-             operational state.  Given that we would need a 2-phase
++          /* If we are still in the INIT (or SELFTEST) state,
++             we need to run (or finish) the selftests so
++             that the FSM can eventually get into operational
++             state. Given that we would need a 2-phase
+              initialization of libgcrypt, but that has traditionally
+              not been enforced, we use this on demand self-test
+              checking.  Note that Proper applications would do the
+@@ -384,9 +394,11 @@ _gcry_fips_is_operational (void)
+           lock_fsm ();
+         }
+ 
+-      result = (current_state == STATE_OPERATIONAL);
+-      unlock_fsm ();
++      result = (current_state == STATE_OPERATIONAL) || !fips_mode ();
++      /* We always run the selftests but ignore the result
++         in non-FIPS mode. */
+     }
++  unlock_fsm ();
+   return result;
+ }
+ 
+@@ -709,9 +721,25 @@ _gcry_fips_run_selftests (int extended)
+ {
+   enum module_states result = STATE_ERROR;
+   gcry_err_code_t ec = GPG_ERR_SELFTEST_FAILED;
++  int in_poweron;
+ 
+-  if (fips_mode ())
+-    fips_new_state (STATE_SELFTEST);
++  lock_fsm ();
++  in_poweron = (current_state == STATE_POWERON);
++  unlock_fsm ();
++
++  fips_new_state (STATE_SELFTEST);
++
++  /* We first check the integrity of the binary.
++     If run from the constructor we are in POWERON state,
++     we return and finish the remaining selftests before
++     real use of the library. It will be in the POWERON
++     state meanwhile.  */
++  if (in_poweron)
++    if (check_binary_integrity ())
++      goto leave;
++
++  if (in_poweron)
++    return 0;
+ 
+   if (run_cipher_selftests (extended))
+     goto leave;
+@@ -730,18 +758,12 @@ _gcry_fips_run_selftests (int extended)
+   if (run_pubkey_selftests (extended))
+     goto leave;
+ 
+-  /* Now check the integrity of the binary.  We do this this after
+-     having checked the HMAC code.  */
+-  if (check_binary_integrity ())
+-    goto leave;
+-
+   /* All selftests passed.  */
+   result = STATE_OPERATIONAL;
+   ec = 0;
+ 
+  leave:
+-  if (fips_mode ())
+-    fips_new_state (result);
++  fips_new_state (result);
+ 
+   return ec;
+ }
+@@ -797,6 +819,7 @@ fips_new_state (enum module_states new_s
+     {
+     case STATE_POWERON:
+       if (new_state == STATE_INIT
++          || new_state == STATE_SELFTEST
+           || new_state == STATE_ERROR
+           || new_state == STATE_FATALERROR)
+         ok = 1;
+@@ -811,6 +834,8 @@ fips_new_state (enum module_states new_s
+ 
+     case STATE_SELFTEST:
+       if (new_state == STATE_OPERATIONAL
++          || new_state == STATE_INIT
++          || new_state == STATE_SELFTEST
+           || new_state == STATE_ERROR
+           || new_state == STATE_FATALERROR)
+         ok = 1;
+diff -up libgcrypt-1.8.3/src/global.c.fips-ctor libgcrypt-1.8.3/src/global.c
+--- libgcrypt-1.8.3/src/global.c.fips-ctor	2017-11-23 19:25:58.000000000 +0100
++++ libgcrypt-1.8.3/src/global.c	2018-07-17 19:15:43.933827112 +0200
+@@ -141,6 +141,29 @@ global_init (void)
+ }
+ 
+ 
++#ifndef FIPS_MODULE_PATH
++#define FIPS_MODULE_PATH "/etc/system-fips"
++#endif
++
++void __attribute__ ((constructor)) _gcry_global_constructor (void)
++{
++  int rv;
++
++  /* We always need the FSM lock to be functional. */
++  _gcry_initialize_fsm_lock ();
++
++  rv = access (FIPS_MODULE_PATH, F_OK);
++  if (rv < 0 && errno != ENOENT)
++    rv = 0;
++
++  if (!rv)
++    {
++      /* We run the integrity check at this point. The remaining
++         selftests are run before use of the library by application. */
++      _gcry_fips_run_selftests (0);
++    }
++}
++
+ /* This function is called by the macro fips_is_operational and makes
+    sure that the minimal initialization has been done.  This is far
+    from a perfect solution and hides problems with an improper
+@@ -671,8 +694,7 @@ _gcry_vcontrol (enum gcry_ctl_cmds cmd,
+ 
+     case GCRYCTL_FIPS_MODE_P:
+       if (fips_mode ()
+-          && !_gcry_is_fips_mode_inactive ()
+-          && !no_secure_memory)
++          && !_gcry_is_fips_mode_inactive ())
+ 	rc = GPG_ERR_GENERAL; /* Used as TRUE value */
+       break;
+ 
+@@ -749,9 +771,9 @@ _gcry_vcontrol (enum gcry_ctl_cmds cmd,
+       break;
+ 
+     case GCRYCTL_SET_ENFORCED_FIPS_FLAG:
+-      if (!any_init_done)
++      if (fips_mode ())
+         {
+-          /* Not yet initialized at all.  Set the enforced fips mode flag */
++          /* We are in FIPS mode, we can set the enforced fips mode flag. */
+           _gcry_set_preferred_rng_type (0);
+           _gcry_set_enforced_fips_mode ();
+         }
+diff -up libgcrypt-1.8.3/src/g10lib.h.fips-ctor libgcrypt-1.8.3/src/g10lib.h
+--- libgcrypt-1.8.3/src/g10lib.h.fips-ctor	2017-11-23 19:16:58.000000000 +0100
++++ libgcrypt-1.8.3/src/g10lib.h	2018-07-12 13:24:54.089403030 +0200
+@@ -422,6 +422,8 @@ gpg_err_code_t _gcry_sexp_vextract_param
+ 
+ /*-- fips.c --*/
+ 
++void _gcry_initialize_fsm_lock (void);
++
+ void _gcry_initialize_fips_mode (int force);
+ 
+ int _gcry_fips_mode (void);

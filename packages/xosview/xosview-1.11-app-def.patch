@@ -1,0 +1,13 @@
+diff --git a/Xrm.cc b/Xrm.cc
+index 4fa1848..91f7550 100644
+--- a/Xrm.cc
++++ b/Xrm.cc
+@@ -143,7 +143,7 @@ Listed from weakest to strongest:
+     XrmQuarkToString(_class));
+   if (result >= 0 && result < rlen)
+     XrmCombineFileDatabase (rfilename, &_db, 1);
+-  result = snprintf(rfilename, sizeof rfilename, "/usr/lib/X11/app-defaults/%s",
++  result = snprintf(rfilename, sizeof rfilename, "/usr/share/X11/app-defaults/%s",
+     XrmQuarkToString(_class));
+   if (result >= 0 && result < rlen)
+     XrmCombineFileDatabase (rfilename, &_db, 1);

@@ -1,0 +1,17 @@
+/* Systemtap tapset to make it easier to trace Python */
+
+/*
+   Define python.function.entry/return:
+*/
+probe python.function.entry = process("python").library("LIBRARY_PATH").mark("function__entry")
+{
+    filename = user_string($arg1);
+    funcname = user_string($arg2);
+    lineno = $arg3;
+}
+probe python.function.return = process("python").library("LIBRARY_PATH").mark("function__return")
+{
+    filename = user_string($arg1);
+    funcname = user_string($arg2);
+    lineno = $arg3;
+}

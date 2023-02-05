@@ -1,0 +1,78 @@
+#! /bin/sh -e
+## 10_config.c-HOME-fix.dpatch by Austin Donnelly <and1000@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Gracefully handle lack of HOME env. variable.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+diff -urNad 10.xloadimage.tmp/config.c 10.xloadimage/config.c
+--- 10.xloadimage.tmp/config.c	2003-04-02 23:48:30.000000000 +0100
++++ 10.xloadimage/config.c	2003-04-02 23:46:22.000000000 +0100
+@@ -15,11 +15,13 @@
+ #include <sys/stat.h>
+ #ifndef VMS
+ #include <pwd.h>
++#include <sys/types.h>
+ #endif
+ #include <errno.h>
+ #ifdef HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
++#include <stdlib.h>
+ 
+ /* SUPPRESS 530 */
+ /* SUPPRESS 560 */
+@@ -434,14 +436,29 @@
+     printf("No filters\n");
+ }
+ 
++/* Work out where this user's home directory is, or default to '/' */
++/* XXX needs a VMS guru to supply something plausable for VMS */
++static char *homedir()
++{ char *p;
++  struct passwd *pw;
++
++  p = getenv("HOME");
++  if (p) return p;
++
++  /* try for a password file lookup instead */
++  pw = getpwuid(getuid());
++  if (!pw)
++    return "/"; /* XXX maybe print message? */
++  else
++    return pw->pw_dir;
++}
++
+ char *expandPath(p)
+      char *p;
+ { char buf1[BUFSIZ], buf2[BUFSIZ];
+   int b1, b2, var;
+   char *ptr;
+ 
+-  char *getenv();
+-
+   buf1[0] = '\0';
+   buf2[0] = '\0';
+   b1 = 0;
+@@ -455,7 +472,7 @@
+ #endif
+     else if(*p == '~') {
+       buf1[b1] = '\0';
+-      strncat(buf1, getenv("HOME"), BUFSIZ - strlen(buf1) - 1);
++      strncat(buf1, homedir(), BUFSIZ - strlen(buf1) - 1);
+       buf1[BUFSIZ - 1] = '\0';
+       b1 = strlen(buf1);
+       var = 0;

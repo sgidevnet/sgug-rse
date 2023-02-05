@@ -1,0 +1,207 @@
+diff -up ./configure.autotool-intermediates ./configure
+--- ./configure.autotool-intermediates	2013-04-09 11:24:01.024185796 +0200
++++ ./configure	2013-04-09 11:24:01.780183954 +0200
+@@ -639,6 +639,8 @@ TRUE
+ MACHDEP_OBJS
+ DYNLOADFILE
+ DLINCLDIR
++DTRACEHDRS
++DTRACEOBJS
+ THREADOBJ
+ LDLAST
+ USE_THREAD_MODULE
+@@ -659,6 +661,8 @@ OTHER_LIBTOOL_OPT
+ UNIVERSAL_ARCH_FLAGS
+ BASECFLAGS
+ OPT
++DEBUG_SUFFIX
++DEBUG_EXT
+ LN
+ MKDIR_P
+ INSTALL_DATA
+@@ -795,8 +799,11 @@ with_pth
+ enable_ipv6
+ with_doc_strings
+ with_tsc
++with_count_allocs
++with_call_profile
+ with_pymalloc
+ with_valgrind
++with_dtrace
+ with_wctype_functions
+ with_fpectl
+ with_libm
+@@ -1472,8 +1479,11 @@ Optional Packages:
+   --with-pth              use GNU pth threading libraries
+   --with(out)-doc-strings disable/enable documentation strings
+   --with(out)-tsc         enable/disable timestamp counter profile
++  --with(out)count-allocs  enable/disable per-type instance accounting
++  --with(out)-call-profile  enable/disable statistics on function call invocation
+   --with(out)-pymalloc    disable/enable specialized mallocs
+   --with-valgrind         Enable Valgrind support
++  --with(out)-dtrace      disable/enable dtrace support
+   --with-wctype-functions use wctype.h functions
+   --with-fpectl           enable SIGFPE catching
+   --with-libm=STRING      math library
+@@ -5343,8 +5353,8 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+ 	  INSTSONAME="$LDLIBRARY".$SOVERSION
+           ;;
+     Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*)
+-	  LDLIBRARY='libpython$(VERSION).so'
+-	  BLDLIBRARY='-L. -lpython$(VERSION)'
++	  LDLIBRARY='libpython$(VERSION)$(DEBUG_EXT).so'
++	  BLDLIBRARY='-L. -lpython$(VERSION)$(DEBUG_EXT)'
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+ 	  case $ac_sys_system in
+ 	      FreeBSD*)
+@@ -5367,7 +5377,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+ 	  ;;
+     OSF*)
+ 	  LDLIBRARY='libpython$(VERSION).so'
+-	  BLDLIBRARY='-rpath $(LIBDIR) -L. -lpython$(VERSION)'
++	  BLDLIBRARY='-L. -lpython$(VERSION)'
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+ 	  ;;
+     atheos*)
+@@ -5894,6 +5904,14 @@ $as_echo "no" >&6; }
+ fi
+ 
+ 
++if test "$Py_DEBUG" = 'true'
++then
++	DEBUG_EXT=_d
++	DEBUG_SUFFIX=-debug
++fi
++
++
++
+ # XXX Shouldn't the code above that fiddles with BASECFLAGS and OPT be
+ # merged with this chunk of code?
+ 
+@@ -9958,6 +9976,50 @@ $as_echo "no" >&6; }
+ fi
+ 
+ 
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-count-allocs" >&5
++$as_echo_n "checking for --with-count-allocs... " >&6; }
++
++# Check whether --with-count-allocs was given.
++if test "${with_count_allocs+set}" = set; then :
++  withval=$with_count_allocs;
++if test "$withval" != no
++then
++
++$as_echo "#define COUNT_ALLOCS 1" >>confdefs.h
++
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
++$as_echo "yes" >&6; }
++else { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-call-profile" >&5
++$as_echo_n "checking for --with-call-profile... " >&6; }
++
++# Check whether --with-call-profile was given.
++if test "${with_call_profile+set}" = set; then :
++  withval=$with_call_profile;
++if test "$withval" != no
++then
++
++$as_echo "#define CALL_PROFILE 1" >>confdefs.h
++
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
++$as_echo "yes" >&6; }
++else { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++
+ # Check for Python-specific malloc support
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-pymalloc" >&5
+ $as_echo_n "checking for --with-pymalloc... " >&6; }
+@@ -10007,6 +10069,46 @@ fi
+ 
+ fi
+ 
++# Check for dtrace support
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-dtrace" >&5
++$as_echo_n "checking for --with-dtrace... " >&6; }
++
++# Check whether --with-dtrace was given.
++if test "${with_dtrace+set}" = set; then :
++  withval=$with_dtrace;
++fi
++
++
++if test ! -z "$with_dtrace"
++then
++    if dtrace -G -o /dev/null -s $srcdir/Include/pydtrace.d 2>/dev/null
++    then
++
++$as_echo "#define WITH_DTRACE 1" >>confdefs.h
++
++	with_dtrace="Sun"
++	DTRACEOBJS="Python/dtrace.o"
++	DTRADEHDRS=""
++    elif dtrace -h -o /dev/null -s $srcdir/Include/pydtrace.d
++    then
++
++$as_echo "#define WITH_DTRACE 1" >>confdefs.h
++
++	with_dtrace="Apple"
++	DTRACEOBJS=""
++	DTRADEHDRS="pydtrace.h"
++    else
++	with_dtrace="no"
++    fi
++else
++    with_dtrace="no"
++fi
++
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_dtrace" >&5
++$as_echo "$with_dtrace" >&6; }
++
++
++
+ # Check for --with-wctype-functions
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-wctype-functions" >&5
+ $as_echo_n "checking for --with-wctype-functions... " >&6; }
+diff -up ./pyconfig.h.in.autotool-intermediates ./pyconfig.h.in
+--- ./pyconfig.h.in.autotool-intermediates	2013-04-09 11:24:01.020185806 +0200
++++ ./pyconfig.h.in	2013-04-09 11:24:02.088183204 +0200
+@@ -18,6 +18,12 @@
+ /* Define this if you have BeOS threads. */
+ #undef BEOS_THREADS
+ 
++/* Define to keep records on function call invocation */
++#undef CALL_PROFILE
++
++/* Define to keep records of the number of instances of each type */
++#undef COUNT_ALLOCS
++
+ /* Define if you have the Mach cthreads package */
+ #undef C_THREADS
+ 
+@@ -1119,12 +1125,6 @@
+ /* Define to profile with the Pentium timestamp counter */
+ #undef WITH_TSC
+ 
+-/* Define to keep records of the number of instances of each type */
+-#undef COUNT_ALLOCS
+-
+-/* Define to keep records on function call invocation */
+-#undef CALL_PROFILE
+-
+ /* Define if you want pymalloc to be disabled when running under valgrind */
+ #undef WITH_VALGRIND
+ 

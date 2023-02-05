@@ -1,0 +1,28 @@
+# HG changeset patch
+# User Bruno Oliveira <nicoddemus@gmail.com>
+# Date 1542370558 7200
+# Node ID 36998c891573d8ec1db1acd4f9438cb3cf2aee2e
+# Parent  753c5f39d2a8d1477ea8653ca7c7bdbdca1efafc
+Change tests to use pytest.param
+
+diff --git a/test_pytest_timeout.py b/test_pytest_timeout.py
+--- a/test_pytest_timeout.py
++++ b/test_pytest_timeout.py
+@@ -93,7 +93,7 @@
+ #     assert 'Timeout' in result.stdout.str() + result.stderr.str()
+ 
+ 
+-@pytest.mark.parametrize('meth', [have_sigalrm('signal'), 'thread'])
++@pytest.mark.parametrize('meth', [pytest.param('signal', marks=have_sigalrm), 'thread'])
+ @pytest.mark.parametrize('scope', ['function', 'class', 'module', 'session'])
+ def test_fix_setup(meth, scope, testdir):
+     testdir.makepyfile("""
+@@ -133,7 +133,7 @@
+     assert 'Timeout' not in result.stdout.str() + result.stderr.str()
+ 
+ 
+-@pytest.mark.parametrize('meth', [have_sigalrm('signal'), 'thread'])
++@pytest.mark.parametrize('meth', [pytest.param('signal', marks=have_sigalrm), 'thread'])
+ @pytest.mark.parametrize('scope', ['function', 'class', 'module', 'session'])
+ def test_fix_finalizer(meth, scope, testdir):
+     testdir.makepyfile("""

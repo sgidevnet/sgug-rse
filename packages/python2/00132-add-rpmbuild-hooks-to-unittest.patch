@@ -1,0 +1,68 @@
+diff -up Python-2.7.2/Lib/unittest/case.py.add-rpmbuild-hooks-to-unittest Python-2.7.2/Lib/unittest/case.py
+--- Python-2.7.2/Lib/unittest/case.py.add-rpmbuild-hooks-to-unittest	2011-09-08 14:45:47.677169191 -0400
++++ Python-2.7.2/Lib/unittest/case.py	2011-09-08 16:01:36.287858159 -0400
+@@ -1,6 +1,7 @@
+ """Test case implementation"""
+ 
+ import collections
++import os
+ import sys
+ import functools
+ import difflib
+@@ -94,6 +95,43 @@ def expectedFailure(func):
+     return wrapper
+ 
+ 
++# Non-standard/downstream-only hooks for handling issues with specific test
++# cases:
++
++def _skipInRpmBuild(reason):
++    """
++    Non-standard/downstream-only decorator for marking a specific unit test
++    to be skipped when run within the %check of an rpmbuild.
++
++    Specifically, this takes effect when WITHIN_PYTHON_RPM_BUILD is set within
++    the environment, and has no effect otherwise.
++    """
++    if 'WITHIN_PYTHON_RPM_BUILD' in os.environ:
++        return skip(reason)
++    else:
++        return _id
++
++def _expectedFailureInRpmBuild(func):
++    """
++    Non-standard/downstream-only decorator for marking a specific unit test
++    as expected to fail within the %check of an rpmbuild.
++
++    Specifically, this takes effect when WITHIN_PYTHON_RPM_BUILD is set within
++    the environment, and has no effect otherwise.
++    """
++    @functools.wraps(func)
++    def wrapper(*args, **kwargs):
++        if 'WITHIN_PYTHON_RPM_BUILD' in os.environ:
++            try:
++                func(*args, **kwargs)
++            except Exception:
++                raise _ExpectedFailure(sys.exc_info())
++            raise _UnexpectedSuccess
++        else:
++            # Call directly:
++            func(*args, **kwargs)
++    return wrapper
++
+ class _AssertRaisesContext(object):
+     """A context manager used to implement TestCase.assertRaises* methods."""
+ 
+diff -up Python-2.7.2/Lib/unittest/__init__.py.add-rpmbuild-hooks-to-unittest Python-2.7.2/Lib/unittest/__init__.py
+--- Python-2.7.2/Lib/unittest/__init__.py.add-rpmbuild-hooks-to-unittest	2011-09-08 14:59:39.534112310 -0400
++++ Python-2.7.2/Lib/unittest/__init__.py	2011-09-08 15:07:09.191081562 -0400
+@@ -57,7 +57,8 @@ __unittest = True
+ 
+ from .result import TestResult
+ from .case import (TestCase, FunctionTestCase, SkipTest, skip, skipIf,
+-                   skipUnless, expectedFailure)
++                   skipUnless, expectedFailure,
++                   _skipInRpmBuild, _expectedFailureInRpmBuild)
+ from .suite import BaseTestSuite, TestSuite
+ from .loader import (TestLoader, defaultTestLoader, makeSuite, getTestCaseNames,
+                      findTestCases)

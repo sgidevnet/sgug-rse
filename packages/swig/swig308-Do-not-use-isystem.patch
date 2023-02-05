@@ -1,0 +1,13 @@
+diff -up swig-3.0.8/configure.ac.orig swig-3.0.8/configure.ac
+--- swig-3.0.8/configure.ac.orig	2016-02-02 16:01:09.094852303 +0100
++++ swig-3.0.8/configure.ac	2016-02-02 16:01:42.096702679 +0100
+@@ -131,7 +131,8 @@ AC_SUBST(BOOST_CPPFLAGS)
+ dnl How to specify include directories that may be system directories.
+ # -I should not be used on system directories (GCC)
+ if test "$GCC" = yes; then
+-    ISYSTEM="-isystem "
++#    ISYSTEM="-isystem "
++    ISYSTEM="-I"
+ else
+     ISYSTEM="-I"
+ fi

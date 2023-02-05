@@ -1,0 +1,37 @@
+From 1d84a25665013f389ffc6fad7dd133f1c6287a08 Mon Sep 17 00:00:00 2001
+From: David Mitchell <davem@iabyn.com>
+Date: Tue, 6 Aug 2019 14:36:45 +0100
+Subject: [PATCH] include a trailing \0 in SVs holding trie info
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+RT #13427
+
+TRIE_STORE_REVCHAR() was creating SvPV()s with no trailing '\0'. This
+doesn't really matter given the specialised use these are put to, but
+it upset valgrind et al when perl was run with -Drv which printf("%s")'s
+the contents of the string.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ regcomp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/regcomp.c b/regcomp.c
+index 370221f72e..1117998fc8 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -2526,7 +2526,8 @@ is the recommended Unicode-aware way of saying
+ 	if (UTF) {							   \
+             SV *zlopp = newSV(UTF8_MAXBYTES);				   \
+ 	    unsigned char *flrbbbbb = (unsigned char *) SvPVX(zlopp);	   \
+-            unsigned const char *const kapow = uvchr_to_utf8(flrbbbbb, val); \
++            unsigned char *const kapow = uvchr_to_utf8(flrbbbbb, val);     \
++            *kapow = '\0';                                                 \
+ 	    SvCUR_set(zlopp, kapow - flrbbbbb);				   \
+ 	    SvPOK_on(zlopp);						   \
+ 	    SvUTF8_on(zlopp);						   \
+-- 
+2.20.1
+

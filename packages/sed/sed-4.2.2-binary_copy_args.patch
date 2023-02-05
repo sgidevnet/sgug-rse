@@ -1,0 +1,281 @@
+diff -urN sed-4.3/sed/execute.c sed-4.3.new00/sed/execute.c
+--- sed-4.3/sed/execute.c	2012-03-16 10:13:31.000000000 +0100
++++ sed-4.3.new00/sed/execute.c	2014-02-10 14:40:25.603629422 +0100
+@@ -703,11 +703,13 @@
+       if (strcmp(in_place_extension, "*") != 0)
+         {
+           char *backup_file_name = get_backup_file_name(target_name);
+-          ck_rename (target_name, backup_file_name, input->out_file_name);
++         (copy_instead_of_rename?ck_fccopy:ck_rename)
++            (target_name, backup_file_name, input->out_file_name);
+           free (backup_file_name);
+         }
+ 
+-      ck_rename (input->out_file_name, target_name, input->out_file_name);
++      (copy_instead_of_rename?ck_fcmove:ck_rename)
++        (input->out_file_name, target_name, input->out_file_name);
+       cancel_cleanup ();
+       free (input->out_file_name);
+     }
+diff -urN sed-4.3/sed/sed.c sed-4.3.new00/sed/sed.c
+--- sed-4.3/sed/sed.c	2012-03-16 10:13:31.000000000 +0100
++++ sed-4.3.new00/sed/sed.c	2014-02-10 17:37:19.381273509 +0100
+@@ -56,6 +56,10 @@
+ /* How do we edit files in-place? (we don't if NULL) */
+ char *in_place_extension = NULL;
+ 
++ /* Do we use copy or rename when in in-place edit mode? (boolean
++   value, non-zero for copy, zero for rename).*/
++ int copy_instead_of_rename = 0;
++
+ /* The mode to use to read/write files, either "r"/"w" or "rb"/"wb".  */
+ char const *read_mode = "r";
+ char const *write_mode = "w";
+@@ -117,11 +121,16 @@
+   fprintf(out, _("  -i[SUFFIX], --in-place[=SUFFIX]\n\
+                  edit files in place (makes backup if SUFFIX supplied)\n"));
+-#if defined WIN32 || defined _WIN32 || defined __CYGWIN__ \
+-  || defined MSDOS || defined __EMX__
+-  fprintf(out, _("  -b, --binary\n\
+-                 open files in binary mode (CR+LFs are not" \
+-                 " processed specially)\n"));
++  fprintf(out, _("  -c, --copy\n\
++                 use copy instead of rename when shuffling files in -i mode\n"));
++  fprintf(out, _("  -b, --binary\n"
++#if ! ( defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) || defined(MSDOS) || defined(__EMX__) )
++"                 does nothing; for compatibility with WIN32/CYGWIN/MSDOS/EMX (\n"
++#endif
++"                 open files in binary mode (CR+LFs are not treated specially)"
++#if ! ( defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) || defined(MSDOS) || defined(__EMX__) )
++                 ")"
+ #endif
++                 "\n"));
+   fprintf(out, _("  -l N, --line-length=N\n\
+                  specify the desired line-wrap length for the `l' command\n"));
+   fprintf(out, _("  --posix\n\
+@@ -138,8 +149,10 @@
+                  the output buffers more often\n"));
+   fprintf(out, _("  -z, --null-data\n\
+                  separate lines by NUL characters\n"));
+-  fprintf(out, _("      --help     display this help and exit\n"));
+-  fprintf(out, _("      --version  output version information and exit\n"));
++  fprintf(out, _("  --help\n\
++                 display this help and exit\n"));
++  fprintf(out, _("  --version\n\
++                 output version information and exit\n"));
+   fprintf(out, _("\n\
+ If no -e, --expression, -f, or --file option is given, then the first\n\
+ non-option argument is taken as the sed script to interpret.  All\n\
+@@ -158,9 +171,9 @@
+ main (int argc, char **argv)
+ {
+ #ifdef REG_PERL
+-#define SHORTOPTS "bsnrzRuEe:f:l:i::V:"
++#define SHORTOPTS "bcsnrzRuEe:f:l:i::"
+ #else
+-#define SHORTOPTS "bsnrzuEe:f:l:i::V:"
++#define SHORTOPTS "bcsnrzuEe:f:l:i::"
+ #endif
+ 
+   enum { SANDBOX_OPTION = CHAR_MAX+1 };
+@@ -172,6 +185,7 @@
+     {"expression", 1, NULL, 'e'},
+     {"file", 1, NULL, 'f'},
+     {"in-place", 2, NULL, 'i'},
++    {"copy", 0, NULL, 'c'},
+     {"line-length", 1, NULL, 'l'},
+     {"null-data", 0, NULL, 'z'},
+     {"zero-terminated", 0, NULL, 'z'},
+@@ -246,6 +260,10 @@
+           follow_symlinks = true;
+           break;
+
++        case 'c':
++          copy_instead_of_rename = true;
++          break;
++
+         case 'i':
+           separate_files = true;
+           if (optarg == NULL)
+@@ -272,9 +290,11 @@
+           posixicity = POSIXLY_BASIC;
+           break;
+
+-        case 'b':
++        case 'b':
++#if defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) || defined(MSDOS) || defined(__EMX__)
+           read_mode = "rb";
+           write_mode = "wb";
++#endif
+           break;
+
+         case 'E':
+@@ -314,6 +334,12 @@
+         }
+     }
+
++  if (copy_instead_of_rename && in_place_extension == NULL)
++    {
++      fprintf (stderr, _("Error: -c used without -i.\n"));
++      usage(4);
++    }
++
+   if (!the_program)
+     {
+       if (optind < argc)
+diff -urN sed-4.3/sed/sed.h sed-4.3.new00/sed/sed.h
+--- sed-4.3/sed/sed.h	2012-07-25 12:33:09.000000000 +0200
++++ sed-4.3.new00/sed/sed.h	2014-02-10 14:40:25.602629419 +0100
+@@ -230,6 +230,10 @@
+ /* How do we edit files in-place? (we don't if NULL) */
+ extern char *in_place_extension;
+ 
++/* Do we use copy or rename when in in-place edit mode? (boolean
++   value, non-zero for copy, zero for rename).*/
++extern int copy_instead_of_rename;
++
+ /* The mode to use to read and write files, either "rt"/"w" or "rb"/"wb".  */
+ extern char const *read_mode;
+ extern char const *write_mode;
+diff -urN sed-4.3/sed/utils.c sed-4.3.new00/sed/utils.c
+--- sed-4.3/sed/utils.c	2012-03-16 10:13:31.000000000 +0100
++++ sed-4.3.new00/sed/utils.c	2014-02-10 14:40:25.603629422 +0100
+@@ -27,6 +27,7 @@
+ #include <sys/stat.h>
+ #include <unistd.h>
+ #include <limits.h>
++#include <fcntl.h>
+
+ #include "unlocked-io.h"
+ #include "utils.h"
+@@ -363,31 +364,106 @@
+ #endif /* ENABLE_FOLLOW_SYMLINKS */
+ }
+ 
+-/* Panic on failing rename */
++/* Panic on failing unlink */
+ void
+-ck_rename (const char *from, const char *to, const char *unlink_if_fail)
++ck_unlink (const char *name)
+ {
+-  int rd = rename (from, to);
+-  if (rd != -1)
+-    return;
++  if (unlink (name) == -1)
++    panic (_("cannot remove %s: %s"), name, strerror (errno));
++}
+ 
+-  if (unlink_if_fail)
++/* Attempt to unlink denoted file if operation rd failed. */
++static int
++_unlink_if_fail (rd, unlink_if_fail)
++  int rd;
++  const char *unlink_if_fail;
++{
++  if (rd == -1 && unlink_if_fail)
+     {
+       int save_errno = errno;
++      ck_unlink (unlink_if_fail);
++      errno = save_errno;
++    }
++
++  return rd != -1;
++}
++
++/* Copy contents between files. */
++static int
++_copy (from, to)
++  const char *from, *to;
++{
++  static char buf[4096];
++
++  FILE *infile, *outfile;
++  int c, retval = 0;
+       errno = 0;
+-      unlink (unlink_if_fail);
+ 
+-      /* Failure to remove the temporary file is more severe,
+-         so trigger it first.  */
+-      if (errno != 0)
+-        panic (_("cannot remove %s: %s"), unlink_if_fail, strerror (errno));
++  infile = fopen (from, "r");
++  if (infile == NULL)
++    return -1;
+ 
+-      errno = save_errno;
++  outfile = fopen (to, "w");
++  if (outfile == NULL)
++    {
++      fclose (infile);
++      return -1;
++    }
++
++  while (1)
++    {
++      size_t bytes_in = fread (buf, 1, sizeof (buf), infile);
++      size_t bytes_out;
++      if (bytes_in == 0)
++       {
++         if (ferror (infile))
++           retval = -1;
++         break;
++       }
++
++      bytes_out = fwrite (buf, 1, bytes_in, outfile);
++      if (bytes_out != bytes_in)
++       {
++         retval = -1;
++         break;
++       }
+     }
+ 
++  fclose (outfile);
++  fclose (infile);
++
++  return retval;
++}
++
++/* Panic on failing rename */
++void
++ck_rename (from, to, unlink_if_fail)
++  const char *from, *to;
++  const char *unlink_if_fail;
++{
++  if (!_unlink_if_fail (rename (from, to), unlink_if_fail))
+   panic (_("cannot rename %s: %s"), from, strerror (errno));
+ }
+ 
++/* Attempt to copy file contents between the files. */
++void
++ck_fccopy (from, to, unlink_if_fail)
++  const char *from, *to;
++  const char *unlink_if_fail;
++{
++  if (!_unlink_if_fail (_copy (from, to), unlink_if_fail))
++    panic (_("cannot copy %s to %s: %s"), from, to, strerror (errno));
++}
++
++/* Copy contents between files, and then unlink the source. */
++void
++ck_fcmove (from, to, unlink_if_fail)
++  const char *from, *to;
++  const char *unlink_if_fail;
++{
++  ck_fccopy (from, to, unlink_if_fail);
++  ck_unlink (from);
++}
+ 
+ 
+ 
+diff -urN sed-4.3/sed/utils.h sed-4.3.new00/sed/utils.h
+--- sed-4.3/sed/utils.h	2012-03-16 10:13:31.000000000 +0100
++++ sed-4.3.new00/sed/utils.h	2014-02-10 14:40:25.603629422 +0100
+@@ -33,6 +33,8 @@
+ FILE * ck_mkstemp (char **p_filename, const char *tmpdir, const char *base,
+                    const char *mode) _GL_ARG_NONNULL ((1, 2, 3, 4));
+ void ck_rename (const char *from, const char *to, const char *unlink_if_fail);
++void ck_fccopy (const char *from, const char *to, const char *unlink_if_fail);
++void ck_fcmove (const char *from, const char *to, const char *unlink_if_fail);
+ 
+ void *ck_malloc (size_t size);
+ void *xmalloc (size_t size);

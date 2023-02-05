@@ -1,0 +1,21 @@
+#!/usr/bin/stap 
+
+global fn_calls;
+
+probe python.function.entry
+{ 
+  fn_calls[pid(), filename, funcname, lineno] += 1;
+}
+
+probe timer.ms(1000) {
+    printf("\033[2J\033[1;1H") /* clear screen */
+    printf("%6s %80s %6s %30s %6s\n",
+           "PID", "FILENAME", "LINE", "FUNCTION", "CALLS")
+    foreach ([pid, filename, funcname, lineno] in fn_calls- limit 20) {
+        printf("%6d %80s %6d %30s %6d\n",
+            pid, filename, lineno, funcname,
+            fn_calls[pid, filename, funcname, lineno]);
+    }
+
+    delete fn_calls;
+}

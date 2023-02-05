@@ -1,0 +1,13 @@
+diff --git a/completions/rpm b/completions/rpm
+index 6b4e66f..c3eed54 100644
+--- a/completions/rpm
++++ b/completions/rpm
+@@ -151,7 +151,7 @@ _rpm()
+                 --fileprovide --filerequire --filesbypkg --info --list
+                 --obsoletes --pipe --provides --queryformat= --requires
+                 --scripts --suggests --triggers --xml --recommends
+-                --supplements --filetriggers"
++                --supplements --filetriggers --licensefiles"
+ 
+             if [[ ${words[@]} == *\ -@(*([^ -])f|-file )* ]]; then
+                 # -qf completion

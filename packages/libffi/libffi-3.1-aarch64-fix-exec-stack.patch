@@ -1,0 +1,11 @@
+--- a/src/aarch64/sysv.S
++++ b/src/aarch64/sysv.S
+@@ -396,3 +396,8 @@
+ #ifdef __ELF__
+         .size CNAME(ffi_closure_SYSV), .-CNAME(ffi_closure_SYSV)
+ #endif
++
++#if defined __ELF__ && defined __linux__
++	.section .note.GNU-stack,"",%progbits
++#endif
++

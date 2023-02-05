@@ -1,0 +1,206 @@
+From fe0ad31fe2c2f7f5e32cf3a07c060bcc86a52003 Mon Sep 17 00:00:00 2001
+From: ph10 <ph10@6239d852-aaf2-0410-a92c-79f79f948069>
+Date: Mon, 14 Sep 2020 15:39:39 +0000
+Subject: [PATCH] Update pcre2test to check delimiters after #perltest and fix
+ some in test 1.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+git-svn-id: svn://vcs.exim.org/pcre2/code/trunk@1270 6239d852-aaf2-0410-a92c-79f79f948069
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ doc/pcre2test.1      | 27 ++++++++++++++++-----------
+ src/pcre2test.c      |  8 ++++++++
+ testdata/testinput1  | 18 +++++++++---------
+ testdata/testoutput1 | 18 +++++++++---------
+ 4 files changed, 42 insertions(+), 29 deletions(-)
+
+diff --git a/doc/pcre2test.1 b/doc/pcre2test.1
+index ec17763..19ab8be 100644
+--- a/doc/pcre2test.1
++++ b/doc/pcre2test.1
+@@ -1,4 +1,4 @@
+-.TH PCRE2TEST 1 "20 March 2020" "PCRE 10.35"
++.TH PCRE2TEST 1 "14 September 2020" "PCRE 10.36"
+ .SH NAME
+ pcre2test - a program for testing Perl-compatible regular expressions.
+ .SH SYNOPSIS
+@@ -273,7 +273,7 @@ test data, command lines that begin with # may appear. This file format, with
+ some restrictions, can also be processed by the \fBperltest.sh\fP script that
+ is distributed with PCRE2 as a means of checking that the behaviour of PCRE2
+ and Perl is the same. For a specification of \fBperltest.sh\fP, see the
+-comments near its beginning.
++comments near its beginning. See also the #perltest command below.
+ .P
+ When the input is a terminal, \fBpcre2test\fP prompts for each line of input,
+ using "re>" to prompt for regular expression patterns, and "data>" to prompt
+@@ -369,14 +369,19 @@ patterns. Modifiers on a pattern can change these settings.
+ .sp
+   #perltest
+ .sp
+-The appearance of this line causes all subsequent modifier settings to be
+-checked for compatibility with the \fBperltest.sh\fP script, which is used to
+-confirm that Perl gives the same results as PCRE2. Also, apart from comment
+-lines, #pattern commands, and #subject commands that set or unset "mark", no
+-command lines are permitted, because they and many of the modifiers are
+-specific to \fBpcre2test\fP, and should not be used in test files that are also
+-processed by \fBperltest.sh\fP. The \fB#perltest\fP command helps detect tests
+-that are accidentally put in the wrong file.
++This line is used in test files that can also be processed by \fBperltest.sh\fP
++to confirm that Perl gives the same results as PCRE2. Subsequent tests are
++checked for the use of \fBpcre2test\fP features that are incompatible with the
++\fBperltest.sh\fP script. 
++.P
++Patterns must use '/' as their delimiter, and only certain modifiers are
++supported. Comment lines, #pattern commands, and #subject commands that set or
++unset "mark" are recognized and acted on. The #perltest, #forbid_utf, and
++#newline_default commands, which are needed in the relevant pcre2test files,
++are silently ignored. All other command lines are ignored, but give a warning
++message. The \fB#perltest\fP command helps detect tests that are accidentally
++put in the wrong file or use the wrong delimiter. For more details of the
++\fBperltest.sh\fP script see the comments it contains.
+ .sp
+   #pop [<modifiers>]
+   #popcopy [<modifiers>]
+@@ -2096,6 +2101,6 @@ Cambridge, England.
+ .rs
+ .sp
+ .nf
+-Last updated: 20 March 2020
++Last updated: 14 September 2020
+ Copyright (c) 1997-2020 University of Cambridge.
+ .fi
+diff --git a/src/pcre2test.c b/src/pcre2test.c
+index 3f4fef4..2999352 100644
+--- a/src/pcre2test.c
++++ b/src/pcre2test.c
+@@ -5136,6 +5136,14 @@ PCRE2_SIZE patlen;
+ PCRE2_SIZE valgrind_access_length;
+ PCRE2_SIZE erroroffset;
+ 
++/* The perltest.sh script supports only / as a delimiter. */
++
++if (restrict_for_perl_test && delimiter != '/')
++  {
++  fprintf(outfile, "** The only allowed delimiter after #perltest is '/'\n");
++  return PR_ABEND;  
++  } 
++
+ /* Initialize the context and pattern/data controls for this test from the
+ defaults. */
+ 
+diff --git a/testdata/testinput1 b/testdata/testinput1
+index 8a50cfa..d4e42ba 100644
+--- a/testdata/testinput1
++++ b/testdata/testinput1
+@@ -5652,16 +5652,16 @@ name)/mark
+ \= Expect no match
+     acb
+ 
+-'\A(?:[^\"]++|\"(?:[^\"]*+|\"\")*+\")++'
++/\A(?:[^\"]++|\"(?:[^\"]*+|\"\")*+\")++/
+     NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+ 
+-'\A(?:[^\"]++|\"(?:[^\"]++|\"\")*+\")++'
++/\A(?:[^\"]++|\"(?:[^\"]++|\"\")*+\")++/
+     NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+ 
+-'\A(?:[^\"]++|\"(?:[^\"]++|\"\")++\")++'
++/\A(?:[^\"]++|\"(?:[^\"]++|\"\")++\")++/
+     NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+ 
+-'\A([^\"1]++|[\"2]([^\"3]*+|[\"4][\"5])*+[\"6])++'
++/\A([^\"1]++|[\"2]([^\"3]*+|[\"4][\"5])*+[\"6])++/
+     NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+ 
+ /^\w+(?>\s*)(?<=\w)/
+@@ -5826,19 +5826,19 @@ ef) x/x,mark
+ \= Expect no match     
+     aab
+     
+-'(?>ab|abab){1,5}?M'
++/(?>ab|abab){1,5}?M/
+     abababababababababababM
+ 
+-'(?>ab|abab){2}?M'
++/(?>ab|abab){2}?M/
+     abababM
+ 
+-'((?(?=(a))a)+k)'
++/((?(?=(a))a)+k)/
+     bbak
+ 
+-'((?(?=(a))a|)+k)'
++/((?(?=(a))a|)+k)/
+     bbak
+ 
+-'(?(?!(b))a|b)+k'
++/(?(?!(b))a|b)+k/
+     ababbalbbadabak
+ 
+ /(?!(b))c|b/
+diff --git a/testdata/testoutput1 b/testdata/testoutput1
+index 47d42ee..16c91d2 100644
+--- a/testdata/testoutput1
++++ b/testdata/testoutput1
+@@ -8978,19 +8978,19 @@ No match
+     acb
+ No match
+ 
+-'\A(?:[^\"]++|\"(?:[^\"]*+|\"\")*+\")++'
++/\A(?:[^\"]++|\"(?:[^\"]*+|\"\")*+\")++/
+     NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+  0: NON QUOTED "QUOT""ED" AFTER 
+ 
+-'\A(?:[^\"]++|\"(?:[^\"]++|\"\")*+\")++'
++/\A(?:[^\"]++|\"(?:[^\"]++|\"\")*+\")++/
+     NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+  0: NON QUOTED "QUOT""ED" AFTER 
+ 
+-'\A(?:[^\"]++|\"(?:[^\"]++|\"\")++\")++'
++/\A(?:[^\"]++|\"(?:[^\"]++|\"\")++\")++/
+     NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+  0: NON QUOTED "QUOT""ED" AFTER 
+ 
+-'\A([^\"1]++|[\"2]([^\"3]*+|[\"4][\"5])*+[\"6])++'
++/\A([^\"1]++|[\"2]([^\"3]*+|[\"4][\"5])*+[\"6])++/
+     NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+  0: NON QUOTED "QUOT""ED" AFTER 
+  1:  AFTER 
+@@ -9312,27 +9312,27 @@ No match
+     aab
+ No match
+     
+-'(?>ab|abab){1,5}?M'
++/(?>ab|abab){1,5}?M/
+     abababababababababababM
+  0: abababababM
+ 
+-'(?>ab|abab){2}?M'
++/(?>ab|abab){2}?M/
+     abababM
+  0: ababM
+ 
+-'((?(?=(a))a)+k)'
++/((?(?=(a))a)+k)/
+     bbak
+  0: ak
+  1: ak
+  2: a
+ 
+-'((?(?=(a))a|)+k)'
++/((?(?=(a))a|)+k)/
+     bbak
+  0: ak
+  1: ak
+  2: a
+ 
+-'(?(?!(b))a|b)+k'
++/(?(?!(b))a|b)+k/
+     ababbalbbadabak
+  0: abak
+  1: b
+-- 
+2.25.4
+

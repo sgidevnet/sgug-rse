@@ -1,0 +1,85 @@
+From 1a1d29aaa2e0c668f9a8c960d52b516415f28983 Mon Sep 17 00:00:00 2001
+From: Vickenty Fesunov <kent@setattr.net>
+Date: Fri, 22 Sep 2017 19:00:46 -0400
+Subject: [PATCH] %{^CAPTURE_ALL} was intended to be an alias for %-; make it
+ so.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+For: RT #131867
+
+Add Vickenty Fesunov to AUTHORS.
+
+Signed-off-by: Ported to 5.30 from 1a1d29aaa2e0c668f9a8c960d52b516415f28983.
+
+---
+ AUTHORS                                   |  1 +
+ ext/Tie-Hash-NamedCapture/NamedCapture.xs |  5 ++++-
+ ext/Tie-Hash-NamedCapture/t/tiehash.t     | 11 ++++++++---
+
+diff --git a/AUTHORS b/AUTHORS
+index 0091100600..c920d52e96 100644
+--- a/AUTHORS
++++ b/AUTHORS
+@@ -1265,6 +1265,7 @@ Unicode Consortium		<unicode.org>
+ Vadim Konovalov			<vkonovalov@lucent.com>
+ Valeriy E. Ushakov		<uwe@ptc.spbu.ru>
+ Vernon Lyon			<vlyon@cpan.org>
++Vickenty Fesunov			<kent@setattr.net>
+ Victor Adam			<victor@drawall.cc>
+ Victor Efimov			<victor@vsespb.ru>
+ Viktor Turskyi			<koorchik@gmail.com>
+diff --git a/ext/Tie-Hash-NamedCapture/NamedCapture.xs b/ext/Tie-Hash-NamedCapture/NamedCapture.xs
+index 7eaae5614d..a607c10090 100644
+--- a/ext/Tie-Hash-NamedCapture/NamedCapture.xs
++++ b/ext/Tie-Hash-NamedCapture/NamedCapture.xs
+@@ -25,8 +25,11 @@ _tie_it(SV *sv)
+     GV * const gv = (GV *)sv;
+     HV * const hv = GvHVn(gv);
+     SV *rv = newSV_type(SVt_RV);
++    const char *gv_name = GvNAME(gv);
+   CODE:
+-    SvRV_set(rv, newSVuv(*GvNAME(gv) == '-' ? RXapif_ALL : RXapif_ONE));
++    SvRV_set(rv, newSVuv(
++        strEQ(gv_name, "-") || strEQ(gv_name, "\003APTURE_ALL")
++            ? RXapif_ALL : RXapif_ONE));
+     SvROK_on(rv);
+     sv_bless(rv, GvSTASH(CvGV(cv)));
+ 
+diff --git a/ext/Tie-Hash-NamedCapture/t/tiehash.t b/ext/Tie-Hash-NamedCapture/t/tiehash.t
+index 3ebc81ad68..962754085f 100644
+--- a/ext/Tie-Hash-NamedCapture/t/tiehash.t
++++ b/ext/Tie-Hash-NamedCapture/t/tiehash.t
+@@ -3,7 +3,12 @@ use strict;
+ 
+ use Test::More;
+ 
+-my %hashes = ('+' => \%+, '-' => \%-);
++my %hashes = (
++    '+' => \%+,
++    '-' => \%-,
++    '{^CAPTURE}' => \%{^CAPTURE},
++    '{^CAPTURE_ALL}' => \%{^CAPTURE_ALL},
++);
+ 
+ foreach (['plus1'],
+ 	 ['minus1', all => 1],
+@@ -20,12 +25,12 @@ foreach (['plus1'],
+ is("abcdef" =~ /(?<foo>[ab])*(?<bar>c)(?<foo>d)(?<bar>[ef]*)/, 1,
+    "We matched");
+ 
+-foreach my $name (qw(+ plus1 plus2 plus3)) {
++foreach my $name (qw(+ {^CAPTURE} plus1 plus2 plus3)) {
+     my $hash = $hashes{$name};
+     is_deeply($hash, { foo => 'b', bar => 'c' }, "%$name is as expected");
+ }
+ 
+-foreach my $name (qw(- minus1 minus2)) {
++foreach my $name (qw(- {^CAPTURE_ALL} minus1 minus2)) {
+     my $hash = $hashes{$name};
+     is_deeply($hash, { foo => [qw(b d)], bar => [qw(c ef)] },
+ 	      "%$name is as expected");
+-- 
+2.20.1
+

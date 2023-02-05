@@ -1,0 +1,5 @@
+# expects %{_sgug_rse_repo} to be the sgug-rse repo root
+
+%_sourcedir %{_sgug_rse_repo}/packages/%{name}
+%_specdir %{_sourcedir}
+

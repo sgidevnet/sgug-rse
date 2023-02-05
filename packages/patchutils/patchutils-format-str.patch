@@ -1,0 +1,21 @@
+diff -up patchutils-0.3.4/src/filterdiff.c.format-str patchutils-0.3.4/src/filterdiff.c
+--- patchutils-0.3.4/src/filterdiff.c.format-str	2017-05-15 11:54:20.203918650 +0100
++++ patchutils-0.3.4/src/filterdiff.c	2017-05-15 11:54:58.631833806 +0100
+@@ -1355,7 +1355,7 @@ read_regex_file (const char *file)
+ 			char errstr[300];
+ 			regerror (err, &regex[num_regex - 1], errstr,
+ 				  sizeof (errstr));
+-			error (EXIT_FAILURE, 0, errstr);
++			error (EXIT_FAILURE, 0, "%s", errstr);
+ 			exit (1);
+ 		}
+ 	}
+@@ -1613,7 +1613,7 @@ int main (int argc, char *argv[])
+ 			char errstr[300];
+ 			regerror (err, &regex[num_regex - 1], errstr,
+ 				  sizeof (errstr));
+-			error (EXIT_FAILURE, 0, errstr);
++			error (EXIT_FAILURE, 0, "%s", errstr);
+ 			exit (1);
+ 		}
+ 	}

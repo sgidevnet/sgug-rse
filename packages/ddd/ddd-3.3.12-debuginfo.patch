@@ -1,0 +1,22 @@
+--- ddd-3.3.12/acinclude.m4~	2009-02-11 19:25:09.000000000 +0200
++++ ddd-3.3.12/acinclude.m4	2009-02-11 19:25:09.000000000 +0200
+@@ -1368,7 +1368,7 @@ if test "$GXX" = yes; then
+   for flag in $CXXFLAGS; do
+     case $flag in
+       -O*) CXXOPT="$CXXOPT $flag";;
+-      -g*) CXXDEBUG="$flag";;
++      -g*) CXXDEBUG="$CXXDEBUG $flag";;
+       -W*) CXXWARNINGS="$CXXWARNINGS $flag";;
+       *)   CXXSTUFF="$CXXSTUFF $flag";;
+     esac
+--- ddd-3.3.12/configure~	2009-02-11 19:25:52.000000000 +0200
++++ ddd-3.3.12/configure	2009-02-11 19:25:52.000000000 +0200
+@@ -6869,7 +6869,7 @@ fi
+   for flag in $CXXFLAGS; do
+     case $flag in
+       -O*) CXXOPT="$CXXOPT $flag";;
+-      -g*) CXXDEBUG="$flag";;
++      -g*) CXXDEBUG="$CXXDEBUG $flag";;
+       -W*) CXXWARNINGS="$CXXWARNINGS $flag";;
+       *)   CXXSTUFF="$CXXSTUFF $flag";;
+     esac

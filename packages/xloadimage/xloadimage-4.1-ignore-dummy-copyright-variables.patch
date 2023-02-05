@@ -1,0 +1,24 @@
+diff -up xloadimage.4.1/copyright.h.dummyvars xloadimage.4.1/copyright.h
+--- xloadimage.4.1/copyright.h.dummyvars	2011-06-28 16:48:46.433752182 -0400
++++ xloadimage.4.1/copyright.h	2011-06-28 16:48:53.230665806 -0400
+@@ -21,7 +21,7 @@
+ 
+ #ifndef __SABER__
+ #ifndef LINT
+-static char *Copyright= "Copyright 1989, 1993 Jim Frost";
++/* static char *Copyright= "Copyright 1989, 1993 Jim Frost"; */
+ #endif /* LINT */
+ #endif
+ #define _JIM_COPYRIGHT_
+diff -up xloadimage.4.1/kljcpyrght.h.dummyvars xloadimage.4.1/kljcpyrght.h
+--- xloadimage.4.1/kljcpyrght.h.dummyvars	2011-06-28 16:48:58.206602576 -0400
++++ xloadimage.4.1/kljcpyrght.h	2011-06-28 16:49:07.386485923 -0400
+@@ -23,7 +23,7 @@
+ 
+ #ifndef __SABER__
+ #ifndef LINT
+-static char *KLJCopyright = "Copyright 1989, 1990 Kirk L. Johnson";
++/* static char *KLJCopyright = "Copyright 1989, 1990 Kirk L. Johnson"; */
+ #endif /* LINT */
+ #endif
+ #define _KLJ_COPYRIGHT_

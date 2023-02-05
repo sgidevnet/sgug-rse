@@ -1,0 +1,36 @@
+From 31532982b04c20a43aa9c3d26780e3591c524fbc Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Thu, 27 Jun 2019 15:39:11 -0600
+Subject: [PATCH] regcomp.c: Don't read off the end of buffer
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Until this commit, it was possible that \p{nv=3/} would cause the right
+brace to be considered part of the property name.
+
+Spotted by Hugo van der Sanden
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ regcomp.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/regcomp.c b/regcomp.c
+index 1117998fc8..cf9246473f 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -23092,7 +23092,9 @@ Perl_parse_uniprop_string(pTHX_
+             }
+ 
+             /* Store the first real character in the denominator */
+-            lookup_name[j++] = name[i];
++            if (i < name_len) {
++                lookup_name[j++] = name[i];
++            }
+         }
+     }
+ 
+-- 
+2.21.0
+

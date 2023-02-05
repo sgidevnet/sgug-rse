@@ -1,0 +1,163 @@
+From 8bd62177e796386fb6382db101c90b57b6138afe Mon Sep 17 00:00:00 2001
+From: janczer <menshikov.ivn@gmail.com>
+Date: Tue, 24 Apr 2018 16:00:38 +0200
+Subject: [PATCH] Fixed typos
+
+---
+ STYLE.txt                   |  2 +-
+ json_object.h               | 18 +++++++++---------
+ json_pointer.c              |  2 +-
+ tests/test_compare.c        | 12 ++++++------
+ tests/test_compare.expected |  6 +++---
+ 5 files changed, 20 insertions(+), 20 deletions(-)
+
+diff --git a/STYLE.txt b/STYLE.txt
+index e5acd14820..195883c760 100755
+--- a/STYLE.txt
++++ b/STYLE.txt
+@@ -7,7 +7,7 @@ Official json-c style:
+ Aim for readability, not strict conformance to fixed style rules.
+ These rules are not comprehensive.  Look to existing code for guidelines.
+ Indentation is tab based, with continuations of long lines starting with tabs then spaces for alignment.
+-Try to line up components of continuation lines with corresponding part of the line above (i.e. "indent -lp" effect), but avoid excessive identation tha causes extra line wraps. 
++Try to line up components of continuation lines with corresponding part of the line above (i.e. "indent -lp" effect), but avoid excessive indentation tha causes extra line wraps.
+  e.g. (T=tab, S=space):
+ TTTTsome_long_func_call(arg1, arg2,
+ TTTTSSSSSSSSSSSSSSSSSSSarg3, arg4);
+diff --git a/json_object.h b/json_object.h
+index a3a86c0912..30341bcdb7 100644
+--- a/json_object.h
++++ b/json_object.h
+@@ -91,7 +91,7 @@ extern "C" {
+ /**
+  * A flag for the json_object_object_add_ex function which
+  * causes the value to be added without a check if it already exists.
+- * Note: it is the responsibilty of the caller to ensure that no
++ * Note: it is the responsibility of the caller to ensure that no
+  * key is added multiple times. If this is done, results are
+  * unpredictable. While this option is somewhat dangerous, it
+  * permits potentially large performance savings in code that
+@@ -442,7 +442,7 @@ JSON_EXPORT int json_object_object_add_ex(struct json_object* obj,
+  *
+  * This returns NULL if the field is found but its value is null, or if
+  *  the field is not found, or if obj is not a json_type_object.  If you
+- *  need to distinguis between these cases, use json_object_object_get_ex().
++ *  need to distinguish between these cases, use json_object_object_get_ex().
+  *
+  * *No* reference counts will be changed.  There is no need to manually adjust
+  * reference counts through the json_object_put/json_object_get methods unless
+@@ -624,7 +624,7 @@ JSON_EXPORT int json_object_array_add(struct json_object *obj,
+ JSON_EXPORT int json_object_array_put_idx(struct json_object *obj, size_t idx,
+ 				     struct json_object *val);
+ 
+-/** Get the element at specificed index of the array (a json_object of type json_type_array)
++/** Get the element at specified index of the array (a json_object of type json_type_array)
+  * @param obj the json_object instance
+  * @param idx the index to get the element at
+  * @returns the json_object at the specified index (or NULL)
+@@ -671,7 +671,7 @@ JSON_EXPORT json_bool json_object_get_boolean(const struct json_object *obj);
+  * 
+  * The type of obj is checked to be a json_type_boolean and 0 is returned 
+  * if it is not without any further actions. If type of obj is json_type_boolean
+- * the obect value is chaned to new_value
++ * the object value is changed to new_value
+  *
+  * @param obj the json_object instance
+  * @param new_value the value to be set
+@@ -718,7 +718,7 @@ JSON_EXPORT int32_t json_object_get_int(const struct json_object *obj);
+  * 
+  * The type of obj is checked to be a json_type_int and 0 is returned 
+  * if it is not without any further actions. If type of obj is json_type_int
+- * the obect value is changed to new_value
++ * the object value is changed to new_value
+  *
+  * @param obj the json_object instance
+  * @param new_value the value to be set
+@@ -763,7 +763,7 @@ JSON_EXPORT int64_t json_object_get_int64(const struct json_object *obj);
+  * 
+  * The type of obj is checked to be a json_type_int and 0 is returned 
+  * if it is not without any further actions. If type of obj is json_type_int
+- * the obect value is chaned to new_value
++ * the object value is changed to new_value
+  *
+  * @param obj the json_object instance
+  * @param new_value the value to be set
+@@ -880,7 +880,7 @@ JSON_EXPORT double json_object_get_double(const struct json_object *obj);
+  * 
+  * The type of obj is checked to be a json_type_double and 0 is returned 
+  * if it is not without any further actions. If type of obj is json_type_double
+- * the obect value is chaned to new_value
++ * the object value is changed to new_value
+  *
+  * @param obj the json_object instance
+  * @param new_value the value to be set
+@@ -942,10 +942,10 @@ JSON_EXPORT int json_object_set_string(json_object* obj, const char* new_value);
+  * 
+  * The type of obj is checked to be a json_type_string and 0 is returned 
+  * if it is not without any further actions. If type of obj is json_type_string
+- * the obect value is chaned to new_value
++ * the object value is changed to new_value
+  *
+  * @param obj the json_object instance
+- * @param new_value the value to be set; Since string legth is given in len this need not be zero terminated
++ * @param new_value the value to be set; Since string length is given in len this need not be zero terminated
+  * @param len the length of new_value
+  * @returns 1 if value is set correctly, 0 otherwise
+  */
+diff --git a/json_pointer.c b/json_pointer.c
+index c7e34f76f3..9531c036c8 100644
+--- a/json_pointer.c
++++ b/json_pointer.c
+@@ -28,7 +28,7 @@
+ static void string_replace_all_occurrences_with_char(char *s, const char *occur, char repl_char)
+ {
+ 	int slen = strlen(s);
+-	int skip = strlen(occur) - 1; /* length of the occurence, minus the char we're replacing */
++	int skip = strlen(occur) - 1; /* length of the occurrence, minus the char we're replacing */
+ 	char *p = s;
+ 	while ((p = strstr(p, occur))) {
+ 		*p = repl_char;
+diff --git a/tests/test_compare.c b/tests/test_compare.c
+index c7e44f6ea6..cba328cf4b 100644
+--- a/tests/test_compare.c
++++ b/tests/test_compare.c
+@@ -18,19 +18,19 @@ int main()
+ 	struct json_object *int3 = json_object_new_int(1);
+ 
+ 	if (!json_object_equal(int1, int2))
+-		printf("JSON integer comparision is correct\n");
++		printf("JSON integer comparison is correct\n");
+ 	else
+-		printf("JSON integer comparision failed\n");
++		printf("JSON integer comparison failed\n");
+ 
+ 	if (json_object_equal(int1, int1))
+-		printf("JSON same object comparision is correct\n");
++		printf("JSON same object comparison is correct\n");
+ 	else
+-		printf("JSON same object comparision failed\n");
++		printf("JSON same object comparison failed\n");
+ 
+ 	if (json_object_equal(int2, int3))
+-		printf("JSON same integer comparision is correct\n");
++		printf("JSON same integer comparison is correct\n");
+ 	else
+-		printf("JSON same integer comparision failed\n");
++		printf("JSON same integer comparison failed\n");
+ 
+ 	json_object_put(int1);
+ 	json_object_put(int2);
+diff --git a/tests/test_compare.expected b/tests/test_compare.expected
+index 46f03c4101..5468f83d2e 100644
+--- a/tests/test_compare.expected
++++ b/tests/test_compare.expected
+@@ -1,6 +1,6 @@
+-JSON integer comparision is correct
+-JSON same object comparision is correct
+-JSON same integer comparision is correct
++JSON integer comparison is correct
++JSON same object comparison is correct
++JSON same integer comparison is correct
+ Comparing equal strings is correct
+ Comparing different strings is correct
+ Comparing equal doubles is correct

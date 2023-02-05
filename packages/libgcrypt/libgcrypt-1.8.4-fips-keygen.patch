@@ -1,0 +1,65 @@
+diff -up libgcrypt-1.8.4/cipher/dsa.c.fips-keygen libgcrypt-1.8.4/cipher/dsa.c
+--- libgcrypt-1.8.4/cipher/dsa.c.fips-keygen	2017-11-23 19:16:58.000000000 +0100
++++ libgcrypt-1.8.4/cipher/dsa.c	2019-02-12 14:29:25.629513989 +0100
+@@ -457,11 +457,22 @@ generate_fips186 (DSA_secret_key *sk, un
+                                              &prime_q, &prime_p,
+                                              r_counter,
+                                              r_seed, r_seedlen);
+-      else
+-        ec = _gcry_generate_fips186_3_prime (nbits, qbits, NULL, 0,
++      else if (!domain->p || !domain->q)
++        ec = _gcry_generate_fips186_3_prime (nbits, qbits,
++                                             initial_seed.seed,
++                                             initial_seed.seedlen,
+                                              &prime_q, &prime_p,
+                                              r_counter,
+                                              r_seed, r_seedlen, NULL);
++      else
++        {
++          /* Domain parameters p and q are given; use them.  */
++          prime_p = mpi_copy (domain->p);
++          prime_q = mpi_copy (domain->q);
++          gcry_assert (mpi_get_nbits (prime_p) == nbits);
++          gcry_assert (mpi_get_nbits (prime_q) == qbits);
++          ec = 0;
++        }
+       sexp_release (initial_seed.sexp);
+       if (ec)
+         goto leave;
+@@ -855,13 +866,12 @@ dsa_generate (const gcry_sexp_t genparms
+       sexp_release (l1);
+       sexp_release (domainsexp);
+ 
+-      /* Check that all domain parameters are available.  */
+-      if (!domain.p || !domain.q || !domain.g)
++      /* Check that p and q domain parameters are available.  */
++      if (!domain.p || !domain.q || (!domain.g && !(flags & PUBKEY_FLAG_USE_FIPS186)))
+         {
+           _gcry_mpi_release (domain.p);
+           _gcry_mpi_release (domain.q);
+           _gcry_mpi_release (domain.g);
+-          sexp_release (deriveparms);
+           return GPG_ERR_MISSING_VALUE;
+         }
+ 
+diff -up libgcrypt-1.8.4/cipher/rsa.c.fips-keygen libgcrypt-1.8.4/cipher/rsa.c
+--- libgcrypt-1.8.4/cipher/rsa.c.fips-keygen	2017-11-23 19:16:58.000000000 +0100
++++ libgcrypt-1.8.4/cipher/rsa.c	2019-02-12 14:29:25.630513971 +0100
+@@ -389,7 +389,7 @@ generate_fips (RSA_secret_key *sk, unsig
+ 
+   if (nbits < 1024 || (nbits & 0x1FF))
+     return GPG_ERR_INV_VALUE;
+-  if (_gcry_enforced_fips_mode() && nbits != 2048 && nbits != 3072)
++  if (fips_mode() && nbits < 2048)
+       return GPG_ERR_INV_VALUE;
+ 
+   /* The random quality depends on the transient_key flag.  */
+@@ -696,7 +696,7 @@ generate_x931 (RSA_secret_key *sk, unsig
+ 
+   *swapped = 0;
+ 
+-  if (e_value == 1)   /* Alias for a secure value. */
++  if (e_value == 1 || e_value == 0)   /* Alias for a secure value. */
+     e_value = 65537;
+ 
+   /* Point 1 of section 4.1:  k = 1024 + 256s with S >= 0  */

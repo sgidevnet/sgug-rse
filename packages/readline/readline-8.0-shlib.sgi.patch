@@ -1,0 +1,13 @@
+diff --git a/shlib/Makefile.in b/shlib/Makefile.in
+index f2ec3e4..5c8994c 100644
+--- a/shlib/Makefile.in
++++ b/shlib/Makefile.in
+@@ -178,7 +178,7 @@ $(SHARED_READLINE):	$(SHARED_OBJ)
+ 
+ $(SHARED_HISTORY):	$(SHARED_HISTOBJ) xmalloc.so xfree.so
+ 	$(RM) $@
+-	$(SHOBJ_LD) ${SHOBJ_LDFLAGS} ${SHLIB_XLDFLAGS} -o $@ $(SHARED_HISTOBJ) xmalloc.so xfree.so $(SHLIB_LIBS)
++	$(SHOBJ_LD) ${SHOBJ_LDFLAGS} ${SHLIB_XLDFLAGS} -o $@ $(SHARED_HISTOBJ) xmalloc.so xfree.so
+ 
+ # Since tilde.c is shared between readline and bash, make sure we compile 
+ # it with the right flags when it's built as part of readline

@@ -1,0 +1,13 @@
+Index: quilt-0.66/Makefile.in
+===================================================================
+--- quilt-0.66.orig/Makefile.in
++++ quilt-0.66/Makefile.in
+@@ -118,7 +118,7 @@ SRC +=		$(wildcard test/*.test) test/run
+ 
+ NON_EXEC_IN :=	doc/quilt.1 doc/README quilt/scripts/patchfns quilt/scripts/utilfns
+ 
+-GIT_DESC :=	$(shell ./git-desc | sed -e 's:^v::')
++GIT_DESC :=	git-no
+ 
+ # Tests are sorted to make it easier to compare the results between runs
+ TESTS :=	$(sort $(wildcard test/*.test))

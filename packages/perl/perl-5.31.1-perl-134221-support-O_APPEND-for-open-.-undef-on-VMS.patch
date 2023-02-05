@@ -1,0 +1,128 @@
+From 74b421cc877e412c4eda06757396a1e19fc756ba Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Mon, 15 Jul 2019 11:53:23 +1000
+Subject: [PATCH 3/3] (perl #134221) support O_APPEND for open ..., undef on
+ VMS
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+VMS doesn't allow you to delete an open file like POSIXish systems
+do, but you can mark a file to be deleted once it's closed, but
+only when you open it.
+
+Since VMS doesn't (yet) have mkostemp() we can add our own flag to
+our mkostemp() emulation to pass the necessary magic to open() call
+to delete the file on close.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ perlio.c | 10 ++++++----
+ util.c   | 15 ++++++++++++++-
+ util.h   | 11 +++++++++++
+ 3 files changed, 31 insertions(+), 5 deletions(-)
+
+diff --git a/perlio.c b/perlio.c
+index 81ebc156ad..805959f840 100644
+--- a/perlio.c
++++ b/perlio.c
+@@ -5062,7 +5062,7 @@ PerlIO_tmpfile_flags(int imode)
+      const int fd = win32_tmpfd_mode(imode);
+      if (fd >= 0)
+ 	  f = PerlIO_fdopen(fd, "w+b");
+-#elif ! defined(VMS) && ! defined(OS2)
++#elif ! defined(OS2)
+      int fd = -1;
+      char tempname[] = "/tmp/PerlIO_XXXXXX";
+      const char * const tmpdir = TAINTING_get ? NULL : PerlEnv_getenv("TMPDIR");
+@@ -5073,19 +5073,19 @@ PerlIO_tmpfile_flags(int imode)
+ 	 /* if TMPDIR is set and not empty, we try that first */
+ 	 sv = newSVpv(tmpdir, 0);
+ 	 sv_catpv(sv, tempname + 4);
+-	 fd = Perl_my_mkostemp_cloexec(SvPVX(sv), imode);
++	 fd = Perl_my_mkostemp_cloexec(SvPVX(sv), imode | O_VMS_DELETEONCLOSE);
+      }
+      if (fd < 0) {
+ 	 SvREFCNT_dec(sv);
+ 	 sv = NULL;
+ 	 /* else we try /tmp */
+-	 fd = Perl_my_mkostemp_cloexec(tempname, imode);
++	 fd = Perl_my_mkostemp_cloexec(tempname, imode | O_VMS_DELETEONCLOSE);
+      }
+      if (fd < 0) {
+          /* Try cwd */
+          sv = newSVpvs(".");
+          sv_catpv(sv, tempname + 4);
+-         fd = Perl_my_mkostemp_cloexec(SvPVX(sv), imode);
++         fd = Perl_my_mkostemp_cloexec(SvPVX(sv), imode | O_VMS_DELETEONCLOSE);
+      }
+      umask(old_umask);
+      if (fd >= 0) {
+@@ -5096,7 +5096,9 @@ PerlIO_tmpfile_flags(int imode)
+          f = PerlIO_fdopen(fd, mode);
+ 	  if (f)
+ 	       PerlIOBase(f)->flags |= PERLIO_F_TEMP;
++#   ifndef VMS
+ 	  PerlLIO_unlink(sv ? SvPVX_const(sv) : tempname);
++#   endif
+      }
+      SvREFCNT_dec(sv);
+ #else	/* !HAS_MKSTEMP, fallback to stdio tmpfile(). */
+diff --git a/util.c b/util.c
+index e6863f6dfe..165d13a39e 100644
+--- a/util.c
++++ b/util.c
+@@ -5712,6 +5712,11 @@ S_my_mkostemp(char *templte, int flags) {
+     STRLEN len = strlen(templte);
+     int fd;
+     int attempts = 0;
++#ifdef VMS
++    int delete_on_close = flags & O_VMS_DELETEONCLOSE;
++
++    flags &= ~O_VMS_DELETEONCLOSE;
++#endif
+ 
+     if (len < 6 ||
+         templte[len-1] != 'X' || templte[len-2] != 'X' || templte[len-3] != 'X' ||
+@@ -5725,7 +5730,15 @@ S_my_mkostemp(char *templte, int flags) {
+         for (i = 1; i <= 6; ++i) {
+             templte[len-i] = TEMP_FILE_CH[(int)(Perl_internal_drand48() * TEMP_FILE_CH_COUNT)];
+         }
+-        fd = PerlLIO_open3(templte, O_RDWR | O_CREAT | O_EXCL | flags, 0600);
++#ifdef VMS
++        if (delete_on_close) {
++            fd = open(templte, O_RDWR | O_CREAT | O_EXCL | flags, 0600, "fop=dlt");
++        }
++        else
++#endif
++        {
++            fd = PerlLIO_open3(templte, O_RDWR | O_CREAT | O_EXCL | flags, 0600);
++        }
+     } while (fd == -1 && errno == EEXIST && ++attempts <= 100);
+ 
+     return fd;
+diff --git a/util.h b/util.h
+index d8fa3e8396..d9df7b39c6 100644
+--- a/util.h
++++ b/util.h
+@@ -248,6 +248,17 @@ means arg not present, 1 is empty string/null byte */
+ int mkstemp(char*);
+ #endif
+ 
++#ifdef PERL_CORE
++#   if defined(VMS)
++/* only useful for calls to our mkostemp() emulation */
++#       define O_VMS_DELETEONCLOSE 0x40000000
++#       ifdef HAS_MKOSTEMP
++#           error 134221 will need a new solution for VMS
++#       endif
++#   else
++#       define O_VMS_DELETEONCLOSE 0
++#   endif
++#endif
+ #if defined(HAS_MKOSTEMP) && defined(PERL_CORE)
+ #   define Perl_my_mkostemp(templte, flags) mkostemp(templte, flags)
+ #endif
+-- 
+2.20.1
+

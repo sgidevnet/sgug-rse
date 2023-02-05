@@ -1,0 +1,112 @@
+#! /bin/sh -e
+## 18_manpage_fixes.dpatch
+##
+## DP: Various typo fixes and correction of .TH section.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+diff -urNad xloadimage-4.1~/uufilter.man xloadimage-4.1/uufilter.man
+--- xloadimage-4.1~/uufilter.man	1993-11-04 15:47:26.000000000 +0000
++++ xloadimage-4.1/uufilter.man	2005-12-06 02:47:57.000000000 +0000
+@@ -1,4 +1,4 @@
+-.TH UUFILTER 1 "21 October 1993"
++.TH UUFILTER 1x "21 October 1993"
+ .SH NAME
+ uufilter - decode uuencoded files to stdout
+ .SH SYNOPSIS
+@@ -12,7 +12,7 @@
+ \fIUufilter\fR automatically ignores lines that do not appear to be
+ part of the uuencoded file.  This is particularly useful in uudecoding
+ files that have been concatenated from several email or news postings
+-without stripping off the headers or otherwise editting extraneous
++without stripping off the headers or otherwise editing extraneous
+ content.
+ .SH OPTIONS
+ .TP 8
+diff -urNad xloadimage-4.1~/xloadimage.man xloadimage-4.1/xloadimage.man
+--- xloadimage-4.1~/xloadimage.man	2005-12-06 02:45:45.000000000 +0000
++++ xloadimage-4.1/xloadimage.man	2005-12-06 02:52:04.000000000 +0000
+@@ -1,4 +1,4 @@
+-.TH XLOADIMAGE 1 "8 May 1991"
++.TH XLOADIMAGE 1x "8 May 1991"
+ .SH NAME
+ xloadimage, xsetbg, xview \- load images into an X11 window or onto
+ the root window
+@@ -174,7 +174,7 @@
+ -type \fItype_name\fR
+ Forces \fIxloadimage\fR to try to load the image as a particular file
+ type rather than trying to guess.  This often improves load
+-performance noticably.
++performance noticeably.
+ .TP
+ -verbose
+ Causes \fIxloadimage\fR to be talkative, telling you what kind of
+@@ -198,13 +198,13 @@
+ .TP
+ -windowid \fIhex_window_id\fR
+ Sets the background pixmap of a particular window ID.  The argument
+-must be in hexadecimal and must be preceeded by "0x" (\fIeg\fR
++must be in hexadecimal and must be preceded by "0x" (\fIeg\fR
+ -windowid 0x40000b.  This is intended for setting the background
+ pixmap of some servers which use untagged virtual roots
+ (\fIeg\fR HP-VUE), but can have other interesting applications.
+ .SH IMAGE OPTIONS
+-The following options may preceed each image.  These options are
+-local to the image they preceed. 
++The following options may precede each image.  These options are
++local to the image they precede. 
+ .TP
+ -at \fIX\fR,\fIY\fR
+ Indicates coordinates to load the image at on the base image.  If
+@@ -285,7 +285,7 @@
+ -merge
+ Merge this image onto the base image after local processing.  The base
+ image is considered to be the first image specified or the last image
+-that was not preceeded by \fI-merge\fR.  If used in conjunction with
++that was not preceded by \fI-merge\fR.  If used in conjunction with
+ \fI-at\fR and \fI-clip\fR, very complex images can be built up.  This
+ option is on by default for all images if the \fI-onroot\fR or
+ \fI-windowid\fR options are specified.
+@@ -408,7 +408,7 @@
+ When zooming color images up you can reduce blockiness with
+ \fI-smooth\fR.  For zooms of 300% or more, I recommend two smoothing
+ passes (although this can take awhile to do on slow machines).  There
+-will be a noticable improvement in the image.
++will be a noticeable improvement in the image.
+ .PP
+ You can perform image processing on a small portion of an image by
+ loading the image more than once and using the \fI-merge\fR, \fI-at\fR
+@@ -547,7 +547,7 @@
+   filter = "uufilter -s" .uu .uue
+ .fi
+ The filter will be automatically invoked on any file with a .uu or
+-.uue extension.
++\&.uue extension.
+ .PP
+ For a list of filters automatically recognized by xloadimage use the
+ \fI-configuration\fR option.
+@@ -640,9 +640,9 @@
+ .SH COPYRIGHT
+ Copyright (c) 1989, 1993 Jim Frost and others.
+ .PP
+-\fIXloadimage\fR is copywritten material with a very loose copyright
++\fIXloadimage\fR is copyrighted material with a very loose copyright
+ allowing unlimited modification and distribution if the copyright
+-notices are left intact.  Various portions are copywritten by various
++notices are left intact.  Various portions are copyrighted by various
+ people, but all use a modification of the MIT copyright notice.
+ Please check the source for complete copyright information.  The
+ intent is to keep the source free, not to stifle its distribution, so

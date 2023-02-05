@@ -1,0 +1,11 @@
+--- Python-2.7.5/setup.py.orig  2013-05-11 20:32:54.000000000 -0700
++++ Python-2.7.5/setup.py  2014-02-18 14:16:07.999004901 -0800
+@@ -1168,7 +1168,7 @@ class PyBuildExt(build_ext):
+                 sqlite_defines.append(('MODULE_NAME', '\\"sqlite3\\"'))
+ 
+             # Comment this out if you want the sqlite3 module to be able to load extensions.
+-            sqlite_defines.append(("SQLITE_OMIT_LOAD_EXTENSION", "1"))
++            #sqlite_defines.append(("SQLITE_OMIT_LOAD_EXTENSION", "1"))
+ 
+             if host_platform == 'darwin':
+                 # In every directory on the search path search for a dynamic

@@ -50,7 +50,7 @@ diff --git a/lib/Mozilla/CA.pm b/lib/Mozilla/CA.pm
 index c2f35b5..46a1912 100644
 --- a/lib/Mozilla/CA.pm
 +++ b/lib/Mozilla/CA.pm
-@@ -3,17 +3,10 @@ package Mozilla::CA;
+@@ -3,16 +3,10 @@ package Mozilla::CA;
  use strict;
  our $VERSION = '20180117';
  

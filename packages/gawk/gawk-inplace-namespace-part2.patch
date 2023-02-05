@@ -1,0 +1,70 @@
+From 076eb06c0c714ca6ee95ca512d114bf9f41038e0 Mon Sep 17 00:00:00 2001
+From: "Arnold D. Robbins" <arnold@skeeve.com>
+Date: Wed, 26 Jun 2019 21:40:31 +0300
+Subject: [PATCH 2/3] Add tests for previous fix to namespaces.
+
+---
+ test/nsawk1.awk | 5 +++++
+ test/nsawk1a.ok | 0
+ test/nsawk1b.ok | 0
+ test/nsawk1c.ok | 0
+ test/nsawk2.awk | 5 +++++
+ test/nsawk2a.ok | 1 +
+ test/nsawk2b.ok | 1 +
+ 7 files changed, 12 insertions(+)
+ create mode 100644 test/nsawk1.awk
+ create mode 100644 test/nsawk1a.ok
+ create mode 100644 test/nsawk1b.ok
+ create mode 100644 test/nsawk1c.ok
+ create mode 100644 test/nsawk2.awk
+ create mode 100644 test/nsawk2a.ok
+ create mode 100644 test/nsawk2b.ok
+
+diff --git a/test/nsawk1.awk b/test/nsawk1.awk
+new file mode 100644
+index 00000000..00715bc1
+--- /dev/null
++++ b/test/nsawk1.awk
+@@ -0,0 +1,5 @@
++# Used to cause internal error
++BEGIN {
++    x = awk::I
++    x = awk::I
++}
+diff --git a/test/nsawk1a.ok b/test/nsawk1a.ok
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/test/nsawk1b.ok b/test/nsawk1b.ok
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/test/nsawk1c.ok b/test/nsawk1c.ok
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/test/nsawk2.awk b/test/nsawk2.awk
+new file mode 100644
+index 00000000..d275c121
+--- /dev/null
++++ b/test/nsawk2.awk
+@@ -0,0 +1,5 @@
++# Used to cause internal error
++BEGIN {
++    x = awk::I
++    print x
++}
+diff --git a/test/nsawk2a.ok b/test/nsawk2a.ok
+new file mode 100644
+index 00000000..86815ca7
+--- /dev/null
++++ b/test/nsawk2a.ok
+@@ -0,0 +1 @@
++fine
+diff --git a/test/nsawk2b.ok b/test/nsawk2b.ok
+new file mode 100644
+index 00000000..86815ca7
+--- /dev/null
++++ b/test/nsawk2b.ok
+@@ -0,0 +1 @@
++fine
+-- 
+2.22.0
+

@@ -1,0 +1,61 @@
+#! /bin/sh -e
+## 15_CAN-2005-0638.dpatch
+##
+## DP: Description: Fix shell metacharacters vulnerability with compressed
+## DP:              images (#298926).
+## DP: Author: xli upstream via Gentoo
+## DP: Upstream status: Not submitted
+## DP: Date: 2005-03-10
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+diff -urNad --exclude=CVS --exclude=.svn ./zio.c /tmp/dpep-work.7hAKRd/xloadimage-4.1/zio.c
+--- ./zio.c	1993-10-28 17:10:02.000000000 +0000
++++ /tmp/dpep-work.7hAKRd/xloadimage-4.1/zio.c	2005-10-08 04:12:08.000000000 +0100
+@@ -210,9 +210,30 @@
+     if ((strlen(name) > strlen(filter->extension)) &&
+ 	!strcmp(filter->extension,
+ 		name + (strlen(name) - strlen(filter->extension)))) {
+-      debug(("Filtering image through '%s'\n", filter->filter));
+-      zf->type= ZPIPE;
+-      sprintf(buf, "%s %s", filter->filter, name);
++            char *fname, *t, *s;
++            
++            /* meta-char protection from xli.
++             *
++             * protect in single quotes, replacing single quotes
++             * with '"'"', so worst-case expansion is 5x
++             */
++            
++            s = fname = (char *) lmalloc(1 + (5 * strlen(name)) + 1 + 1);
++			*s++ = '\'';
++            for (t = name; *t; ++t) {
++                if ('\'' == *t) {
++					/* 'foo'bar' -> 'foo'"'"'bar' */
++                    strcpy(s, "'\"'\"'");
++					s += strlen(s);
++                } else {
++                    *s++ = *t;
++                }
++            }
++            strcpy (s, "'");
++            debug(("Filtering image through '%s'\n", filter->filter));
++            zf->type= ZPIPE;
++            sprintf(buf, "%s %s", filter->filter, fname);
++            lfree (fname);
+       if (! (zf->stream= popen(buf, "r"))) {
+ 	lfree((byte *)zf->filename);
+ 	zf->filename= NULL;

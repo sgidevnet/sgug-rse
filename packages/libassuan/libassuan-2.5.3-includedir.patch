@@ -1,0 +1,11 @@
+diff -up libassuan-2.5.3/src/libassuan.pc.in.includedir libassuan-2.5.3/src/libassuan.pc.in
+--- libassuan-2.5.3/src/libassuan.pc.in.includedir	2018-10-25 11:20:28.000000000 +0200
++++ libassuan-2.5.3/src/libassuan.pc.in	2019-08-19 10:29:10.536279378 +0200
+@@ -9,6 +9,6 @@ Name: libassuan
+ Description: IPC library for the GnuPG components
+ Requires: gpg-error
+ Version: @PACKAGE_VERSION@
+-Cflags: @LIBASSUAN_CONFIG_CFLAGS@
++Cflags: @LIBASSUAN_CONFIG_CFLAGS@ -I${includedir}
+ Libs: @LIBASSUAN_CONFIG_LIBS@
+ URL: https://www.gnupg.org/related_software/libassuan/index.html

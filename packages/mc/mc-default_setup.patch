@@ -1,0 +1,13 @@
+--- mc-4.8.23.orig/src/setup.c	2019-06-16 18:49:31.000000000 +0100
++++ mc-4.8.23/src/setup.c	2019-07-06 13:13:22.792243501 +0100
+@@ -138,8 +138,8 @@
+     .fast_reload_msg_shown = FALSE,
+     .mark_moves_down = TRUE,
+     .reverse_files_only = TRUE,
+-    .auto_save_setup = FALSE,
+-    .navigate_with_arrows = FALSE,
++    .auto_save_setup = TRUE,
++    .navigate_with_arrows = TRUE,
+     .scroll_pages = TRUE,
+     .scroll_center = FALSE,
+     .mouse_move_pages = TRUE,

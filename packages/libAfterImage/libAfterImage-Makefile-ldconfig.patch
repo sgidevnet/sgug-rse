@@ -1,0 +1,42 @@
+--- Makefile.in.orig	2008-10-04 19:52:07.000000000 +0200
++++ Makefile.in	2008-10-04 19:53:15.000000000 +0200
+@@ -143,20 +143,6 @@
+ 		@(if [ -d $(LIBDIR) ] && [ -w $(LIBDIR) ]; then \
+ 		    echo "$(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR)"; \
+ 		    $(INSTALL_LIB) $(LIB_STATIC) $(LIBDIR); \
+-		    if [ `uname` = "Linux" ]; then \
+-			if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
+-		    	    echo "" > /dev/null; \
+-			elif grep -q $(LIBDIR) /etc/ld.so.conf > /dev/null 2>&1; then \
+-		    	    echo "" > /dev/null; \
+-			else \
+-		    	    echo "Unable to find $(LIBDIR) in ld.so.conf. In order to use "; \
+-		    	    echo "$(LIB_STATIC), you may need to add it or set LD_LIBRARY_PATH."; \
+-			fi; \
+-			if test -w /etc; then \
+-			    echo "$(LDCONFIG)"; \
+-			    $(LDCONFIG); \
+-			fi; \
+-		    fi ;\
+ 		fi \
+ 		)
+ 
+@@ -169,18 +155,6 @@
+ 		$(RM) -f $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
+ 		$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIBDIR)/$(LIB_SHARED).$(LIBVERMAJOR); \
+ 		$(LN_S) -f $(LIB_SHARED).$(LIBVERMAJOR) $(LIBDIR)/$(LIB_SHARED); \
+-		if test `uname` = "Linux"; then \
+-		   if test $(LIBDIR) = "/lib" || test $(LIBDIR) = "/usr/lib"; then \
+-		     echo "" > /dev/null; \
+-		   elif grep -q $(LIBDIR) /etc/ld.so.conf > /dev/null 2>&1; then \
+-		     echo "" > /dev/null; \
+-		   else \
+-		     echo "Unable to find $(LIBDIR) in ld.so.conf. In order to use "; \
+-		     echo "$(LIB_SHARED), you may need to add it or set LD_LIBRARY_PATH."; \
+-		   fi; \
+-		   echo "$(LDCONFIG)"; \
+-		   $(LDCONFIG); \
+-		 fi \
+ 		)
+ 
+ install.cyg:	mkdir

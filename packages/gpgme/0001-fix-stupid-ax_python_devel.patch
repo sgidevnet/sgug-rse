@@ -1,0 +1,27 @@
+From b0eabea4b1232ee7f45d13b8add928d463f37444 Mon Sep 17 00:00:00 2001
+From: Igor Gnatenko <ignatenkobrain@fedoraproject.org>
+Date: Wed, 29 Mar 2017 07:13:35 +0200
+Subject: [PATCH] fix stupid ax_python_devel
+
+References: https://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=commit;h=883a2abd5af5c96be894d5ef7ee6e9a2b8e64307
+Signed-off-by: Igor Gnatenko <ignatenkobrain@fedoraproject.org>
+---
+ m4/ax_python_devel.m4 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/m4/ax_python_devel.m4 b/m4/ax_python_devel.m4
+index b990d5b3..318b089c 100644
+--- a/m4/ax_python_devel.m4
++++ b/m4/ax_python_devel.m4
+@@ -137,7 +137,7 @@ variable to configure. See ``configure --help'' for reference.
+ 	#
+ 	AC_MSG_CHECKING([for the distutils Python package])
+ 	ac_distutils_result=`$PYTHON -c "import distutils" 2>&1`
+-	if test -z "$ac_distutils_result"; then
++	if test $? -eq 0; then
+ 		AC_MSG_RESULT([yes])
+ 	else
+ 		AC_MSG_RESULT([no])
+-- 
+2.12.1
+

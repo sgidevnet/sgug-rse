@@ -2,3 +2,6 @@
 buildrequires
 requires
 provides
+BUILD
+SRPMS
+RPMS

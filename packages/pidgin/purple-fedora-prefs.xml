@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+
+<pref version='1' name='/'>
+	<pref name='purple'>
+		<pref name='logging'>
+			<pref name='log_ims' type='bool' value='1'/>
+			<pref name='format' type='string' value='html'/>
+		</pref>
+	</pref>
+	<pref name='plugins'>
+		<pref name='gtk'>
+			<pref name='extplacement'>
+				<pref name='placement_number' type='int' value='4'/>
+				<pref name='placement_number_separate' type='bool' value='0'/>
+			</pref>
+			<pref name='X11'>
+				<pref name='notify'>
+					<pref name='type_im' type='bool' value='1'/>
+					<pref name='type_chat' type='bool' value='1'/>
+					<pref name='type_chat_nick' type='bool' value='1'/>
+					<pref name='type_focused' type='bool' value='0'/>
+					<pref name='method_string' type='bool' value='0'/>
+					<pref name='title_string' type='string' value='(*)'/>
+					<pref name='method_urgent' type='bool' value='1'/>
+					<pref name='method_count' type='bool' value='1'/>
+					<pref name='method_count_xprop' type='bool' value='0'/>
+					<pref name='method_raise' type='bool' value='0'/>
+					<pref name='notify_focus' type='bool' value='1'/>
+					<pref name='notify_click' type='bool' value='1'/>
+					<pref name='notify_type' type='bool' value='1'/>
+					<pref name='notify_send' type='bool' value='1'/>
+					<pref name='notify_switch' type='bool' value='1'/>
+				</pref>
+			</pref>
+		</pref>
+	</pref>
+	<pref name='pidgin'>
+		<pref name='browsers'>
+			<pref name='place' type='int' value='0'/>
+			<pref name='command' type='path' value=''/>
+			<pref name='browser' type='string' value='xdg-open'/>
+		</pref>
+		<pref name='plugins'>
+			<pref name='loaded' type='pathlist'>
+				<item value='/usr/lib/pidgin/extplacement.so'/>
+				<item value='/usr/lib/pidgin/history.so'/>
+				<item value='/usr/lib/pidgin/notify.so'/>
+				<item value='/usr/lib/pidgin/nautilus.so'/>
+			</pref>
+		</pref>
+		<pref name='blist'>
+			<pref name='show_buddy_icons' type='bool' value='0'/>
+		</pref>
+	</pref>
+</pref>

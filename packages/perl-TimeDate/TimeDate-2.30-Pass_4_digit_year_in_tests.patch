@@ -1,0 +1,32 @@
+Subject: tests fails in 2020
+MIME-Version: 1.0
+X-Mailer: MIME-tools 5.504 (Entity 5.504)
+Content-Disposition: inline
+X-RT-Interface: Web
+Message-ID: <rt-4.0.18-3376-1519211598-1392.0-0-0@rt.cpan.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: binary
+X-RT-Original-Encoding: utf-8
+X-RT-Encrypt: 0
+X-RT-Sign: 0
+Content-Length: 557
+
+similar to https://rt.cpan.org/Public/Bug/Display.html?id=124508
+
+after 2020-01-01 $offset was shifting dates from 2002 to 2102
+
+This trivial patch fixed it for me:
+
+Index: TimeDate-2.30/t/getdate.t
+===================================================================
+--- TimeDate-2.30.orig/t/getdate.t
++++ TimeDate-2.30/t/getdate.t
+@@ -156,7 +156,7 @@ Jul 22 10:00:00 UTC 2002         ;102733200
+ !;
+ 
+ require Time::Local;
+-my $offset = Time::Local::timegm(0,0,0,1,0,70);
++my $offset = Time::Local::timegm(0,0,0,1,0,1970);
+ 
+ @data = split(/\n/, $data);
+ 

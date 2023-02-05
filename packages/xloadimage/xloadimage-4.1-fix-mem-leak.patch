@@ -1,0 +1,12 @@
+diff -up xloadimage.4.1/new.c.fix-mem-leak xloadimage.4.1/new.c
+--- xloadimage.4.1/new.c.fix-mem-leak	2013-01-02 13:21:24.082069878 -0500
++++ xloadimage.4.1/new.c	2013-01-02 13:22:04.427104519 -0500
+@@ -181,7 +181,7 @@ Image *newTrueImage(width, height)
+   image->depth= 24;
+   image->pixlen= 3;
+   image->data= (unsigned char *)lmalloc(ovmul(ovmul(width, height), 3));
+-  image->data= (unsigned char *)lmalloc(width * height * 3);
++  /* image->data= (unsigned char *)lmalloc(width * height * 3); */
+   return(image);
+ }
+ 

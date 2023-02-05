@@ -1,0 +1,87 @@
+diff -up vim80/runtime/tools/demoserver.py.python3-tests vim80/runtime/tools/demoserver.py
+--- vim80/runtime/tools/demoserver.py.python3-tests	2018-05-11 08:24:41.774618804 +0200
++++ vim80/runtime/tools/demoserver.py	2018-05-11 09:24:48.363309856 +0200
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!%{__python3}
+ #
+ # Server that will accept connections from a Vim channel.
+ # Run this server and then in Vim you can open the channel:
+diff -up vim80/src/auto/configure.python3-tests vim80/src/auto/configure
+--- vim80/src/auto/configure.python3-tests	2018-05-11 08:25:03.632420873 +0200
++++ vim80/src/auto/configure	2018-05-11 09:25:26.062000471 +0200
+@@ -6396,7 +6396,7 @@ eof
+ 	    if test "x$MACOS_X" = "xyes" && test -n "${python_PYTHONFRAMEWORK}" && ${vi_cv_path_python} -c \
+ 		"import sys; sys.exit(${vi_cv_var_python_version} < 2.3)"; then
+ 	      vi_cv_path_python_plibs="-framework Python"
+-	      if test "x${vi_cv_path_python}" != "x/usr/bin/python" && test -n "${python_PYTHONFRAMEWORKPREFIX}"; then
++	      if test "x${vi_cv_path_python}" != "x/usr/bin/python2" && test -n "${python_PYTHONFRAMEWORKPREFIX}"; then
+ 		  vi_cv_path_python_plibs="-F${python_PYTHONFRAMEWORKPREFIX} -framework Python"
+ 	      fi
+ 	    else
+diff -up vim80/src/configure.ac.python3-tests vim80/src/configure.ac
+--- vim80/src/configure.ac.python3-tests	2018-05-11 08:25:26.070218957 +0200
++++ vim80/src/configure.ac	2018-05-11 09:26:01.603708243 +0200
+@@ -1248,7 +1248,7 @@ eof
+ 	    if test "x$MACOS_X" = "xyes" && test -n "${python_PYTHONFRAMEWORK}" && ${vi_cv_path_python} -c \
+ 		"import sys; sys.exit(${vi_cv_var_python_version} < 2.3)"; then
+ 	      vi_cv_path_python_plibs="-framework Python"
+-	      if test "x${vi_cv_path_python}" != "x/usr/bin/python" && test -n "${python_PYTHONFRAMEWORKPREFIX}"; then
++	      if test "x${vi_cv_path_python}" != "x/usr/bin/python2" && test -n "${python_PYTHONFRAMEWORKPREFIX}"; then
+ 		  vi_cv_path_python_plibs="-F${python_PYTHONFRAMEWORKPREFIX} -framework Python"
+ 	      fi
+ 	    else
+diff -up vim80/src/testdir/test_channel_pipe.py.python3-tests vim80/src/testdir/test_channel_pipe.py
+--- vim80/src/testdir/test_channel_pipe.py.python3-tests	2018-05-11 09:23:05.738146018 +0200
++++ vim80/src/testdir/test_channel_pipe.py	2018-05-11 09:26:37.354413350 +0200
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!%{__python3}
+ #
+ # Server that will communicate over stdin/stderr
+ #
+diff -up vim80/src/testdir/test_channel.py.python3-tests vim80/src/testdir/test_channel.py
+--- vim80/src/testdir/test_channel.py.python3-tests	2018-05-11 09:22:48.522284266 +0200
++++ vim80/src/testdir/test_channel.py	2018-05-11 09:26:17.762574955 +0200
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!%{__python3}
+ #
+ # Server that will accept connections from a Vim channel.
+ # Used by test_channel.vim.
+diff -up vim80/src/testdir/test_channel_write.py.python3-tests vim80/src/testdir/test_channel_write.py
+--- vim80/src/testdir/test_channel_write.py.python3-tests	2018-05-11 09:23:21.254021422 +0200
++++ vim80/src/testdir/test_channel_write.py	2018-05-11 09:26:54.952268193 +0200
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!%{__python3}
+ #
+ # Program that writes a number to stdout repeatedly
+ #
+diff -up vim80/src/testdir/test_makeencoding.py.python3-tests vim80/src/testdir/test_makeencoding.py
+--- vim80/src/testdir/test_makeencoding.py.python3-tests	2018-05-11 09:23:38.990878990 +0200
++++ vim80/src/testdir/test_makeencoding.py	2018-05-11 09:27:14.402107759 +0200
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!%{__python3}
+ # -*- coding: utf-8 -*-
+ 
+ # Test program for :make, :grep and :cgetfile.
+diff -up vim80/src/testdir/test_netbeans.py.python3-tests vim80/src/testdir/test_netbeans.py
+--- vim80/src/testdir/test_netbeans.py.python3-tests	2018-05-11 09:23:54.398752732 +0200
++++ vim80/src/testdir/test_netbeans.py	2018-05-11 09:27:30.489975057 +0200
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!%{__python3}
+ #
+ # Server that will communicate with Vim through the netbeans interface.
+ # Used by test_netbeans.vim.
+diff -up vim80/src/testdir/test_short_sleep.py.python3-tests vim80/src/testdir/test_short_sleep.py
+--- vim80/src/testdir/test_short_sleep.py.python3-tests	2018-05-11 09:24:09.134631798 +0200
++++ vim80/src/testdir/test_short_sleep.py	2018-05-11 09:27:48.432827053 +0200
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!%{__python3}
+ #
+ # Program that sleeps for 100 msec
+ #

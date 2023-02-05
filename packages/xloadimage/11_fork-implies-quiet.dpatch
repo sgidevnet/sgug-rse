@@ -1,0 +1,31 @@
+#! /bin/sh -e
+## 11_fork-implies-quiet.dpatch by Jens Peter Secher <jpsecher@diku.dk>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Make -fork imply -quiet as documented.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+diff -urNad 11.xloadimage.tmp/options.c 11.xloadimage/options.c
+--- 11.xloadimage.tmp/options.c	2003-04-05 14:13:53.000000000 +0100
++++ 11.xloadimage/options.c	2003-04-05 14:13:30.000000000 +0100
+@@ -551,6 +551,7 @@
+ 	      optionName(FORK));
+       continue;
+ #else
++      killOption(global_options, VERBOSE);
+       global_opt= 1;
+       break;
+ #endif

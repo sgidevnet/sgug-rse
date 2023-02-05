@@ -1,0 +1,145 @@
+From 6b096ea5670ed291abac632b296222b56d9fadb4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Petr=20P=C3=ADsa=C5=99?= <ppisar@redhat.com>
+Date: Thu, 1 Mar 2018 14:44:40 +0100
+Subject: [PATCH] Do not need a compiler if c_source is an empty list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+c_source used to be string, then it allowed a reference to an array.
+But in case the array was empty, auto_require() still enabled
+needs_compiler property and thus implied probing a compiler and
+a failure if none was available.
+
+Minilla generates these Build.PLs for pure-Perl distributions. See
+KAZUHO/Server-Starter-0.34.
+
+This patch makes Module::Build not require C compiler for
+c_source = [].
+
+Petr Písař: Ported to 0.4224.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ lib/Module/Build/API.pod      |  8 ++++----
+ lib/Module/Build/Base.pm      |  6 +++++-
+ t/properties/needs_compiler.t | 46 ++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 52 insertions(+), 8 deletions(-)
+
+diff --git a/lib/Module/Build/API.pod b/lib/Module/Build/API.pod
+index cd2021a..c9be539 100644
+--- a/lib/Module/Build/API.pod
++++ b/lib/Module/Build/API.pod
+@@ -209,10 +209,10 @@ created by Module::Build.
+ 
+ [version 0.04]
+ 
+-An optional C<c_source> argument specifies a directory which contains
+-C source files that the rest of the build may depend on.  Any C<.c>
+-files in the directory will be compiled to object files.  The
+-directory will be added to the search path during the compilation and
++An optional C<c_source> argument specifies a directory or a reference to array
++of directories which contain C source files that the rest of the build may
++depend on.  Any C<.c> files in the directory will be compiled to object files.
++The directory will be added to the search path during the compilation and
+ linking phases of any C or XS files.
+ 
+ [version 0.3604]
+diff --git a/lib/Module/Build/Base.pm b/lib/Module/Build/Base.pm
+index 984810a..a29c664 100644
+--- a/lib/Module/Build/Base.pm
++++ b/lib/Module/Build/Base.pm
+@@ -1520,7 +1520,11 @@ sub auto_require {
+     if ( $self->pureperl_only && $self->allow_pureperl ) {
+       $self->needs_compiler( 0 );
+     } else {
+-      $self->needs_compiler( keys %$xs_files || defined $self->c_source );
++      $self->needs_compiler( keys %$xs_files ||
++        ( defined $self->c_source &&
++          ( ref($self->c_source) ne 'ARRAY' || @{$self->c_source} )
++        )
++      );
+     }
+   }
+   if ($self->needs_compiler) {
+diff --git a/t/properties/needs_compiler.t b/t/properties/needs_compiler.t
+index f616dfc..c76d38f 100644
+--- a/t/properties/needs_compiler.t
++++ b/t/properties/needs_compiler.t
+@@ -5,7 +5,7 @@ use lib 't/lib';
+ use MBTest;
+ use DistGen;
+ 
+-plan tests => 19;
++plan tests => 27;
+ 
+ # Ensure any Module::Build modules are loaded from correct directory
+ blib_load('Module::Build');
+@@ -24,7 +24,7 @@ ok( ! exists $mb->{properties}{build_requires}{'ExtUtils::CBuilder'},
+ );
+ 
+ #--------------------------------------------------------------------------#
+-# try with c_source
++# try with c_source as a string
+ #--------------------------------------------------------------------------#
+ $dist->change_build_pl({
+     module_name => $dist->name,
+@@ -34,7 +34,7 @@ $dist->change_build_pl({
+ $dist->regen;
+ stderr_of(sub {
+   ok( $mb = $dist->new_from_context,
+-    "Build.PL with c_source"
++    "Build.PL with string c_source"
+   );
+ });
+ is( $mb->c_source, 'src', "c_source is set" );
+@@ -44,6 +44,46 @@ ok( exists $mb->{properties}{build_requires}{'ExtUtils::CBuilder'},
+ );
+ 
+ #--------------------------------------------------------------------------#
++# try with c_source as an array
++#--------------------------------------------------------------------------#
++$dist->change_build_pl({
++    module_name => $dist->name,
++    license => 'perl',
++    c_source => ['src'],
++});
++$dist->regen;
++stderr_of(sub {
++  ok( $mb = $dist->new_from_context,
++    "Build.PL with non-empty array c_source"
++  );
++});
++is_deeply( $mb->c_source, ['src'], "c_source is set" );
++ok( $mb->needs_compiler, "needs_compiler is true" );
++ok( exists $mb->{properties}{build_requires}{'ExtUtils::CBuilder'},
++  "ExtUtils::CBuilder was added to build_requires"
++);
++
++#--------------------------------------------------------------------------#
++# try with c_source as an empty array
++#--------------------------------------------------------------------------#
++$dist->change_build_pl({
++    module_name => $dist->name,
++    license => 'perl',
++    c_source => [],
++});
++$dist->regen;
++stderr_of(sub {
++  ok( $mb = $dist->new_from_context,
++    "Build.PL with empty array c_source"
++  );
++});
++is_deeply( $mb->c_source, [], "c_source is set" );
++ok( ! $mb->needs_compiler, "needs_compiler is false" );
++ok( ! exists $mb->{properties}{build_requires}{'ExtUtils::CBuilder'},
++  "ExtUtils::CBuilder is not in build_requires"
++);
++
++#--------------------------------------------------------------------------#
+ # try with xs files
+ #--------------------------------------------------------------------------#
+ $dist = DistGen->new(dir => 'MBTest', xs => 1);
+-- 
+2.13.6
+

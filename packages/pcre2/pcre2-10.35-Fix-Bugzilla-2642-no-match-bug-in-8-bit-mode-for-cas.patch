@@ -1,0 +1,79 @@
+From c23be766617cbfcb14e56dc5f1f01289077bd125 Mon Sep 17 00:00:00 2001
+From: ph10 <ph10@6239d852-aaf2-0410-a92c-79f79f948069>
+Date: Tue, 15 Sep 2020 14:36:23 +0000
+Subject: [PATCH] Fix Bugzilla #2642: no match bug in 8-bit mode for caseless
+ invalid utf matching.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+git-svn-id: svn://vcs.exim.org/pcre2/code/trunk@1272 6239d852-aaf2-0410-a92c-79f79f948069
+Petr Písař: Ported to 10.35.
+---
+ src/pcre2_match.c     | 10 ++++++++--
+ testdata/testinput10  |  3 +++
+ testdata/testoutput10 |  4 ++++
+
+diff --git a/src/pcre2_match.c b/src/pcre2_match.c
+index 11289d5..3372410 100644
+--- a/src/pcre2_match.c
++++ b/src/pcre2_match.c
+@@ -6115,8 +6115,8 @@ BOOL has_req_cu = FALSE;
+ BOOL startline;
+ 
+ #if PCRE2_CODE_UNIT_WIDTH == 8
+-BOOL memchr_not_found_first_cu = FALSE;
+-BOOL memchr_not_found_first_cu2 = FALSE;
++BOOL memchr_not_found_first_cu;
++BOOL memchr_not_found_first_cu2;
+ #endif
+ 
+ PCRE2_UCHAR first_cu = 0;
+@@ -6709,6 +6709,11 @@ FRAGMENT_RESTART:
+ start_partial = match_partial = NULL;
+ mb->hitend = FALSE;
+ 
++#if PCRE2_CODE_UNIT_WIDTH == 8
++memchr_not_found_first_cu = FALSE;
++memchr_not_found_first_cu2 = FALSE;
++#endif
++
+ for(;;)
+   {
+   PCRE2_SPTR new_start_match;
+@@ -7187,6 +7192,7 @@ if (utf && end_subject != true_end_subject &&
+     starting code units in 8-bit and 16-bit modes. */
+ 
+     start_match = end_subject + 1;
++    
+ #if PCRE2_CODE_UNIT_WIDTH != 32
+     while (start_match < true_end_subject && NOT_FIRSTCU(*start_match))
+       start_match++;
+diff --git a/testdata/testinput10 b/testdata/testinput10
+index b3c3197..efd3298 100644
+--- a/testdata/testinput10
++++ b/testdata/testinput10
+@@ -610,4 +610,7 @@
+ /X(\x{e1})Y/replace=>\U$1<,substitute_extended
+     X\x{e1}Y
+ 
++/A/utf,match_invalid_utf,caseless
++    \xe5A
++
+ # End of testinput10
+diff --git a/testdata/testoutput10 b/testdata/testoutput10
+index 59af535..2a3803f 100644
+--- a/testdata/testoutput10
++++ b/testdata/testoutput10
+@@ -1871,4 +1871,8 @@ Subject length lower bound = 1
+     X\x{e1}Y
+  1: >\xe1<
+ 
++/A/utf,match_invalid_utf,caseless
++    \xe5A
++ 0: A
++
+ # End of testinput10
+-- 
+2.25.4
+

@@ -1,0 +1,63 @@
+From b0f5b1daacb21ab7e46a772a6ff0f70ca627cb58 Mon Sep 17 00:00:00 2001
+From: Hugo van der Sanden <hv@crypt.org>
+Date: Tue, 9 Apr 2019 14:27:41 +0100
+Subject: [PATCH 1/2] [#134008] More carefully ignore negative precision in
+ sprintf
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Check has_precis more consistently; ensure precis is left as 0 if provided
+as a negative number.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ sv.c            | 7 +++++--
+ t/op/sprintf2.t | 3 +++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/sv.c b/sv.c
+index de67b7657e..8fbca52eb2 100644
+--- a/sv.c
++++ b/sv.c
+@@ -11765,11 +11765,11 @@ S_format_hexfp(pTHX_ char * const buf, const STRLEN bufsize, const char c,
+     else {
+         *p++ = '0';
+         exponent = 0;
+-        zerotail = precis;
++        zerotail = has_precis ? precis : 0;
+     }
+ 
+     /* The radix is always output if precis, or if alt. */
+-    if (precis > 0 || alt) {
++    if ((has_precis && precis > 0) || alt) {
+       hexradix = TRUE;
+     }
+ 
+@@ -12223,6 +12223,9 @@ Perl_sv_vcatpvfn_flags(pTHX_ SV *const sv, const char *const pat, const STRLEN p
+                     }
+                     precis = S_sprintf_arg_num_val(aTHX_ args, i, sv, &neg);
+                     has_precis = !neg;
++                    /* ignore negative precision */
++                    if (!has_precis)
++                        precis = 0;
+                 }
+ 	    }
+ 	    else {
+diff --git a/t/op/sprintf2.t b/t/op/sprintf2.t
+index dc87821152..569bd8053d 100644
+--- a/t/op/sprintf2.t
++++ b/t/op/sprintf2.t
+@@ -838,6 +838,9 @@ SKIP: {
+     # [rt.perl.org #128889]
+     is(sprintf("%.*a", -1, 1.03125), "0x1.08p+0", "[rt.perl.org #128889]");
+ 
++    # [rt.perl.org #134008]
++    is(sprintf("%.*a", -99999, 1.03125), "0x1.08p+0", "[rt.perl.org #134008]");
++
+     # [rt.perl.org #128890]
+     is(sprintf("%a", 0x1.18p+0), "0x1.18p+0");
+     is(sprintf("%.1a", 0x1.08p+0), "0x1.0p+0");
+-- 
+2.20.1
+

@@ -1,0 +1,91 @@
+From 8e8d28dd8ecc9226ea4e0f75d54151df90f4d78e Mon Sep 17 00:00:00 2001
+From: Pradyun Gedam <pradyunsg@gmail.com>
+Date: Sat, 20 Jul 2019 09:31:48 +0530
+Subject: [PATCH] Upgrade requests to 2.22.0
+
+---
+ news/requests.vendor                    | 1 +
+ src/pip/_vendor/requests/__init__.py    | 4 ++--
+ src/pip/_vendor/requests/__version__.py | 6 +++---
+ src/pip/_vendor/requests/api.py         | 4 ++--
+ src/pip/_vendor/vendor.txt              | 1 +
+ 5 files changed, 9 insertions(+), 7 deletions(-)
+ create mode 100644 news/requests.vendor
+
+diff --git a/news/requests.vendor b/news/requests.vendor
+new file mode 100644
+index 0000000000..aac729b0e1
+--- /dev/null
++++ b/news/requests.vendor
+@@ -0,0 +1 @@
++Upgrade requests to 2.22.0
+diff --git a/src/pip/_vendor/requests/__init__.py b/src/pip/_vendor/requests/__init__.py
+index 80c4ce1d21..1d30e3e063 100644
+--- a/src/pip/_vendor/requests/__init__.py
++++ b/src/pip/_vendor/requests/__init__.py
+@@ -57,10 +57,10 @@ def check_compatibility(urllib3_version, chardet_version):
+     # Check urllib3 for compatibility.
+     major, minor, patch = urllib3_version  # noqa: F811
+     major, minor, patch = int(major), int(minor), int(patch)
+-    # urllib3 >= 1.21.1, <= 1.24
++    # urllib3 >= 1.21.1, <= 1.25
+     assert major == 1
+     assert minor >= 21
+-    assert minor <= 24
++    assert minor <= 25
+ 
+     # Check chardet for compatibility.
+     major, minor, patch = chardet_version.split('.')[:3]
+diff --git a/src/pip/_vendor/requests/__version__.py b/src/pip/_vendor/requests/__version__.py
+index f5b5d03671..9844f740ab 100644
+--- a/src/pip/_vendor/requests/__version__.py
++++ b/src/pip/_vendor/requests/__version__.py
+@@ -5,10 +5,10 @@
+ __title__ = 'requests'
+ __description__ = 'Python HTTP for Humans.'
+ __url__ = 'http://python-requests.org'
+-__version__ = '2.21.0'
+-__build__ = 0x022100
++__version__ = '2.22.0'
++__build__ = 0x022200
+ __author__ = 'Kenneth Reitz'
+ __author_email__ = 'me@kennethreitz.org'
+ __license__ = 'Apache 2.0'
+-__copyright__ = 'Copyright 2018 Kenneth Reitz'
++__copyright__ = 'Copyright 2019 Kenneth Reitz'
+ __cake__ = u'\u2728 \U0001f370 \u2728'
+diff --git a/src/pip/_vendor/requests/api.py b/src/pip/_vendor/requests/api.py
+index abada96d46..ef71d0759e 100644
+--- a/src/pip/_vendor/requests/api.py
++++ b/src/pip/_vendor/requests/api.py
+@@ -19,7 +19,7 @@ def request(method, url, **kwargs):
+     :param method: method for the new :class:`Request` object.
+     :param url: URL for the new :class:`Request` object.
+     :param params: (optional) Dictionary, list of tuples or bytes to send
+-        in the body of the :class:`Request`.
++        in the query string for the :class:`Request`.
+     :param data: (optional) Dictionary, list of tuples, bytes, or file-like
+         object to send in the body of the :class:`Request`.
+     :param json: (optional) A JSON serializable Python object to send in the body of the :class:`Request`.
+@@ -65,7 +65,7 @@ def get(url, params=None, **kwargs):
+ 
+     :param url: URL for the new :class:`Request` object.
+     :param params: (optional) Dictionary, list of tuples or bytes to send
+-        in the body of the :class:`Request`.
++        in the query string for the :class:`Request`.
+     :param \*\*kwargs: Optional arguments that ``request`` takes.
+     :return: :class:`Response <Response>` object
+     :rtype: requests.Response
+diff --git a/src/pip/_vendor/vendor.txt b/src/pip/_vendor/vendor.txt
+index bcf579515e..e5542fbc5e 100644
+--- a/src/pip/_vendor/vendor.txt
++++ b/src/pip/_vendor/vendor.txt
+@@ -12,7 +12,7 @@ pep517==0.5.0
+ progress==1.5
+ pyparsing==2.4.0
+ pytoml==0.1.20
+-requests==2.21.0
++requests==2.22.0
+     certifi==2019.3.9
+     chardet==3.0.4
+     idna==2.8

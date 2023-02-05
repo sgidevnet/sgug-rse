@@ -1,0 +1,55 @@
+From 746a45acd333174c3174230833b45f537bd92889 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miro=20Hron=C4=8Dok?= <miro@hroncok.cz>
+Date: Thu, 11 Jul 2019 13:44:13 +0200
+Subject: [PATCH] 00328: Restore pyc to TIMESTAMP invalidation mode as default
+ in rpmbuild
+
+Since Fedora 31, the $SOURCE_DATE_EPOCH is set in rpmbuild to the latest
+%changelog date. This makes Python default to the CHECKED_HASH pyc
+invalidation mode, bringing more reproducible builds traded for an import
+performance decrease. To avoid that, we don't default to CHECKED_HASH
+when $RPM_BUILD_ROOT is set (i.e. when we are building RPM packages).
+
+See https://src.fedoraproject.org/rpms/redhat-rpm-config/pull-request/57#comment-27426
+---
+ Lib/py_compile.py           | 3 ++-
+ Lib/test/test_py_compile.py | 2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Lib/py_compile.py b/Lib/py_compile.py
+index 21736896af..310bed5620 100644
+--- a/Lib/py_compile.py
++++ b/Lib/py_compile.py
+@@ -70,7 +70,8 @@ class PycInvalidationMode(enum.Enum):
+ 
+ 
+ def _get_default_invalidation_mode():
+-    if os.environ.get('SOURCE_DATE_EPOCH'):
++    if (os.environ.get('SOURCE_DATE_EPOCH') and not
++            os.environ.get('RPM_BUILD_ROOT')):
+         return PycInvalidationMode.CHECKED_HASH
+     else:
+         return PycInvalidationMode.TIMESTAMP
+diff --git a/Lib/test/test_py_compile.py b/Lib/test/test_py_compile.py
+index d6677ab45f..88059b127e 100644
+--- a/Lib/test/test_py_compile.py
++++ b/Lib/test/test_py_compile.py
+@@ -17,6 +17,7 @@ def without_source_date_epoch(fxn):
+     def wrapper(*args, **kwargs):
+         with support.EnvironmentVarGuard() as env:
+             env.unset('SOURCE_DATE_EPOCH')
++            env.unset('RPM_BUILD_ROOT')
+             return fxn(*args, **kwargs)
+     return wrapper
+ 
+@@ -27,6 +28,7 @@ def with_source_date_epoch(fxn):
+     def wrapper(*args, **kwargs):
+         with support.EnvironmentVarGuard() as env:
+             env['SOURCE_DATE_EPOCH'] = '123456789'
++            env.unset('RPM_BUILD_ROOT')
+             return fxn(*args, **kwargs)
+     return wrapper
+ 
+-- 
+2.21.0
+

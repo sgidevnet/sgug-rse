@@ -1,0 +1,11 @@
+diff -up Python-2.7.2/Lib/test/test_io.py.disable-tests-in-test_io Python-2.7.2/Lib/test/test_io.py
+--- Python-2.7.2/Lib/test/test_io.py.disable-tests-in-test_io	2011-09-01 14:18:45.963304089 -0400
++++ Python-2.7.2/Lib/test/test_io.py	2011-09-01 15:08:53.796098413 -0400
+@@ -2669,6 +2669,7 @@ class SignalsTest(unittest.TestCase):
+         self.check_interrupted_read_retry(lambda x: x,
+                                           mode="r")
+ 
++    @unittest.skip('rhbz#732998')
+     @unittest.skipUnless(threading, 'Threading required for this test.')
+     def check_interrupted_write_retry(self, item, **fdopen_kwargs):
+         """Check that a buffered write, when it gets interrupted (either

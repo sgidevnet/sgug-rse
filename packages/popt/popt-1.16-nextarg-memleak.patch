@@ -1,0 +1,79 @@
+From 6fcb24d785a2c2d626bac6999aee6b3ab368be15 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Fri, 28 Jul 2017 16:11:40 -0400
+Subject: [PATCH] Don't leak the last argument expanded by expandNextArg()
+
+While using POPT_ARG_ARGV, I noticed this in valgrind's leak checker:
+
+==1738== HEAP SUMMARY:
+==1738==     in use at exit: 8 bytes in 1 blocks
+==1738==   total heap usage: 94 allocs, 93 frees, 42,319 bytes allocated
+==1738==
+==1738== 8 bytes in 1 blocks are definitely lost in loss record 1 of 1
+==1738==    at 0x4C2EB6B: malloc (vg_replace_malloc.c:299)
+==1738==    by 0x4E3DF47: expandNextArg (popt.c:699)
+==1738==    by 0x4E3F681: poptGetNextOpt (popt.c:1501)
+==1738==    by 0x401F72: main (bingrep.c:433)
+==1738==
+==1738== LEAK SUMMARY:
+==1738==    definitely lost: 8 bytes in 1 blocks
+==1738==    indirectly lost: 0 bytes in 0 blocks
+==1738==      possibly lost: 0 bytes in 0 blocks
+==1738==    still reachable: 0 bytes in 0 blocks
+==1738==         suppressed: 0 bytes in 0 blocks
+
+My command line argument is a 7-byte string, and on first glance, it
+appears this is because both expandNextArg() and poptSaveString()
+duplicate the string.  The copy from poptSaveString() is the consuming
+program's responsibility to free, but the intermediate pointer is popt's
+responsibility.
+
+Upon further examination, it appears popt normally does free this
+string, but it only does it on the next entry to poptGetNextOpt(), and
+on cleanOSE() in the case if we're not already at the bottom of
+con->OptionStack.
+
+This patch modifies poptResetContext() to ensure we'll always attempt to
+free con->os->nextArg regardless of our position in the OptionStack, and
+removes the duplicate free of con->os->argb in poptFreeContext(), as
+it's called unconditionally by the poptResetContext() call on the
+previous line.
+
+This ensures that if poptGetNextOpt() isn't re-intered, poptFreeContext()
+will free the memory that was allocated.  Now valgrind tells me:
+
+==31734== HEAP SUMMARY:
+==31734==     in use at exit: 0 bytes in 0 blocks
+==31734==   total heap usage: 94 allocs, 94 frees, 42,319 bytes allocated
+==31734==
+==31734== All heap blocks were freed -- no leaks are possible
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ popt.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/popt.c b/popt.c
+index 1a53f40..72fbf5c 100644
+--- a/popt.c
++++ b/popt.c
+@@ -230,7 +230,7 @@ void poptResetContext(poptContext con)
+     con->os->argb = PBM_FREE(con->os->argb);
+     con->os->currAlias = NULL;
+     con->os->nextCharArg = NULL;
+-    con->os->nextArg = NULL;
++    con->os->nextArg = _free(con->os->nextArg);
+     con->os->next = 1;			/* skip argv[0] */
+ 
+     con->numLeftovers = 0;
+@@ -1617,7 +1617,6 @@ poptContext poptFreeContext(poptContext con)
+ {
+     if (con == NULL) return con;
+     poptResetContext(con);
+-    con->os->argb = _free(con->os->argb);
+ 
+     con->aliases = poptFreeItems(con->aliases, con->numAliases);
+     con->numAliases = 0;
+-- 
+2.13.3
+

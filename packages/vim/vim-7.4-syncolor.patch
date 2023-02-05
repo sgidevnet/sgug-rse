@@ -1,0 +1,26 @@
+diff --git a/src/highlight.c b/src/highlight.c
+index 9322f96..f7147a0 100644
+--- a/src/highlight.c
++++ b/src/highlight.c
+@@ -211,8 +211,8 @@ static char *(highlight_init_light[]) = {
+     CENT("Visual term=reverse",
+ 	 "Visual term=reverse guibg=LightGrey"),
+ #ifdef FEAT_DIFF
+-    CENT("DiffAdd term=bold ctermbg=LightBlue",
+-	 "DiffAdd term=bold ctermbg=LightBlue guibg=LightBlue"),
++    CENT("DiffAdd term=bold ctermbg=LightRed",
++	  "DiffAdd term=bold ctermbg=LightRed guibg=LightBlue"),
+     CENT("DiffChange term=bold ctermbg=LightMagenta",
+ 	 "DiffChange term=bold ctermbg=LightMagenta guibg=LightMagenta"),
+     CENT("DiffDelete term=bold ctermfg=Blue ctermbg=LightCyan",
+@@ -304,8 +304,8 @@ static char *(highlight_init_dark[]) = {
+     CENT("Visual term=reverse",
+ 	 "Visual term=reverse guibg=DarkGrey"),
+ #ifdef FEAT_DIFF
+-    CENT("DiffAdd term=bold ctermbg=DarkBlue",
+-	 "DiffAdd term=bold ctermbg=DarkBlue guibg=DarkBlue"),
++    CENT("DiffAdd term=bold ctermbg=DarkRed",
++	  "DiffAdd term=bold ctermbg=DarkRed guibg=DarkBlue"),
+     CENT("DiffChange term=bold ctermbg=DarkMagenta",
+ 	 "DiffChange term=bold ctermbg=DarkMagenta guibg=DarkMagenta"),
+     CENT("DiffDelete term=bold ctermfg=Blue ctermbg=DarkCyan",

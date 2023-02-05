@@ -1,0 +1,26 @@
+From 838292fe4034fc4ab4567f1d87193a4e6a57eca0 Mon Sep 17 00:00:00 2001
+From: Scott Tringali <tringali@users.sf.net>
+Date: Tue, 7 Feb 2017 21:31:00 -0500
+Subject: [PATCH] Force C89 on gcc/linux to prevent accidental changes to
+ C90/GNU dialect
+
+---
+ makefiles/Makefile.linux | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/makefiles/Makefile.linux b/makefiles/Makefile.linux
+index b6e9556..32d3f04 100644
+--- a/makefiles/Makefile.linux
++++ b/makefiles/Makefile.linux
+@@ -17,7 +17,7 @@ AR=ar
+ # To test if the Motif library exports the runtime version
+ # add -DHAVE__XMVERSIONSTRING to CFLAGS
+ #
+-CFLAGS=-O -I/usr/X11R6/include -DUSE_DIRENT -DUSE_LPR_PRINT_CMD
++CFLAGS=-O -I/usr/X11R6/include -DUSE_DIRENT -DUSE_LPR_PRINT_CMD -ansi -U__STRICT_ANSI__
+ 
+ ARFLAGS=-urs
+ 
+-- 
+2.9.3
+

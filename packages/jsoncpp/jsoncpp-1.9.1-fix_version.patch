@@ -1,0 +1,26 @@
+Index: jsoncpp-1.9.1/CMakeLists.txt
+===================================================================
+--- jsoncpp-1.9.1.orig/CMakeLists.txt
++++ jsoncpp-1.9.1/CMakeLists.txt
+@@ -63,7 +63,7 @@ if(NOT DEFINED CMAKE_BUILD_TYPE)
+ endif()
+ 
+ project(JSONCPP
+-        VERSION 1.9.0 # <major>[.<minor>[.<patch>[.<tweak>]]]
++        VERSION 1.9.1 # <major>[.<minor>[.<patch>[.<tweak>]]]
+         LANGUAGES CXX)
+ 
+ message(STATUS "JsonCpp Version: ${JSONCPP_VERSION_MAJOR}.${JSONCPP_VERSION_MINOR}.${JSONCPP_VERSION_PATCH}")
+Index: jsoncpp-1.9.1/meson.build
+===================================================================
+--- jsoncpp-1.9.1.orig/meson.build
++++ jsoncpp-1.9.1/meson.build
+@@ -1,7 +1,7 @@
+ project(
+   'jsoncpp',
+   'cpp',
+-  version : '1.9.0',
++  version : '1.9.1',
+   default_options : [
+     'buildtype=release',
+     'cpp_std=c++11',

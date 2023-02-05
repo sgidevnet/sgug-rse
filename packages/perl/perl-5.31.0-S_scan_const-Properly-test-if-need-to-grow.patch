@@ -1,0 +1,49 @@
+From 89f69032d6a71f41b96ae6becbf3df4e2f9509a5 Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Sat, 27 Apr 2019 13:56:39 -0600
+Subject: [PATCH] S_scan_const() Properly test if need to grow
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+As we parse the input, creating a string constant, we may have to grow
+the destination if it fills up as we go along.  It allocates space in an
+SV and populates the string, but it doesn' update the SvCUR until the
+end, so in single stepping the debugger through the code, the SV looks
+empty until the end.  It turns out that as a result SvEND also doesn't
+get updated and still points to the beginning of the string until SvCUR
+is finally set.  That means that the test changed by this commit was
+always succeeding, because it was using SvEND that didn't get updated,
+so it would attempt to grow each time through the loop.  By moving a
+couple of statements earlier, and using SvLEN instead, which does always
+have the correct value, those extra growth attempts are avoided.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ toke.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/toke.c b/toke.c
+index 68eea0cae6..03c4f2ba26 100644
+--- a/toke.c
++++ b/toke.c
+@@ -4097,10 +4097,12 @@ S_scan_const(pTHX_ char *start)
+             goto default_action; /* Redo, having upgraded so both are UTF-8 */
+         }
+         else {  /* UTF8ness matters: convert this non-UTF8 source char to
+-                   UTF-8 for output.  It will occupy 2 bytes */
+-            if (d + 2 >= SvEND(sv)) {
+-                const STRLEN extra = 2 + (send - s - 1) + 1;
+-		const STRLEN off = d - SvPVX_const(sv);
++                   UTF-8 for output.  It will occupy 2 bytes, but don't include
++                   the input byte since we haven't incremented 's' yet. See
++                   Note on sizing above. */
++            const STRLEN off = d - SvPVX(sv);
++            const STRLEN extra = 2 + (send - s - 1) + 1;
++            if (off + extra > SvLEN(sv)) {
+ 		d = off + SvGROW(sv, off + extra);
+ 	    }
+             *d++ = UTF8_EIGHT_BIT_HI(*s);
+-- 
+2.20.1
+

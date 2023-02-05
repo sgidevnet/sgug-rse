@@ -1,0 +1,47 @@
+From a8e0c1fd5ade7c30aa0782f1aea274ef89190f6d Mon Sep 17 00:00:00 2001
+From: Tony Cook <tony@develop-help.com>
+Date: Wed, 12 Jun 2019 15:21:47 +1000
+Subject: [PATCH] (perl #133989) scalar() the argument to readline, if any
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+C< readline @foo > would treat @foo as array.  If the array was empty
+this would push zero items and readline() would then pop one item,
+possibly underflowing the stack.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ op.c               | 1 +
+ t/lib/croak/pp_sys | 6 ++++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/op.c b/op.c
+index 6ad192307f..7aa002cadd 100644
+--- a/op.c
++++ b/op.c
+@@ -12142,6 +12142,7 @@ Perl_ck_readline(pTHX_ OP *o)
+     if (o->op_flags & OPf_KIDS) {
+ 	 OP *kid = cLISTOPo->op_first;
+ 	 if (kid->op_type == OP_RV2GV) kid->op_private |= OPpALLOW_FAKE;
++         scalar(kid);
+     }
+     else {
+ 	OP * const newop
+diff --git a/t/lib/croak/pp_sys b/t/lib/croak/pp_sys
+index be100da27a..cf9e4ef0ed 100644
+--- a/t/lib/croak/pp_sys
++++ b/t/lib/croak/pp_sys
+@@ -93,3 +93,9 @@ close $fh;
+ END { unlink $file; }
+ EXPECT
+ syswrite() isn't allowed on :utf8 handles at - line 5.
++########
++# NAME readline() didn't scalar() its argument
++# this would assert rather than failing on the method call
++E{0;readline@0}
++EXPECT
++Can't call method "E" without a package or object reference at - line 2.
+-- 
+2.20.1
+

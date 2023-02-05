@@ -1,0 +1,778 @@
+diff -up diffutils-3.6/src/diff.c.i18n diffutils-3.6/src/diff.c
+--- diffutils-3.6/src/diff.c.i18n	2017-05-06 20:02:54.000000000 +0100
++++ diffutils-3.6/src/diff.c	2017-05-22 10:52:21.989254674 +0100
+@@ -76,6 +76,8 @@ static void try_help (char const *, char
+ static void check_stdout (void);
+ static void usage (void);
+ 
++bool (*lines_differ) (char const *, size_t, char const *, size_t);
++
+ /* If comparing directories, compare their common subdirectories
+    recursively.  */
+ static bool recursive;
+@@ -298,6 +300,13 @@ main (int argc, char **argv)
+   excluded = new_exclude ();
+   presume_output_tty = false;
+ 
++#ifdef HANDLE_MULTIBYTE
++  if (MB_CUR_MAX > 1)
++    lines_differ = lines_differ_multibyte;
++  else
++#endif
++    lines_differ = lines_differ_singlebyte;
++
+   /* Decode the options.  */
+ 
+   while ((c = getopt_long (argc, argv, shortopts, longopts, NULL)) != -1)
+diff -up diffutils-3.6/src/diff.h.i18n diffutils-3.6/src/diff.h
+--- diffutils-3.6/src/diff.h.i18n	2017-01-01 11:22:36.000000000 +0000
++++ diffutils-3.6/src/diff.h	2017-05-22 10:51:09.050371844 +0100
+@@ -23,6 +23,17 @@
+ #include <stdio.h>
+ #include <unlocked-io.h>
+ 
++/* For platforms which support the ISO C ammendment 1 functionality we
++   support user-defined character classes. */
++#if defined HAVE_WCTYPE_H && defined HAVE_WCHAR_H
++/* Solaris 2.5 has a bug: <wchar.h> must be included before <wctype.h>.  */
++# include <wchar.h>
++# include <wctype.h>
++# if defined (HAVE_MBRTOWC)
++#  define HANDLE_MULTIBYTE	1
++# endif
++#endif
++
+ /* What kind of changes a hunk contains.  */
+ enum changes
+ {
+@@ -381,7 +392,11 @@ extern void print_sdiff_script (struct c
+ extern char const change_letter[4];
+ extern char const pr_program[];
+ extern char *concat (char const *, char const *, char const *);
+-extern bool lines_differ (char const *, char const *) _GL_ATTRIBUTE_PURE;
++extern bool (*lines_differ) (char const *, size_t, char const *, size_t) _GL_ATTRIBUTE_PURE;
++extern bool lines_differ_singlebyte (char const *, size_t, char const *, size_t) _GL_ATTRIBUTE_PURE;
++#ifdef HANDLE_MULTIBYTE
++extern bool lines_differ_multibyte (char const *, size_t, char const *, size_t) _GL_ATTRIBUTE_PURE;
++#endif
+ extern lin translate_line_number (struct file_data const *, lin);
+ extern struct change *find_change (struct change *);
+ extern struct change *find_reverse_change (struct change *);
+diff -up diffutils-3.6/src/io.c.i18n diffutils-3.6/src/io.c
+--- diffutils-3.6/src/io.c.i18n	2017-01-01 11:22:36.000000000 +0000
++++ diffutils-3.6/src/io.c	2017-05-22 10:51:09.050371844 +0100
+@@ -23,6 +23,7 @@
+ #include <cmpbuf.h>
+ #include <file-type.h>
+ #include <xalloc.h>
++#include <assert.h>
+ 
+ /* Rotate an unsigned value to the left.  */
+ #define ROL(v, n) ((v) << (n) | (v) >> (sizeof (v) * CHAR_BIT - (n)))
+@@ -215,6 +216,28 @@ slurp (struct file_data *current)
+ 
+ /* Split the file into lines, simultaneously computing the equivalence
+    class for each line.  */
++#ifdef HANDLE_MULTIBYTE
++# define MBC2WC(P, END, MBLENGTH, WC, STATE, CONVFAIL)		\
++do								\
++  {								\
++    mbstate_t state_bak = STATE;				\
++								\
++    CONVFAIL = 0;						\
++    MBLENGTH = mbrtowc (&WC, P, END - (char const *)P, &STATE);	\
++								\
++    switch (MBLENGTH)						\
++      {								\
++      case (size_t)-2:						\
++      case (size_t)-1:						\
++	STATE = state_bak;					\
++	++CONVFAIL;						\
++	/* Fall through. */					\
++      case 0:							\
++	MBLENGTH = 1;						\
++      }								\
++  }								\
++ while (0)
++#endif
+ 
+ static void
+ find_and_hash_each_line (struct file_data *current)
+@@ -241,12 +264,300 @@ find_and_hash_each_line (struct file_dat
+   bool same_length_diff_contents_compare_anyway =
+     diff_length_compare_anyway | ig_case;
+ 
++#ifdef HANDLE_MULTIBYTE
++  wchar_t wc;
++  size_t mblength;
++  mbstate_t state;
++  int convfail;
++
++  memset (&state, '\0', sizeof (mbstate_t));
++#endif
++
+   while (p < suffix_begin)
+     {
+       char const *ip = p;
+       hash_value h = 0;
+       unsigned char c;
+ 
++#ifdef HANDLE_MULTIBYTE
++      if (MB_CUR_MAX > 1)
++	{
++	  wchar_t lo_wc;
++	  char mbc[MB_LEN_MAX];
++	  mbstate_t state_wc;
++
++	  /* Hash this line until we find a newline.  */
++	  switch (ig_white_space)
++	    {
++	    case IGNORE_ALL_SPACE:
++	      while (1)
++		{
++		  if (*p == '\n')
++		    {
++		      ++p;
++		      break;
++		    }
++
++		  MBC2WC (p, suffix_begin, mblength, wc, state, convfail);
++
++		  if (convfail)
++		    mbc[0] = *p++;
++		  else if (!iswspace (wc))
++		    {
++		      bool flag = 0;
++
++		      if (ig_case)
++			{
++			  lo_wc = towlower (wc);
++			  if (lo_wc != wc)
++			    {
++			      flag = 1;
++
++			      p += mblength;
++			      memset (&state_wc, '\0', sizeof(mbstate_t));
++			      mblength = wcrtomb (mbc, lo_wc, &state_wc);
++
++			      assert (mblength != (size_t)-1 &&
++				      mblength != (size_t)-2);
++
++			      mblength = (mblength < 1) ? 1 : mblength;
++			    }
++			}
++
++		      if (!flag)
++			{
++			  for (i = 0; i < mblength; i++)
++			    mbc[i] = *p++;
++			}
++		    }
++		  else
++		    {
++		      p += mblength;
++		      continue;
++		    }
++
++		  for (i = 0; i < mblength; i++)
++		    h = HASH (h, mbc[i]);
++		}
++	      break;
++
++	    case IGNORE_SPACE_CHANGE:
++	      while (1)
++		{
++		  if (*p == '\n')
++		    {
++		      ++p;
++		      break;
++		    }
++
++		  MBC2WC (p, suffix_begin, mblength, wc, state, convfail);
++
++		  if (!convfail && iswspace (wc))
++		    {
++		      while (1)
++			{
++			  if (*p == '\n')
++			    {
++			      ++p;
++			      goto hashing_done;
++			    }
++
++			  p += mblength;
++			  MBC2WC (p, suffix_begin, mblength, wc, state, convfail);
++			  if (convfail || !iswspace (wc))
++			    break;
++			}
++		      h = HASH (h, ' ');
++		    }
++
++		  /* WC is now the first non-space.  */
++		  if (convfail)
++		    mbc[0] = *p++;
++		  else
++		    {
++		      bool flag = 0;
++
++		      if (ignore_case)
++			{
++			  lo_wc = towlower (wc);
++			  if (lo_wc != wc)
++			    {
++			      flag = 1;
++
++			      p += mblength;
++			      memset (&state_wc, '\0', sizeof(mbstate_t));
++			      mblength = wcrtomb (mbc, lo_wc, &state_wc);
++
++			      assert (mblength != (size_t)-1 &&
++				      mblength != (size_t)-2);
++
++			      mblength = (mblength < 1) ? 1 : mblength;
++			    }
++			}
++
++		      if (!flag)
++			{
++			  for (i = 0; i < mblength; i++)
++			    mbc[i] = *p++;
++			}
++		    }
++
++		  for (i = 0; i < mblength; i++)
++		    h = HASH (h, mbc[i]);
++		}
++	      break;
++
++	    case IGNORE_TAB_EXPANSION:
++	    case IGNORE_TAB_EXPANSION_AND_TRAILING_SPACE:
++	    case IGNORE_TRAILING_SPACE:
++	      {
++		size_t column = 0;
++		while (1)
++		  {
++		    if (*p == '\n')
++		      {
++			++p;
++			break;
++		      }
++
++		    MBC2WC (p, suffix_begin, mblength, wc, state, convfail);
++
++		    if (!convfail
++			&& ig_white_space & IGNORE_TRAILING_SPACE
++			&& iswspace (wc))
++		      {
++			char const *p1 = p;
++			while (1)
++			  {
++			    if (*p1 == '\n')
++			      {
++				p = p1 + 1;
++				goto hashing_done;
++			      }
++
++			    p1 += mblength;
++			    MBC2WC (p1, suffix_begin, mblength, wc, state, convfail);
++			    if (convfail || !iswspace (wc))
++			      break;
++			  }
++		      }
++
++		    size_t repetitions = 1;
++		    bool no_convert = 0;
++
++		    if (ig_white_space & IGNORE_TAB_EXPANSION)
++		      {
++			if (convfail)
++			  column++;
++			else
++			  switch (wc)
++			    {
++			    case L'\b':
++			      column -= 0 < column;
++			      break;
++
++			    case L'\t':
++			      mbc[0] = ' ';
++			      mblength = 1;
++			      no_convert = 1;
++			      p++;
++			      assert(mblength == 1);
++			      repetitions = tabsize - column % tabsize;
++			      column = (column + repetitions < column
++					? 0
++					: column + repetitions);
++			      break;
++
++			    case L'\r':
++			      column = 0;
++			      break;
++
++			    default:
++			      column += wcwidth (wc);
++			      break;
++			    }
++		      }
++
++		    if (ig_case)
++		      {
++			lo_wc = towlower (wc);
++			if (lo_wc != wc)
++			  {
++			    no_convert = 1;
++			    p += mblength;
++			    memset (&state_wc, '\0', sizeof(mbstate_t));
++			    mblength = wcrtomb (mbc, lo_wc, &state_wc);
++
++			    assert (mblength != (size_t)-1 &&
++				    mblength != (size_t)-2);
++
++			    mblength = (mblength < 1) ? 1 : mblength;
++			  }
++		      }
++
++		    if (!no_convert)
++		      for (i = 0; i < mblength; i++)
++			mbc[i] = *p++;
++
++		    do
++		      {
++			for (i = 0; i < mblength; i++)
++			  h = HASH (h, mbc[i]);
++		      }
++		    while (--repetitions != 0);
++		  }
++	      }
++	      break;
++
++	    default:
++	      while (1)
++		{
++		  if (*p == '\n')
++		    {
++		      ++p;
++		      break;
++		    }
++
++		  MBC2WC (p, suffix_begin, mblength, wc, state, convfail);
++
++		  if (convfail)
++		    mbc[0] = *p++;
++		  else
++		    {
++		      int flag = 0;
++
++		      if (ig_case)
++			{
++			  lo_wc = towlower (wc);
++			  if (lo_wc != wc)
++			    {
++			      flag = 1;
++			      p += mblength;
++			      memset (&state_wc, '\0', sizeof(mbstate_t));
++			      mblength = wcrtomb (mbc, lo_wc, &state_wc);
++
++			      assert (mblength != (size_t)-1 &&
++				      mblength != (size_t)-2);
++
++			      mblength = (mblength < 1) ? 1 : mblength;
++			    }
++			}
++
++		      if (!flag)
++			{
++			  for (i = 0; i < mblength; i++)
++			    mbc[i] = *p++;
++			}
++		    }
++
++		  for (i = 0; i < mblength; i++)
++		    h = HASH (h, mbc[i]);
++		}
++	    }
++	}
++      else
++#endif
++
+       /* Hash this line until we find a newline.  */
+       switch (ig_white_space)
+ 	{
+@@ -397,7 +708,7 @@ find_and_hash_each_line (struct file_dat
+ 	    else if (!diff_length_compare_anyway)
+ 	      continue;
+ 
+-	    if (! lines_differ (eqline, ip))
++	    if (! lines_differ (eqline, eqs[i].length + 1, ip, length + 1))
+ 	      break;
+ 	  }
+ 
+diff -up diffutils-3.6/src/util.c.i18n diffutils-3.6/src/util.c
+--- diffutils-3.6/src/util.c.i18n	2017-05-18 18:39:59.000000000 +0100
++++ diffutils-3.6/src/util.c	2017-05-22 10:51:09.050371844 +0100
+@@ -985,7 +985,8 @@ finish_output (void)
+    Return nonzero if the lines differ.  */
+ 
+ bool
+-lines_differ (char const *s1, char const *s2)
++lines_differ_singlebyte (char const *s1, size_t s1len,
++			 char const *s2, size_t s2len)
+ {
+   register char const *t1 = s1;
+   register char const *t2 = s2;
+@@ -1141,6 +1142,354 @@ lines_differ (char const *s1, char const
+ 
+   return true;
+ }
++
++#ifdef HANDLE_MULTIBYTE
++# define MBC2WC(T, END, MBLENGTH, WC, STATE, CONVFAIL)	\
++do							\
++  {							\
++    mbstate_t bak = STATE;				\
++							\
++    CONVFAIL = 0;					\
++    MBLENGTH = mbrtowc (&WC, T, END - T, &STATE);	\
++							\
++    switch (MBLENGTH)					\
++      {							\
++      case (size_t)-2:					\
++      case (size_t)-1:					\
++	STATE = bak;					\
++	++CONVFAIL;					\
++	/* Fall through. */				\
++      case 0:						\
++	MBLENGTH = 1;					\
++      }							\
++  }							\
++ while (0)
++
++bool
++lines_differ_multibyte (char const *s1, size_t s1len,
++			char const *s2, size_t s2len)
++{
++  char const *end1, *end2;
++  char c1, c2;
++  wchar_t wc1, wc2, wc1_bak, wc2_bak;
++  size_t mblen1, mblen2;
++  mbstate_t state1, state2, state1_bak, state2_bak;
++  int convfail1, convfail2, convfail1_bak, convfail2_bak;
++  
++  char const *t1 = s1;
++  char const *t2 = s2;
++  char const *t1_bak, *t2_bak;
++  size_t column = 0;
++
++  if (ignore_white_space == IGNORE_NO_WHITE_SPACE  && !ignore_case)
++    {
++      while (*t1 != '\n')
++	if (*t1++ != *t2++)
++	  return 1;
++      return 0;
++    }
++
++  end1 = t1 + s1len;
++  end2 = t2 + s2len;
++
++  memset (&state1, '\0', sizeof (mbstate_t));
++  memset (&state2, '\0', sizeof (mbstate_t));
++
++  while (1)
++    {
++      c1 = *t1;
++      c2 = *t2;
++      MBC2WC (t1, end1, mblen1, wc1, state1, convfail1);
++      MBC2WC (t2, end2, mblen2, wc2, state2, convfail2);
++
++      /* Test for exact char equality first, since it's a common case.  */
++      if (convfail1 ^ convfail2)
++	break;
++      else if (convfail1 && convfail2 && c1 != c2)
++	break;
++      else if (!convfail1 && !convfail2 && wc1 != wc2)
++	{
++	  switch (ignore_white_space)
++	    {
++	    case IGNORE_ALL_SPACE:
++	      /* For -w, just skip past any white space.  */
++	      while (1)
++		{
++		  if (convfail1)
++		    break;
++		  else if (wc1 == L'\n' || !iswspace (wc1))
++		    break;
++
++		  t1 += mblen1;
++		  c1 = *t1;
++		  MBC2WC (t1, end1, mblen1, wc1, state1, convfail1);
++		}
++
++	      while (1)
++		{
++		  if (convfail2)
++		    break;
++		  else if (wc2 == L'\n' || !iswspace (wc2))
++		    break;
++
++		  t2 += mblen2;
++		  c2 = *t2;
++		  MBC2WC (t2, end2, mblen2, wc2, state2, convfail2);
++		}
++	      t1 += mblen1;
++	      t2 += mblen2;
++	      break;
++
++	    case IGNORE_SPACE_CHANGE:
++	      /* For -b, advance past any sequence of white space in
++		 line 1 and consider it just one space, or nothing at
++		 all if it is at the end of the line.  */
++	      if (wc1 != L'\n' && iswspace (wc1))
++		{
++		  size_t mblen_bak;
++		  mbstate_t state_bak;
++
++		  do
++		    {
++		      t1 += mblen1;
++		      mblen_bak = mblen1;
++		      state_bak = state1;
++		      MBC2WC (t1, end1, mblen1, wc1, state1, convfail1);
++		    }
++		  while (!convfail1 && (wc1 != L'\n' && iswspace (wc1)));
++
++		  state1 = state_bak;
++		  mblen1 = mblen_bak;
++		  t1 -= mblen1;
++		  convfail1 = 0;
++		  wc1 = L' ';
++		}
++
++	      /* Likewise for line 2.  */
++	      if (wc2 != L'\n' && iswspace (wc2))
++		{
++		  size_t mblen_bak;
++		  mbstate_t state_bak;
++
++		  do
++		    {
++		      t2 += mblen2;
++		      mblen_bak = mblen2;
++		      state_bak = state2;
++		      MBC2WC (t2, end2, mblen2, wc2, state2, convfail2);
++		    }
++		  while (!convfail2 && (wc2 != L'\n' && iswspace (wc2)));
++
++		  state2 = state_bak;
++		  mblen2 = mblen_bak;
++		  t2 -= mblen2;
++		  convfail2 = 0;
++		  wc2 = L' ';
++		}
++
++	      if (wc1 != wc2)
++		{
++		  /* If we went too far when doing the simple test for
++		     equality, go back to the first non-whitespace
++		     character in both sides and try again.  */
++		  if (wc2 == L' ' && wc1 != L'\n' &&
++		      t1 > s1 &&
++		      !convfail1_bak && iswspace (wc1_bak))
++		    {
++		      t1 = t1_bak;
++		      wc1 = wc1_bak;
++		      state1 = state1_bak;
++		      convfail1 = convfail1_bak;
++		      continue;
++		    }
++		  if (wc1 == L' ' && wc2 != L'\n'
++		      && t2 > s2
++		      && !convfail2_bak && iswspace (wc2_bak))
++		    {
++		      t2 = t2_bak;
++		      wc2 = wc2_bak;
++		      state2 = state2_bak;
++		      convfail2 = convfail2_bak;
++		      continue;
++		    }
++		}
++
++	      t1_bak = t1;		  t2_bak = t2;
++	      wc1_bak = wc1;		  wc2_bak = wc2;
++	      state1_bak = state1;	  state2_bak = state2;
++	      convfail1_bak = convfail1;  convfail2_bak = convfail2;
++
++	      if (wc1 == L'\n')
++		wc1 = L' ';
++	      else
++		t1 += mblen1;
++
++	      if (wc2 == L'\n')
++		wc2 = L' ';
++	      else
++		t2 += mblen2;
++
++	      break;
++
++	    case IGNORE_TRAILING_SPACE:
++	    case IGNORE_TAB_EXPANSION_AND_TRAILING_SPACE:
++	      if (iswspace (wc1) && iswspace (wc2))
++		{
++		  char const *p;
++		  wchar_t wc;
++		  size_t mblength;
++		  int convfail;
++		  mbstate_t state;
++		  bool just_whitespace_left = 1;
++		  if (wc1 != L'\n')
++		    {
++		      mblength = mblen1;
++		      p = t1;
++		      memset (&state, '\0', sizeof(mbstate_t));
++		      while (p < end1)
++			{
++			  if (*p == '\n')
++			    break;
++
++			  p += mblength;
++			  MBC2WC (p, end1, mblength, wc, state, convfail);
++			  if (convfail || !iswspace (wc))
++			    {
++			      just_whitespace_left = 0;
++			      break;
++			    }
++			}
++		    }
++		  if (just_whitespace_left && wc2 != L'\n')
++		    {
++		      mblength = mblen2;
++		      p = t2;
++		      memset (&state, '\0', sizeof(mbstate_t));
++		      while (p < end2)
++			{
++			  if (*p == '\n')
++			    break;
++
++			  p += mblength;
++			  MBC2WC (p, end2, mblength, wc, state, convfail);
++			  if (convfail || !iswspace (wc))
++			    {
++			      just_whitespace_left = 0;
++			      break;
++			    }
++			}
++		    }
++
++		  if (just_whitespace_left)
++		    /* Both lines have nothing but whitespace left.  */
++		    return false;
++		}
++
++	      if (ignore_white_space == IGNORE_TRAILING_SPACE)
++		break;
++	      /* Fall through.  */
++	    case IGNORE_TAB_EXPANSION:
++	      if ((wc1 == L' ' && wc2 == L'\t')
++		  || (wc1 == L'\t' && wc2 == L' '))
++		{
++		  size_t column2 = column;
++
++		  while (1)
++		    {
++		      if (convfail1)
++			{
++			  ++t1;
++			  break;
++			}
++		      else if (wc1 == L' ')
++			column++;
++		      else if (wc1 == L'\t')
++			column += tabsize - column % tabsize;
++		      else
++			{
++			  t1 += mblen1;
++			  break;
++			}
++
++		      t1 += mblen1;
++		      c1 = *t1;
++		      MBC2WC (t1, end1, mblen1, wc1, state1, convfail1);
++		    }
++
++		  while (1)
++		    {
++		      if (convfail2)
++			{
++			  ++t2;
++			  break;
++			}
++		      else if (wc2 == L' ')
++			column2++;
++		      else if (wc2 == L'\t')
++			column2 += tabsize - column2 % tabsize;
++		      else
++			{
++			  t2 += mblen2;
++			  break;
++			}
++
++		      t2 += mblen2;
++		      c2 = *t2;
++		      MBC2WC (t2, end2, mblen2, wc2, state2, convfail2);
++		    }
++
++		  if (column != column2)
++		    return 1;
++		}
++	      else
++		{
++		  t1 += mblen1;
++		  t2 += mblen2;
++		}
++	      break;
++
++	    case IGNORE_NO_WHITE_SPACE:
++	      t1 += mblen1;
++	      t2 += mblen2;
++	      break;
++	    }
++
++	  /* Lowercase all letters if -i is specified.  */
++	  if (ignore_case)
++	    {
++	      if (!convfail1)
++		wc1 = towlower (wc1);
++	      if (!convfail2)
++		wc2 = towlower (wc2);
++	    }
++
++	  if (convfail1 ^ convfail2)
++	    break;
++	  else if (convfail1 && convfail2 && c1 != c2)
++	    break;
++	  else if (!convfail1 && !convfail2 && wc1 != wc2)
++	    break;
++	}
++      else
++	{
++	  t1_bak = t1;			t2_bak = t2;
++	  wc1_bak = wc1;		wc2_bak = wc2;
++	  state1_bak = state1;		state2_bak = state2;
++	  convfail1_bak = convfail1;	convfail2_bak = convfail2;
++
++	  t1 += mblen1;			t2 += mblen2;
++	}
++      
++      if (!convfail1 && wc1 == L'\n')
++	return 0;
++
++      column += convfail1 ? 1 :
++	(wc1 == L'\t') ? tabsize - column % tabsize : wcwidth (wc1);
++    }
++
++  return 1;
++}
++#endif
+ 
+ /* Find the consecutive changes at the start of the script START.
+    Return the last link before the first gap.  */

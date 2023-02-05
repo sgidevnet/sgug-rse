@@ -1,0 +1,30 @@
+From 665ac6aded4b9694283d373a0f127f32a3e75b26 Mon Sep 17 00:00:00 2001
+From: James E Keenan <jkeenan@cpan.org>
+Date: Wed, 7 Aug 2019 09:39:56 -0400
+Subject: [PATCH] Run tests in ext/File-Find/t in series
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+For: RT # 133771
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ t/harness | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/t/harness b/t/harness
+index caa2a318b8..b9857fa022 100644
+--- a/t/harness
++++ b/t/harness
+@@ -189,7 +189,7 @@ if (@ARGV) {
+         # directory containing such files should be tested in serial order.
+         #
+         # Add exceptions to the above rule
+-        for (qw(ext/Pod-Html/t cpan/IO-Zlib/t)) {
++        for (qw(ext/Pod-Html/t cpan/IO-Zlib/t ext/File-Find/t)) {
+             $serials{$_} = 1;
+         }
+ 
+-- 
+2.21.0
+

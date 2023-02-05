@@ -1,0 +1,110 @@
+diff --git a/src/pip/_internal/commands/install.py b/src/pip/_internal/commands/install.py
+index 1c244d23..4b07ec0f 100644
+--- a/src/pip/_internal/commands/install.py
++++ b/src/pip/_internal/commands/install.py
+@@ -109,6 +109,14 @@ class InstallCommand(RequirementCommand):
+             default=None,
+             help="Installation prefix where lib, bin and other top-level "
+                  "folders are placed")
++        cmd_opts.add_option(
++            '--strip-file-prefix',
++            dest='strip_file_prefix',
++            metavar='prefix',
++            default=None,
++            help="Strip given prefix from script paths in wheel RECORD."
++        )
++
+ 
+         cmd_opts.add_option(cmdoptions.build_dir())
+ 
+@@ -391,6 +399,7 @@ class InstallCommand(RequirementCommand):
+                         pycompile=options.compile,
+                         warn_script_location=warn_script_location,
+                         use_user_site=options.use_user_site,
++                        strip_file_prefix=options.strip_file_prefix,
+                     )
+ 
+                     lib_locations = get_lib_location_guesses(
+diff --git a/src/pip/_internal/req/req_install.py b/src/pip/_internal/req/req_install.py
+index a4834b00..d21530ac 100644
+--- a/src/pip/_internal/req/req_install.py
++++ b/src/pip/_internal/req/req_install.py
+@@ -431,7 +431,8 @@ class InstallRequirement(object):
+         prefix=None,  # type: Optional[str]
+         warn_script_location=True,  # type: bool
+         use_user_site=False,  # type: bool
+-        pycompile=True  # type: bool
++        pycompile=True,  # type: bool
++        strip_file_prefix=None  # type: Optional[str]
+     ):
+         # type: (...) -> None
+         move_wheel_files(
+@@ -443,6 +444,7 @@ class InstallRequirement(object):
+             pycompile=pycompile,
+             isolated=self.isolated,
+             warn_script_location=warn_script_location,
++            strip_file_prefix=strip_file_prefix,
+         )
+ 
+     # Things valid for sdists
+@@ -894,7 +896,8 @@ class InstallRequirement(object):
+         prefix=None,  # type: Optional[str]
+         warn_script_location=True,  # type: bool
+         use_user_site=False,  # type: bool
+-        pycompile=True  # type: bool
++        pycompile=True,  # type: bool
++        strip_file_prefix=None  # type: Optional[str]
+     ):
+         # type: (...) -> None
+         global_options = global_options if global_options is not None else []
+@@ -911,6 +914,7 @@ class InstallRequirement(object):
+                 self.source_dir, root=root, prefix=prefix, home=home,
+                 warn_script_location=warn_script_location,
+                 use_user_site=use_user_site, pycompile=pycompile,
++                strip_file_prefix=strip_file_prefix,
+             )
+             self.install_succeeded = True
+             return
+diff --git a/src/pip/_internal/wheel.py b/src/pip/_internal/wheel.py
+index 67bcc7f7..6470576b 100644
+--- a/src/pip/_internal/wheel.py
++++ b/src/pip/_internal/wheel.py
+@@ -265,6 +265,7 @@ def get_csv_rows_for_installed(
+     changed,  # type: set
+     generated,  # type: List[str]
+     lib_dir,  # type: str
++    strip_file_prefix=None,  # type: Optional[str]
+ ):
+     # type: (...) -> List[InstalledCSVRow]
+     """
+@@ -289,7 +290,11 @@ def get_csv_rows_for_installed(
+         installed_rows.append(tuple(row))
+     for f in generated:
+         digest, length = rehash(f)
+-        installed_rows.append((normpath(f, lib_dir), digest, str(length)))
++        final_path = normpath(f, lib_dir)
++        if strip_file_prefix and final_path.startswith(strip_file_prefix):
++            final_path = os.path.join(os.sep,
++                    os.path.relpath(final_path, strip_file_prefix))
++        installed_rows.append((final_path, digest, str(length)))
+     for f in installed:
+         installed_rows.append((installed[f], '', ''))
+     return installed_rows
+@@ -306,7 +311,8 @@ def move_wheel_files(
+     scheme=None,  # type: Optional[Mapping[str, str]]
+     isolated=False,  # type: bool
+     prefix=None,  # type: Optional[str]
+-    warn_script_location=True  # type: bool
++    warn_script_location=True,  # type: bool
++    strip_file_prefix=None  # type: Optional[str]
+ ):
+     # type: (...) -> None
+     """Install a wheel"""
+@@ -605,6 +611,7 @@ if __name__ == '__main__':
+             outrows = get_csv_rows_for_installed(
+                 reader, installed=installed, changed=changed,
+                 generated=generated, lib_dir=lib_dir,
++                strip_file_prefix=strip_file_prefix
+             )
+             writer = csv.writer(record_out)
+             # Sort to simplify testing.

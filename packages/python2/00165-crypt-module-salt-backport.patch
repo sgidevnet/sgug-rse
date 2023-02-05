@@ -1,0 +1,292 @@
+diff --git a/Doc/library/crypt.rst b/Doc/library/crypt.rst
+index 91464ef..6ee64d6 100644
+--- a/Doc/library/crypt.rst
++++ b/Doc/library/crypt.rst
+@@ -16,9 +16,9 @@
+ 
+ This module implements an interface to the :manpage:`crypt(3)` routine, which is
+ a one-way hash function based upon a modified DES algorithm; see the Unix man
+-page for further details.  Possible uses include allowing Python scripts to
+-accept typed passwords from the user, or attempting to crack Unix passwords with
+-a dictionary.
++page for further details.  Possible uses include storing hashed passwords
++so you can check passwords without storing the actual password, or attempting
++to crack Unix passwords with a dictionary.
+ 
+ .. index:: single: crypt(3)
+ 
+@@ -27,15 +27,81 @@ the :manpage:`crypt(3)` routine in the running system.  Therefore, any
+ extensions available on the current implementation will also  be available on
+ this module.
+ 
++Hashing Methods
++---------------
+ 
+-.. function:: crypt(word, salt)
++The :mod:`crypt` module defines the list of hashing methods (not all methods
++are available on all platforms):
++
++.. data:: METHOD_SHA512
++
++   A Modular Crypt Format method with 16 character salt and 86 character
++   hash.  This is the strongest method.
++
++.. versionadded:: 3.3
++
++.. data:: METHOD_SHA256
++
++   Another Modular Crypt Format method with 16 character salt and 43
++   character hash.
++
++.. versionadded:: 3.3
++
++.. data:: METHOD_MD5
++
++   Another Modular Crypt Format method with 8 character salt and 22
++   character hash.
++
++.. versionadded:: 3.3
++
++.. data:: METHOD_CRYPT
++
++   The traditional method with a 2 character salt and 13 characters of
++   hash.  This is the weakest method.
++
++.. versionadded:: 3.3
++
++
++Module Attributes
++-----------------
++
++
++.. attribute:: methods
++
++   A list of available password hashing algorithms, as
++   ``crypt.METHOD_*`` objects.  This list is sorted from strongest to
++   weakest, and is guaranteed to have at least ``crypt.METHOD_CRYPT``.
++
++.. versionadded:: 3.3
++
++
++Module Functions
++----------------
++
++The :mod:`crypt` module defines the following functions:
++
++.. function:: crypt(word, salt=None)
+ 
+    *word* will usually be a user's password as typed at a prompt or  in a graphical
+-   interface.  *salt* is usually a random two-character string which will be used
+-   to perturb the DES algorithm in one of 4096 ways.  The characters in *salt* must
+-   be in the set ``[./a-zA-Z0-9]``.  Returns the hashed password as a string, which
+-   will be composed of characters from the same alphabet as the salt (the first two
+-   characters represent the salt itself).
++   interface.  The optional *salt* is either a string as returned from
++   :func:`mksalt`, one of the ``crypt.METHOD_*`` values (though not all
++   may be available on all platforms), or a full encrypted password
++   including salt, as returned by this function.  If *salt* is not
++   provided, the strongest method will be used (as returned by
++   :func:`methods`.
++
++   Checking a password is usually done by passing the plain-text password
++   as *word* and the full results of a previous :func:`crypt` call,
++   which should be the same as the results of this call.
++
++   *salt* (either a random 2 or 16 character string, possibly prefixed with
++   ``$digit$`` to indicate the method) which will be used to perturb the
++   encryption algorithm.  The characters in *salt* must be in the set
++   ``[./a-zA-Z0-9]``, with the exception of Modular Crypt Format which
++   prefixes a ``$digit$``.
++
++   Returns the hashed password as a string, which will be composed of
++   characters from the same alphabet as the salt.
+ 
+    .. index:: single: crypt(3)
+ 
+@@ -43,6 +109,27 @@ this module.
+    different sizes in the *salt*, it is recommended to use  the full crypted
+    password as salt when checking for a password.
+ 
++.. versionchanged:: 3.3
++   Before version 3.3, *salt*  must be specified as a string and cannot
++   accept ``crypt.METHOD_*`` values (which don't exist anyway).
++
++
++.. function:: mksalt(method=None)
++
++   Return a randomly generated salt of the specified method.  If no
++   *method* is given, the strongest method available as returned by
++   :func:`methods` is used.
++
++   The return value is a string either of 2 characters in length for
++   ``crypt.METHOD_CRYPT``, or 19 characters starting with ``$digit$`` and
++   16 random characters from the set ``[./a-zA-Z0-9]``, suitable for
++   passing as the *salt* argument to :func:`crypt`.
++
++.. versionadded:: 3.3
++
++Examples
++--------
++
+ A simple example illustrating typical use::
+ 
+    import crypt, getpass, pwd
+@@ -59,3 +146,11 @@ A simple example illustrating typical use::
+        else:
+            return 1
+ 
++To generate a hash of a password using the strongest available method and
++check it against the original::
++
++   import crypt
++
++   hashed = crypt.crypt(plaintext)
++   if hashed != crypt.crypt(plaintext, hashed):
++      raise "Hashed version doesn't validate against original"
+diff --git a/Lib/crypt.py b/Lib/crypt.py
+new file mode 100644
+index 0000000..bf0a416
+--- /dev/null
++++ b/Lib/crypt.py
+@@ -0,0 +1,71 @@
++"""Wrapper to the POSIX crypt library call and associated functionality.
++
++Note that the ``methods`` and ``METHOD_*`` attributes are non-standard
++extensions to Python 2.7, backported from 3.3"""
++
++import _crypt
++import string as _string
++from random import SystemRandom as _SystemRandom
++from collections import namedtuple as _namedtuple
++
++
++_saltchars = _string.ascii_letters + _string.digits + './'
++_sr = _SystemRandom()
++
++
++class _Method(_namedtuple('_Method', 'name ident salt_chars total_size')):
++
++    """Class representing a salt method per the Modular Crypt Format or the
++    legacy 2-character crypt method."""
++
++    def __repr__(self):
++        return '<crypt.METHOD_%s>' % self.name
++
++
++def mksalt(method=None):
++    """Generate a salt for the specified method.
++
++    If not specified, the strongest available method will be used.
++
++    This is a non-standard extension to Python 2.7, backported from 3.3
++    """
++    if method is None:
++        method = methods[0]
++    s = '$%s$' % method.ident if method.ident else ''
++    s += ''.join(_sr.sample(_saltchars, method.salt_chars))
++    return s
++
++
++def crypt(word, salt=None):
++    """Return a string representing the one-way hash of a password, with a salt
++    prepended.
++
++    If ``salt`` is not specified or is ``None``, the strongest
++    available method will be selected and a salt generated.  Otherwise,
++    ``salt`` may be one of the ``crypt.METHOD_*`` values, or a string as
++    returned by ``crypt.mksalt()``.
++
++    Note that these are non-standard extensions to Python 2.7's crypt.crypt()
++    entrypoint, backported from 3.3: the standard Python 2.7 crypt.crypt()
++    entrypoint requires two strings as the parameters, and does not support
++    keyword arguments.
++    """
++    if salt is None or isinstance(salt, _Method):
++        salt = mksalt(salt)
++    return _crypt.crypt(word, salt)
++
++
++#  available salting/crypto methods
++METHOD_CRYPT = _Method('CRYPT', None, 2, 13)
++METHOD_MD5 = _Method('MD5', '1', 8, 34)
++METHOD_SHA256 = _Method('SHA256', '5', 16, 63)
++METHOD_SHA512 = _Method('SHA512', '6', 16, 106)
++
++methods = []
++for _method in (METHOD_SHA512, METHOD_SHA256, METHOD_MD5):
++    _result = crypt('', _method)
++    if _result and len(_result) == _method.total_size:
++        methods.append(_method)
++methods.append(METHOD_CRYPT)
++del _result, _method
++
+diff --git a/Lib/test/test_crypt.py b/Lib/test/test_crypt.py
+index 7cd9c71..b061a55 100644
+--- a/Lib/test/test_crypt.py
++++ b/Lib/test/test_crypt.py
+@@ -16,6 +16,25 @@ class CryptTestCase(unittest.TestCase):
+             self.assertEqual(cr2, cr)
+ 
+ 
++    def test_salt(self):
++        self.assertEqual(len(crypt._saltchars), 64)
++        for method in crypt.methods:
++            salt = crypt.mksalt(method)
++            self.assertEqual(len(salt),
++                    method.salt_chars + (3 if method.ident else 0))
++
++    def test_saltedcrypt(self):
++        for method in crypt.methods:
++            pw = crypt.crypt('assword', method)
++            self.assertEqual(len(pw), method.total_size)
++            pw = crypt.crypt('assword', crypt.mksalt(method))
++            self.assertEqual(len(pw), method.total_size)
++
++    def test_methods(self):
++        # Gurantee that METHOD_CRYPT is the last method in crypt.methods.
++        self.assertTrue(len(crypt.methods) >= 1)
++        self.assertEqual(crypt.METHOD_CRYPT, crypt.methods[-1])
++
+ def test_main():
+     test_support.run_unittest(CryptTestCase)
+ 
+diff --git a/Modules/Setup.dist b/Modules/Setup.dist
+index 2712f06..3ea4f0c 100644
+--- a/Modules/Setup.dist
++++ b/Modules/Setup.dist
+@@ -225,7 +225,7 @@ _ssl _ssl.c \
+ #
+ # First, look at Setup.config; configure may have set this for you.
+ 
+-crypt cryptmodule.c # -lcrypt	# crypt(3); needs -lcrypt on some systems
++_crypt _cryptmodule.c -lcrypt	# crypt(3); needs -lcrypt on some systems
+ 
+ 
+ # Some more UNIX dependent modules -- off by default, since these
+diff --git a/Modules/cryptmodule.c b/Modules/cryptmodule.c
+index 76de54f..7c69ca6 100644
+--- a/Modules/cryptmodule.c
++++ b/Modules/cryptmodule.c
+@@ -43,7 +43,7 @@ static PyMethodDef crypt_methods[] = {
+ };
+ 
+ PyMODINIT_FUNC
+-initcrypt(void)
++init_crypt(void)
+ {
+-    Py_InitModule("crypt", crypt_methods);
++    Py_InitModule("_crypt", crypt_methods);
+ }
+diff --git a/setup.py b/setup.py
+index b787487..c60ac35 100644
+--- a/setup.py
++++ b/setup.py
+@@ -798,7 +798,7 @@ class PyBuildExt(build_ext):
+             libs = ['crypt']
+         else:
+             libs = []
+-        exts.append( Extension('crypt', ['cryptmodule.c'], libraries=libs) )
++        exts.append( Extension('_crypt', ['_cryptmodule.c'], libraries=libs) )
+ 
+         # CSV files
+         exts.append( Extension('_csv', ['_csv.c']) )

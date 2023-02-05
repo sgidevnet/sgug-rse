@@ -1,0 +1,11 @@
+--- ddd-3.3.11/ddd/ddd.C.lang	2005-03-07 11:43:58.000000000 +0100
++++ ddd-3.3.11/ddd/ddd.C	2005-05-13 19:00:08.000000000 +0200
+@@ -2031,7 +2031,7 @@
+     // Let DDD locales be controlled by the locale-specific
+     // environment variables -- especially $LANG.
+     XtSetLanguageProc(NULL, NULL, NULL);
+-    setlocale(LC_ALL, "");
++    setlocale(LC_ALL, "C");
+ #endif
+ 
+     // Save environment for restart.

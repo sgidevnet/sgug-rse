@@ -1,0 +1,75 @@
+From da4b34355da023c439e96bc6ca31886cd69d6bdb Mon Sep 17 00:00:00 2001
+From: Eric Haszlakiewicz <erh+git@nimenees.com>
+Date: Sun, 25 Mar 2018 18:23:42 -0400
+Subject: [PATCH] Add an parse test for content starting with a UTF8 BOM, which
+ is _not_ a valid start to a JSON message.
+
+---
+ tests/test_parse.c        | 16 +++++++++++++++-
+ tests/test_parse.expected |  5 ++++-
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/tests/test_parse.c b/tests/test_parse.c
+index ee1f8387b3..f46651b0a1 100644
+--- a/tests/test_parse.c
++++ b/tests/test_parse.c
+@@ -9,6 +9,7 @@
+ #include "json_visit.h"
+ 
+ static void test_basic_parse(void);
++static void test_utf8_parse(void);
+ static void test_verbose_parse(void);
+ static void test_incremental_parse(void);
+ 
+@@ -19,6 +20,8 @@ int main(void)
+ 	static const char separator[] = "==================================";
+ 	test_basic_parse();
+ 	puts(separator);
++	test_utf8_parse();
++	puts(separator);
+ 	test_verbose_parse();
+ 	puts(separator);
+ 	test_incremental_parse();
+@@ -107,6 +110,17 @@ static void test_basic_parse()
+ 	single_basic_parse("[18446744073709551616]", 1);
+ }
+ 
++static void test_utf8_parse()
++{
++	// json_tokener_parse doesn't support checking for byte order marks.
++	// It's the responsibility of the caller to detect and skip a BOM.
++	// Both of these checks return null.
++	char utf8_bom[] = { 0xEF, 0xBB, 0xBF, 0x00 };
++	char utf8_bom_and_chars[] = { 0xEF, 0xBB, 0xBF, '{', '}', 0x00 };
++	single_basic_parse(utf8_bom, 0);
++	single_basic_parse(utf8_bom_and_chars, 0);
++}
++
+ // Clear the re-serialization information that the tokener
+ // saves to ensure that the output reflects the actual
+ // values we parsed, rather than just the original input.
+@@ -145,7 +159,7 @@ static void test_verbose_parse()
+ 	/* b/c the string starts with 'f' parsing return a boolean error */
+ 	assert (error == json_tokener_error_parse_boolean);
+ 
+-	puts("json_tokener_parse_versbose() OK");
++	puts("json_tokener_parse_verbose() OK");
+ }
+ 
+ struct incremental_step {
+diff --git a/tests/test_parse.expected b/tests/test_parse.expected
+index ada61411fe..5d3976a745 100644
+--- a/tests/test_parse.expected
++++ b/tests/test_parse.expected
+@@ -51,7 +51,10 @@ new_obj.to_string([0e+])=[ 0.0 ]
+ new_obj.to_string([0e+-1])=null
+ new_obj.to_string([18446744073709551616])=[ 9223372036854775807 ]
+ ==================================
+-json_tokener_parse_versbose() OK
++new_obj.to_string(﻿)=null
++new_obj.to_string(﻿{})=null
++==================================
++json_tokener_parse_verbose() OK
+ ==================================
+ Starting incremental tests.
+ Note: quotes and backslashes seen in the output here are literal values passed

@@ -1,0 +1,24 @@
+Backport of upstream http://rpm5.org/cvs/chngview?cn=19258
+
+--- popt-1.16/poptconfig.c			2009-05-20 15:18:07.000000000 +0200
++++ popt-1.16/poptconfig.c.glob-error		2017-10-12 23:33:28.868435647 +0200
+@@ -108,7 +108,7 @@
+     if (glob_pattern_p(pat, 0)) {
+ 	glob_t _g, *pglob = &_g;
+ 
+-	if (!glob(pat, poptGlobFlags, poptGlob_error, pglob)) {
++	if (!(rc = glob(pat, poptGlobFlags, poptGlob_error, pglob))) {
+ 	    if (acp) {
+ 		*acp = (int) pglob->gl_pathc;
+ 		pglob->gl_pathc = 0;
+@@ -122,6 +122,10 @@
+ /*@-nullstate@*/
+ 	    globfree(pglob);
+ /*@=nullstate@*/
++       } else if (rc == GLOB_NOMATCH) {
++	    *avp = NULL;
++	    *acp = 0;
++	    rc = 0;
+ 	} else
+ 	    rc = POPT_ERROR_ERRNO;
+     } else

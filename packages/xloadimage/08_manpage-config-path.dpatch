@@ -1,0 +1,32 @@
+#! /bin/sh -e
+## 08_manpage-config-path.dpatch by Austin Donnelly <and1000@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Correct path for system-wide configuration file in manpage.
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+       -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+	*)
+		echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+		exit 1;;
+esac
+
+exit 0
+
+diff -urNad 08.xloadimage.tmp/xloadimage.man 08.xloadimage/xloadimage.man
+--- 08.xloadimage.tmp/xloadimage.man	2003-04-02 23:43:14.000000000 +0100
++++ 08.xloadimage/xloadimage.man	2003-04-02 23:42:26.000000000 +0100
+@@ -633,7 +633,7 @@
+ xloadimage              - the image loader and viewer
+ xsetbg                  - pseudonym which quietly sets the background
+ xview                   - pseudonym which views in a window
+-/usr/lib/X11/Xloadimage - default system-wide configuration file
++/etc/X11/Xloadimage     - default system-wide configuration file
+ ~/.xloadimagerc         - user's personal configuration file
+ .in -5
+ .fi

@@ -1,0 +1,141 @@
+diff -r -u p11-kit-0.23.16.1/common/compat.c p11-kit-0.23.16.1-patched/common/compat.c
+--- p11-kit-0.23.16.1/common/compat.c	2019-03-25 08:56:48.000000000 +0000
++++ p11-kit-0.23.16.1-patched/common/compat.c	2020-01-01 14:17:10.527447840 +0000
+@@ -34,6 +34,8 @@
+ 
+ #include "config.h"
+ 
++#include <sys/time.h>
++
+ /*
+  * This is needed to expose pthread_mutexattr_settype and PTHREAD_MUTEX_DEFAULT
+  * on older pthreads implementations
+diff -r -u p11-kit-0.23.16.1/common/message.c p11-kit-0.23.16.1-patched/common/message.c
+--- p11-kit-0.23.16.1/common/message.c	2019-02-26 15:04:41.000000000 +0000
++++ p11-kit-0.23.16.1-patched/common/message.c	2020-01-01 14:17:10.528953600 +0000
+@@ -37,6 +37,8 @@
+ 
+ #include "config.h"
+ 
++#include <sys/time.h>
++
+ /*
+  * Oh god. glibc is nasty. Changes behavior and definitions of POSIX
+  * functions to completely different signatures depending on defines
+diff -r -u p11-kit-0.23.16.1/common/unix-peer.c p11-kit-0.23.16.1-patched/common/unix-peer.c
+--- p11-kit-0.23.16.1/common/unix-peer.c	2018-08-06 10:43:42.000000000 +0000
++++ p11-kit-0.23.16.1-patched/common/unix-peer.c	2020-01-01 14:17:10.530304560 +0000
+@@ -54,7 +54,9 @@
+ p11_get_upeer_id (int cfd, uid_t *uid, uid_t *gid, pid_t *pid)
+ {
+ 	int ret;
+-#if defined(SO_PEERCRED)
++#if defined(__sgi)
++	return -1;
++#elif defined(SO_PEERCRED)
+ 	struct ucred cr;
+ 	socklen_t cr_len;
+ 
+diff -r -u p11-kit-0.23.16.1/p11-kit/server.c p11-kit-0.23.16.1-patched/p11-kit/server.c
+--- p11-kit-0.23.16.1/p11-kit/server.c	2019-02-26 15:04:41.000000000 +0000
++++ p11-kit-0.23.16.1-patched/p11-kit/server.c	2020-01-01 14:17:10.533661120 +0000
+@@ -32,6 +32,14 @@
+  * Author: Stef Walter <stefw@redhat.com>
+  */
+ 
++#if defined(__sgi)
++#include <sys/time.h>
++#include <sys/socket.h>
++#include <sys/un.h>
++#define SUN_LEN(ptr) ((size_t)(((struct sockaddr_un *)0)->sun_path) \
++		      + strlen((ptr)->sun_path))
++#endif
++
+ #include "config.h"
+ 
+ #include "compat.h"
+@@ -56,6 +64,7 @@
+ #include <grp.h>
+ #include <pwd.h>
+ #include <signal.h>
++#include <sys/signal.h>
+ #include <sys/socket.h>
+ #include <sys/types.h>
+ #include <sys/un.h>
+@@ -66,11 +75,15 @@
+ #include <systemd/sd-daemon.h>
+ #endif
+ 
+-#ifdef HAVE_SIGHANDLER_T
++#if defined(__sgi)
++/* #define SIGHANDLER_T __sighandler_t */
++typedef void (*sighandler_t)(int);
++#define SIGHANDLER_T sighandler_t
++#elif defined(HAVE_SIGHANDLER_T)
+ #define SIGHANDLER_T sighandler_t
+-#elif HAVE_SIG_T
++#elif defined(HAVE_SIG_T)
+ #define SIGHANDLER_T sig_t
+-#elif HAVE___SIGHANDLER_T
++#elif defined(HAVE___SIGHANDLER_T)
+ #define SIGHANDLER_T __sighandler_t
+ #else
+ typedef void (*sighandler_t)(int);
+@@ -376,7 +389,7 @@
+ 	int ret;
+ 	int cfd;
+ 	pid_t pid;
+-	socklen_t sa_len;
++	socklen_t my_sa_len;
+ 	struct sockaddr_un sa;
+ 	fd_set rd_set;
+ 	sigset_t emptyset, blockset;
+@@ -464,8 +477,8 @@
+ 		}
+ 
+ 		if (FD_ISSET (server->socket, &rd_set)) {
+-			sa_len = sizeof (sa);
+-			cfd = accept (server->socket, (struct sockaddr *)&sa, &sa_len);
++			my_sa_len = sizeof (sa);
++			cfd = accept (server->socket, (struct sockaddr *)&sa, &my_sa_len);
+ 			if (cfd == -1) {
+ 				if (errno != EINTR)
+ 					p11_message_err (errno, "could not accept from socket %s", server->socket_name);
+diff -r -u p11-kit-0.23.16.1/p11-kit/test-transport.c p11-kit-0.23.16.1-patched/p11-kit/test-transport.c
+--- p11-kit-0.23.16.1/p11-kit/test-transport.c	2018-08-06 10:43:42.000000000 +0000
++++ p11-kit-0.23.16.1-patched/p11-kit/test-transport.c	2020-01-01 14:37:40.723594080 +0000
+@@ -33,6 +33,14 @@
+  * Author: Stef Walter <stef@thewalter.net>
+  */
+ 
++#if defined(__sgi)
++#include <sys/time.h>
++#include <sys/socket.h>
++#include <sys/un.h>
++#define SUN_LEN(ptr) ((size_t)(((struct sockaddr_un *)0)->sun_path) \
++		      + strlen((ptr)->sun_path))
++#endif
++
+ #include "config.h"
+ #include "test.h"
+ 
+@@ -152,7 +160,7 @@
+ launch_server (void)
+ {
+ 	int fd, nfd, rc;
+-	socklen_t sa_len;
++	socklen_t my_sa_len;
+ 	struct sockaddr_un sa;
+ 	fd_set fds;
+ 	char *argv[3];
+@@ -180,8 +188,8 @@
+ 
+ 	assert (FD_ISSET (fd, &fds));
+ 
+-	sa_len = sizeof (sa);
+-	nfd = accept (fd, (struct sockaddr *)&sa, &sa_len);
++	my_sa_len = sizeof (sa);
++	nfd = accept (fd, (struct sockaddr *)&sa, &my_sa_len);
+ 	assert_num_cmp (rc, !=, -1);
+ 	close (fd);
+ 

@@ -1,0 +1,65 @@
+From 28eabf1185634216ca335b3a24e1131b0f392ca1 Mon Sep 17 00:00:00 2001
+From: David Mitchell <davem@iabyn.com>
+Date: Wed, 10 Jul 2019 12:59:06 +0100
+Subject: [PATCH] avoid SEGV with uninit warning with multideref
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+RT #134275
+
+When the 'uninitialized warning' code in S_find_uninit_var() comes
+across an OP_MULTIDEREF node, it scans it to see if any part of that op
+(e.g. the indices or the returned value) could have been the source of
+the uninitialized value which triggered the warning.  Unfortunately when
+getting an AV or HV from a GV, it wasn't checking whether gp_av/gp_hv
+contained a NULL value. If so, it would SEGV.
+
+The test code is a bit contrived; you have to "pull the rug" from under
+the GV at just the right moment with *foo = *bar, then trigger an uninit
+warning on an op whose subtree includes an OP_MULTIDEREF.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ sv.c                   |  5 ++++-
+ t/lib/warnings/9uninit | 10 ++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/sv.c b/sv.c
+index 83de536ad7..4315fe9b64 100644
+--- a/sv.c
++++ b/sv.c
+@@ -16662,8 +16662,11 @@ S_find_uninit_var(pTHX_ const OP *const obase, const SV *const uninit_sv,
+ 
+         if (agg_targ)
+ 	    sv = PAD_SV(agg_targ);
+-        else if (agg_gv)
++        else if (agg_gv) {
+             sv = is_hv ? MUTABLE_SV(GvHV(agg_gv)) : MUTABLE_SV(GvAV(agg_gv));
++            if (!sv)
++                break;
++            }
+         else
+             break;
+ 
+diff --git a/t/lib/warnings/9uninit b/t/lib/warnings/9uninit
+index 774c6ee432..5c173fdb2a 100644
+--- a/t/lib/warnings/9uninit
++++ b/t/lib/warnings/9uninit
+@@ -2206,3 +2206,13 @@ use warnings 'uninitialized';
+ undef $0;
+ EXPECT
+ Use of uninitialized value in undef operator at - line 5.
++########
++# RT #134275
++# This was SEGVing due to the multideref code in S_find_uninit_var not
++# handling a GV with a null gp_hv slot.
++use warnings 'uninitialized';
++"" =~ /$foo{a}${*foo=*bar}$x/;
++EXPECT
++Use of uninitialized value in regexp compilation at - line 5.
++Use of uninitialized value in regexp compilation at - line 5.
++Use of uninitialized value $x in regexp compilation at - line 5.
+-- 
+2.20.1
+

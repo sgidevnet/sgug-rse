@@ -1,0 +1,31 @@
+From 8d3e0237887e7149be56d17a9448cb465edc5f76 Mon Sep 17 00:00:00 2001
+From: Karl Williamson <khw@cpan.org>
+Date: Thu, 22 Aug 2019 10:16:14 -0600
+Subject: [PATCH] regcomp.c: Fix wrong limit test
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Spotted by Hugo van der Sanden in code reading.
+
+Signed-off-by: Petr Písař <ppisar@redhat.com>
+---
+ regcomp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/regcomp.c b/regcomp.c
+index aba6648da5..d61fd434fe 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -23132,7 +23132,7 @@ Perl_parse_uniprop_string(pTHX_
+ 
+     /* If the original input began with 'In' or 'Is', it could be a subroutine
+      * call to a user-defined property instead of a Unicode property name. */
+-    if (    non_pkg_begin + name_len > 2
++    if (    name_len - non_pkg_begin > 2
+         &&  name[non_pkg_begin+0] == 'I'
+         && (name[non_pkg_begin+1] == 'n' || name[non_pkg_begin+1] == 's'))
+     {
+-- 
+2.21.0
+

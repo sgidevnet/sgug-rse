@@ -1,0 +1,11 @@
+--- Python-2.5c1/Makefile.pre.in.cflags	2006-08-18 11:05:40.000000000 -0400
++++ Python-2.5c1/Makefile.pre.in	2006-08-18 11:09:26.000000000 -0400
+@@ -334,7 +334,7 @@
+ 
+ # Build the interpreter
+ $(BUILDPYTHON):	Modules/python.o $(LIBRARY) $(LDLIBRARY)
+-		$(LINKCC) $(LDFLAGS) $(LINKFORSHARED) -o $@ \
++		$(LINKCC) $(CFLAGS) $(LDFLAGS) $(LINKFORSHARED) -o $@ \
+ 			Modules/python.o \
+ 			$(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
+ 
