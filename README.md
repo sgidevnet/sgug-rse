@@ -93,6 +93,12 @@ vi /etc/passwd
 (log out of root)
 ```
 
+For a GUI terminal emulator option, you can install `mrxvt` from SGUG and configure it to use sgugshell by default with this line in your `~/.mrxvtrc`:
+
+```
+Mrxvt.profile0.command: /usr/sgug/bin/sgugshell
+```
+
 **(6)** Now you can search for and install sgug RPM packages. Note that you have to be root in order for the `tdnf` tool to work:
 
 ```shell
