@@ -1,0 +1,6956 @@
+diff -Naur sndio-1.8.1.orig/Makefile.in sndio-1.8.1.truhobbyist/Makefile.in
+--- sndio-1.8.1.orig/Makefile.in	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/Makefile.in	2022-07-20 13:45:27.000000000 -0400
+@@ -35,4 +35,5 @@
+ 		sndioctl/Makefile \
+ 		examples/Makefile \
+ 		contrib/init.d.sndiod \
++		contrib/init.d.sndiod.sgi \
+ 		contrib/sndiod.service
+diff -Naur sndio-1.8.1.orig/README.md sndio-1.8.1.truhobbyist/README.md
+--- sndio-1.8.1.orig/README.md	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/README.md	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1,30 @@
++# Welcome to sndiod-1.8.1 for SGI IRIX!
++
++This is a port of OpenBSD's sndio-1.8.1 (https://sndio.org/) to **SGI IRIX**.
++
++
++## Compilation
++
++
++### sndio:
++
++
++bash# cd sndio-1.8.1_sgi/
++
++bash# gmake clean
++
++bash# ./configure CC=c99 LDFLAGS='-Wl,-rpath,/usr/local/lib'
++
++bash# gmake
++
++bash# gmake install
++
++Done!
++
++
++## Usage
++
++
++Refer to the official documentation to get started (https://man.openbsd.org/sndio).
++
++
+diff -Naur sndio-1.8.1.orig/aucat/Makefile.in sndio-1.8.1.truhobbyist/aucat/Makefile.in
+--- sndio-1.8.1.orig/aucat/Makefile.in	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/aucat/Makefile.in	2022-07-20 13:45:27.000000000 -0400
+@@ -5,7 +5,7 @@
+ LIB = -L../libsndio
+ 
+ # extra defines (-D options)
+-DEFS = -DDEBUG -DSNDIO_USER=\"@user@\" -DADATA_BITS=@precision@ @defs@
++DEFS = -DDEBUG -DSNDIO_USER=\"@user@\" @defs@
+ 
+ # extra libraries (-l options)
+ LDADD = -lsndio @ldadd@
+diff -Naur sndio-1.8.1.orig/aucat/afile.c sndio-1.8.1.truhobbyist/aucat/afile.c
+--- sndio-1.8.1.orig/aucat/afile.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/aucat/afile.c	2022-07-20 13:45:27.000000000 -0400
+@@ -895,7 +895,7 @@
+ 			f->fd = STDIN_FILENO;
+ 		} else {
+ 			f->path = path;
+-			f->fd = open(f->path, O_RDONLY, 0);
++			f->fd = open(f->path, O_RDONLY);
+ 			if (f->fd == -1) {
+ 				log_puts(f->path);
+ 				log_puts(": failed to open for reading\n");
+diff -Naur sndio-1.8.1.orig/aucat/aucat.1 sndio-1.8.1.truhobbyist/aucat/aucat.1
+--- sndio-1.8.1.orig/aucat/aucat.1	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/aucat/aucat.1	2022-07-20 13:45:27.000000000 -0400
+@@ -88,7 +88,7 @@
+ .It Fl e Ar enc
+ Encoding of the audio file.
+ The default is
+-.Va s16 .
++.Va s24 .
+ Encoding names use the following scheme: signedness
+ .Po
+ .Va s
+diff -Naur sndio-1.8.1.orig/aucat/aucat.c sndio-1.8.1.truhobbyist/aucat/aucat.c
+--- sndio-1.8.1.orig/aucat/aucat.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/aucat/aucat.c	2022-07-20 13:45:27.000000000 -0400
+@@ -1382,7 +1382,11 @@
+ 	rate = DEFAULT_RATE;
+ 	cmin = 0;
+ 	cmax = 1;
+-	aparams_init(&par);
++	par.bits = ADATA_BITS;
++	par.bps = APARAMS_BPS(par.bits);
++	par.le = ADATA_LE;
++	par.sig = 1;
++	par.msb = 1;
+ 	hdr = AFILE_HDR_AUTO;
+ 	n_flag = 0;
+ 	port = NULL;
+diff -Naur sndio-1.8.1.orig/aucat/dsp.c sndio-1.8.1.truhobbyist/aucat/dsp.c
+--- sndio-1.8.1.orig/aucat/dsp.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/aucat/dsp.c	2022-07-20 13:45:27.000000000 -0400
+@@ -429,7 +429,7 @@
+ 			if (ofr == 0)
+ 				break;
+ 
+-			for (c = nch; c > 0; c--)
++			for (c = 0; c < nch; c++)
+ 				f[c] = 0;
+ 
+ 			q = diff * p->filt_step;
+@@ -442,7 +442,7 @@
+ 				ds = resamp_filt[qi + 1] - s;
+ 				s += (int64_t)qf * ds >> RESAMP_STEP_BITS;
+ 				ctx = ctxbuf;
+-				for (c = nch; c > 0; c--) {
++				for (c = 0; c < nch; c++) {
+ 					f[c] += (int64_t)ctx[n] * s;
+ 					ctx += RESAMP_NCTX;
+ 				}
+@@ -450,7 +450,7 @@
+ 				n = (n + 1) & (RESAMP_NCTX - 1);
+ 			}
+ 
+-			for (c = nch; c > 0; c--) {
++			for (c = 0; c < nch; c++) {
+ 				s = f[c] >> RESAMP_BITS;
+ 				s = (int64_t)s * p->filt_cutoff >> RESAMP_BITS;
+ #if ADATA_BITS == 16
+diff -Naur sndio-1.8.1.orig/aucat/dsp.h sndio-1.8.1.truhobbyist/aucat/dsp.h
+--- sndio-1.8.1.orig/aucat/dsp.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/aucat/dsp.h	2022-07-20 13:45:27.000000000 -0400
+@@ -20,37 +20,25 @@
+ #include <sys/types.h>
+ #include "defs.h"
+ 
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++#include <standards.h>
++#include <sys/endian.h>
++#endif
++
+ /*
+  * Samples are numbers in the interval [-1, 1[, note that 1, the upper
+  * boundary is excluded. We represent them as signed fixed point numbers
+  * of ADATA_BITS. We also assume that 2^(ADATA_BITS - 1) fits in a int.
+  */
+-#ifndef ADATA_BITS
+-#define ADATA_BITS			16
+-#endif
++#define ADATA_BITS			24
+ #define ADATA_LE			(BYTE_ORDER == LITTLE_ENDIAN)
+ #define ADATA_UNIT			(1 << (ADATA_BITS - 1))
+ 
+-#if ADATA_BITS == 16
+-
+-#define ADATA_MUL(x,y)		(((int)(x) * (int)(y)) >> (ADATA_BITS - 1))
+-#define ADATA_MULDIV(x,y,z)	((int)(x) * (int)(y) / (int)(z))
+-
+-typedef short adata_t;
+-
+-#elif ADATA_BITS == 24
+-
+ #define ADATA_MUL(x,y)		\
+ 	((int)(((long long)(x) * (long long)(y)) >> (ADATA_BITS - 1)))
+-#define ADATA_MULDIV(x,y,z)	\
+-	((int)((long long)(x) * (long long)(y) / (long long)(z)))
+ 
+ typedef int adata_t;
+ 
+-#else
+-#error "only 16-bit and 24-bit precisions are supported"
+-#endif
+-
+ /*
+  * The FIR is sampled and stored in a table of fixed-point numbers
+  * with 23 fractional bits. For convenience, we use the same fixed-point
+diff -Naur sndio-1.8.1.orig/bsd-compat/bsd-compat.h sndio-1.8.1.truhobbyist/bsd-compat/bsd-compat.h
+--- sndio-1.8.1.orig/bsd-compat/bsd-compat.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/bsd-compat/bsd-compat.h	2022-07-20 13:45:27.000000000 -0400
+@@ -1,10 +1,32 @@
++/*
++ * Copyright (c) 2010 Jacob Meuser <jakemsr@sdf.lonestar.org>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
+ #ifndef BSD_COMPAT_H
+ #define BSD_COMPAT_H
+ 
++#include <sys/types.h>
++
+ #ifdef USE_LIBBSD
+ #include <bsd/bsd.h>
+ #endif
+ 
++#ifndef HAVE_GETPEEREID
++#define getpeereid _sndio_getpeereid
++int getpeereid(int, uid_t *, gid_t *);
++#endif
++
+ #ifndef HAVE_ISSETUGID
+ #define issetugid _sndio_issetugid
+ int issetugid(void);
+@@ -25,11 +47,6 @@
+ long long strtonum(const char *, long long, long long, const char **);
+ #endif
+ 
+-#ifndef HAVE_SOCK_CLOEXEC
+-#define strtonum _sndio_strtonum
+-long long strtonum(const char *, long long, long long, const char **);
+-#endif
+-
+ #ifndef HAVE_CLOCK_GETTIME
+ #define CLOCK_MONOTONIC	0
+ #define clock_gettime _sndio_clock_gettime
+@@ -45,4 +62,9 @@
+ #define CLOCK_UPTIME CLOCK_MONOTONIC
+ #endif
+ 
++#ifndef HAVE_ERR
++void err(int eval, const char *fmt, ...);
++void errx(int eval, const char *fmt, ...);
++#endif
++
+ #endif /* !defined(BSD_COMPAT_H) */
+diff -Naur sndio-1.8.1.orig/bsd-compat/err.c sndio-1.8.1.truhobbyist/bsd-compat/err.c
+--- sndio-1.8.1.orig/bsd-compat/err.c	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/bsd-compat/err.c	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1,75 @@
++
++/*
++ * Replacement routines not present in SGI IRIX.
++ */
++
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++
++#include <stdio.h>
++#include <stdarg.h>
++#include <stdlib.h>
++#include <string.h>
++#include <errno.h>
++
++
++/* Global program arguments array */
++extern char **__Argv;
++
++
++void err(int eval, const char *fmt, ...)
++{
++	va_list args;
++
++	if (fmt == NULL)
++	{
++		/* progname: error message string */
++		fprintf(stderr, "%s: %s\n", __Argv[0], strerror(errno));
++	}
++	else
++	{
++		/* progname: fmt: error message string */
++
++		/* Print program name */
++		fprintf(stderr, "%s: ", __Argv[0]);
++
++		/* Print format with arguments */
++		va_start(args, fmt);
++		vfprintf(stderr, fmt, args);
++		va_end(args);
++
++		/* Print error message string */
++		fprintf(stderr, ": %s\n", strerror(errno));
++	}
++
++	exit(eval);
++}
++
++
++void errx(int eval, const char *fmt, ...)
++{
++	va_list args;
++
++	if (fmt == NULL)
++	{
++		/* "progname: " (note the trailing space character) */
++
++		fprintf(stderr, "%s: \n", __Argv[0]);
++	}
++	else
++	{
++		/* progname: fmt */
++
++		/* Print program name */
++		fprintf(stderr, "%s: ", __Argv[0]);
++
++		/* Print format with arguments */
++		va_start(args, fmt);
++		vfprintf(stderr, fmt, args);
++		va_end(args);
++	}
++
++	exit(eval);
++}
++
++#endif
++
+diff -Naur sndio-1.8.1.orig/bsd-compat/getpeereid.c sndio-1.8.1.truhobbyist/bsd-compat/getpeereid.c
+--- sndio-1.8.1.orig/bsd-compat/getpeereid.c	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/bsd-compat/getpeereid.c	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1,33 @@
++/*
++ * Copyright (c) 2010 Jacob Meuser <jakemsr@sdf.lonestar.org>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++#include <sys/types.h>
++#include <sys/socket.h>
++#include "bsd-compat.h"
++
++#if !defined(HAVE_GETPEEREID) && !defined(__sgi_irix)
++int
++getpeereid(int s, uid_t *ruid, gid_t *rgid)
++{
++	struct ucred cr;
++	socklen_t len = sizeof(cr);
++
++	if (getsockopt(s, SOL_SOCKET, SO_PEERCRED, &cr, &len) < 0)
++		return -1;
++	*ruid = cr.uid;
++	*rgid = cr.gid;
++	return 0;
++}
++#endif
+diff -Naur sndio-1.8.1.orig/configure sndio-1.8.1.truhobbyist/configure
+--- sndio-1.8.1.orig/configure	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/configure	2022-07-20 13:45:27.000000000 -0400
+@@ -14,12 +14,14 @@
+ --libdir=DIR			install libraries in DIR [\$exec_prefix/lib]
+ --pkgconfdir=DIR		install pkg-config file in DIR [\$libdir/pkgconfig]
+ --mandir=DIR			install man pages in DIR [\$prefix/man]
+---precision=NUMBER		aucat/sndiod processing precision [$precision]
++--precision=NUMBER		default sndiod device bit-depth [$precision]
+ --privsep-user=USER		non-privileged user for sndio daemon [$user]
+ --enable-alsa			enable alsa audio & midi backends [$alsa]
+ --disable-alsa			disable alsa audio & midi backends
+ --enable-sun			enable sun audio backend [$sun]
+ --disable-sun			disable sun audio backend
++--enable-sgi			enable sgi audio backend [$sgi]
++--disable-sgi			disable sgi audio backend
+ --enable-rmidi			enable character device midi backend [$rmidi]
+ --disable-rmidi			disable character device midi backend
+ --enable-umidi			enable usb-midi backend [$umidi]
+@@ -33,15 +35,16 @@
+ #
+ # defaults
+ #
+-version=1.8.0				# package version (used by pkg-config)
++version=1.8.1				# package version (used by pkg-config)
+ prefix=/usr/local			# where to install sndio
+ so="libsndio.so.\${MAJ}.\${MIN}"	# shared libs to build
+ alsa=no					# do we want alsa support ?
+ sun=no					# do we want sun support ?
++sgi=no					# do we want sgi support ?
+ oss=no					# do we want oss support ?
+ rmidi=no				# do we want support for raw char dev ?
+ umidi=no				# do we want support for umidi ?
+-precision=16				# aucat/sndiod arithmetic precision
++precision=16				# sndiod default device bit-depth
+ user=_sndio				# non-privileged user for sndio daemon
+ libbsd=no				# use libbsd?
+ so_ldflags=				# extra linker flags for shared libs
+@@ -65,8 +68,7 @@
+ 		alsa=yes
+ 		ldadd="-lrt"
+ 		user=sndiod
+-		so_link="libsndio.so"
+-		so_link_maj="libsndio.so.\${MAJ}"
++		so_link="libsndio.so libsndio.so.\${MAJ} libsndio.so.\${MAJ}.0"
+ 		so_ldflags="-Wl,-soname=libsndio.so.\${MAJ}"
+ 		defs='-D_GNU_SOURCE -DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
+ 		;;
+@@ -75,7 +77,7 @@
+ 		rmidi=yes
+ 		user=_sndio
+ 		so_link="libsndio.so"
+-		defs='-DHAVE_ARC4RANDOM -DHAVE_ISSETUGID \\\
++		defs='-DHAVE_ARC4RANDOM -DHAVE_GETPEEREID -DHAVE_ISSETUGID \\\
+ 		-DHAVE_STRLCAT -DHAVE_STRLCPY \\\
+ 		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
+ 		;;
+@@ -83,7 +85,7 @@
+ 		sun=yes
+ 		rmidi=yes
+ 		user=_sndiop
+-		defs='-DHAVE_ARC4RANDOM -DHAVE_ISSETUGID \\\
++		defs='-DHAVE_ARC4RANDOM -DHAVE_GETPEEREID -DHAVE_ISSETUGID \\\
+ 		-DHAVE_STRLCAT -DHAVE_STRLCPY -DHAVE_STRTONUM \\\
+ 		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
+ 		;;
+@@ -93,7 +95,7 @@
+ 		user=_sndio
+ 		so_ldflags="-Wl,-soname=libsndio.so.\${MAJ}.\${MIN}"
+ 		so_link="libsndio.so"
+-		defs='-DHAVE_ARC4RANDOM -DHAVE_ISSETUGID \\\
++		defs='-DHAVE_ARC4RANDOM -DHAVE_GETPEEREID -DHAVE_ISSETUGID \\\
+ 		-DHAVE_STRLCAT -DHAVE_STRLCPY -DHAVE_STRTONUM \\\
+ 		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
+ 		;;
+@@ -101,8 +103,16 @@
+ 		rmidi=no
+ 		so="libsndio.\${MAJ}.\${MIN}.dylib"
+ 		so_link="libsndio.dylib"
+-		defs='-DHAVE_ARC4RANDOM -DHAVE_ISSETUGID \\\
++		defs='-DHAVE_ARC4RANDOM -DHAVE_GETPEEREID -DHAVE_ISSETUGID \\\
+ 		-DHAVE_STRLCAT -DHAVE_STRLCPY'
++		;;
++	IRIX*)
++		sgi=yes
++		ldadd="-laudio"
++		rmidi=no
++		user=sndiod
++		so_link="libsndio.so"
++		defs='-D__sgi_irix'
+ esac
+ 
+ # shell word separator (none)
+@@ -156,6 +166,12 @@
+ 	--disable-sun)
+ 		sun=no
+ 		shift;;
++	--enable-sgi)
++		sgi=yes
++		shift;;
++	--disable-sgi)
++		sgi=no
++		shift;;
+ 	--enable-rmidi)
+ 		rmidi=yes
+ 		shift;;
+@@ -237,6 +253,12 @@
+ 	defs="$defs -DUSE_SUN -DUSE_SUN_MIXER"
+ fi
+ 
++# if using SGI API, add corresponding parameters
++#
++if [ $sgi = yes ]; then
++	defs="$defs -DUSE_SGI -DUSE_SGI_MIXER"
++fi
++
+ #
+ # if using raw character devices for midi, add corresponding parameters
+ #
+@@ -270,7 +292,8 @@
+ sndioctl/Makefile \
+ examples/Makefile \
+ contrib/init.d.sndiod \
+-contrib/sndiod.service
++contrib/sndiod.service \
++contrib/init.d.sndiod.sgi
+ do
+ 	sed \
+ 	-e "s:@bindir@:$bindir:" \
+@@ -284,7 +307,6 @@
+ 	-e "s:@ldadd@:$ldadd:" \
+ 	-e "s:@so@:$so:" \
+ 	-e "s:@so_link@:$so_link:" \
+-	-e "s:@so_link_maj@:$so_link_maj:" \
+ 	-e "s:@so_ldflags@:$so_ldflags:" \
+ 	-e "s:@vars@:${vars}:" \
+ 	-e "s:@precision@:$precision:" \
+@@ -329,6 +351,7 @@
+ alsa..................... $alsa
+ oss...................... $oss
+ sun...................... $sun
++sgi...................... $sgi
+ rmidi.................... $rmidi
+ umidi.................... $umidi
+ 
+diff -Naur sndio-1.8.1.orig/contrib/init.d.sndiod.sgi.in sndio-1.8.1.truhobbyist/contrib/init.d.sndiod.sgi.in
+--- sndio-1.8.1.orig/contrib/init.d.sndiod.sgi.in	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/contrib/init.d.sndiod.sgi.in	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1,81 @@
++#!/bin/sh
++##
++## Start or stop the sndiod daemon
++##
++## Set custom options in /etc/config/sndiod.options to override
++## default configuration
++
++IS_ON=/etc/chkconfig
++SNDIOD=@bindir@/sndiod
++CONFIG=/etc/config/sndiod.options
++
++if $IS_ON verbose; then
++    ECHO=echo
++else
++    ECHO=:
++fi
++
++kill_sndiod()
++{
++	/sbin/killall -15 $SNDIOD > /dev/null 2>&1
++}
++
++start_sndiod()
++{
++	$ECHO "start_sndiod"
++	if $IS_ON sndiod && test -x $SNDIOD; then
++	    grep ^sndiod: /etc/passwd > /dev/null
++	    if [ $? -ne 0 ]; then
++		/usr/sbin/passmgmt -a  -h/dev/null -u5000 -g5000 -s/dev/null -c"sndiod daemon user" sndiod
++		if [ $? -ne 0 ]; then
++		    echo "Failed to create Privilege Separation User for sndiod daemon"
++		    exit 1;
++		fi
++	    fi
++	    grep ^sndiod: /etc/group > /dev/null
++	    if [ $? -ne 0 ]; then
++		echo "sndiod::5000:sndiod" >> /etc/group
++		if [ $? -ne 0 ]; then
++		    echo "Failed to create Privilege Separation Group for sndiod daemon"
++		    exit 1;
++		fi
++	    fi
++	    $ECHO "Starting sndiod:\c"
++	    if [ -r $CONFIG ]; then
++		eval `cat $CONFIG`
++		$SNDIOD -z 4800 $DAEMON_OPTS
++	    else
++		$SNDIOD -z 4800
++	    fi
++	    $ECHO "."
++	fi
++}
++
++case "$1" in
++    start)
++	kill_sndiod
++	start_sndiod
++	;;
++
++    restart)
++	kill_sndiod
++	start_sndiod
++	;;
++
++    stop)
++	$ECHO "Stopping sndiod."
++	kill_sndiod
++	exit 0
++	;;
++
++    stop-all)
++	$ECHO "Stopping sndiod"
++	kill_sndiod
++	exit 0
++	;;
++
++    *)
++	echo "usage: $0 {start|stop|stop-all|restart}"
++	;;
++esac
++
+diff -Naur sndio-1.8.1.orig/contrib/sndiod.chkconfig sndio-1.8.1.truhobbyist/contrib/sndiod.chkconfig
+--- sndio-1.8.1.orig/contrib/sndiod.chkconfig	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/contrib/sndiod.chkconfig	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1 @@
++on
+diff -Naur sndio-1.8.1.orig/contrib/sndiod.options sndio-1.8.1.truhobbyist/contrib/sndiod.options
+--- sndio-1.8.1.orig/contrib/sndiod.options	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/contrib/sndiod.options	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1 @@
++DAEMON_OPTS=""
+diff -Naur sndio-1.8.1.orig/examples/fd.c sndio-1.8.1.truhobbyist/examples/fd.c
+--- sndio-1.8.1.orig/examples/fd.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/examples/fd.c	2022-07-20 13:45:27.000000000 -0400
+@@ -9,6 +9,10 @@
+ #include <sndio.h>
+ #include "tools.h"
+ 
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++#include <strings.h>
++#endif
++
+ struct buf {				/* simple circular fifo */
+ 	unsigned start;			/* first used byte */
+ 	unsigned used;			/* number of used bytes */
+diff -Naur sndio-1.8.1.orig/examples/play.c sndio-1.8.1.truhobbyist/examples/play.c
+--- sndio-1.8.1.orig/examples/play.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/examples/play.c	2022-07-20 13:45:27.000000000 -0400
+@@ -114,11 +114,19 @@
+ 	bufsz = par.bps * par.pchan * par.round;
+ 	buf = malloc(bufsz);
+ 	if (buf == NULL) {
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++              fprintf(stderr, "failed to allocate %u bytes\n", bufsz);
++              exit(1);
++	}
++	fprintf(stderr, "%u bytes buffer, max latency %u frames\n",
++		bufsz, par.bufsz);
++#else
+ 		fprintf(stderr, "failed to allocate %zu bytes\n", bufsz);
+ 		exit(1);
+ 	}
+ 	fprintf(stderr, "%zu bytes buffer, max latency %u frames\n",
+-	    bufsz, par.bufsz);
++		bufsz, par.bufsz);
++#endif
+ 	if (!sio_start(hdl)) {
+ 		fprintf(stderr, "sio_start() failed\n");
+ 		exit(1);
+diff -Naur sndio-1.8.1.orig/examples/rec.c sndio-1.8.1.truhobbyist/examples/rec.c
+--- sndio-1.8.1.orig/examples/rec.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/examples/rec.c	2022-07-20 13:45:27.000000000 -0400
+@@ -76,7 +76,12 @@
+ 			}
+ 			break;
+ 		case 'n':
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++			if (sscanf(optarg, "%u", &nbytes) != 1) {
++#else
++
+ 			if (sscanf(optarg, "%zu", &nbytes) != 1) {
++#endif
+ 				fprintf(stderr, "%s: bad bytes count\n", optarg);
+ 				exit(1);
+ 			}
+@@ -122,11 +127,19 @@
+ 	bufsz = par.bps * par.rchan * par.round;
+ 	buf = malloc(bufsz);
+ 	if (buf == NULL) {
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++		fprintf(stderr, "failed to allocate %u bytes\n", bufsz);
++		exit(1);
++	}
++	fprintf(stderr, "%u bytes buffer, max latency %u frames\n",
++	    bufsz, par.bufsz);
++#else
+ 		fprintf(stderr, "failed to allocate %zu bytes\n", bufsz);
+ 		exit(1);
+ 	}
+ 	fprintf(stderr, "%zu bytes buffer, max latency %u frames\n",
+ 	    bufsz, par.bufsz);
++#endif
+ 	if (!sio_start(hdl)) {
+ 		fprintf(stderr, "sio_start() failed\n");
+ 		exit(1);
+diff -Naur sndio-1.8.1.orig/examples/vol.c sndio-1.8.1.truhobbyist/examples/vol.c
+--- sndio-1.8.1.orig/examples/vol.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/examples/vol.c	2022-07-20 13:45:27.000000000 -0400
+@@ -37,7 +37,7 @@
+ 	int tty;
+ 	struct sio_hdl *hdl;
+ 	struct termios tio;
+-	struct pollfd pfd[2];
++	struct pollfd pfd[3];
+ 	char cmd;
+ 	ssize_t n, len;
+ 	
+@@ -92,6 +92,12 @@
+ 				exit(1);
+ 			}
+ 			break;
++		case 'b':
++			if (sscanf(optarg, "%u", &par.appbufsz) != 1) {
++				fprintf(stderr, "%s: bad buf size\n", optarg);
++				exit(1);
++			}
++			break;
+ 		default:
+ 			usage();
+ 			exit(1);
+diff -Naur sndio-1.8.1.orig/libsndio/Makefile.in sndio-1.8.1.truhobbyist/libsndio/Makefile.in
+--- sndio-1.8.1.orig/libsndio/Makefile.in	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/Makefile.in	2022-07-20 13:45:27.000000000 -0400
+@@ -47,13 +47,12 @@
+ # libraries to build and install
+ #
+ MAJ = 7
+-MIN = 1
++MIN = 2
+ SO = @so@
+ SO_LINK = @so_link@
+-SO_LINK_MAJ = @so_link_maj@
+-
+-all:		${SO} ${SO_LINK} ${SO_LINK_MAJ}
+ 
++all:		${SO}
++		for i in ${SO_LINK}; do ln -sf ${SO} $$i; done
+ 
+ install:
+ 		mkdir -p ${DESTDIR}${INCLUDE_DIR}
+@@ -62,7 +61,7 @@
+ 		mkdir -p ${DESTDIR}${MAN3_DIR}
+ 		mkdir -p ${DESTDIR}${MAN7_DIR}
+ 		cp sndio.h ${DESTDIR}${INCLUDE_DIR}
+-		cp -R ${SO} ${SO_LINK} ${SO_LINK_MAJ} ${DESTDIR}${LIB_DIR}
++		cp -R ${SO} ${SO_LINK} ${DESTDIR}${LIB_DIR}
+ 		cp sndio.pc ${DESTDIR}${PKGCONF_DIR}
+ 		cp sio_open.3 ${DESTDIR}${MAN3_DIR}
+ 		ln -sf sio_open.3 ${DESTDIR}${MAN3_DIR}/sio_close.3
+@@ -118,9 +117,9 @@
+ #
+ OBJS = debug.o aucat.o \
+ mio.o mio_rmidi.o mio_alsa.o mio_aucat.o \
+-sio.o sio_alsa.o sio_aucat.o sio_oss.o sio_sun.o \
+-sioctl.o sioctl_aucat.o sioctl_sun.o \
+-issetugid.o strlcat.o strlcpy.o strtonum.o clock_gettime.o
++sio.o sio_alsa.o sio_aucat.o sio_oss.o sio_sun.o sio_sgi.o \
++sioctl.o sioctl_aucat.o sioctl_sun.o sioctl_sgi.o \
++getpeereid.o issetugid.o strlcat.o strlcpy.o strtonum.o clock_gettime.o
+ 
+ .c.o:
+ 		${CC} ${CFLAGS} ${SO_CFLAGS} -I. ${INCLUDE} ${DEFS} -o $@ -c $<
+@@ -128,11 +127,8 @@
+ ${SO}:		${OBJS}
+ 		${CC} ${LDFLAGS} ${SO_CFLAGS} ${SO_LDFLAGS} -o ${SO} ${OBJS} ${LDADD}
+ 
+-${SO_LINK}:
+-		ln -sf ${SO} ${SO_LINK}
+-
+-${SO_LINK_MAJ}:
+-		ln -sf ${SO} ${SO_LINK_MAJ}
++getpeereid.o:	../bsd-compat/getpeereid.c
++		${CC} ${CFLAGS} ${SO_CFLAGS} ${INCLUDE} ${DEFS} -c -o getpeereid.o ../bsd-compat/getpeereid.c
+ 
+ issetugid.o:	../bsd-compat/issetugid.c
+ 		${CC} ${CFLAGS} ${SO_CFLAGS} ${INCLUDE} ${DEFS} -c -o issetugid.o ../bsd-compat/issetugid.c
+@@ -168,6 +164,9 @@
+ 		../bsd-compat/bsd-compat.h
+ sio_sun.o:	sio_sun.c debug.h sio_priv.h sndio.h \
+ 		../bsd-compat/bsd-compat.h
++sio_sgi.o:	sio_sgi.c debug.h sio_priv.h sndio.h \
++		../bsd-compat/bsd-compat.h
+ sioctl.o:	sioctl.c debug.h sioctl_priv.h
+ sioctl_aucat.o:	sioctl_aucat.c debug.h aucat.h amsg.h sioctl_priv.h
+ sioctl_sun.o:	sioctl_sun.c debug.h amsg.h sioctl_priv.h
++sioctl_sgi.o:	sioctl_sgi.c debug.h amsg.h sioctl_priv.h
+diff -Naur sndio-1.8.1.orig/libsndio/amsg.h sndio-1.8.1.truhobbyist/libsndio/amsg.h
+--- sndio-1.8.1.orig/libsndio/amsg.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/amsg.h	2022-07-20 13:45:27.000000000 -0400
+@@ -96,6 +96,9 @@
+ #define AMSG_DATAMAX	0x1000
+ 			uint32_t size;
+ 		} data;
++		struct amsg_stop {
++			uint8_t drain;
++		} stop;
+ 		struct amsg_ts {
+ 			int32_t delta;
+ 		} ts;
+@@ -106,6 +109,7 @@
+ 			uint16_t mode;		/* bitmap of MODE_XXX */
+ #define AMSG_VERSION	7
+ 			uint8_t version;	/* protocol version */
++#define AMSG_NODEV	255
+ 			uint8_t devnum;		/* device number */
+ 			uint32_t id;		/* client id */
+ #define AMSG_OPTMAX	12
+diff -Naur sndio-1.8.1.orig/libsndio/aucat.c sndio-1.8.1.truhobbyist/libsndio/aucat.c
+--- sndio-1.8.1.orig/libsndio/aucat.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/aucat.c	2022-07-20 13:45:27.000000000 -0400
+@@ -189,7 +189,11 @@
+ 		hdl->rstate = RSTATE_MSG;
+ 		hdl->rtodo = sizeof(struct amsg);
+ 	}
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++	DPRINTFN(2, "_aucat_rdata: read: n = %d\n", n);
++#else
+ 	DPRINTFN(2, "_aucat_rdata: read: n = %zd\n", n);
++#endif
+ 	return n;
+ }
+ 
+@@ -232,7 +236,11 @@
+ 		}
+ 		return 0;
+ 	}
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++	DPRINTFN(2, "_aucat_wdata: write: n = %d\n", n);
++#else
+ 	DPRINTFN(2, "_aucat_wdata: write: n = %zd\n", n);
++#endif
+ 	hdl->wtodo -= n;
+ 	if (hdl->wtodo == 0) {
+ 		hdl->wstate = WSTATE_IDLE;
+@@ -472,7 +480,12 @@
+ int
+ _aucat_open(struct aucat *hdl, const char *str, unsigned int mode)
+ {
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++	extern char **__Argv;
++	char *__progname = __Argv[0];
++#else
+ 	extern char *__progname;
++#endif
+ 	int eof;
+ 	char host[NI_MAXHOST], opt[AMSG_OPTMAX];
+ 	const char *p;
+@@ -504,15 +517,30 @@
+ 		DPRINTF("%s: '/' expected\n", str);
+ 		return 0;
+ 	}
+-	p = _sndio_parsenum(++p, &devnum, 15);
+-	if (p == NULL)
+-		return 0;
+-	if (*p == '.') {
+-		p = parsestr(++p, opt, AMSG_OPTMAX);
++	p++;
++	if (type == 0) {
++		if (*p < '0' || *p > '9') {
++			devnum = AMSG_NODEV;
++			p = parsestr(p, opt, AMSG_OPTMAX);
++			if (p == NULL)
++				return 0;
++		} else {
++			p = _sndio_parsenum(p, &devnum, 15);
++			if (p == NULL)
++				return 0;
++			if (*p == '.') {
++				p = parsestr(++p, opt, AMSG_OPTMAX);
++				if (p == NULL)
++					return 0;
++			} else
++				strlcpy(opt, "default", AMSG_OPTMAX);
++		}
++	} else {
++		p = _sndio_parsenum(p, &devnum, 15);
+ 		if (p == NULL)
+ 			return 0;
+-	} else
+-		strlcpy(opt, "default", AMSG_OPTMAX);
++		memset(opt, 0, sizeof(opt));
++	}
+ 	if (*p != '\0') {
+ 		DPRINTF("%s: junk at end of dev name\n", p);
+ 		return 0;
+diff -Naur sndio-1.8.1.orig/libsndio/debug.c sndio-1.8.1.truhobbyist/libsndio/debug.c
+--- sndio-1.8.1.orig/libsndio/debug.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/debug.c	2022-07-20 13:45:27.000000000 -0400
+@@ -19,6 +19,10 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ 
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++#include <stdarg.h>
++#endif
++
+ #include "debug.h"
+ #include "bsd-compat.h"
+ 
+@@ -41,6 +45,50 @@
+ }
+ #endif
+ 
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++
++void
++DPRINTFN(int n, char *format_string, ...)
++{
++#ifdef DEBUG
++      va_list args;
++
++      if (_sndio_debug >= n) {
++              va_start(args, format_string);
++              vfprintf(stderr, format_string, args);
++              va_end(args);
++              fflush(stderr);
++      }
++#endif
++}
++
++void
++DPRINTF(char *format_string, ...)
++{
++#ifdef DEBUG
++      va_list args;
++
++      if (_sndio_debug > 0) {
++              va_start(args, format_string);
++              vfprintf(stderr, format_string, args);
++              va_end(args);
++              fflush(stderr);
++      }
++#endif
++}
++
++void
++DPERROR(char *s)
++{
++#ifdef DEBUG
++      if (_sndio_debug > 0) {
++              perror(s);
++              fflush(stderr);
++      }
++#endif
++}
++#endif
++
+ const char *
+ _sndio_parsetype(const char *str, char *type)
+ {
+diff -Naur sndio-1.8.1.orig/libsndio/debug.h sndio-1.8.1.truhobbyist/libsndio/debug.h
+--- sndio-1.8.1.orig/libsndio/debug.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/debug.h	2022-07-20 13:45:27.000000000 -0400
+@@ -17,6 +17,19 @@
+ #ifndef DEBUG_H
+ #define DEBUG_H
+ 
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++
++void DPRINTFN(int n, char *, ...);
++void DPRINTF(char *, ...);
++void DPERROR(char *);
++
++#ifdef DEBUG
++void _sndio_debug_init(void);
++extern int _sndio_debug;
++#endif
++
++#else /* Non-SGI IRIX or non-MIPSpro compiler */
++
+ #ifdef DEBUG
+ #include <stdio.h>
+ 
+@@ -46,6 +59,8 @@
+ #define DPERROR(s) do {} while(0)
+ #endif
+ 
++#endif        /* defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION) */
++
+ const char *_sndio_parsetype(const char *, char *);
+ const char *_sndio_parsenum(const char *, unsigned int *, unsigned int);
+ 
+diff -Naur sndio-1.8.1.orig/libsndio/sio.c sndio-1.8.1.truhobbyist/libsndio/sio.c
+--- sndio-1.8.1.orig/libsndio/sio.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sio.c	2022-07-20 13:45:27.000000000 -0400
+@@ -26,6 +26,11 @@
+ #include <time.h>
+ #include <unistd.h>
+ 
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++#include <dmedia/audio.h>
++#include "sio_sgi.h"
++#endif
++
+ #include "debug.h"
+ #include "sio_priv.h"
+ #include "bsd-compat.h"
+@@ -63,11 +68,13 @@
+ 			str = devany;
+ 	}
+ 	if (strcmp(str, devany) == 0) {
+-		hdl = _sio_aucat_open("snd/0", mode, nbio);
++		hdl = _sio_aucat_open("snd/default", mode, nbio);
+ 		if (hdl != NULL)
+ 			return hdl;
+ #if defined(USE_SUN)
+ 		return _sio_sun_open("rsnd/0", mode, nbio);
++#elif defined(USE_SGI)
++		return _sio_sgi_open("rsnd/0", mode, nbio);
+ #elif defined(USE_OSS)
+ 		return _sio_oss_open("rsnd/default", mode, nbio);
+ #elif defined(USE_ALSA)
+@@ -81,6 +88,8 @@
+ 	if (_sndio_parsetype(str, "rsnd"))
+ #if defined(USE_SUN)
+ 		return _sio_sun_open(str, mode, nbio);
++#elif defined(USE_SGI)
++		return _sio_sgi_open(str, mode, nbio);
+ #elif defined(USE_OSS)
+ 		return _sio_oss_open(str, mode, nbio);
+ #elif defined(USE_ALSA)
+@@ -146,6 +155,8 @@
+ int
+ sio_stop(struct sio_hdl *hdl)
+ {
++	if (hdl->ops->stop == NULL)
++		return sio_flush(hdl);
+ 	if (hdl->eof) {
+ 		DPRINTF("sio_stop: eof\n");
+ 		return 0;
+@@ -166,6 +177,28 @@
+ }
+ 
+ int
++sio_flush(struct sio_hdl *hdl)
++{
++	if (hdl->eof) {
++		DPRINTF("sio_flush: eof\n");
++		return 0;
++	}
++	if (!hdl->started) {
++		DPRINTF("sio_flush: not started\n");
++		hdl->eof = 1;
++		return 0;
++	}
++	if (!hdl->ops->flush(hdl))
++		return 0;
++#ifdef DEBUG
++	DPRINTFN(2, "libsndio: polls: %llu, samples = %llu\n",
++	    hdl->pollcnt, hdl->cpos);
++#endif
++	hdl->started = 0;
++	return 1;
++}
++
++int
+ sio_setpar(struct sio_hdl *hdl, struct sio_par *par)
+ {
+ 	if (hdl->eof) {
+@@ -275,7 +308,11 @@
+ 		if (n == 0)
+ 			return 0;
+ 		hdl->rdrop -= n;
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++		DPRINTF("sio_rdrop: dropped %u bytes\n", n);
++#else
+ 		DPRINTF("sio_rdrop: dropped %zu bytes\n", n);
++#endif
+ 	}
+ 	return 1;
+ }
+@@ -295,7 +332,11 @@
+ 		if (n == 0)
+ 			return 0;
+ 		hdl->wsil -= n;
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++		DPRINTF("sio_wsil: inserted %u bytes\n", n);
++#else
+ 		DPRINTF("sio_wsil: inserted %zu bytes\n", n);
++#endif
+ 	}
+ 	return 1;
+ }
+diff -Naur sndio-1.8.1.orig/libsndio/sio_alsa.c sndio-1.8.1.truhobbyist/libsndio/sio_alsa.c
+--- sndio-1.8.1.orig/libsndio/sio_alsa.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sio_alsa.c	2022-07-20 13:45:27.000000000 -0400
+@@ -64,7 +64,7 @@
+ static int sio_alsa_revents(struct sio_hdl *, struct pollfd *);
+ static void sio_alsa_close(struct sio_hdl *);
+ static int sio_alsa_start(struct sio_hdl *);
+-static int sio_alsa_stop(struct sio_hdl *);
++static int sio_alsa_flush(struct sio_hdl *);
+ static int sio_alsa_setpar(struct sio_hdl *, struct sio_par *);
+ static int sio_alsa_getpar(struct sio_hdl *, struct sio_par *);
+ static int sio_alsa_getcap(struct sio_hdl *, struct sio_cap *);
+@@ -82,7 +82,8 @@
+ 	sio_alsa_write,
+ 	sio_alsa_read,
+ 	sio_alsa_start,
+-	sio_alsa_stop,
++	NULL,
++	sio_alsa_flush,
+ 	sio_alsa_nfds,
+ 	sio_alsa_pollfd,
+ 	sio_alsa_revents,
+@@ -445,7 +446,7 @@
+ }
+ 
+ static int
+-sio_alsa_stop(struct sio_hdl *sh)
++sio_alsa_flush(struct sio_hdl *sh)
+ {
+ 	struct sio_alsa_hdl *hdl = (struct sio_alsa_hdl *)sh;
+ 	int err;
+@@ -476,7 +477,7 @@
+ 			return 0;
+ 		}
+ 	}
+-	DPRINTFN(2, "sio_alsa_stop: stopped\n");
++	DPRINTFN(2, "sio_alsa_flush: stopped\n");
+ 	return 1;
+ }
+ 
+@@ -517,7 +518,7 @@
+ 
+ 	DPRINTFN(2, "wsil = %d, cmove = %d, rdrop = %d\n", wsil, cmove, rdrop);
+ 
+-	if (!sio_alsa_stop(&hdl->sio))
++	if (!sio_alsa_flush(&hdl->sio))
+ 		return 0;
+ 	if (!sio_alsa_start(&hdl->sio))
+ 		return 0;
+diff -Naur sndio-1.8.1.orig/libsndio/sio_aucat.c sndio-1.8.1.truhobbyist/libsndio/sio_aucat.c
+--- sndio-1.8.1.orig/libsndio/sio_aucat.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sio_aucat.c	2022-07-20 13:45:27.000000000 -0400
+@@ -50,6 +50,7 @@
+ static void sio_aucat_close(struct sio_hdl *);
+ static int sio_aucat_start(struct sio_hdl *);
+ static int sio_aucat_stop(struct sio_hdl *);
++static int sio_aucat_flush(struct sio_hdl *);
+ static int sio_aucat_setpar(struct sio_hdl *, struct sio_par *);
+ static int sio_aucat_getpar(struct sio_hdl *, struct sio_par *);
+ static int sio_aucat_getcap(struct sio_hdl *, struct sio_cap *);
+@@ -70,6 +71,7 @@
+ 	sio_aucat_read,
+ 	sio_aucat_start,
+ 	sio_aucat_stop,
++	sio_aucat_flush,
+ 	sio_aucat_nfds,
+ 	sio_aucat_pollfd,
+ 	sio_aucat_revents,
+@@ -208,7 +210,7 @@
+ }
+ 
+ static int
+-sio_aucat_stop(struct sio_hdl *sh)
++sio_aucat_drain(struct sio_hdl *sh, int drain)
+ {
+ #define ZERO_MAX 0x400
+ 	static unsigned char zero[ZERO_MAX];
+@@ -241,6 +243,7 @@
+ 	 */
+ 	AMSG_INIT(&hdl->aucat.wmsg);
+ 	hdl->aucat.wmsg.cmd = htonl(AMSG_STOP);
++	hdl->aucat.wmsg.u.stop.drain = drain;
+ 	hdl->aucat.wtodo = sizeof(struct amsg);
+ 	if (!_aucat_wmsg(&hdl->aucat, &hdl->sio.eof))
+ 		return 0;
+@@ -264,6 +267,18 @@
+ }
+ 
+ static int
++sio_aucat_stop(struct sio_hdl *sh)
++{
++	return sio_aucat_drain(sh, 1);
++}
++
++static int
++sio_aucat_flush(struct sio_hdl *sh)
++{
++	return sio_aucat_drain(sh, 0);
++}
++
++static int
+ sio_aucat_setpar(struct sio_hdl *sh, struct sio_par *par)
+ {
+ 	struct sio_aucat_hdl *hdl = (struct sio_aucat_hdl *)sh;
+diff -Naur sndio-1.8.1.orig/libsndio/sio_open.3 sndio-1.8.1.truhobbyist/libsndio/sio_open.3
+--- sndio-1.8.1.orig/libsndio/sio_open.3	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sio_open.3	2022-07-20 13:45:27.000000000 -0400
+@@ -25,6 +25,7 @@
+ .Nm sio_getcap ,
+ .Nm sio_start ,
+ .Nm sio_stop ,
++.Nm sio_flush ,
+ .Nm sio_read ,
+ .Nm sio_write ,
+ .Nm sio_onmove ,
+@@ -53,6 +54,8 @@
+ .Fn sio_start "struct sio_hdl *hdl"
+ .Ft "int"
+ .Fn sio_stop "struct sio_hdl *hdl"
++.Ft "int"
++.Fn sio_flush "struct sio_hdl *hdl"
+ .Ft "size_t"
+ .Fn sio_read "struct sio_hdl *hdl" "void *addr" "size_t nbytes"
+ .Ft "size_t"
+@@ -257,6 +260,8 @@
+ .Fn sio_start
+ has been called,
+ .Fn sio_stop
++or
++.Fn sio_flush
+ must be called before parameters can be changed.
+ .Pp
+ If the device is exposed by the
+@@ -404,12 +409,20 @@
+ function puts the audio subsystem
+ in the same state as before
+ .Fn sio_start
+-is called.
++was called.
+ It stops recording, drains the play buffer and then stops playback.
+ If samples to play are queued but playback hasn't started yet
+ then playback is forced immediately; playback will actually stop
+ once the buffer is drained.
+ In no case are samples in the play buffer discarded.
++.Pp
++The
++.Fn sio_flush
++function stops playback and recording immediately,
++possibly discarding play buffer contents, and puts the audio subsystem
++in the same state as before
++.Fn sio_start
++was called.
+ .Ss Playing and recording
+ When record mode is selected, the
+ .Fn sio_read
+@@ -538,7 +551,7 @@
+ The exact playback
+ latency can be obtained by subtracting the current position
+ from the number of frames written.
+-Once playback is actually started (first sample audible)
++Once playback is actually started (first sample audible),
+ the latency will never exceed the
+ .Fa bufsz
+ parameter (see the sections above).
+@@ -694,6 +707,7 @@
+ .Fn sio_getcap ,
+ .Fn sio_start ,
+ .Fn sio_stop ,
++.Fn sio_flush ,
+ and
+ .Fn sio_setvol
+ functions return 1 on success and 0 on failure.
+@@ -773,7 +787,8 @@
+ .Fn sio_getpar ,
+ .Fn sio_getcap ,
+ .Fn sio_start ,
++.Fn sio_stop ,
+ and
+-.Fn sio_stop
++.Fn sio_flush
+ functions may block for a very short period of time, thus they should
+ be avoided in code sections where blocking is not desirable.
+diff -Naur sndio-1.8.1.orig/libsndio/sio_oss.c sndio-1.8.1.truhobbyist/libsndio/sio_oss.c
+--- sndio-1.8.1.orig/libsndio/sio_oss.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sio_oss.c	2022-07-20 13:45:27.000000000 -0400
+@@ -103,7 +103,7 @@
+ static int sio_oss_revents(struct sio_hdl *, struct pollfd *);
+ static int sio_oss_setpar(struct sio_hdl *, struct sio_par *);
+ static int sio_oss_start(struct sio_hdl *);
+-static int sio_oss_stop(struct sio_hdl *);
++static int sio_oss_flush(struct sio_hdl *);
+ static int sio_oss_xrun(struct sio_oss_hdl *);
+ static size_t sio_oss_read(struct sio_hdl *, void *, size_t);
+ static size_t sio_oss_write(struct sio_hdl *, const void *, size_t);
+@@ -119,7 +119,8 @@
+ 	sio_oss_write,
+ 	sio_oss_read,
+ 	sio_oss_start,
+-	sio_oss_stop,
++	NULL,
++	sio_oss_flush,
+ 	sio_oss_nfds,
+ 	sio_oss_pollfd,
+ 	sio_oss_revents,
+@@ -381,7 +382,7 @@
+ }
+ 
+ static int
+-sio_oss_stop(struct sio_hdl *sh)
++sio_oss_flush(struct sio_hdl *sh)
+ {
+ 	struct sio_oss_hdl *hdl = (struct sio_oss_hdl*)sh;
+ 	int trig;
+@@ -392,7 +393,7 @@
+ 	}
+ 	trig = 0;
+ 	if (ioctl(hdl->fd, SNDCTL_DSP_SETTRIGGER, &trig) == -1) {
+-		DPERROR("sio_oss_stop: SETTRIGGER");
++		DPERROR("sio_oss_flush: SETTRIGGER");
+ 		hdl->sio.eof = 1;
+ 		return 0;
+ 	}
+@@ -693,7 +694,7 @@
+ 
+ 	DPRINTFN(2, "wsil = %d, cmove = %d, rdrop = %d\n", wsil, cmove, rdrop);
+ 
+-	if (!sio_oss_stop(&hdl->sio))
++	if (!sio_oss_flush(&hdl->sio))
+ 		return 0;
+ 	if (!sio_oss_start(&hdl->sio))
+ 		return 0;
+diff -Naur sndio-1.8.1.orig/libsndio/sio_priv.h sndio-1.8.1.truhobbyist/libsndio/sio_priv.h
+--- sndio-1.8.1.orig/libsndio/sio_priv.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sio_priv.h	2022-07-20 13:45:27.000000000 -0400
+@@ -58,6 +58,7 @@
+ 	size_t (*read)(struct sio_hdl *, void *, size_t);
+ 	int (*start)(struct sio_hdl *);
+ 	int (*stop)(struct sio_hdl *);
++	int (*flush)(struct sio_hdl *);
+ 	int (*nfds)(struct sio_hdl *);
+ 	int (*pollfd)(struct sio_hdl *, struct pollfd *, int);
+ 	int (*revents)(struct sio_hdl *, struct pollfd *);
+@@ -69,6 +70,9 @@
+ #ifdef USE_SUN
+ struct sio_hdl *_sio_sun_open(const char *, unsigned, int);
+ #endif
++#ifdef USE_SGI
++struct sio_hdl *_sio_sgi_open(const char *, unsigned, int);
++#endif
+ #ifdef USE_OSS
+ struct sio_hdl *_sio_oss_open(const char *, unsigned, int);
+ #endif
+diff -Naur sndio-1.8.1.orig/libsndio/sio_sgi.c sndio-1.8.1.truhobbyist/libsndio/sio_sgi.c
+--- sndio-1.8.1.orig/libsndio/sio_sgi.c	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/libsndio/sio_sgi.c	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1,1853 @@
++/*	$OpenBSD$	*/
++/*
++ * Copyright (c) 2008 Alexandre Ratchov <alex@caoua.org>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++#ifdef USE_SGI
++#include <sys/types.h>
++#include <sys/ioctl.h>
++#include <dmedia/audio.h>
++#include <dmedia/dmedia.h>
++
++#include <errno.h>
++#include <fcntl.h>
++#include <limits.h>
++#include <poll.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <strings.h>
++#include <unistd.h>
++
++#include "debug.h"
++#include "sio_priv.h"
++#include "sio_sgi.h"
++#include "bsd-compat.h"
++
++
++/* Device defaults */
++#define SIO_DEFAULT_BITS 16
++#define SIO_DEFAULT_BPS 2
++#define SIO_DEFAULT_PCHAN 2
++#define SIO_DEFAULT_RCHAN 2
++#define SIO_DEFAULT_RATE 48000
++#define SIO_DEFAULT_BUFSZ SIO_DEFAULT_RATE
++#define SIO_DEFAULT_APPBUFSZ 9600
++#define SIO_DEFAULT_ROUND 4800
++#define SIO_DEFAULT_PCHANS 2
++#define SIO_DEFAULT_RCHANS 2
++
++/* Audio Library defines */
++#define AL_NULL_DEVICE AL_NULL_RESOURCE
++
++#define PAR_ISSET(PAR, FIELD) (PAR->FIELD != ~0U)
++
++#define AUDIO_INITPAR(AP) \
++	(void) memset((void *) (AP), 0xff, sizeof(struct audio_swpar))
++
++
++static void sio_sgi_close(struct sio_hdl *);
++static int sio_sgi_start(struct sio_hdl *);
++static int sio_sgi_stop(struct sio_hdl *);
++static int sio_sgi_flush(struct sio_hdl *);
++static int sio_sgi_setpar(struct sio_hdl *, struct sio_par *);
++static int sio_sgi_getpar(struct sio_hdl *, struct sio_par *);
++static int sio_sgi_getcap(struct sio_hdl *, struct sio_cap *);
++static size_t sio_sgi_read(struct sio_hdl *, void *, size_t);
++static size_t sio_sgi_write(struct sio_hdl *, const void *, size_t);
++static int sio_sgi_nfds(struct sio_hdl *);
++static int sio_sgi_pollfd(struct sio_hdl *, struct pollfd *, int);
++static int sio_sgi_revents(struct sio_hdl *, struct pollfd *);
++
++static struct sio_ops sio_sgi_ops = {
++	sio_sgi_close,
++	sio_sgi_setpar,
++	sio_sgi_getpar,
++	sio_sgi_getcap,
++	sio_sgi_write,
++	sio_sgi_read,
++	sio_sgi_start,
++	sio_sgi_stop,
++	sio_sgi_flush,
++	sio_sgi_nfds,
++	sio_sgi_pollfd,
++	sio_sgi_revents,
++	NULL, /* setvol */
++	NULL, /* getvol */
++};
++
++/*
++ * get device capabilities
++ */
++static int
++sio_sgi_getcap(struct sio_hdl *sh, struct sio_cap *cap)
++{
++	int i;
++	static unsigned int chans[] = {
++		1, 2
++	};
++	static unsigned int rates[] = {
++		 8000, 11025, 16000, 22050,
++		32000, 44100, 48000
++	};
++	static unsigned int encs[] = {
++		8, 16, 32
++	};
++
++	/*
++	 * NOTE: SGI IRIX audio capabilities
++	 *
++	 *  Digital media library provides the following
++	 *  supported parameter values:
++	 *
++	 *
++	 *	bits	bps	sig	le	msb
++	 *	-----------------------------------
++	 *	8	1	1	0	0
++	 *	16	2	1	0	0
++	 *	32	4	1	0	0
++	 *
++	 *  All combinations are already tested and supported by
++	 *  the Digital Media library. Therefore, only one
++	 *  configuration is necessary in the capabilities structure.
++	 */
++
++
++	/* Initialize capabilities structure */
++	memset((void *) cap, 0, sizeof(struct sio_cap));
++
++	/* Fill in capabilities */
++
++	/* Encodings */
++	for (i = 0; i < sizeof(encs) / sizeof(unsigned int); i++) {
++		cap->enc[i].bits = encs[i];
++		cap->enc[i].bps = SIO_BPS(encs[i]);
++		cap->enc[i].sig = 1;
++		cap->enc[i].le = 0;
++		cap->enc[i].msb = 0;
++		cap->confs[0].enc |= 1 << i;
++	}
++
++	/* Channels */
++	cap->rchan[0] = chans[0];
++	cap->pchan[0] = chans[0];
++
++	cap->confs[0].rchan |= 1;
++	cap->confs[0].pchan |= 1;
++
++	/* Rate */
++	for (i = 0; i < sizeof(rates) / sizeof(unsigned int); i++) {
++		cap->rate[i] = rates[i];
++
++		cap->confs[0].rate |= 1 << i;
++	}
++
++	/* Number of configurations */
++	cap->nconf = 1;
++
++	return 1;
++}
++
++int
++sio_sgi_get_ifs(struct if_s *ifs_out, int *nifs_out,
++		struct if_s *ifs_in, int *nifs_in)
++{
++	int ret;
++	int i, j;
++	int nifs;
++	int nifs_err;
++	ALvalue devs[MAX_DEVICES];
++	ALvalue ifs[MAX_IFS];
++
++	*nifs_out = 0;
++	*nifs_in = 0;
++
++	/* Get number of output audio devices in the system */
++	ret = alQueryValues(AL_SYSTEM, AL_DEFAULT_OUTPUT, devs, MAX_DEVICES, 0, 0);
++	if (ret < 0)
++	{
++		/* Error getting output audio devices */
++		return -1;
++	}
++
++	/* Loop through output audio devices */
++	*nifs_out = 0;
++	nifs_err = 0;
++	for (i = 0; i < ret; i++)
++	{
++		/* Get number of device interfaces */
++		nifs = alQueryValues(devs[i].i, AL_INTERFACE, ifs, MAX_IFS - 1, 0, 0);
++		if (nifs < 0)
++		{
++			/* Error getting device interfaces. Continue as much as
++			 *  possible, only return error if no device could be queried
++			 *  for interfaces.
++			 */
++			nifs_err++;
++			if (nifs_err == ret)
++			{
++				DPERROR("NO_DEVOUT_QUERIED");
++				return -1;
++			}
++		}
++
++		/* Set output interfaces */
++		for (j = 0; j < nifs; j++)
++		{
++			ifs_out[*nifs_out].intf = ifs[j];
++			ifs_out[(*nifs_out)++].dev = devs[i].i;
++		}
++	}
++
++	/* Get number of input audio devices in the system */
++	ret = alQueryValues(AL_SYSTEM, AL_DEFAULT_INPUT, devs, MAX_DEVICES, 0, 0);
++	if (ret < 0)
++	{
++		/* Error getting input audio devices */
++		return -1;
++	}
++
++	/* Loop through input audio devices */
++	*nifs_in = 0;
++	nifs_err = 0;
++	for (i = 0; i < ret; i++)
++	{
++		/* Get number of device interfaces */
++		nifs = alQueryValues(devs[i].i, AL_INTERFACE, ifs, MAX_IFS - 1, 0, 0);
++		if (nifs < 0)
++		{
++			/* Error getting device interfaces. Continue as much as
++			 * possible, only return error if no device could be queried
++			 * for interfaces.
++			 */
++			nifs_err++;
++			if (nifs_err == ret)
++			{
++				DPERROR("NO_DEVIN_QUERIED");
++				return -1;
++			}
++		}
++
++		/* Set input interfaces */
++		for (j = 0; j < nifs; j++)
++		{
++			ifs_in[*nifs_in].intf = ifs[j];
++			ifs_in[(*nifs_in)++].dev = devs[i].i;
++		}
++	}
++
++	/* Set NULL_IF interfaces */
++	ifs_out[*nifs_out].intf.i = -1;
++	ifs_out[(*nifs_out)++].dev = -1;
++	ifs_in[*nifs_in].intf.i = -1;
++	ifs_in[(*nifs_in)++].dev = -1;
++
++	return 1;
++}
++
++int
++sio_sgi_boolprod(unsigned int devnum, unsigned int mode, int check_modes,
++		 struct if_s *ifs_out, int *nifs_out,
++		 struct if_s *ifs_in, int *nifs_in,
++		 int *if_out, int *if_in, int *dev_out, int *dev_in)
++{
++	int i, j;
++	int sel_if;
++	ALpv pvs[3];
++	char devlbl[STRING_SIZE];
++	char devnam[STRING_SIZE];
++
++
++	/* Iterate through boolean product (MxN - see sio_sgi_getdev()) */
++	for (i = 0; i < *nifs_in; i++)
++	{
++#ifdef DEBUG
++		if (i < (*nifs_in - 1)) {
++			/* Get AL_NAME and AL_LABEL of interface */
++			pvs[0].param = AL_LABEL;
++			pvs[0].value.ptr = devlbl;
++			pvs[0].sizeIn = STRING_SIZE;      /* pass in max size of string */
++			pvs[1].param = AL_NAME;
++			pvs[1].value.ptr = devnam;
++			pvs[1].sizeIn = STRING_SIZE;      /* pass in max size of string */
++			alGetParams(ifs_in[i].intf.i, pvs, 2); /* get the resource name & label */
++			DPRINTF("Interface input%i: name = \"%s\" label = \"%s\"\n", i, devnam, devlbl);
++		}
++		else
++			DPRINTF("Interface input%i: name = NULL_IF label = NULL_IF\n", i);
++#endif
++		for (j = 0; j < *nifs_out; j++)
++		{
++#ifdef DEBUG
++			if (j < (*nifs_out - 1)) {
++				/* Get AL_NAME and AL_LABEL of interface */
++				pvs[0].param = AL_LABEL;
++				pvs[0].value.ptr = devlbl;
++				pvs[0].sizeIn = STRING_SIZE;       /* pass in max size of string */
++				pvs[1].param = AL_NAME;
++				pvs[1].value.ptr = devnam;
++				pvs[1].sizeIn = STRING_SIZE;       /* pass in max size of string */
++				alGetParams(ifs_out[j].intf.i, pvs, 2); /* get the resource name & label */
++				DPRINTF("Interface output%i: name = \"%s\" label = \"%s\"\n", j, devnam, devlbl);
++			}
++			else
++				DPRINTF("Interface output%i: name = NULL_IF label = NULL_IF\n", j);
++#endif
++			if (devnum == 0) {
++				/*
++				 * Mode checking enables to match requested modes against
++				 * selected interfaces. Any discrepancy returns an error.
++				 * Interfaces found are selected on its device.
++				 *
++				 * Without mode checking, any interface found for devnum is
++				 * returned, even the NULL_IF (-1). If an interface is found,
++				 * it is selected on the device.
++				 *
++				 */
++
++				/* Check for compatible modes */
++				if (mode & SIO_PLAY) {
++					sel_if = 0;
++					if (check_modes) {
++						/* Check for NULL_IF output interface */
++						if (ifs_out[j].intf.i == -1) {
++							DPERROR("SIO_PLAY_NO_IF");
++							return -1;
++						}
++						sel_if = 1;
++					} else {
++						/* Check for NULL_IF output interface */
++						if (ifs_out[j].intf.i != -1)
++							sel_if = 1;
++					}
++
++					if (sel_if) {
++						/* Select interface on device */
++						pvs[2].param = AL_INTERFACE;
++						pvs[2].value.i = ifs_out[j].intf.i;
++						if ((alSetParams(ifs_out[j].dev, &pvs[2], 1) != 1) ||
++						    (pvs[2].sizeOut < 0)) {
++							DPERROR("SIO_PLAY_SET_IF");
++							return -1;
++						}
++					}
++				}
++				if ((mode & SIO_REC)) {
++					sel_if = 0;
++					if (check_modes) {
++						/* Check for NULL_IF input interface */
++						if (ifs_in[i].intf.i == -1) {
++							DPERROR("SIO_REC_NO_IF");
++							return -1;
++						}
++						sel_if = 1;
++					} else {
++						/* Check for NULL_IF input interface */
++						if (ifs_in[i].intf.i != -1)
++							sel_if = 1;
++					}
++
++					if (sel_if) {
++						/* Select interface on device */
++						pvs[2].param = AL_INTERFACE;
++						pvs[2].value.i = ifs_in[i].intf.i;
++						if ((alSetParams(ifs_in[i].dev, &pvs[2], 1) != 1) ||
++						    (pvs[2].sizeOut < 0)) {
++							DPERROR("SIO_REC_SET_IF");
++							return -1;
++						}
++					}
++				}
++
++
++				/* Set interface resources */
++				*if_in  = ifs_in[i].intf.i;
++				*if_out = ifs_out[j].intf.i;
++				*dev_in  = ifs_in[i].dev;
++				*dev_out = ifs_out[j].dev;
++				return 1;
++			}
++			devnum--;
++		}
++	}
++
++#ifdef DEBUG
++	DPERROR("DEV_NOT_FOUND");
++#endif
++
++	return -1;
++}
++
++int
++sio_sgi_devnum_to_ifs(int devnum, unsigned int mode, int check_modes,
++		      int *if_out, int *if_in, int *dev_out, int *dev_in)
++{
++	int nifs_in;
++	int nifs_out;
++	struct if_s ifs_out[MAX_IFS];
++	struct if_s ifs_in[MAX_IFS];
++
++	/* Get input/output interfaces */
++	if (sio_sgi_get_ifs(ifs_out, &nifs_out, ifs_in, &nifs_in) != 1)
++		return -1;
++
++	/* Get interfaces for given devnum */
++	if (sio_sgi_boolprod(devnum, mode, check_modes,
++			     ifs_out, &nifs_out,
++			     ifs_in, &nifs_in,
++			     if_out, if_in, dev_out, dev_in) != 1)
++		return -1;
++
++	return 1;
++}
++
++int
++sio_sgi_getdev(const char *str, unsigned int mode, int nbio,
++	       int *if_out, int *if_in, int *dev_out, int *dev_in)
++{
++	const char *p;
++	unsigned int devnum;
++
++#ifdef DEBUG
++	_sndio_debug_init();
++#endif
++	p = _sndio_parsetype(str, "rsnd");
++	if (p == NULL) {
++		DPRINTF("sio_sgi_getfd: %s: \"rsnd\" expected\n", str);
++		return -1;
++	}
++	switch (*p) {
++	case '/':
++		p++;
++		break;
++	default:
++		DPRINTF("sio_sgi_getfd: %s: '/' expected\n", str);
++		return -1;
++	}
++	p = _sndio_parsenum(p, &devnum, 255);
++	if (p == NULL || *p != '\0') {
++		DPRINTF("sio_sgi_getfd: %s: number expected after '/'\n", str);
++		return -1;
++	}
++
++
++	/* NOTE: IRIX audio hardware
++	 *
++	 *  In IRIX, the audio hardware is given by all values for the
++	 *  parameter AL_DEVICES for the resource AL_SYSTEM. There are
++	 *  two types: devices, and interfaces of these devices.
++	 *
++	 *  Since audio devices in IRIX/dmedia can only be either of type
++	 *  input or output, but libsndio devices can be opened for both
++	 *  SIO_PLAY and SIO_REC, the following translation scheme is used
++	 *  to assign rsnd/devnum identifiers to audio hardware on SGI machines.
++	 *
++	 *  For each device, its interfaces are queried. Two categories
++	 *  of interfaces are created covering all devices in a system:
++	 *  input interfaces, and output interfaces. Both interface types
++	 *  include one special NULL_IF interface. The NULL_IF interface is
++	 *  used to describe a non-existent interface and allows to create
++	 *  combinations of only one input interface, or only one output
++	 *  interface, or no interface at all. This is necessary for machines
++	 *  that do not include one of the types of interfaces or don't include
++	 *  audio hardware at all. NULL_IF interfaces are always appended
++	 *  to the interface lists for input and output.
++	 *
++	 *  The boolean product is calculated: MxN (M: input interfaces,
++	 *  N: output interfaces). Successive combinations get the next
++	 *  available libsndio device number.
++	 *
++	 *  For example, on a SGI O2 with standard audio-visual module, the
++	 *  following combinations result:
++	 *
++	 *  ---------------------------------------------------------------
++	 *  |libsndio        dmedia                                       |
++	 *  ---------------------------------------------------------------
++	 *  |rsnd/devnum    |Input interface       , output interface     |
++	 *  ---------------------------------------------------------------
++	 *   rsnd/0          A3.Microphone (input0), A3.Speaker  (output0)
++	 *   rsnd/1          A3.Microphone (input0), A3.LineOut2 (output1)
++	 *   rsnd/2          A3.Microphone (input0), NULL_IF     (output2)
++	 *   rsnd/3          A3.LineIn     (input1), A3.Speaker  (output0)
++	 *   rsnd/4          A3.LineIn     (input1), A3.LineOut2 (output1)
++	 *   rsnd/5          A3.LineIn     (input1), NULL_IF     (output2)
++	 *   rsnd/6          A3.DAC1In     (input2), A3.Speaker  (output0)
++	 *   rsnd/7          A3.DAC1In     (input2), A3.LineOut2 (output1)
++	 *   rsnd/8          A3.DAC1In     (input2), NULL_IF     (output2)
++	 *   rsnd/9          A3.DAC2In     (input3), A3.Speaker  (output0)
++	 *   rsnd/10         A3.DAC2In     (input3), A3.LineOut2 (output1)
++	 *   rsnd/11         A3.DAC2In     (input3), NULL_IF     (output2)
++	 *   rsnd/12         NULL_IF       (input4), A3.Speaker  (output0)
++	 *   rsnd/13         NULL_IF       (input4), A3.LineOut2 (output1)
++	 *   rsnd/14         NULL_IF       (input4), NULL_IF     (output2)
++	 *  ---------------------------------------------------------------
++	 *
++	 *  rsnd/0 is always the default device/interface for both types.
++	 *
++	 *  rsnd/N, where N is the last devnum, is always the NULL device
++	 *  (with both interfaces being NULL_IF).
++	 *
++	 *  This is true on any SGI machine using the Digital Media library.
++	 *
++	 */
++
++
++	/* Translate from device number to interfaces */
++	if (sio_sgi_devnum_to_ifs(devnum, mode, 1,
++				  if_out, if_in, dev_out, dev_in) == -1) {
++		DPERROR("TRANSLATE_DEVNUM");
++		return -1;
++	}
++
++	return 0;
++}
++
++int sio_sgi_initpars(struct sio_sgi_hdl *hdl, unsigned int mode)
++{
++	int qsize;
++	ALpv pvs[3];
++	ALpv spvs[3];
++	ALvalue clock_gen;
++
++
++	/*
++	 * NOTE: Default audio config
++	 *
++	 *   In IRIX's libsndio, a default input and output config
++	 *   has the following parameters:
++	 *
++	 *    * 48.000 frame rate
++	 *    * stereo data (2 channels)
++	 *    * two's complement sample format
++	 *    * 16-bit sample width
++	 *
++	 *   The audio(4) driver parameters are initialized with these values.
++	 *
++	 *   If these parameters can't be set for any interface found on
++	 *   the system, the interface is queried for current values and
++	 *   validated with allowed values.
++	 */
++
++	if (mode & SIO_PLAY) {
++		/* Only the rate needs to be set in the physical audio device.
++		 *
++		 * Any other parameter is set through port configuration.
++		 */
++
++		/* Query output device clock generator (first only) */
++		if (alQueryValues(hdl->dev_out, AL_CLOCK_GEN, &clock_gen, 1, 0, 0) < 0) {
++			DPERROR("GET_OUT_FRAMERATE");
++			return 0;
++		}
++
++		/* Query output frame rate */
++		pvs[0].param = AL_RATE;
++		if (alGetParams(clock_gen.i, pvs, 1) != 1) {
++			DPERROR("GET_OUT_RATE");
++			return 0;
++		}
++
++		spvs[0].param = AL_RATE;
++		spvs[0].value.i = SIO_DEFAULT_RATE;
++		if (alSetParams(clock_gen.i, spvs, 1) != 1) {
++			DPERROR("SET_OUT_RATE");
++			return 0;
++		}
++
++		/* Query output frame rate */
++		pvs[0].param = AL_RATE;
++		if (alGetParams(clock_gen.i, pvs, 1) != 1) {
++			DPERROR("GET_OUT_RATE");
++			return 0;
++		}
++
++		/* Check for default rate */
++		if (pvs[0].value.i != SIO_DEFAULT_RATE) {
++			DPERROR("CHECK_OUT_RATE");
++			return 0;
++		}
++
++		/* Initialize parameters */
++		hdl->par.bits = SIO_DEFAULT_BITS;
++		hdl->par.bps = SIO_BPS(hdl->par.bits);
++		hdl->par.sig = 1;
++		hdl->par.rate = SIO_DEFAULT_RATE;
++		hdl->bufsz = SIO_DEFAULT_BUFSZ;
++		hdl->appbufsz = SIO_DEFAULT_APPBUFSZ;
++		hdl->ap.play_delta = SIO_DEFAULT_ROUND;
++		hdl->par.pchan = SIO_DEFAULT_PCHANS;
++		hdl->par.nblks = 1;
++		hdl->par.round = SIO_DEFAULT_ROUND;
++		hdl->xrun = SIO_IGNORE;
++		hdl->obpf = hdl->par.pchan * hdl->par.bps;
++
++		/* Create new output port config */
++		hdl->config_out = alNewConfig();
++		if (hdl->config_out == (ALconfig) 0) {
++			DPERROR("CONFIG_OUT");
++			return 0;
++		}
++
++		/* Set bits */
++		if (alSetWidth(hdl->config_out, AL_SAMPLE_16) == -1) {
++			if (alFreeConfig(hdl->config_out) == -1)
++				DPERROR("FREE_CONFIG_OUT");
++			hdl->config_out = (ALconfig) 0;
++			DPERROR("SET_OUT_WIDTH");
++			return 0;
++		}
++
++		/* Set play channels */
++		if (alSetChannels(hdl->config_out, hdl->par.pchan) == -1) {
++			if (alFreeConfig(hdl->config_out) == -1)
++				DPERROR("FREE_CONFIG_OUT");
++			hdl->config_out = (ALconfig) 0;
++			DPERROR("SET_OUT_CHANS");
++			return 0;
++		}
++
++		/* Set output queue size */
++		if (alSetQueueSize(hdl->config_out, hdl->bufsz) == -1) {
++			if (alFreeConfig(hdl->config_out) == -1)
++				DPERROR("FREE_CONFIG_OUT");
++			hdl->config_out = (ALconfig) 0;
++			DPERROR("SET_OUT_QSIZE");
++			return 0;
++		}
++
++		qsize = alGetQueueSize(hdl->config_out);
++		if (qsize == -1) {
++			if (alFreeConfig(hdl->config_out) == -1)
++				DPERROR("FREE_CONFIG_OUT");
++			hdl->config_out = (ALconfig) 0;
++			DPERROR("GET_OUT_QSIZE");
++			return 0;
++		}
++
++		/* Check output queue size */
++		if (qsize != hdl->bufsz) {
++			if (alFreeConfig(hdl->config_out) == -1)
++				DPERROR("FREE_CONFIG_OUT");
++			hdl->config_out = (ALconfig) 0;
++			DPERROR("CHECK_OUT_QSIZE");
++			return 0;
++		}
++
++		/* Initialize to output device */
++		if (alSetDevice(hdl->config_out, hdl->dev_out) == -1) {
++			DPERROR("SET_CONFIG_OUT_NULLDEV");
++			if (alFreeConfig(hdl->config_out) == -1)
++				DPERROR("FREE_CONFIG_OUT");
++			hdl->config_out = (ALconfig) 0;
++			return 0;
++		}
++	}
++	if (mode & SIO_REC) {
++		if (mode & SIO_PLAY) {
++			/* Query input device clock generator (first only) */
++
++			/* NOTE: Must have the same rate as the output port */
++
++			if (alQueryValues(hdl->dev_in, AL_CLOCK_GEN, &clock_gen, 1, 0, 0) < 0) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				DPERROR("GET_IN_RATE");
++				return 0;
++			}
++
++			/* Query input frame rate */
++			pvs[0].param = AL_RATE;
++			if (alGetParams(clock_gen.i, pvs, 1) != 1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				DPERROR("GET_IN_RATE");
++				return 0;
++			}
++
++			spvs[0].param = AL_RATE;
++			spvs[0].value.i = SIO_DEFAULT_RATE;
++			if (alSetParams(clock_gen.i, spvs, 1) != 1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				DPERROR("GET_IN_RATE");
++				return 0;
++			}
++
++			/* Query input frame rate */
++			pvs[0].param = AL_RATE;
++			if (alGetParams(clock_gen.i, pvs, 1) != 1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				DPERROR("GET_IN_RATE");
++				return 0;
++			}
++
++			/* Check for default rate */
++			if (pvs[0].value.i != SIO_DEFAULT_RATE) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				DPERROR("CHECK_IN_RATE");
++				return 0;
++			}
++
++			/* Initialize parameters */
++			hdl->ap.rec_delta = SIO_DEFAULT_ROUND;
++			hdl->par.rchan = SIO_DEFAULT_RCHANS;
++			hdl->ibpf = hdl->par.rchan * hdl->par.bps;
++
++			/* Create new input config */
++			hdl->config_in = alNewConfig();
++			if (hdl->config_in == (ALconfig) 0) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				DPERROR("CONFIG_IN");
++				return 0;
++			}
++
++			/* Set bits */
++			if (alSetWidth(hdl->config_in, AL_SAMPLE_16) == -1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("SET_IN_WIDTH");
++				return 0;
++			}
++
++			/* Set number of channels */
++			if (alSetChannels(hdl->config_in, hdl->par.rchan) == -1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("SET_IN_RCHAN");
++				return 0;
++			}
++
++			/* Get input queue size */
++			qsize = alGetQueueSize(hdl->config_in);
++			if (qsize == -1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("GET_IN_QSIZE");
++				return 0;
++			}
++
++			/* Set input queue size */
++			if (alSetQueueSize(hdl->config_in, hdl->bufsz) == -1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("SET_IN_QSIZE");
++				return 0;
++			}
++
++			/* Get input queue size */
++			qsize = alGetQueueSize(hdl->config_in);
++			if (qsize == -1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("GET_IN_QSIZE");
++				return 0;
++			}
++
++			/* Check queue size */
++			if (qsize != hdl->bufsz) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("CHECK_IN_QSIZE");
++				return 0;
++			}
++
++			/* Initialize to input device */
++			if (alSetDevice(hdl->config_in, hdl->dev_in) == -1) {
++				if (alFreeConfig(hdl->config_out) == -1)
++					DPERROR("FREE_CONFIG_OUT");
++				hdl->config_out = (ALconfig) 0;
++				DPERROR("SET_CONFIG_IN_NULLDEV");
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				return 0;
++			}
++		} else {
++			/* Query input device clock generator (first only) */
++			if (alQueryValues(hdl->dev_in, AL_CLOCK_GEN, &clock_gen, 1, 0, 0) < 0) {
++				DPERROR("GET_IN_RATE");
++				return 0;
++			}
++
++			/* Query input frame rate */
++			pvs[0].param = AL_RATE;
++			if (alGetParams(clock_gen.i, pvs, 1) != 1) {
++				DPERROR("GET_IN_RATE");
++				return 0;
++			}
++
++			spvs[0].param = AL_RATE;
++			spvs[0].value.i = SIO_DEFAULT_RATE;
++			if (alSetParams(clock_gen.i, spvs, 1) != 1) {
++				DPERROR("GET_IN_RATE");
++				return 0;
++			}
++
++			/* Query input frame rate */
++			pvs[0].param = AL_RATE;
++			if (alGetParams(clock_gen.i, pvs, 1) != 1) {
++				DPERROR("GET_IN_RATE");
++				return 0;
++			}
++
++			/* Check for default rate */
++			if (pvs[0].value.i != SIO_DEFAULT_RATE) {
++				DPERROR("CHECK_IN_RATE");
++				return 0;
++			}
++
++			/* Initialize parameters */
++			hdl->par.bits = SIO_DEFAULT_BITS;
++			hdl->par.bps = SIO_BPS(hdl->par.bits);
++			hdl->par.sig = 1;
++			hdl->par.rate = SIO_DEFAULT_RATE;
++			hdl->bufsz = SIO_DEFAULT_BUFSZ;
++			hdl->appbufsz = SIO_DEFAULT_APPBUFSZ;
++			hdl->ap.rec_delta = SIO_DEFAULT_ROUND;
++			hdl->par.rchan = SIO_DEFAULT_RCHANS;
++			hdl->par.nblks = 1;
++			hdl->par.round = SIO_DEFAULT_ROUND;
++			hdl->ibpf = hdl->par.rchan * hdl->par.bps;
++
++			/* Create new input config */
++			hdl->config_in = alNewConfig();
++			if (hdl->config_in == (ALconfig) 0) {
++				DPERROR("CONFIG_IN");
++				return 0;
++			}
++
++			/* Set bits */
++			if (alSetWidth(hdl->config_in, AL_SAMPLE_16) == -1) {
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("SET_IN_WIDTH");
++				return 0;
++			}
++
++			/* Set number of channels */
++			if (alSetChannels(hdl->config_in, hdl->par.rchan) == -1) {
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("SET_IN_RCHAN");
++				return 0;
++			}
++
++			/* Set input queue size */
++			if (alSetQueueSize(hdl->config_in, hdl->bufsz) == -1) {
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("SET_IN_QSIZE");
++				return 0;
++			}
++
++			/* Get input queue size */
++			qsize = alGetQueueSize(hdl->config_in);
++			if (qsize == -1) {
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("GET_IN_QSIZE");
++				return 0;
++			}
++
++			/* Check queue size */
++			if (qsize != hdl->bufsz) {
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("CHECK_IN_QSIZE");
++				return 0;
++			}
++
++			/* Initialize to input device */
++			if (alSetDevice(hdl->config_in, hdl->dev_in) == -1) {
++				if (alFreeConfig(hdl->config_in) == -1)
++					DPERROR("FREE_CONFIG_IN");
++				hdl->config_in = (ALconfig) 0;
++				DPERROR("SET_CONFIG_IN_NULLDEV");
++				return 0;
++			}
++		}
++	}
++
++	return 1;
++}
++
++struct sio_hdl *
++sio_sgi_devopen(unsigned int mode, int nbio, int if_out, int if_in, int dev_out, int dev_in)
++{
++	struct sio_sgi_hdl *hdl;
++
++#ifdef DEBUG
++	_sndio_debug_init();
++#endif
++	hdl = malloc(sizeof(struct sio_sgi_hdl));
++	if (hdl == NULL)
++		return NULL;
++	_sio_create(&hdl->sio, &sio_sgi_ops, mode, nbio);
++
++	/* Initialize sgi specific fields */
++	hdl->if_in = if_in;
++	hdl->if_out = if_out;
++	hdl->dev_in = dev_in;
++	hdl->dev_out = dev_out;
++	hdl->config_in  = (ALconfig) 0;
++	hdl->config_out = (ALconfig) 0;
++	hdl->port_in  = (ALport) 0;
++	hdl->port_out = (ALport) 0;
++	hdl->fd = -1;
++	hdl->fd_in = -1;
++	hdl->fd_out = -1;
++	hdl->filling = 0;
++	hdl->stopped = 0;
++
++	/* Initialize IRIX' audio(4) parameters */
++	if (sio_sgi_initpars(hdl, mode) != 1) {
++		DPERROR("INITPARS");
++		free(hdl);
++		return NULL;
++	}
++
++	/* Allocate prefill buffer */
++	hdl->fill_buf = (char *) malloc(hdl->bufsz * hdl->obpf);
++	if (hdl->fill_buf == NULL) {
++		DPERROR("PREFILL");
++		free(hdl);
++		return NULL;
++	}
++	hdl->fill_len = 0;
++
++	return (struct sio_hdl *) hdl;
++}
++
++struct sio_hdl *
++_sio_sgi_open(const char *str, unsigned int mode, int nbio)
++{
++	struct sio_hdl *hdl;
++	int if_in;
++	int if_out;
++	int dev_in;
++	int dev_out;
++	int rv;
++
++	/*
++	 * NOTE: Raw devices
++	 *
++	 * Raw devices are only opened through this path. In any other case,
++	 * _aucat_open() is used to open sndiod exposed devices.
++	 *
++	 */
++
++	if_in = -1;
++	if_out = -1;
++	rv = sio_sgi_getdev(str, mode, nbio,
++			    &if_out, &if_in, &dev_out, &dev_in);
++	if (rv == -1)
++		return NULL;
++	hdl = sio_sgi_devopen(mode, nbio, if_out, if_in, dev_out, dev_in);
++	if (hdl != NULL)
++		return hdl;
++	return NULL;
++}
++
++static void
++sio_sgi_close(struct sio_hdl *sh)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++
++	/* Check if handle was stopped */
++	if (hdl->stopped != 1) {
++		sio_sgi_stop(sh);
++	}
++
++	if (hdl->config_in != (ALconfig) 0)
++		if (alFreeConfig(hdl->config_in) == -1)
++			DPERROR("FREE_CONFIG_IN");
++	if (hdl->config_out != (ALconfig) 0)
++		if (alFreeConfig(hdl->config_out) == -1)
++			DPERROR("FREE_CONFIG_OUT");
++
++	/* Free prefill buffer */
++	free(hdl->fill_buf);
++	hdl->fill_len = 0;
++
++	free(hdl);
++}
++
++static int
++sio_sgi_start(struct sio_hdl *sh)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++	stamp_t ftim;
++
++	hdl->obpf = hdl->sio.par.pchan * hdl->sio.par.bps;
++	hdl->ibpf = hdl->sio.par.rchan * hdl->sio.par.bps;
++	hdl->ibytes = 0;
++	hdl->obytes = 0;
++	hdl->ierr = 0;
++	hdl->oerr = 0;
++	hdl->idelta = 0;
++	hdl->odelta = 0;
++	hdl->counter = 0;
++	hdl->acc = 0;
++	hdl->last_filled = 0;
++	hdl->diff_filled = 0;
++	hdl->rem_wused = 0;
++	hdl->ap.play_pos = 0;
++	hdl->ap.play_xrun = 0;
++	hdl->ap.rec_pos = 0;
++	hdl->ap.rec_xrun = 0;
++	hdl->ap.rec_read = 0;
++
++	/*
++	 * In IRIX/dmedia, once a port is created (opened), its configuration can't be changed.
++	 *
++	 * That is the reason why port creation is postponed until invocation of this function.
++	 *
++	 */
++
++	if (hdl->sio.mode & SIO_REC) {
++		hdl->port_in = alOpenPort("libsndio/port_in", HW_TO_SNDIO, hdl->config_in);
++		if (hdl->port_in == (ALport) 0) {
++			DPERROR("PORT_IN");
++			return 0;
++		}
++		hdl->fd_in = alGetFD(hdl->port_in);
++		if (hdl->fd_in == -1) {
++			DPERROR("NO_PORT_FD");
++			return 0;
++		}
++	}
++
++	if (hdl->sio.mode & SIO_PLAY) {
++		hdl->port_out = alOpenPort("libsndio/port_out", SNDIO_TO_HW, hdl->config_out);
++		if (hdl->port_out == (ALport) 0) {
++			DPERROR("PORT_OUT");
++			if (hdl->port_in != (ALport) 0) {
++				alClosePort(hdl->port_in);
++				hdl->port_in = 0;
++			}
++			return 0;
++		}
++		hdl->fd_out = alGetFD(hdl->port_out);
++		if (hdl->fd_out == -1) {
++			DPERROR("NO_PORT_FD");
++			return 0;
++		}
++
++		/*
++		 * keep the device paused and let sio_sgi_pollfd() trigger the
++		 * start later, to avoid buffer underruns
++		 */
++		hdl->filling = 1;
++	} else {
++		ftim = 0;
++		if (alGetFrameTime(hdl->port_in, &hdl->ap.rec_fnum, &ftim) == -1) {
++			DPERROR("AUDIO_START_GET_FNUM");
++			hdl->sio.eof = 1;
++			return 0;
++		}
++
++		_sio_onmove_cb(&hdl->sio, 0);
++	}
++
++	return 1;
++}
++
++static int
++sio_sgi_stop(struct sio_hdl *sh)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++
++	if (hdl->sio.mode & SIO_REC) {
++		if (alClosePort(hdl->port_in) == -1) {
++			DPERROR("CLOSE_PORT_IN");
++			hdl->sio.eof = 1;
++			return 0;
++		}
++		hdl->port_in = 0;
++	}
++
++	if (hdl->sio.mode & SIO_PLAY) {
++		/* Check for prefill buffer */
++		if ((hdl->filling == 1) && (hdl->fill_len > 0))
++			alWriteFrames(hdl->port_out, (void *) hdl->fill_buf, hdl->fill_len);
++
++		/* Drain output port buffer */
++		while (alGetFilled(hdl->port_out) > 0)
++        		sginap(1);
++
++		if (alClosePort(hdl->port_out) == -1) {
++			DPERROR("CLOSE_PORT_OUT");
++			hdl->sio.eof = 1;
++			return 0;
++		}
++		hdl->port_out = 0;
++	}
++	if (hdl->filling)
++		hdl->filling = 0;
++	hdl->stopped = 1;
++	return 1;
++}
++
++/*
++static int
++sio_sun_flush(struct sio_hdl *sh)
++{
++        struct sio_sun_hdl *hdl = (struct sio_sun_hdl *)sh;
++
++        if (hdl->filling) {
++                hdl->filling = 0;
++                return 1;
++        }
++        if (ioctl(hdl->fd, AUDIO_STOP) == -1) {
++                DPERROR("AUDIO_STOP");
++                hdl->sio.eof = 1;
++                return 0;
++        }
++        return 1;
++}
++*/
++
++static int
++sio_sgi_flush(struct sio_hdl *sh)
++{
++        struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++	int framecount;
++
++	if (hdl->sio.mode & SIO_REC) {
++		if (alClosePort(hdl->port_in) == -1) {
++			DPERROR("CLOSE_PORT_IN");
++			hdl->sio.eof = 1;
++			return 0;
++		}
++		hdl->port_in = 0;
++	}
++
++	if (hdl->sio.mode & SIO_PLAY) {
++		/* Check for prefill buffer */
++		if ((hdl->filling == 1) && (hdl->fill_len > 0)) {
++			/* Check for frames in output port */
++			framecount = alGetFilled(hdl->port_out);
++			if (framecount > 0)
++				/* Discard frames */
++				if (alDiscardFrames(hdl->port_out, framecount) == -1) {
++					DPERROR("DISCARD_FRAMES_OUT");
++					hdl->sio.eof = 1;
++					return 0;
++				}
++		}
++
++		if (alClosePort(hdl->port_out) == -1) {
++			DPERROR("CLOSE_PORT_OUT");
++			hdl->sio.eof = 1;
++			return 0;
++		}
++		hdl->port_out = 0;
++	}
++	if (hdl->filling)
++		hdl->filling = 0;
++	hdl->stopped = 1;
++	return 1;
++}
++
++static int
++sio_sgi_alSetRate(struct sio_sgi_hdl *hdl, unsigned int rate)
++{
++	ALpv x[2];
++
++	/*
++	 * Now set the nominal rate to the given number, and
++	 * set AL_MASTER_CLOCK to be AL_CRYSTAL_MCLK_TYPE.
++	 */
++	x[0].param = AL_RATE;
++	x[0].value.ll = alDoubleToFixed((double) rate);
++	x[1].param = AL_MASTER_CLOCK;
++	x[1].value.i = AL_CRYSTAL_MCLK_TYPE;
++
++	if (alSetParams(hdl->dev_out, x, 2) < 0)
++		return -1;
++	if (x[0].sizeOut < 0)
++		return -1;
++
++	/*
++	 * Set port buffer size to match the new rate
++	 */
++	if (alSetQueueSize(hdl->config_out, rate) == -1)
++		return -1;
++	DPRINTF("[sio_sgi_alSetRate] INFO: alSetQueueSize(%u)\n", rate);
++
++	return 1;
++}
++
++static int
++sio_sgi_setpar(struct sio_hdl *sh, struct sio_par *par)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++	struct audio_swpar *ap;
++
++        /*
++         * Libsndio uses two parameter lists:
++         *
++         *  * Audio hardware parameters
++         *
++         *    These are used by the audio hardware. In SGI IRIX
++         *    they are used to reflect the state of the hardware
++         *    interfaced through the Digital Media library and
++         *    for initialization of libsndio.
++         *
++         *    This list is stored in the hdl as 4 fields (see
++         *    sio_sgi_hdl above).
++         *
++         *    It is used to initialize the hardware on IRIX and is
++         *    interfaced only through calls to sio_{getpar|setpar}()
++         *    before sio_start() is called.
++         *
++         *    These parameters resemble the parameters of the audio
++         *    driver layer in OpenBSD systems and are used to make
++         *    porting to IRIX easier and more reliable.
++         *
++         *  * Sndio parameters
++         *
++         *    These are used by libsndio once the application has
++         *    called sio_start() (specifically, in functions
++         *    sio_sgi_{revents|pollfd}()).
++         *
++         *    This list is stored in the hdl->sio.par structure and
++         *    is copied over from the audio hardware list in the
++         *    sio_start() function.
++         *
++         *  Validation of parameters must be done here too. Keep in sync
++	 *  with valid capabilities (see sio_sgi_getcap() above).
++	 *
++	 *  Parameters that are not set by the user, get a default value.
++         */
++
++	ap = &hdl->par;
++	AUDIO_INITPAR(ap);
++	/* Validate sign */
++	if (PAR_ISSET(par, sig))
++		ap->sig = par->sig;
++	else
++		ap->sig = 1;
++	/* Check for correct sign */
++	if (ap->sig != 1)
++		goto bad_param;
++	/* Validate endianness */
++	if (PAR_ISSET(par, le))
++		ap->le = par->le;
++	else
++		ap->le = 0;
++	/* Check for correct le value */
++	if (ap->le > 1)
++		goto bad_param;
++	/* Validate bits value */
++	if (PAR_ISSET(par, bits))
++		ap->bits = par->bits;
++	else
++		ap->bits = SIO_DEFAULT_BITS;
++	/* Check for correct bits value */
++	if ((ap->bits != 8) &&
++	    (ap->bits != 16) &&
++	    (ap->bits != 32))
++		goto bad_param;
++	/* Set bits */
++	if (alSetWidth(hdl->config_out, ap->bits / 8) == -1)
++		goto bad_param;
++	/* Validate bytes per sample */
++	if (PAR_ISSET(par, bps))
++		ap->bps = par->bps;
++	else
++		ap->bps = SIO_DEFAULT_BPS;
++	/* Check for correct bytes per sample */
++	if ((ap->bps != 1) &&
++	    (ap->bps != 2) &&
++	    (ap->bps != 4))
++		goto bad_param;
++	if (SIO_BPS(ap->bits) != ap->bps)
++		goto bad_param;
++	/* Validate MSB */
++	if (PAR_ISSET(par, msb))
++		ap->msb = par->msb;
++	else
++		ap->msb = 0;
++	/* Check for correct MSB value */
++	if (ap->msb != 0)
++		goto bad_param;
++	/* Validate rate */
++	if (PAR_ISSET(par, rate))
++		ap->rate = par->rate;
++	else
++		ap->rate = SIO_DEFAULT_RATE;
++	/* Check for valid rates */
++	if ((ap->rate != 8000) &&
++	    (ap->rate != 11025) &&
++	    (ap->rate != 16000) &&
++	    (ap->rate != 22050) &&
++	    (ap->rate != 32000) &&
++	    (ap->rate != 44100) &&
++	    (ap->rate != 48000))
++		goto bad_param;
++	/* Set rate and port buffer size */
++	if (sio_sgi_alSetRate(hdl, ap->rate) == -1)
++		goto bad_param;
++	/* Validate number of play channels */
++	if (PAR_ISSET(par, pchan)) {
++		if (hdl->sio.mode & SIO_PLAY)
++			ap->pchan = par->pchan;
++		else
++			ap->pchan = ~0U;
++	} else {
++		if (hdl->sio.mode & SIO_PLAY)
++			ap->pchan = SIO_DEFAULT_PCHAN;
++	}
++	/* Check for correct number of play channels */
++	if (hdl->sio.mode & SIO_PLAY) {
++		if ((ap->pchan != 1) &&
++	    	    (ap->pchan != 2))
++			goto bad_param;
++		/* Set play channels */
++		if (alSetChannels(hdl->config_out, ap->pchan) == -1)
++			goto bad_param;
++	}
++	/* Validate number of record channels */
++	if (PAR_ISSET(par, rchan)) {
++		if (hdl->sio.mode & SIO_REC)
++			ap->rchan = par->rchan;
++		else
++			ap->rchan = ~0U;
++	} else {
++		if (hdl->sio.mode & SIO_REC)
++			ap->rchan = SIO_DEFAULT_RCHAN;
++	}
++	/* Check for correct number of record channels */
++	if (hdl->sio.mode & SIO_REC) {
++		if ((ap->rchan != 1) &&
++	    	    (ap->rchan != 2))
++			goto bad_param;
++		/* Set record channels */
++		if (alSetChannels(hdl->config_in, ap->rchan) == -1)
++			goto bad_param;
++	}
++	if (PAR_ISSET(par, round) && PAR_ISSET(par, appbufsz)) {
++		hdl->appbufsz = par->appbufsz;
++		ap->round = par->round;
++		ap->nblks = par->appbufsz / par->round;
++	} else if (PAR_ISSET(par, round)) {
++		ap->round = par->round;
++		ap->nblks = 2;
++	} else if (PAR_ISSET(par, appbufsz)) {
++		hdl->appbufsz = par->appbufsz;
++		ap->round = par->appbufsz / 2;
++		ap->nblks = 2;
++	} else {
++		/* Set default values if omitted, sio_sgi_getpar() needs them */
++		hdl->appbufsz = SIO_DEFAULT_APPBUFSZ;
++		ap->round = SIO_DEFAULT_ROUND;
++		ap->nblks = SIO_DEFAULT_APPBUFSZ / SIO_DEFAULT_ROUND;
++	}
++
++	/* The bufsz parameter (hdl->bufsz) is set to a
++	 * fixed value in sio_sgi_initpars().
++	 */
++
++	return 1;
++
++bad_param:
++	/* Bad parameter value */
++	DPERROR("AUDIO_SETPAR");
++	hdl->sio.eof = 1;
++	return 0;
++}
++
++static int
++sio_sgi_getpar(struct sio_hdl *sh, struct sio_par *par)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++	struct audio_swpar *ap;
++
++	ap = &hdl->par;
++	par->sig = ap->sig;
++	par->le = ap->le;
++	par->bits = ap->bits;
++	par->bps = ap->bps;
++	par->msb = ap->msb;
++	par->rate = ap->rate;
++	par->pchan = ap->pchan;
++	par->rchan = ap->rchan;
++	par->round = ap->round;
++	par->appbufsz = ap->nblks * ap->round;
++	par->bufsz = hdl->bufsz;
++	par->xrun = SIO_IGNORE;
++	return 1;
++}
++
++int
++sio_sgi_update_fnum(struct sio_sgi_hdl *hdl, stamp_t *fnum_diff) {
++
++	stamp_t fnum;
++	stamp_t ftim;
++
++	if (hdl->sio.mode & SIO_PLAY) {
++		if (alGetFrameTime(hdl->port_out, &fnum, &ftim) == -1) {
++			DPERROR("sio_sgi_update_fnum: frame time");
++			hdl->sio.eof = 1;
++			return 0;
++		}
++
++		if (fnum_diff != NULL) {
++			if (hdl->ap.play_fnum == 0) {
++				*fnum_diff = 0;
++			}
++			else
++				/* Get difference */
++				*fnum_diff = fnum - hdl->ap.play_fnum;
++		}
++
++		/* Update playing frame number */
++		hdl->ap.play_fnum = fnum;
++	}
++	if (hdl->sio.mode & SIO_REC) {
++		if (alGetFrameTime(hdl->port_in, &fnum, &ftim) == -1) {
++			DPERROR("sio_sgi_update_fnum: frame time");
++			hdl->sio.eof = 1;
++			return 0;
++		}
++
++		if (fnum_diff != NULL) {
++			if (hdl->ap.rec_fnum == 0) {
++				*fnum_diff = 0;
++			}
++			else
++				/* Get difference */
++				*fnum_diff = fnum - hdl->ap.rec_fnum;
++		}
++
++		/* Update recording frame number */
++		hdl->ap.rec_fnum = fnum;
++	}
++
++	return 1;
++}
++
++static size_t
++sio_sgi_read(struct sio_hdl *sh, void *buf, size_t len)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++	size_t n;
++
++	/* NOTE: Frames vs bytes
++	 *
++	 *  In IRIX, only whole frames can be read from the port.
++	 */
++
++	if (len == 0)
++		return 0;	/* nothing to read */
++	if (len < hdl->ibpf)
++		return 0;	/* less than a frame */
++
++	/* Clip to whole frames */
++	len = len / hdl->ibpf;
++
++	/* Read frames from input port */
++	alReadFrames(hdl->port_in, (void *) buf, len);
++	hdl->ap.rec_read += len;
++	n = len * hdl->ibpf;
++
++        return n;
++}
++
++static size_t
++sio_sgi_write(struct sio_hdl *sh, const void *buf, size_t len)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++	size_t n;
++
++	/* NOTE: Frames vs bytes
++	 *
++	 *  In IRIX, only whole frames can be written to the port.
++	 */
++
++	if (len == 0)
++		return 0;	/* nothing to write */
++	if (len < hdl->obpf)
++		return 0;	/* less than a frame */
++
++	/* Clip to whole frames */
++	len = len / hdl->obpf;
++
++	if (hdl->filling != 1)
++		/* Write frames to output port */
++		alWriteFrames(hdl->port_out, (void *) buf, len);
++	else {
++		/* Write to prefill buffer */
++		bcopy((void *) buf, (void *) (hdl->fill_buf + (hdl->fill_len * hdl->obpf)), len * hdl->obpf);
++		hdl->fill_len += len;
++	}
++
++	n = len * hdl->obpf;
++
++	return n;
++}
++
++static int
++sio_sgi_nfds(struct sio_hdl *sh)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++	int nfds;
++
++	nfds = 0;
++	if (hdl->sio.mode & SIO_PLAY)
++		nfds++;
++	if (hdl->sio.mode & SIO_REC)
++		nfds++;
++	return nfds;
++}
++
++static int
++sio_sgi_pollfd(struct sio_hdl *sh, struct pollfd *pfd, int events)
++{
++	struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++	stamp_t ftim;
++	int nfds;
++
++	if (hdl->filling && hdl->sio.wused == hdl->sio.par.bufsz *
++		hdl->sio.par.pchan * hdl->sio.par.bps) {
++		hdl->filling = 0;
++
++		/* Dump buffered frames into output port */
++		if (hdl->fill_len > 0)
++			alWriteFrames(hdl->port_out, (void *) hdl->fill_buf, hdl->fill_len);
++
++		/* Start frame number tracking */
++		ftim = 0;
++		if (alGetFrameTime(hdl->port_out, &hdl->ap.play_fnum, &ftim) == -1) {
++			DPERROR("AUDIO_START_GET_FNUM_PLAY");
++			hdl->sio.eof = 1;
++			return 0;
++		}
++
++		if (hdl->sio.mode & SIO_REC) {
++			ftim = 0;
++			if (alGetFrameTime(hdl->port_in, &hdl->ap.rec_fnum, &ftim) == -1) {
++				DPERROR("AUDIO_START_GET_FNUM_REC");
++				hdl->sio.eof = 1;
++				return 0;
++			}
++		}
++
++		_sio_onmove_cb(&hdl->sio, 0);
++
++		hdl->sio.started = 1;
++	}
++
++	/* Filter POLLIN, POLLOUT */
++	hdl->events = events & (POLLIN | POLLOUT);
++
++	nfds = 0;
++	if (hdl->sio.mode & SIO_PLAY) {
++
++		pfd[nfds].fd = hdl->fd_out;
++		pfd[nfds].events = 0;
++		pfd[nfds].revents = 0;
++
++		if (hdl->events & POLLOUT) {
++
++			/* NOTE: Audio tick
++			 *
++			 *  The OpenBSD audio driver semantics are based on an audio
++			 *  tick of 480 frames (the default for a rate of 48000hz).
++			 *
++			 *  This value is reflected in the parameter round
++			 *  (hdl->sio.par.round) and can be set using sio_setpar().
++			 */
++
++			/* Set fillpoint for output buffer */
++			if (alSetFillPoint(hdl->port_out, hdl->sio.par.round) == -1) {
++				DPERROR("SET_OUT_FILLP");
++				return 0;
++			}
++
++			/* Set POLLOUT */
++			pfd[nfds].events = POLLOUT;
++		}
++		nfds++;
++	}
++	if (hdl->sio.mode & SIO_REC) {
++
++		pfd[nfds].fd = hdl->fd_in;
++		pfd[nfds].events = 0;
++		pfd[nfds].revents = 0;
++
++		if (hdl->events & POLLIN) {
++			/* Set fillpoint for input buffer */
++			if (alSetFillPoint(hdl->port_in, hdl->sio.par.round) == -1) {
++				DPERROR("SET_IN_FILLP");
++				return 0;
++			}
++
++			/* Set POLLIN */
++			pfd[nfds].events = POLLIN;
++		}
++		nfds++;
++	}
++
++	return nfds;
++}
++
++int
++sio_sgi_revents(struct sio_hdl *sh, struct pollfd *pfd)
++{
++        struct sio_sgi_hdl *hdl = (struct sio_sgi_hdl *)sh;
++        int dierr = 0, doerr = 0, offset, delta;
++	int nfds;
++        int revents;
++	stamp_t fnum_diff;
++
++	/*
++	 * In synchronous mode (SIO_PLAY | SIO_REC), both file descriptors,
++	 * 0 and 1, must have the corresponding bits set (POLLOUT for SIO_PLAY
++	 * and POLLIN for SIO_REC).
++	 *
++	 * If this is not the case, return a (probably) empty revents and
++	 * go for another iteration in sio_psleep() until poll() returns
++	 * the above bits.
++	 */
++
++	nfds = 0;
++	revents = 0;
++	if (hdl->sio.mode & SIO_PLAY) {
++		if (hdl->events & POLLOUT) {
++			revents = pfd[nfds].revents;
++			if ((revents & POLLHUP) ||
++			    (revents & POLLOUT) == 0)
++				return revents;
++		}
++		nfds++;
++	}
++	if (hdl->sio.mode & SIO_REC) {
++		if (hdl->events & POLLIN) {
++			revents |= pfd[nfds].revents;
++			if ((revents & POLLHUP) ||
++			    (revents & POLLIN) == 0)
++				return revents;
++		}
++		nfds++;
++	}
++
++	// DEBUG
++	if (hdl->sio.mode & (SIO_PLAY & SIO_REC)) {
++		revents |= POLLOUT | POLLIN;
++	}
++
++	/*
++	 * revents contains a bitfield of the poll bits for SIO_PLAY,
++	 * SIO_REC, or SIO_PLAY | SIO_REC.
++	 */
++
++	/*
++	 * In non-blocking mode, a check is required to assure the playback
++	 * buffer has enough data (at least hdl->ap.play_delta frames).
++	 *
++	 * The previous poll() system call only guarantees that the fillpoints
++	 * are reached, that is, in case of SIO_PLAY, that at least one delta
++	 * of frames has been played by the hardware (regardless of the number
++	 * of frames that were actually written).
++	 *
++	 * This check is required for modes: SIO_PLAY only, SIO_PLAY | SIO_REC
++	 */
++
++	if (hdl->sio.nbio && (hdl->sio.mode & SIO_PLAY)) {
++		if ((hdl->sio.started == 0) ||
++		    ((hdl->sio.started == 1) && (hdl->filling == 1))){
++			return revents;
++		} else if ((hdl->sio.wused / hdl->obpf) < hdl->ap.play_delta) {
++			return revents;
++		}
++	}
++
++	/*
++	 * In blocking mode, the following check ensures that the prefill buffer
++	 * has already been dumped and the audio hardware started.
++	 */
++
++	if ((hdl->sio.nbio != 1) && (hdl->sio.mode & SIO_PLAY)) {
++		if (hdl->filling == 1) {
++			return revents;
++		}
++	}
++
++	/*
++	 * This code path is entered only when enough data is available
++	 * in the pertinent input/output port buffers.
++	 *
++	 * For blocking I/O:
++	 *
++	 *  SIO_PLAY - at least hdl->ap.play_delta number of frames are in
++	 *             the playback buffer (see sio_sgi_pollfd())
++	 *  SIO_REC  - at least hdl->ap.rec_delta number of frames are in
++	 *             the record buffer (see poll())
++	 *  SIO_*    - at least hdl->ap.play_delta number of frames are in
++	 *             the playback buffer and in the record buffer (see
++	 *             sio_sgi_pollfd())
++	 *
++	 * For non-blocking I/O:
++	 *
++	 *  SIO_PLAY - at least hdl->ap.play_delta number of frames are in
++	 *             the playback buffer (see sio_sgi_pollfd())
++	 *  SIO_REC  - at least hdl->ap.rec_delta number of frames are in
++	 *             the record buffer (see sio_sgi_pollfd() and poll())
++	 *  SIO_*    - at least hdl->ap.play_delta number of frames are in
++	 *             the playback buffer and in the record buffer (see
++	 *             sio_sgi_pollfd())
++	 */
++
++	if (hdl->sio.mode & SIO_PLAY) {
++
++		/*** AUDIO_GETPOS (IRIX) START ***/
++
++		/* play_pos */
++		if (sio_sgi_update_fnum(hdl, &fnum_diff) != 1) {
++			DPERROR("sio_sgi_revents: AUDIO_REVENTS_UPDATE_FNUM");
++			hdl->sio.eof = 1;
++			return POLLHUP;
++		}
++
++		/* play_xrun */
++		if (fnum_diff > hdl->sio.par.bufsz) {
++			hdl->ap.play_pos += fnum_diff * hdl->obpf;
++
++			/* Subtract number of frames written out during the fnum_diff timeframe */
++			hdl->ap.play_xrun += (fnum_diff - hdl->sio.par.bufsz) * hdl->obpf;
++		} else {
++			hdl->ap.play_pos += hdl->ap.play_delta * hdl->obpf;
++		}
++
++		/*** AUDIO_GETPOS (IRIX) STOP ***/
++
++		delta = (hdl->ap.play_pos - hdl->obytes) / hdl->obpf;
++		doerr = (hdl->ap.play_xrun - hdl->oerr) / hdl->obpf;
++		hdl->obytes = hdl->ap.play_pos;
++		hdl->oerr = hdl->ap.play_xrun;
++		hdl->odelta += delta;
++		if (!(hdl->sio.mode & SIO_REC)) {
++			hdl->idelta += delta;
++			dierr = doerr;
++		}
++		if (doerr > 0)
++			DPRINTFN(2, "play xrun %d\n", doerr);
++        }
++        if (hdl->sio.mode & SIO_REC) {
++
++		/*** AUDIO_GETPOS (IRIX) START ***/
++
++		/* rec_pos */
++		if (sio_sgi_update_fnum(hdl, &fnum_diff) != 1) {
++			DPERROR("sio_sgi_revents: AUDIO_REVENTS_UPDATE_FNUM");
++			hdl->sio.eof = 1;
++			return POLLHUP;
++		}
++
++		/* rec_xrun */
++		if (fnum_diff > hdl->sio.par.bufsz) {
++			hdl->ap.rec_pos += fnum_diff * hdl->ibpf;
++
++			/* Subtract number of frames read out during the fnum_diff timeframe */
++			hdl->ap.rec_xrun += (fnum_diff - (hdl->sio.par.bufsz - hdl->ap.rec_read)) * hdl->ibpf;
++		} else {
++			hdl->ap.rec_pos += hdl->ap.rec_delta * hdl->ibpf;
++		}
++
++		hdl->ap.rec_read = 0;
++
++		/*** AUDIO_GETPOS (IRIX) STOP ***/
++
++                delta = (hdl->ap.rec_pos - hdl->ibytes) / hdl->ibpf;
++                dierr = (hdl->ap.rec_xrun - hdl->ierr) / hdl->ibpf;
++                hdl->ibytes = hdl->ap.rec_pos;
++                hdl->ierr = hdl->ap.rec_xrun;
++                hdl->idelta += delta;
++                if (!(hdl->sio.mode & SIO_PLAY)) {
++                        hdl->odelta += delta;
++                        doerr = dierr;
++                }
++                if (dierr > 0)
++                        DPRINTFN(2, "rec xrun %d\n", dierr);
++        }
++
++        /*
++         * GETPOS reports positions including xruns,
++         * so we have to substract to get the real position
++         */
++        hdl->idelta -= dierr;
++        hdl->odelta -= doerr;
++
++        offset = doerr - dierr;
++        if (offset > 0) {
++                hdl->sio.rdrop += offset * hdl->ibpf;
++                hdl->idelta -= offset;
++                DPRINTFN(2, "will drop %d and pause %d\n", offset, doerr);
++        } else if (offset < 0) {
++                hdl->sio.wsil += -offset * hdl->obpf;
++                hdl->odelta -= -offset;
++                DPRINTFN(2, "will insert %d and pause %d\n", -offset, dierr);
++        }
++
++        delta = (hdl->idelta > hdl->odelta) ? hdl->idelta : hdl->odelta;
++        if (delta > 0) {
++                _sio_onmove_cb(&hdl->sio, delta);
++                hdl->idelta -= delta;
++                hdl->odelta -= delta;
++        }
++
++        return revents;
++}
++#endif /* defined USE_SGI */
+diff -Naur sndio-1.8.1.orig/libsndio/sio_sgi.h sndio-1.8.1.truhobbyist/libsndio/sio_sgi.h
+--- sndio-1.8.1.orig/libsndio/sio_sgi.h	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/libsndio/sio_sgi.h	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1,105 @@
++
++#ifdef USE_SGI
++#include <sys/types.h>
++#include <sys/ioctl.h>
++#include <dmedia/audio.h>
++#include <dmedia/dmedia.h>
++
++#include "sio_priv.h"
++
++
++/* Audio port direction */
++#define HW_TO_SNDIO "r"
++#define SNDIO_TO_HW "w"
++
++/* Device limits */
++#define MAX_DEVICES 100
++#define MAX_IFS 100
++#define MAX_CHANS 8
++#define STRING_SIZE 32
++
++
++struct if_s {
++	ALvalue intf;   /* interface */
++	int dev;        /* device resource id */
++	int nch;	/* number of channels */
++        };
++
++struct audio_pos {
++        stamp_t play_fnum;                      /* last checked output jack frame number */
++        unsigned int play_pos;                  /* total bytes played */
++        unsigned int play_xrun;                 /* bytes of silence inserted */
++        unsigned int play_delta;                /* output delta */
++        stamp_t rec_fnum;                       /* last checked input jack frame number */
++        unsigned int rec_read;                  /* number of frames read out during frametime interval */
++        unsigned int rec_pos;                   /* total bytes recorded */
++        unsigned int rec_xrun;                  /* bytes dropped */
++        unsigned int rec_delta;                 /* input delta */
++};
++
++struct audio_swpar {
++        unsigned int sig;       /* if 1, encoding is signed */
++        unsigned int le;        /* if 1, encoding is little-endian */
++        unsigned int bits;      /* bits per sample */
++        unsigned int bps;       /* bytes per sample */
++        unsigned int msb;       /* if 1, bits are msb-aligned */
++        unsigned int rate;      /* common play & rec sample rate */
++        unsigned int pchan;     /* play channels */
++        unsigned int rchan;     /* rec channels */
++        unsigned int nblks;     /* number of blocks in play buffer */
++        unsigned int round;     /* common frames per block */
++};
++
++
++struct sio_sgi_hdl {
++	struct sio_hdl sio;
++	int fd;
++	int fd_in;
++	int fd_out;
++	int if_in;
++	int if_out;
++	int dev_in;
++	int dev_out;
++	int conn_in;
++	int conn_out;
++	int last_filled;		/* number of frames from last check */
++	int diff_filled;		/* number of frames from fill checks */
++	int rem_wused;			/* remainder in write queue */
++	int acc;			/* frames accumulator */
++	int delta;
++	int counter;			/* sio_sgi_write() calling counter */
++	int stopped;			/* flag indicating if sio_stop() has been called */
++	ALconfig config_in;
++	ALconfig config_out;
++	ALport port_in;
++	ALport port_out;
++	struct audio_pos ap;
++
++	/* Prefill buffer */
++	char *fill_buf;			/* dynamically allocated prefill buffer */
++	int fill_len;			/* number of frames stored in prefill buffer */
++
++	/* audio(4) driver parameters on IRIX */
++	struct audio_swpar par;
++	unsigned int bufsz;
++	unsigned int appbufsz;
++	unsigned int xrun;
++
++	int filling;
++	int events;			/* Requested poll events */
++	unsigned int cb_intv;		/* callback interval */
++	unsigned int ibpf, obpf;	/* bytes per frame */
++	unsigned int ibytes, obytes;	/* bytes the hw transferred */
++	unsigned int ierr, oerr;	/* frames the hw dropped */
++	int idelta, odelta;		/* position reported to client */
++};
++
++
++int
++sio_sgi_devnum_to_ifs(int devnum, unsigned int mode, int check_modes,
++                      int *if_in, int *if_out, int *dev_in, int *dev_out);
++
++
++#endif
++
++
+diff -Naur sndio-1.8.1.orig/libsndio/sio_sun.c sndio-1.8.1.truhobbyist/libsndio/sio_sun.c
+--- sndio-1.8.1.orig/libsndio/sio_sun.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sio_sun.c	2022-07-20 13:45:27.000000000 -0400
+@@ -50,7 +50,7 @@
+ 
+ static void sio_sun_close(struct sio_hdl *);
+ static int sio_sun_start(struct sio_hdl *);
+-static int sio_sun_stop(struct sio_hdl *);
++static int sio_sun_flush(struct sio_hdl *);
+ static int sio_sun_setpar(struct sio_hdl *, struct sio_par *);
+ static int sio_sun_getpar(struct sio_hdl *, struct sio_par *);
+ static int sio_sun_getcap(struct sio_hdl *, struct sio_cap *);
+@@ -68,7 +68,8 @@
+ 	sio_sun_write,
+ 	sio_sun_read,
+ 	sio_sun_start,
+-	sio_sun_stop,
++	NULL,
++	sio_sun_flush,
+ 	sio_sun_nfds,
+ 	sio_sun_pollfd,
+ 	sio_sun_revents,
+@@ -397,7 +398,7 @@
+ }
+ 
+ static int
+-sio_sun_stop(struct sio_hdl *sh)
++sio_sun_flush(struct sio_hdl *sh)
+ {
+ 	struct sio_sun_hdl *hdl = (struct sio_sun_hdl *)sh;
+ 
+diff -Naur sndio-1.8.1.orig/libsndio/sioctl.c sndio-1.8.1.truhobbyist/libsndio/sioctl.c
+--- sndio-1.8.1.orig/libsndio/sioctl.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sioctl.c	2022-07-20 13:45:27.000000000 -0400
+@@ -41,11 +41,13 @@
+ 			str = devany;
+ 	}
+ 	if (strcmp(str, devany) == 0) {
+-		hdl = _sioctl_aucat_open("snd/0", mode, nbio);
++		hdl = _sioctl_aucat_open("snd/default", mode, nbio);
+ 		if (hdl != NULL)
+ 			return hdl;
+ #if defined(USE_SUN_MIXER)
+ 		return _sioctl_sun_open("rsnd/0", mode, nbio);
++#elif defined(USE_SGI_MIXER)
++		return _sioctl_sgi_open("rsnd/0", mode, nbio);
+ #else
+ 		return NULL;
+ #endif
+@@ -55,6 +57,8 @@
+ 	if (_sndio_parsetype(str, "rsnd"))
+ #if defined(USE_SUN_MIXER)
+ 		return _sioctl_sun_open(str, mode, nbio);
++#elif defined(USE_SGI_MIXER)
++		return _sioctl_sgi_open(str, mode, nbio);
+ #else
+ 		return NULL;
+ #endif
+diff -Naur sndio-1.8.1.orig/libsndio/sioctl_open.3 sndio-1.8.1.truhobbyist/libsndio/sioctl_open.3
+--- sndio-1.8.1.orig/libsndio/sioctl_open.3	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sioctl_open.3	2022-07-20 13:45:27.000000000 -0400
+@@ -45,7 +45,7 @@
+ .Fa "void (*cb)(void *arg, struct sioctl_desc *desc, int val)"
+ .Fa "void *arg"
+ .Fc
+-.Ft void
++.Ft int
+ .Fo sioctl_onval
+ .Fa "struct sioctl_hdl *hdl"
+ .Fa "void (*cb)(void *arg, unsigned int addr, unsigned int val)"
+diff -Naur sndio-1.8.1.orig/libsndio/sioctl_priv.h sndio-1.8.1.truhobbyist/libsndio/sioctl_priv.h
+--- sndio-1.8.1.orig/libsndio/sioctl_priv.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sioctl_priv.h	2022-07-20 13:45:27.000000000 -0400
+@@ -53,6 +53,8 @@
+ struct sioctl_hdl *_sioctl_fake_open(const char *, unsigned int, int);
+ #ifdef USE_SUN_MIXER
+ struct sioctl_hdl *_sioctl_sun_open(const char *, unsigned int, int);
++#elif USE_SGI_MIXER
++struct sioctl_hdl *_sioctl_sgi_open(const char *, unsigned int, int);
+ #endif
+ void _sioctl_create(struct sioctl_hdl *,
+     struct sioctl_ops *, unsigned int, int);
+diff -Naur sndio-1.8.1.orig/libsndio/sioctl_sgi.c sndio-1.8.1.truhobbyist/libsndio/sioctl_sgi.c
+--- sndio-1.8.1.orig/libsndio/sioctl_sgi.c	1969-12-31 19:00:00.000000000 -0500
++++ sndio-1.8.1.truhobbyist/libsndio/sioctl_sgi.c	2022-07-20 13:45:27.000000000 -0400
+@@ -0,0 +1,1050 @@
++/*
++ * Copyright (c) 2014-2020 Alexandre Ratchov <alex@caoua.org>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++/*
++ * the way the sun mixer is designed doesn't let us representing
++ * it easily with the sioctl api. For now expose only few
++ * white-listed controls the same way as we do in kernel
++ * for the wskbd volume keys.
++ */
++#ifdef USE_SGI_MIXER
++#include <sys/types.h>
++#include <sys/ioctl.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <limits.h>
++#include <poll.h>
++#include <sndio.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <strings.h>
++#include <unistd.h>
++
++#include "debug.h"
++#include "sioctl_priv.h"
++#include "bsd-compat.h"
++#include "sio_sgi.h"
++
++#define DEVPATH_PREFIX	"/dev/audioctl"
++#define DEVPATH_MAX 	(1 +		\
++	sizeof(DEVPATH_PREFIX) - 1 +	\
++	sizeof(int) * 3)
++
++#define SIOCTL_IF_TO_SNDIO 1
++#define SIOCTL_SNDIO_TO_IF 2
++
++#define AUDIO_MAX_GAIN 127
++
++struct volume
++{
++	int dev_id;				/* device resource id */
++	int if_id;				/* interface resource id */
++	int nch;				/* channels in the level control */
++	int level_val[MAX_CHANS];		/* current value */
++	int mute_val;				/* per channel state of mute control */
++	int mute_type;				/* mute type: no mute, pseudo, hw */
++	ALfixed prev_gain[MAX_CHANS];		/* previous gain values for all channels */
++	ALeventQueue gain_eventq;		/* AL_GAIN event queue */
++	ALeventQueue mute_eventq;		/* AL_MUTE event queue */
++	double min;				/* minimum gain value */
++	double max;				/* maximum gain value */
++	double minDelta;			/* minimum gain increments (resolution) */
++	int base_addr;
++	char *name;
++};
++
++struct sioctl_sgi_hdl {
++	struct sioctl_hdl sioctl;
++	struct volume output, input;
++	int fd, events;
++	int devnum;
++
++	ALconfig config_in;
++	ALport port_in;
++	ALeventQueue eventq;			/* event queue */
++	int fd_in;
++	int if_in;
++        int if_out;
++        int dev_in;
++        int dev_out;
++};
++
++static void sioctl_sgi_close(struct sioctl_hdl *);
++static int sioctl_sgi_nfds(struct sioctl_hdl *);
++static int sioctl_sgi_pollfd(struct sioctl_hdl *, struct pollfd *, int);
++static int sioctl_sgi_revents(struct sioctl_hdl *, struct pollfd *);
++static int sioctl_sgi_setctl(struct sioctl_hdl *, unsigned int, unsigned int);
++static int sioctl_sgi_onval(struct sioctl_hdl *);
++static int sioctl_sgi_ondesc(struct sioctl_hdl *);
++static int sioctl_sgi_convert_range(struct volume *, ALfixed *, int, int);
++
++/*
++ * operations every device should support
++ */
++struct sioctl_ops sioctl_sgi_ops = {
++	sioctl_sgi_close,
++	sioctl_sgi_nfds,
++	sioctl_sgi_pollfd,
++	sioctl_sgi_revents,
++	sioctl_sgi_setctl,
++	sioctl_sgi_onval,
++	sioctl_sgi_ondesc
++};
++
++static int
++initvol(struct sioctl_sgi_hdl *hdl, struct volume *vol, int dev_inout, int if_inout)
++{
++	/*
++	 * This function initializes the volume structure passed as
++	 * argument and checks for gain capability and mute
++	 * functionality.
++	 *
++	 * If no gain capability is present, vol->nch is set to -1
++	 * and no further volume level related functions can be used
++	 * with this interface (they are skipped).
++	 *
++	 * Mute functionality is determined by the vol->mute_type
++	 * field and is explained below.
++	 *
++	 * It is called for input and output volume.
++	 */
++
++	ALparamInfo pi;
++	ALfixed gain[MAX_CHANS];
++	ALpv pvs;
++	int param;
++
++	/*
++	 * Initialize volume parameters
++	 *
++	 */
++
++	vol->mute_type = 0;
++	vol->min = 0.0;
++	vol->max = 0.0;
++	vol->minDelta = 0.0;
++
++	/* Check for gain capability */
++
++	/* Get gain values for interface channels */
++	pvs.param = AL_GAIN;
++	pvs.value.ptr = gain;
++	pvs.sizeIn = MAX_CHANS;      /* pass in max number of channels per interface */
++	if (alGetParams(if_inout, &pvs, 1) != 1) {
++		DPERROR("initvol: NO_IF_GAIN_PARAM");
++		vol->nch = -1;
++		return 0;
++	}
++
++	/* Check for unrecognized parameter */
++	if (pvs.sizeOut < 0) {
++		DPERROR("INVALID_PARAM");
++		vol->nch = -1;
++		return 0;
++	}
++
++	/* Check gain range */
++	if (alGetParamInfo(if_inout, AL_GAIN, &pi) == -1) {
++		DPERROR("NO_IF_GAIN_INFO");
++		vol->nch = -1;
++		return 0;
++	}
++
++	/* Check for zero gain range (0.0, 0.0) */
++	if ((pi.min.i == 0) && (pi.max.i == 0)) {
++		/* Interface has no gain capability*/
++		DPERROR("NO_GAIN_CAP");
++		vol->nch = -1;
++		return 0;
++	}
++
++	/* Interface has gain capability */
++
++	/* Check for mute functionality */
++
++	/* Check for pseudo mute function (see below for details) */
++	if (pi.specialVals & AL_NEG_INFINITY_BIT)
++		vol->mute_type = 1;
++
++	/* Get number of channels */
++	pvs.param = AL_CHANNELS;
++	if (alGetParams(if_inout, &pvs, 1) != 1) {
++		DPERROR("NO_IF_CHANNELS_PARAM");
++		vol->nch = -1;
++		return 0;
++	}
++
++	/* Check for unrecognized parameter */
++	if (pvs.sizeOut < 0) {
++		DPERROR("INVALID_PARAM");
++		vol->nch = -1;
++		return 0;
++	}
++
++	vol->dev_id = dev_inout;
++	vol->if_id = if_inout;
++
++	/* Register for gain events (level control) */
++	param = AL_GAIN;
++	if(alSelectEvents(hdl->eventq, vol->if_id, &param, 1) == -1) {
++		DPERROR("NO_GAIN_EVENTS");
++		vol->nch = -1;
++		return 0;
++	}
++
++	/* At this point, the interface is usable */
++	vol->min = alFixedToDouble(pi.min.ll);
++	vol->max = alFixedToDouble(pi.max.ll);
++	vol->minDelta = alFixedToDouble(pi.minDelta.ll);
++	vol->nch = pvs.value.i;
++
++	/* Initialize mute control
++	 *
++	 * There are two types of mute functions:
++	 *
++	 *  - Real mute: mute function built into the device.
++	 *
++	 *               This is set using the AL_MUTE parameter
++	 *               on interfaces that support this.
++	 *
++	 *  - Pseudo mute: mute function that is emulated by setting
++	 *                 the AL_GAIN parameter to AL_NEG_INFINITY.
++	 *
++	 *                 This is only supported on interfaces that
++	 *                 don't implement a hardware mute function and
++	 *                 have support for AL_NEG_INFINITY.
++	 *
++	 * The mute_type field indicates the type of mute function
++	 * used by the interface:
++	 *
++	 *  0: No mute function available
++	 *  1: Pseudo mute function (AL_GAIN=AL_NEG_INFINITY)
++	 *  2: Hardware mute function (AL_MUTE=on/off)
++	 *
++	 */
++
++	/* Check for hardware mute function */
++	pvs.param = AL_MUTE;
++	if (alGetParams(if_inout, &pvs, 1) != 1)
++		/* No hardware mute function */
++		return 1;
++
++	/* Check for unrecognized parameter */
++	if (pvs.sizeOut < 0)
++		/* No hardware mute function */
++		return 1;
++
++	/* Register for hardware mute events (mute control) */
++	param = AL_MUTE;
++	if(alSelectEvents(hdl->eventq, vol->if_id, &param, 1) == -1) {
++		DPERROR("NO_MUTE_EVENTS");
++		param = AL_GAIN;
++		if (alDeselectEvents(hdl->eventq, vol->if_id, &param, 1) == -1)
++			DPERROR("NO_GAIN_EVENTS_UNREG");
++		vol->mute_type = 0;
++		return 0;
++	}
++
++	/* Hardware mute available */
++
++	vol->mute_type = 2;
++
++	return 1;
++}
++
++static int
++init(struct sioctl_sgi_hdl *hdl)
++{
++	/* IRIX:	Initialize input and output volume controls for handle
++	 *
++	 *		Two streams are supported: input and output. Channels
++	 *		are supported too, if available. Two functions are supported:
++	 *		level and mute. Both level and mute functions apply to the
++	 *		global and to the channel stream. The mute function can only
++	 *		be used with the global stream, though it can be invoked per
++	 *		channel:
++	 *
++	 *		input.level
++	 *		input[N].level
++	 *		input.mute
++	 *		input[N].mute	- same as input.mute, for any N
++	 *
++	 *		output.level
++	 *		output[N].level
++	 *		output.mute
++	 *		output[N].mute	- same as output.mute, for any N
++	 *
++	 *		Global streams apply to all channels of that function.
++	 *
++	 *		Level and mute functions must be supported by the underlying
++	 *		audio hardware.
++	 */
++
++	/* Translate from device number to interfaces (no modes checking) */
++	if (sio_sgi_devnum_to_ifs(hdl->devnum, SIO_PLAY | SIO_REC, 0,
++				  &hdl->if_out, &hdl->if_in,
++				  &hdl->dev_out, &hdl->dev_in) == -1) {
++		DPERROR("TRANSLATE_DEVNUM");
++		return 0;
++	}
++
++	/*
++	 * Initialize level and mute controls for selected interface(s).
++	 */
++
++	hdl->eventq = alOpenEventQueue("eventq");
++	if(hdl->eventq == NULL) {
++		DPRINTF("NO_EVENTQ_OPEN");
++		return 0;
++	}
++
++	if (hdl->if_out != -1) {
++		/* Initialize output controls */
++		hdl->output.name = "output";
++		hdl->input.base_addr = 0;
++		initvol(hdl, &hdl->output, hdl->dev_out, hdl->if_out);
++	}
++
++
++	if (hdl->if_in != -1) {
++		/* Initialize input controls */
++		hdl->input.name = "input";
++		hdl->input.base_addr = 64;
++		initvol(hdl, &hdl->input, hdl->dev_in, hdl->if_in);
++	}
++
++	return 1;
++}
++
++static int
++sioctl_sgi_setvol(struct sioctl_sgi_hdl *hdl, struct volume *vol, ALfixed *gain)
++{
++	ALpv pvs;
++
++	/*
++	 * This function is only invoked for interfaces with gain
++	 * capability.
++	 */
++
++	/* Set gain values for interface channels */
++	pvs.param = AL_GAIN;
++	pvs.value.ptr = gain;
++	pvs.sizeIn = vol->nch;
++	if (alSetParams(vol->if_id, &pvs, 1) != 1)
++		return 0;
++
++	/* Check for unrecognized parameter */
++	if (pvs.sizeOut < 0)
++		return 0;
++
++	return 1;
++}
++
++static int
++sioctl_sgi_setpmute(struct sioctl_sgi_hdl *hdl, struct volume *vol)
++{
++	int i;
++	ALpv pvs;
++	ALfixed gain[MAX_CHANS];
++
++	if (vol->mute_val == 1) {
++		/* Set infinite negative channel gain */
++		for (i = 0; i < vol->nch; i++) {
++			vol->prev_gain[i] = gain[i];
++			gain[i] = AL_NEG_INFINITY;
++		}
++
++		/* Set gain values for interface channels */
++		pvs.param = AL_GAIN;
++		pvs.value.ptr = gain;
++		pvs.sizeIn = vol->nch;
++		if (alSetParams(vol->if_id, &pvs, 1) != 1) {
++			DPERROR("NO_IF_GAIN_PARAM");
++			vol->mute_val = !vol->mute_val;
++			return 0;
++		}
++
++		/* Check for unrecognized parameter */
++		if (pvs.sizeOut < 0) {
++			DPERROR("INVALID_PARAM");
++			vol->mute_val = !vol->mute_val;
++			return 0;
++		}
++
++		/* Interface is muted */
++	} else {
++		/* Unmute, restore previous gain values */
++		pvs.param = AL_GAIN;
++		pvs.value.ptr = vol->prev_gain;
++		pvs.sizeIn = vol->nch;
++		if (alSetParams(vol->if_id, &pvs, 1) != 1) {
++			DPERROR("NO_IF_GAIN_PARAM");
++			vol->mute_val = !vol->mute_val;
++			return 0;
++		}
++
++		/* Check for unrecognized parameter */
++		if (pvs.sizeOut < 0) {
++			DPERROR("INVALID_PARAM");
++			vol->mute_val = !vol->mute_val;
++			return 0;
++		}
++
++		/* Interface is unmuted */
++	}
++
++	return 1;
++}
++
++static int
++sioctl_sgi_sethwmute(struct sioctl_sgi_hdl *hdl, struct volume *vol)
++{
++	ALpv pvs;
++
++	/* Set mute value for interface */
++	pvs.param = AL_MUTE;
++	pvs.value.i = vol->mute_val;
++	if (alSetParams(vol->if_id, &pvs, 1) != 1) {
++		DPERROR("NO_IF_MUTE_PARAM");
++		vol->mute_val = !vol->mute_val;
++		return 0;
++	}
++
++	/* Check for unrecognized parameter */
++	if (pvs.sizeOut < 0) {
++		DPERROR("INVALID_PARAM");
++		vol->mute_val = !vol->mute_val;
++		return 0;
++	}
++
++	return 1;
++}
++
++static int
++sioctl_sgi_setmute(struct sioctl_sgi_hdl *hdl, struct volume *vol)
++{
++	/* Set new mute setting */
++
++	if (vol->mute_type == 1) {
++		/* Pseudo mute: AL_GAIN=AL_NEG_INFINITY */
++		if (sioctl_sgi_setpmute(hdl, vol) != 1)
++			return 0;
++	} else if (vol->mute_type == 2) {
++		/* Hardware mute: AL_MUTE=on/off */
++		if (sioctl_sgi_sethwmute(hdl, vol) != 1)
++			return 0;
++	} else
++		return 0;
++
++	return 1;
++}
++
++static int
++setvol(struct sioctl_sgi_hdl *hdl, struct volume *vol, int addr, int val)
++{
++	int i;
++	ALfixed gain[MAX_CHANS];
++
++	addr -= vol->base_addr;
++	if (vol->nch != -1 && addr >= 0 && addr < vol->nch) {
++		if (vol->level_val[addr] == val) {
++			DPRINTF("level %d, no change\n", val);
++			return 1;
++		}
++		vol->level_val[addr] = val;
++
++		DPRINTF("vol %d setting to %d\n", addr, vol->level_val[addr]);
++
++		/* Convert from libsndio to interface gain values */
++		sioctl_sgi_convert_range(vol, gain, -1, SIOCTL_SNDIO_TO_IF);
++
++		if (sioctl_sgi_setvol(hdl, vol, gain) != 1) {
++			DPRINTF("level write failed\n");
++			return 0;
++		}
++
++		_sioctl_onval_cb(&hdl->sioctl, vol->base_addr + addr, val);
++	}
++
++	addr -= 32;
++	if (vol->mute_type > 0 && addr >= 0 && addr < vol->nch) {
++		val = val ? 1 : 0;
++		if (vol->mute_val == val) {
++			DPRINTF("mute %d, no change\n", val);
++			return 1;
++		}
++		vol->mute_val = val;
++		DPRINTF("mute setting to %d\n", val);
++		if (sioctl_sgi_setmute(hdl, vol) != 1) {
++			DPRINTF("mute write\n");
++			return 0;
++		}
++
++		for (i = 0; i < vol->nch; i++) {
++			_sioctl_onval_cb(&hdl->sioctl,
++			    vol->base_addr + 32 + i, val);
++		}
++	}
++
++	return 1;
++}
++
++void
++sioctl_sgi_gain_to_val(double min, double max, double minDelta,
++                       double gain_val, int *val)
++{
++        double val_1;
++        double val_2;
++        double min_displ;
++
++        /*
++         * Assume min can be negative or 0.0 only, never positive.
++         */
++
++        min_displ = 0.0;
++        if (min < 0.0) {
++                min_displ = -1.0 * min;
++
++                /* Displace given gain value to origin (0.0) */
++                gain_val += min_displ;
++        }
++
++        val_1 = max - (min);
++        val_2 = val_1 / 126.0;
++
++        if (gain_val == (max + min_displ))
++                *val = 127;
++        else
++                *val = (int) (gain_val / val_2);
++}
++
++void
++sioctl_sgi_val_to_gain(double min, double max, double minDelta,
++                       int val, double *gain_val)
++{
++        /*
++	 * Range triplet:
++	 *
++	 *  min value | max value | step value
++	 *  [  N,          X,           S    ]
++	 *
++	 * min value: minimum value of the range
++	 * max value: maximum value of the range
++	 * step value: minimum amount of each increment
++	 *             from min value upto max value
++	 *
++	 * For this function:
++	 *
++         *  val is in the range [1,127,1],
++	 *  *gain_val is in the range [min,max,minDelta]
++         *
++         */
++
++        double val_1;
++        double val_2;
++        double val_3;
++        double val_delta;
++        double res;
++
++        val_1 = max - (min);
++        val_2 = val_1 / 126.0;
++        val_3 = val_2 * (double) (val - 1);
++        res = min + val_3;
++
++        /* Adjust to min delta */
++        res = (res / minDelta) * minDelta;
++        val_delta = min;
++        while (val_delta < res)
++                val_delta += minDelta;
++        res = val_delta;
++
++        *gain_val = res;
++}
++
++static int
++sioctl_sgi_convert_range(struct volume *vol, ALfixed *gain, int chan_num, int conv_dir)
++{
++	int i;
++	int start_i;
++	int max_i;
++	double gain_val;
++
++	if (conv_dir == SIOCTL_IF_TO_SNDIO) {
++		/* Convert from interface to libsndio gain range */
++
++		if (chan_num == -1) {
++			start_i = 0;
++			max_i = vol->nch;
++		} else {
++			start_i = chan_num;
++			max_i = start_i + 1;
++		}
++
++		for (i = start_i; i < max_i; i++)
++			sioctl_sgi_gain_to_val(vol->min, vol->max, vol->minDelta,
++					       alFixedToDouble(gain[i]), &vol->level_val[i]);
++	} else if (conv_dir == SIOCTL_SNDIO_TO_IF) {
++		/* Convert from libsndio to interface gain values */
++
++		if (chan_num == -1) {
++			start_i = 0;
++			max_i = vol->nch;
++		} else {
++			start_i = chan_num;
++			max_i = start_i + 1;
++		}
++
++		for (i = start_i; i < max_i; i++) {
++			sioctl_sgi_val_to_gain(vol->min, vol->max, vol->minDelta,
++					       vol->level_val[i], &gain_val);
++			gain[i] = alDoubleToFixed(gain_val);
++		}
++	} else
++		return 0;
++
++	return 1;
++}
++
++static int
++sioctl_sgi_scanvol(struct sioctl_sgi_hdl *hdl, struct volume *vol)
++{
++	ALpv pvs;
++
++	/*
++	 * This function is only invoked for interfaces with gain
++	 * capability.
++	 */
++
++	ALfixed gain[MAX_CHANS];
++
++	/* Get gain values for interface channels */
++	pvs.param = AL_GAIN;
++	pvs.value.ptr = gain;
++	pvs.sizeIn = MAX_CHANS;      /* pass in max number of channels per interface */
++	if (alGetParams(vol->if_id, &pvs, 1) != 1)
++		return 1;
++
++	/* Check for unrecognized parameter */
++	if (pvs.sizeOut < 0)
++		return 1;
++
++	sioctl_sgi_convert_range(vol, gain, -1, SIOCTL_IF_TO_SNDIO);
++
++	return 1;
++}
++
++static int
++sioctl_sgi_getpmute(struct sioctl_sgi_hdl *hdl, struct volume *vol)
++{
++	int i;
++	ALpv pvs;
++	ALfixed gain[MAX_CHANS];
++
++
++	/* Get gain values for interface channels */
++	pvs.param = AL_GAIN;
++	pvs.value.ptr = gain;
++	pvs.sizeIn = MAX_CHANS;      /* pass in max number of channels per interface */
++	if (alGetParams(vol->if_id, &pvs, 1) != 1) {
++		DPERROR("NO_IF_GAIN_PARAM");
++		return 0;
++	}
++
++	/* Check for unrecognized parameter */
++	if (pvs.sizeOut < 0) {
++		DPERROR("INVALID_PARAM");
++		return 0;
++	}
++
++	/* Check for mute */
++	for (i = 0; i < vol->nch; i++) {
++		if (gain[i] != AL_NEG_INFINITY) {
++			/* At least one channel is not muted, break */
++			i = -1;
++			break;
++		}
++	}
++
++	if (i != -1)
++		/* Interface is muted */
++		vol->mute_val = 1;
++	else
++		/* Interface not muted (at least one channel not muted) */
++		vol->mute_val = 0;
++
++	return 1;
++}
++
++static int
++sioctl_sgi_gethwmute(struct sioctl_sgi_hdl *hdl, struct volume *vol)
++{
++	ALpv pvs;
++
++	/* Get mute value for interface */
++	pvs.param = AL_MUTE;
++	if (alGetParams(vol->if_id, &pvs, 1) != 1) {
++		DPERROR("NO_IF_MUTE_PARAM");
++		return 0;
++	}
++
++	/* Check for unrecognized parameter */
++	if (pvs.sizeOut < 0) {
++		DPERROR("INVALID_PARAM");
++		return 0;
++	}
++
++	vol->mute_val = pvs.value.i;
++
++	return 1;
++}
++
++static int
++sioctl_sgi_scanmute(struct sioctl_sgi_hdl *hdl, struct volume *vol)
++{
++	/* Get current mute setting */
++
++	if (vol->mute_type == 1) {
++		/* Pseudo mute: AL_GAIN=AL_NEG_INFINITY */
++		if (sioctl_sgi_getpmute(hdl, vol) != 1)
++			return 0;
++	} else if (vol->mute_type == 2) {
++		/* Hardware mute: AL_MUTE=on/off */
++		if (sioctl_sgi_gethwmute(hdl, vol) != 1)
++			return 0;
++	} else {
++		return 0;
++	}
++
++	return 1;
++}
++
++static int
++scanvol(struct sioctl_sgi_hdl *hdl, struct volume *vol)
++{
++	struct sioctl_desc desc;
++	int i;
++
++	memset(&desc, 0, sizeof(struct sioctl_desc));
++	if (vol->nch != -1) {
++		if (sioctl_sgi_scanvol(hdl, vol) != 1) {
++			DPRINTF("level read failed\n");
++			return 0;
++		}
++
++		desc.type = SIOCTL_NUM;
++		desc.maxval = AUDIO_MAX_GAIN;
++		desc.node1.name[0] = 0;
++		desc.node1.unit = -1;
++		strlcpy(desc.func, "level", SIOCTL_NAMEMAX);
++		strlcpy(desc.node0.name, vol->name, SIOCTL_NAMEMAX);
++		for (i = 0; i < vol->nch; i++) {
++			desc.node0.unit = i;
++			desc.addr = vol->base_addr + i;
++			_sioctl_ondesc_cb(&hdl->sioctl, &desc, vol->level_val[i]);
++		}
++	}
++	if (vol->mute_type > 0) {
++		if (sioctl_sgi_scanmute(hdl, vol) != 1) {
++			DPRINTF("mute read failed\n");
++			return 0;
++		}
++
++		desc.type = SIOCTL_SW;
++		desc.maxval = 1;
++		desc.node1.name[0] = 0;
++		desc.node1.unit = -1;
++		strlcpy(desc.func, "mute", SIOCTL_NAMEMAX);
++		strlcpy(desc.node0.name, vol->name, SIOCTL_NAMEMAX);
++		for (i = 0; i < vol->nch; i++) {
++			desc.node0.unit = i;
++			desc.addr = vol->base_addr + 32 + i;
++			_sioctl_ondesc_cb(&hdl->sioctl, &desc, vol->mute_val);
++		}
++	}
++
++	return 1;
++}
++
++static int
++updatevol(struct sioctl_sgi_hdl *hdl, ALevent event)
++{
++	int i;
++	int val;
++	int res_id;
++	int param;
++	ALvalue value;
++	struct volume *vol;
++	int cur_level_val[MAX_CHANS];		/* current level values */
++
++	/* Get event data */
++	res_id = alGetEventSrcResource(event);
++	param = alGetEventParam(event);
++
++	/* Get vol */
++	if (hdl->output.if_id == res_id)
++		vol = &hdl->output;
++	else if (hdl->input.if_id == res_id)
++		vol = &hdl->input;
++	else
++		return 1;
++
++	/* Process supported parameter */
++	if (param == AL_MUTE) {
++		/* The updated value is stored as a scalar in ``event'' */
++		value = alGetEventValue(event);
++		if ((value.i == 0) &&
++		    (value.ll == 0LL) &&
++		    (value.ptr == NULL)) {
++			DPRINTF("NO_MUTE_VAL");
++			return 0;
++		}
++		val = value.i;
++		if (vol->mute_val == val)
++			return 1;
++		vol->mute_val = val;
++		for (i = 0; i < vol->nch; i++) {
++			_sioctl_onval_cb(&hdl->sioctl,
++			    vol->base_addr + 32 + i, val);
++		}
++	} else if (param == AL_GAIN) {
++		/* Backup current/last level values */
++		bcopy((void *) vol->level_val, (void *) cur_level_val, MAX_CHANS * sizeof(int));
++
++		/* The updated values have to be retrieved using parameters */
++		if (sioctl_sgi_scanvol(hdl, vol) != 1)
++			return 0;
++
++		for (i = 0; i < vol->nch; i++) {
++			val = vol->level_val[i];
++
++			if ((vol->mute_type == 1) &&
++			    (vol->mute_val == 1)) {
++
++				/* If pseudo muted, all current level values are
++				 * AL_NEG_INFINITY. If at least one new level
++				 * is different from this special value, the
++				 * interface is unmuted automatically.
++				 */
++
++				if (val != AL_NEG_INFINITY)
++					vol->mute_val = 0;
++			}
++
++			if (cur_level_val[i] == val)
++				continue;
++			_sioctl_onval_cb(&hdl->sioctl,
++			    vol->base_addr + i, val);
++		}
++	}
++
++	return 1;
++}
++
++int
++sioctl_sgi_parse_devnum(const char *str, unsigned int *devnum)
++{
++	const char *p;
++	int fd, flags;
++
++	fd = -1;
++	fd = fd;
++	flags = 0;
++	flags = flags;
++
++#ifdef DEBUG
++	_sndio_debug_init();
++#endif
++	p = _sndio_parsetype(str, "rsnd");
++	if (p == NULL) {
++		DPRINTF("sioctl_sgi_parse_devnum: %s: \"rsnd\" expected\n", str);
++		return -1;
++	}
++	switch (*p) {
++	case '/':
++		p++;
++		break;
++	default:
++		DPRINTF("sioctl_sgi_parse_devnum: %s: '/' expected\n", str);
++		return -1;
++	}
++	if (strcmp(p, "default") == 0) {
++		*devnum = 0;
++	} else {
++		p = _sndio_parsenum(p, devnum, 255);
++		if (p == NULL || *p != '\0') {
++			DPRINTF("sioctl_sgi_parse_devnum: %s: number expected after '/'\n", str);
++			return -1;
++		}
++	}
++
++	return 1;
++}
++
++struct sioctl_hdl *
++_sioctl_sgi_open(const char *str, unsigned int mode, int nbio)
++{
++	struct sioctl_sgi_hdl *hdl;
++	unsigned int devnum;
++
++	/* Parse devnum */
++	if (sioctl_sgi_parse_devnum(str, &devnum) != 1)
++		return NULL;
++
++	/* Allocate handle */
++	hdl = malloc(sizeof(struct sioctl_sgi_hdl));
++	if (hdl == NULL)
++		return NULL;
++	_sioctl_create(&hdl->sioctl, &sioctl_sgi_ops, mode, nbio);
++	hdl->devnum = devnum;
++
++	/* Initialize handle */
++	if (init(hdl) != 1) {
++		free(hdl);
++		return NULL;
++	}
++
++	return (struct sioctl_hdl *) hdl;
++}
++
++static void
++sioctl_sgi_close(struct sioctl_hdl *addr)
++{
++	struct sioctl_sgi_hdl *hdl = (struct sioctl_sgi_hdl *)addr;
++
++	close(hdl->fd);
++	free(hdl);
++}
++
++static int
++sioctl_sgi_ondesc(struct sioctl_hdl *addr)
++{
++	struct sioctl_sgi_hdl *hdl = (struct sioctl_sgi_hdl *)addr;
++
++	if (!scanvol(hdl, &hdl->output) ||
++	    !scanvol(hdl, &hdl->input)) {
++		hdl->sioctl.eof = 1;
++		return 0;
++	}
++	_sioctl_ondesc_cb(&hdl->sioctl, NULL, 0);
++
++	return 1;
++}
++
++static int
++sioctl_sgi_onval(struct sioctl_hdl *addr)
++{
++	return 1;
++}
++
++static int
++sioctl_sgi_setctl(struct sioctl_hdl *arg, unsigned int addr, unsigned int val)
++{
++	struct sioctl_sgi_hdl *hdl = (struct sioctl_sgi_hdl *)arg;
++
++	if (!setvol(hdl, &hdl->output, addr, val) ||
++	    !setvol(hdl, &hdl->input, addr, val)) {
++		hdl->sioctl.eof = 1;
++		return 0;
++	}
++
++	return 1;
++}
++
++static int
++sioctl_sgi_nfds(struct sioctl_hdl *addr)
++{
++	return 1;
++}
++
++static int
++sioctl_sgi_pollfd(struct sioctl_hdl *addr, struct pollfd *pfd, int events)
++{
++	struct sioctl_sgi_hdl *hdl = (struct sioctl_sgi_hdl *)addr;
++
++	/*
++	 * Get file descriptor from event queue to poll
++	 */
++
++	pfd->fd = alGetEventQueueFD(hdl->eventq);
++	if(pfd->fd == -1) {
++		DPERROR("NO_EVENTQ_FD");
++		return 0;
++	}
++	pfd->events = POLLIN;
++	hdl->events = events;
++
++	return 1;
++}
++
++static int
++sioctl_sgi_revents(struct sioctl_hdl *arg, struct pollfd *pfd)
++{
++	struct sioctl_sgi_hdl *hdl = (struct sioctl_sgi_hdl *)arg;
++	int idx;
++	int res_id;
++	int param;
++	ALevent event;
++
++	if (pfd->revents & POLLIN) {
++		event = alNewEvent();
++		if(event == NULL) {
++			DPRINTF("sioctl_sgi_revents: event allocation failed\n");
++			hdl->sioctl.eof = 1;
++			return POLLHUP;
++		}
++
++		/* Read in next event */
++		if (alNextEvent(hdl->eventq, event) == -1) {
++			DPRINTF("sioctl_sgi_revents: next event failed\n");
++			if (alFreeEvent(event) == -1)
++				DPRINTF("sioctl_sgi_revents: free event failed\n");
++			hdl->sioctl.eof = 1;
++			return POLLHUP;
++		}
++
++		/* Get event data */
++		res_id = alGetEventSrcResource(event);
++		param = alGetEventParam(event);
++
++		idx = -1;
++		if (hdl->output.if_id == res_id) {
++			if (param == AL_GAIN) {
++				idx = 0;
++			} else if (param == AL_MUTE) {
++				idx = 1;
++			}
++		} else if (hdl->input.if_id == res_id) {
++			if (param == AL_GAIN) {
++				idx = 2;
++			} else if (param == AL_MUTE) {
++				idx = 3;
++			}
++		}
++
++		if ((idx != -1) &&
++		    !updatevol(hdl, event)) {
++			if (alFreeEvent(event) == -1)
++				DPRINTF("sioctl_sgi_revents: free event failed\n");
++			return POLLHUP;
++		}
++
++		if (alFreeEvent(event) == -1)
++			DPRINTF("sioctl_sgi_revents: free event failed\n");
++	}
++
++	return hdl->events & POLLOUT;
++}
++#endif
+diff -Naur sndio-1.8.1.orig/libsndio/sndio.7 sndio-1.8.1.truhobbyist/libsndio/sndio.7
+--- sndio-1.8.1.orig/libsndio/sndio.7	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sndio.7	2022-07-20 13:45:27.000000000 -0400
+@@ -67,7 +67,7 @@
+ .Xr sndiod 8
+ has a descriptor of the form:
+ .Bd -literal -offset center
+-type[@hostname][,servnum]/devnum[.option]
++type[@hostname][,servnum]/[devnum|option]
+ .Ed
+ .Pp
+ This information is used by programs to determine
+@@ -147,7 +147,7 @@
+ .Ev AUDIORECDEVICE
+ environment variables.
+ If they are not set, the program first tries to connect to
+-.Li snd/0 .
++.Li snd/default .
+ If that fails, it then tries to use
+ .Li rsnd/0 .
+ .Pp
+@@ -215,13 +215,13 @@
+ Raw MIDI ports.
+ .El
+ .Sh EXAMPLES
+-.Bl -tag -width "snd/0.rear" -compact
++.Bl -tag -width "midithru/0" -compact
+ .It Li snd/0
+ Audio device referred to by the first
+ .Fl f
+ option of
+ .Xr sndiod 8 .
+-.It Li snd/0.rear
++.It Li snd/rear
+ Sub-device registered with
+ .Dq -s rear .
+ .It Li midithru/0
+diff -Naur sndio-1.8.1.orig/libsndio/sndio.h sndio-1.8.1.truhobbyist/libsndio/sndio.h
+--- sndio-1.8.1.orig/libsndio/sndio.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/libsndio/sndio.h	2022-07-20 13:45:27.000000000 -0400
+@@ -164,6 +164,7 @@
+ size_t sio_read(struct sio_hdl *, void *, size_t);
+ int sio_start(struct sio_hdl *);
+ int sio_stop(struct sio_hdl *);
++int sio_flush(struct sio_hdl *);
+ int sio_nfds(struct sio_hdl *);
+ int sio_pollfd(struct sio_hdl *, struct pollfd *, int);
+ int sio_revents(struct sio_hdl *, struct pollfd *);
+diff -Naur sndio-1.8.1.orig/midicat/midicat.c sndio-1.8.1.truhobbyist/midicat/midicat.c
+--- sndio-1.8.1.orig/midicat/midicat.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/midicat/midicat.c	2022-07-20 13:45:27.000000000 -0400
+@@ -97,7 +97,7 @@
+ 		if (strcmp(ifile, "-") == 0)
+ 			ifd = STDIN_FILENO;
+ 		else {
+-			ifd = open(ifile, O_RDONLY, 0);
++			ifd = open(ifile, O_RDONLY);
+ 			if (ifd == -1) {
+ 				perror(ifile);
+ 				return 1;
+diff -Naur sndio-1.8.1.orig/sndioctl/sndioctl.1 sndio-1.8.1.truhobbyist/sndioctl/sndioctl.1
+--- sndio-1.8.1.orig/sndioctl/sndioctl.1	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndioctl/sndioctl.1	2022-07-20 13:45:27.000000000 -0400
+@@ -58,7 +58,7 @@
+ control to hide details that are not essential.
+ .El
+ .Pp
+-If no commands are specified all valid controls are displayed on
++If no commands are specified, all valid controls are displayed on
+ .Em stdout .
+ Unless
+ .Fl d ,
+diff -Naur sndio-1.8.1.orig/sndioctl/sndioctl.c sndio-1.8.1.truhobbyist/sndioctl/sndioctl.c
+--- sndio-1.8.1.orig/sndioctl/sndioctl.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndioctl/sndioctl.c	2022-07-20 13:45:27.000000000 -0400
+@@ -706,6 +706,11 @@
+ 		}
+ 		break;
+ 	case SIOCTL_SEL:
++		if (*pos == '\0') {
++			fprintf(stderr, "%s.%s: expects value\n", astr, func);
++			exit(1);
++		}
++		/* FALLTROUGH */
+ 	case SIOCTL_VEC:
+ 	case SIOCTL_LIST:
+ 		for (i = g; i != NULL; i = nextpar(i)) {
+diff -Naur sndio-1.8.1.orig/sndiod/Makefile.in sndio-1.8.1.truhobbyist/sndiod/Makefile.in
+--- sndio-1.8.1.orig/sndiod/Makefile.in	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/Makefile.in	2022-07-20 13:45:27.000000000 -0400
+@@ -5,7 +5,7 @@
+ LIB = -L../libsndio
+ 
+ # extra defines (-D options)
+-DEFS = -DDEBUG -DSNDIO_USER=\"@user@\" -DADATA_BITS=@precision@ @defs@
++DEFS = -DDEBUG -DSNDIO_USER=\"@user@\" -DDEFAULT_BITS=@precision@ @defs@
+ 
+ # extra libraries (-l options)
+ LDADD = -lsndio @ldadd@
+@@ -44,7 +44,7 @@
+ # ---------------------------------------------------------- dependencies ---
+ 
+ OBJS = \
+-abuf.o utils.o dev.o dev_sioctl.o dsp.o file.o listen.o midi.o miofile.o \
++abuf.o utils.o dev.o dev_sioctl.o dsp.o err.o file.o listen.o midi.o miofile.o \
+ opt.o siofile.o sndiod.o sock.o
+ 
+ sndiod:		${OBJS}
+@@ -78,3 +78,6 @@
+ 		dev_sioctl.h opt.h midi.h miofile.h sock.h \
+ 		../libsndio/amsg.h utils.h ../bsd-compat/bsd-compat.h
+ utils.o:	utils.c utils.h
++err.o:		../bsd-compat/err.c
++		${CC} ${CFLAGS} ${INCLUDE} ${DEFS} -c ../bsd-compat/err.c
++
+diff -Naur sndio-1.8.1.orig/sndiod/dev.c sndio-1.8.1.truhobbyist/sndiod/dev.c
+--- sndio-1.8.1.orig/sndiod/dev.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/dev.c	2022-07-20 13:45:27.000000000 -0400
+@@ -18,6 +18,10 @@
+ #include <string.h>
+ #include "bsd-compat.h"
+ 
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++#include <stdlib.h>
++#endif
++
+ #include "abuf.h"
+ #include "defs.h"
+ #include "dev.h"
+@@ -46,16 +50,13 @@
+     unsigned int, unsigned int, unsigned int, unsigned int);
+ void dev_adjpar(struct dev *, int, int, int);
+ int dev_allocbufs(struct dev *);
+-int dev_open(struct dev *);
+ void dev_freebufs(struct dev *);
+-void dev_close(struct dev *);
+ int dev_ref(struct dev *);
+ void dev_unref(struct dev *);
+ int dev_init(struct dev *);
+ void dev_done(struct dev *);
+ struct dev *dev_bynum(int);
+ void dev_del(struct dev *);
+-void dev_setalt(struct dev *, unsigned int);
+ unsigned int dev_roundof(struct dev *, unsigned int);
+ void dev_wakeup(struct dev *);
+ 
+@@ -684,8 +685,8 @@
+ 	 * check if the device is actually used. If it isn't,
+ 	 * then close it
+ 	 */
+-	if (d->slot_list == NULL && (mtc_array[0].dev != d ||
+-	    mtc_array[0].tstate != MTC_RUN)) {
++	if (d->slot_list == NULL && d->idle >= d->bufsz &&
++	    (mtc_array[0].dev != d || mtc_array[0].tstate != MTC_RUN)) {
+ 		if (log_level >= 2) {
+ 			dev_log(d);
+ 			log_puts(": device stopped\n");
+@@ -748,6 +749,8 @@
+ 			log_puts("\n");
+ 		}
+ #endif
++		d->idle = 0;
++
+ 		/*
+ 		 * skip cycles for XRUN_SYNC correction
+ 		 */
+@@ -862,6 +865,9 @@
+ 
+ 	d->delta += delta;
+ 
++	if (d->slot_list == NULL)
++		d->idle += delta;
++
+ 	for (s = d->slot_list; s != NULL; s = snext) {
+ 		/*
+ 		 * s->ops->onmove() may remove the slot
+@@ -931,10 +937,8 @@
+ 		return NULL;
+ 	}
+ 	d = xmalloc(sizeof(struct dev));
+-	d->alt_list = NULL;
+-	dev_addname(d,path);
++	d->path = path;
+ 	d->num = dev_sndnum++;
+-	d->alt_num = -1;
+ 
+ 	d->reqpar = *par;
+ 	d->reqmode = mode;
+@@ -949,6 +953,7 @@
+ 	d->slot_list = NULL;
+ 	d->master = MIDI_MAXCTL;
+ 	d->master_enabled = 0;
++	d->alt_next = d;
+ 	snprintf(d->name, CTL_NAMEMAX, "%u", d->num);
+ 	for (pd = &dev_list; *pd != NULL; pd = &(*pd)->next)
+ 		;
+@@ -958,51 +963,6 @@
+ }
+ 
+ /*
+- * add a alternate name
+- */
+-int
+-dev_addname(struct dev *d, char *name)
+-{
+-	struct dev_alt *a;
+-
+-	if (d->alt_list != NULL && d->alt_list->idx == DEV_NMAX - 1) {
+-		log_puts(name);
+-		log_puts(": too many alternate names\n");
+-		return 0;
+-	}
+-	a = xmalloc(sizeof(struct dev_alt));
+-	a->name = name;
+-	a->idx = (d->alt_list == NULL) ? 0 : d->alt_list->idx + 1;
+-	a->next = d->alt_list;
+-	d->alt_list = a;
+-	return 1;
+-}
+-
+-/*
+- * set prefered alt device name
+- */
+-void
+-dev_setalt(struct dev *d, unsigned int idx)
+-{
+-	struct dev_alt **pa, *a;
+-
+-	/* find alt with given index */
+-	for (pa = &d->alt_list; (a = *pa)->idx != idx; pa = &a->next)
+-		;
+-
+-	/* detach from list */
+-	*pa = a->next;
+-
+-	/* attach at head */
+-	a->next = d->alt_list;
+-	d->alt_list = a;
+-
+-	/* reopen device with the new alt */
+-	if (idx != d->alt_num)
+-		dev_reopen(d);
+-}
+-
+-/*
+  * adjust device parameters and mode
+  */
+ void
+@@ -1100,9 +1060,6 @@
+ int
+ dev_open(struct dev *d)
+ {
+-	char name[CTL_NAMEMAX];
+-	struct dev_alt *a;
+-
+ 	d->mode = d->reqmode;
+ 	d->round = d->reqround;
+ 	d->bufsz = d->reqbufsz;
+@@ -1124,16 +1081,6 @@
+ 	if (!dev_allocbufs(d))
+ 		return 0;
+ 
+-	/* if there are multiple alt devs, add server.device knob */
+-	if (d->alt_list->next != NULL) {
+-		for (a = d->alt_list; a != NULL; a = a->next) {
+-			snprintf(name, sizeof(name), "%d", a->idx);
+-			ctl_new(CTL_DEV_ALT, d, &a->idx,
+-			    CTL_SEL, d->name, "server", -1, "device",
+-			    name, -1, 1, a->idx == d->alt_num);
+-		}
+-	}
+-
+ 	d->pstate = DEV_INIT;
+ 	return 1;
+ }
+@@ -1159,18 +1106,18 @@
+ 	}
+ 	d->slot_list = NULL;
+ 
+-	for (c = ctlslot_array, i = 0; i < DEV_NCTLSLOT; i++, c++) {
+-		if (c->ops == NULL)
+-			continue;
+-		if (c->opt->dev != d)
+-			continue;
+-		c->ops->exit(c->arg);
+-		c->ops = NULL;
+-	}
+-
+ 	for (o = opt_list; o != NULL; o = o->next) {
+ 		if (o->dev != d)
+ 			continue;
++		for (c = ctlslot_array, i = 0; i < DEV_NCTLSLOT; i++, c++) {
++			if (c->ops == NULL)
++				continue;
++			if (c->opt == o) {
++				c->ops->exit(s->arg);
++				c->ops = NULL;
++			}
++		}
++
+ 		midi_abort(o->midi);
+ 	}
+ 
+@@ -1209,9 +1156,6 @@
+ void
+ dev_close(struct dev *d)
+ {
+-	struct dev_alt *a;
+-	unsigned int idx;
+-
+ 	d->pstate = DEV_CFG;
+ 	dev_sio_close(d);
+ 	dev_freebufs(d);
+@@ -1220,82 +1164,6 @@
+ 		d->master_enabled = 0;
+ 		ctl_del(CTL_DEV_MASTER, d, NULL);
+ 	}
+-	for (idx = 0, a = d->alt_list; a != NULL; idx++, a = a->next)
+-		ctl_del(CTL_DEV_ALT, d, &idx);
+-}
+-
+-/*
+- * Close the device, but attempt to migrate everything to a new sndio
+- * device.
+- */
+-int
+-dev_reopen(struct dev *d)
+-{
+-	struct mtc *mtc;
+-	struct slot *s;
+-	long long pos;
+-	unsigned int pstate;
+-	int delta;
+-
+-	/* not opened */
+-	if (d->pstate == DEV_CFG)
+-		return 1;
+-
+-	/* save state */
+-	delta = d->delta;
+-	pstate = d->pstate;
+-
+-	if (!dev_sio_reopen(d))
+-		return 0;
+-
+-	/* reopen returns a stopped device */
+-	d->pstate = DEV_INIT;
+-
+-	/* reallocate new buffers, with new parameters */
+-	dev_freebufs(d);
+-	dev_allocbufs(d);
+-
+-	/*
+-	 * adjust time positions, make anything go back delta ticks, so
+-	 * that the new device can start at zero
+-	 */
+-	for (s = d->slot_list; s != NULL; s = s->next) {
+-		pos = (long long)s->delta * d->round + s->delta_rem;
+-		pos -= (long long)delta * s->round;
+-		s->delta_rem = pos % (int)d->round;
+-		s->delta = pos / (int)d->round;
+-		if (log_level >= 3) {
+-			slot_log(s);
+-			log_puts(": adjusted: delta -> ");
+-			log_puti(s->delta);
+-			log_puts(", delta_rem -> ");
+-			log_puti(s->delta_rem);
+-			log_puts("\n");
+-		}
+-
+-		/* reinitilize the format conversion chain */
+-		slot_initconv(s);
+-	}
+-	mtc = &mtc_array[0];
+-	if (mtc->dev == d && mtc->tstate == MTC_RUN) {
+-		mtc->delta -= delta * MTC_SEC;
+-		if (log_level >= 2) {
+-			dev_log(mtc->dev);
+-			log_puts(": adjusted mtc: delta ->");
+-			log_puti(mtc->delta);
+-			log_puts("\n");
+-		}
+-	}
+-
+-	/* remove old controls and add new ones */
+-	dev_sioctl_close(d);
+-	dev_sioctl_open(d);
+-
+-	/* start the device if needed */
+-	if (pstate == DEV_RUN)
+-		dev_wakeup(d);
+-
+-	return 1;
+ }
+ 
+ int
+@@ -1382,7 +1250,6 @@
+ dev_del(struct dev *d)
+ {
+ 	struct dev **p;
+-	struct dev_alt *a;
+ 
+ #ifdef DEBUG
+ 	if (log_level >= 3) {
+@@ -1402,10 +1269,6 @@
+ #endif
+ 	}
+ 	*p = d->next;
+-	while ((a = d->alt_list) != NULL) {
+-		d->alt_list = a->next;
+-		xfree(a);
+-	}
+ 	xfree(d);
+ }
+ 
+@@ -1431,6 +1294,7 @@
+ 		} else {
+ 			d->prime = 0;
+ 		}
++		d->idle = 0;
+ 		d->poffs = 0;
+ 
+ 		/*
+@@ -1445,6 +1309,103 @@
+ }
+ 
+ /*
++ * Return true if both of the given devices can run the same
++ * clients
++ */
++int
++dev_iscompat(struct dev *o, struct dev *n)
++{
++	if (((long long)o->round * n->rate != (long long)n->round * o->rate) ||
++	    ((long long)o->bufsz * n->rate != (long long)n->bufsz * o->rate)) {
++		if (log_level >= 1) {
++			log_puts(n->name);
++			log_puts(": not compatible with ");
++			log_puts(o->name);
++			log_puts("\n");
++		}
++		return 0;
++	}
++	return 1;
++}
++
++/*
++ * Close the device, but attempt to migrate everything to a new sndio
++ * device.
++ */
++struct dev *
++dev_migrate(struct dev *odev)
++{
++	struct dev *ndev;
++	struct opt *o;
++	struct slot *s;
++	int i;
++
++	/* not opened */
++	if (odev->pstate == DEV_CFG)
++		return odev;
++
++	ndev = odev;
++	while (1) {
++		/* try next one, circulating through the list */
++		ndev = ndev->alt_next;
++		if (ndev == odev) {
++			if (log_level >= 1) {
++				dev_log(odev);
++				log_puts(": no fall-back device found\n");
++			}
++			return NULL;
++		}
++
++
++		if (!dev_ref(ndev))
++			continue;
++
++		/* check if new parameters are compatible with old ones */
++		if (!dev_iscompat(odev, ndev)) {
++			dev_unref(ndev);
++			continue;
++		}
++
++		/* found it!*/
++		break;
++	}
++
++	if (log_level >= 1) {
++		dev_log(odev);
++		log_puts(": switching to ");
++		dev_log(ndev);
++		log_puts("\n");
++	}
++
++	if (mtc_array[0].dev == odev)
++		mtc_setdev(&mtc_array[0], ndev);
++
++	/* move opts to new device (also moves clients using the opts) */
++	for (o = opt_list; o != NULL; o = o->next) {
++		if (o->dev != odev)
++			continue;
++		if (strcmp(o->name, o->dev->name) == 0)
++			continue;
++		opt_setdev(o, ndev);
++	}
++
++	/* terminate remaining clients */
++	for (i = 0, s = slot_array; i < DEV_NSLOT; i++, s++) {
++		if (s->opt == NULL || s->opt->dev != odev)
++			continue;
++		if (s->ops != NULL) {
++			s->ops->exit(s);
++			s->ops = NULL;
++		}
++	}
++
++	/* slots and/or MMC hold refs, drop ours */
++	dev_unref(ndev);
++
++	return ndev;
++}
++
++/*
+  * check that all clients controlled by MMC are ready to start, if so,
+  * attach them all at the same position
+  */
+@@ -1553,6 +1514,43 @@
+ }
+ 
+ /*
++ * set MMC device
++ */
++void
++mtc_setdev(struct mtc *mtc, struct dev *d)
++{
++	struct opt *o;
++
++	if (mtc->dev == d)
++		return;
++
++	if (log_level >= 2) {
++		dev_log(d);
++		log_puts(": set to be MIDI clock source\n");
++	}
++
++	/* adjust clock and ref counter, if needed */
++	if (mtc->tstate == MTC_RUN) {
++		mtc->delta -= mtc->dev->delta;
++		dev_unref(mtc->dev);
++	}
++
++	mtc->dev = d;
++
++	if (mtc->tstate == MTC_RUN) {
++		mtc->delta += mtc->dev->delta;
++		dev_ref(mtc->dev);
++		dev_wakeup(mtc->dev);
++	}
++
++	/* move in once anything using MMC */
++	for (o = opt_list; o != NULL; o = o->next) {
++		if (o->mtc == mtc)
++			opt_setdev(o, mtc->dev);
++	}
++}
++
++/*
+  * allocate buffers & conversion chain
+  */
+ void
+@@ -1788,7 +1786,8 @@
+ 	    NULL, -1, 127, s->vol);
+ 
+ found:
+-	if (!dev_ref(opt->dev))
++	/* open device, this may change opt's device */
++	if (!opt_ref(opt))
+ 		return NULL;
+ 	s->opt = opt;
+ 	s->ops = ops;
+@@ -1810,8 +1809,6 @@
+ 	if (log_level >= 3) {
+ 		slot_log(s);
+ 		log_puts(": using ");
+-		dev_log(s->opt->dev);
+-		log_puts(".");
+ 		log_puts(s->opt->name);
+ 		log_puts(", mode = ");
+ 		log_putx(mode);
+@@ -1840,7 +1837,7 @@
+ 		slot_stop(s, 0);
+ 		break;
+ 	}
+-	dev_unref(s->opt->dev);
++	opt_unref(s->opt);
+ }
+ 
+ /*
+@@ -1862,6 +1859,62 @@
+ }
+ 
+ /*
++ * set device for this slot
++ */
++void
++slot_setopt(struct slot *s, struct opt *o)
++{
++	struct opt *t;
++	struct dev *odev, *ndev;
++	struct ctl *c;
++
++	if (s->opt == NULL || s->opt == o)
++		return;
++
++	if (log_level >= 2) {
++		slot_log(s);
++		log_puts(": moving to opt ");
++		log_puts(o->name);
++		log_puts("\n");
++	}
++
++	odev = s->opt->dev;
++	if (s->ops != NULL) {
++		ndev = opt_ref(o);
++		if (ndev == NULL)
++			return;
++
++		if (!dev_iscompat(odev, ndev)) {
++			opt_unref(o);
++			return;
++		}
++	}
++
++	if (s->pstate == SLOT_RUN || s->pstate == SLOT_STOP)
++		slot_detach(s);
++
++	t = s->opt;
++	s->opt = o;
++
++	c = ctl_find(CTL_SLOT_LEVEL, s, NULL);
++	ctl_update(c);
++
++	if (o->dev != t->dev) {
++		dev_midi_slotdesc(odev, s);
++		dev_midi_slotdesc(ndev, s);
++		dev_midi_vol(ndev, s);
++	}
++
++	if (s->pstate == SLOT_RUN || s->pstate == SLOT_STOP)
++		slot_attach(s);
++
++	if (s->ops != NULL) {
++		opt_unref(t);
++		return;
++	}
++}
++
++/*
+  * attach the slot to the device (ie start playing & recording
+  */
+ void
+@@ -2203,7 +2256,7 @@
+ 	}
+ 	s->opt = o;
+ 	s->self = 1 << i;
+-	if (!dev_ref(o->dev))
++	if (!opt_ref(o))
+ 		return NULL;
+ 	s->ops = ops;
+ 	s->arg = arg;
+@@ -2233,7 +2286,7 @@
+ 			pc = &c->next;
+ 	}
+ 	s->ops = NULL;
+-	dev_unref(s->opt->dev);
++	opt_unref(s->opt);
+ }
+ 
+ int
+@@ -2244,8 +2297,9 @@
+ 	switch (c->scope) {
+ 	case CTL_HW:
+ 	case CTL_DEV_MASTER:
+-	case CTL_DEV_ALT:
+ 		return (s->opt->dev == c->u.any.arg0);
++	case CTL_OPT_DEV:
++		return (s->opt == c->u.any.arg0);
+ 	case CTL_SLOT_LEVEL:
+ 		return (s->opt->dev == c->u.slot_level.slot->opt->dev);
+ 	default:
+@@ -2272,6 +2326,28 @@
+ }
+ 
+ void
++ctlslot_update(struct ctlslot *s)
++{
++	struct ctl *c;
++	unsigned int refs_mask;
++
++	for (c = ctl_list; c != NULL; c = c->next) {
++		if (c->type == CTL_NONE)
++			continue;
++		refs_mask = ctlslot_visible(s, c) ? s->self : 0;
++
++		/* nothing to do if no visibility change */
++		if (((c->refs_mask & s->self) ^ refs_mask) == 0)
++			continue;
++		/* if control becomes visble */
++		if (refs_mask)
++			c->refs_mask |= s->self;
++		/* if control is hidden */
++		c->desc_mask |= s->self;
++	}
++}
++
++void
+ ctl_node_log(struct ctl_node *c)
+ {
+ 	log_puts(c->name);
+@@ -2319,16 +2395,17 @@
+ 		log_puts("dev_master:");
+ 		log_puts(c->u.dev_master.dev->name);
+ 		break;
+-	case CTL_DEV_ALT:
+-		log_puts("dev_alt:");
+-		log_puts(c->u.dev_alt.dev->name);
+-		log_putu(c->u.dev_alt.idx);
+-		break;
+ 	case CTL_SLOT_LEVEL:
+ 		log_puts("slot_level:");
+ 		log_puts(c->u.slot_level.slot->name);
+ 		log_putu(c->u.slot_level.slot->unit);
+ 		break;
++	case CTL_OPT_DEV:
++		log_puts("opt_dev:");
++		log_puts(c->u.opt_dev.opt->name);
++		log_puts("/");
++		log_puts(c->u.opt_dev.dev->name);
++		break;
+ 	default:
+ 		log_puts("unknown");
+ 	}
+@@ -2369,9 +2446,6 @@
+ 		c->val_mask = ~0U;
+ 		c->curval = val;
+ 		return 1;
+-	case CTL_DEV_ALT:
+-		dev_setalt (c->u.dev_alt.dev, c->u.dev_alt.idx);
+-		return 1;
+ 	case CTL_SLOT_LEVEL:
+ 		slot_setvol(c->u.slot_level.slot, val);
+ 		// XXX change dev_midi_vol() into slot_midi_vol()
+@@ -2379,6 +2453,10 @@
+ 		c->val_mask = ~0U;
+ 		c->curval = val;
+ 		return 1;
++	case CTL_OPT_DEV:
++		c->u.opt_dev.opt->alt_first = c->u.opt_dev.dev;
++		opt_setdev(c->u.opt_dev.opt, c->u.opt_dev.dev);
++		return 1;
+ 	default:
+ 		if (log_level >= 2) {
+ 			ctl_log(c);
+@@ -2430,8 +2508,8 @@
+ 	case CTL_HW:
+ 		c->u.hw.addr = *(unsigned int *)arg1;
+ 		break;
+-	case CTL_DEV_ALT:
+-		c->u.dev_alt.idx = *(unsigned int *)arg1;
++	case CTL_OPT_DEV:
++		c->u.any.arg1 = arg1;
+ 		break;
+ 	default:
+ 		c->u.any.arg1 = NULL;
+@@ -2495,8 +2573,8 @@
+ 		if (arg1 != NULL && c->u.hw.addr != *(unsigned int *)arg1)
+ 			return 0;
+ 		break;
+-	case CTL_DEV_ALT:
+-		if (arg1 != NULL && c->u.dev_alt.idx != *(unsigned int *)arg1)
++	case CTL_OPT_DEV:
++		if (arg1 != NULL && c->u.any.arg1 != arg1)
+ 			return 0;
+ 		break;
+ 	}
+@@ -2601,4 +2679,3 @@
+ 			s->ops->sync(s->arg);
+ 	}
+ }
+-
+diff -Naur sndio-1.8.1.orig/sndiod/dev.h sndio-1.8.1.truhobbyist/sndiod/dev.h
+--- sndio-1.8.1.orig/sndiod/dev.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/dev.h	2022-07-20 13:45:27.000000000 -0400
+@@ -126,7 +126,7 @@
+ 
+ #define CTL_HW		0
+ #define CTL_DEV_MASTER	1
+-#define CTL_DEV_ALT	2
++#define CTL_OPT_DEV	2
+ #define CTL_SLOT_LEVEL	3
+ 	unsigned int scope;
+ 	union {
+@@ -142,12 +142,16 @@
+ 			struct dev *dev;
+ 		} dev_master;
+ 		struct {
+-			struct dev *dev;
+-			unsigned int idx;
+-		} dev_alt;
+-		struct {
+ 			struct slot *slot;
+ 		} slot_level;
++		struct {
++			struct slot *slot;
++			struct opt *opt;
++		} slot_opt;
++		struct {
++			struct opt *opt;
++			struct dev *dev;
++		} opt_dev;
+ 	} u;
+ 
+ 	unsigned int addr;		/* slot side control address */
+@@ -217,6 +221,11 @@
+ 	char name[CTL_NAMEMAX];
+ 
+ 	/*
++	 * next to try if this fails
++	 */
++	struct dev *alt_next;
++
++	/*
+ 	 * audio device (while opened)
+ 	 */
+ 	struct dev_sio sio;
+@@ -256,12 +265,7 @@
+ #define DEV_INIT	1			/* stopped */
+ #define DEV_RUN		2			/* playin & recording */
+ 	unsigned int pstate;			/* one of above */
+-	struct dev_alt {
+-		struct dev_alt *next;
+-		char *name;
+-		unsigned int idx;
+-	} *alt_list;
+-	int alt_num;
++	char *path;
+ 
+ 	/*
+ 	 * actual parameters and runtime state (i.e. once opened)
+@@ -269,6 +273,7 @@
+ 	unsigned int mode;			/* bitmap of MODE_xxx */
+ 	unsigned int bufsz, round, rate;
+ 	unsigned int prime;
++	unsigned int idle;			/* cycles with no client */
+ 
+ 	unsigned int master;			/* software vol. knob */
+ 	unsigned int master_enabled;		/* 1 if h/w has no vo. knob */
+@@ -283,12 +288,13 @@
+ void slot_array_init(void);
+ 
+ void dev_log(struct dev *);
++int dev_open(struct dev *);
++void dev_close(struct dev *);
+ void dev_abort(struct dev *);
+-int dev_reopen(struct dev *);
++struct dev *dev_migrate(struct dev *);
+ struct dev *dev_new(char *, struct aparams *, unsigned int, unsigned int,
+     unsigned int, unsigned int, unsigned int, unsigned int);
+ struct dev *dev_bynum(int);
+-int dev_addname(struct dev *, char *);
+ void dev_del(struct dev *);
+ void dev_adjpar(struct dev *, int, int, int);
+ int  dev_init(struct dev *);
+@@ -297,6 +303,7 @@
+ void dev_unref(struct dev *);
+ int  dev_getpos(struct dev *);
+ unsigned int dev_roundof(struct dev *, unsigned int);
++int dev_iscompat(struct dev *, struct dev *);
+ 
+ /*
+  * interface to hardware device
+@@ -330,6 +337,7 @@
+     struct slotops *, void *, int);
+ void slot_del(struct slot *);
+ void slot_setvol(struct slot *, unsigned int);
++void slot_setopt(struct slot *, struct opt *);
+ void slot_start(struct slot *);
+ void slot_stop(struct slot *, int);
+ void slot_read(struct slot *);
+@@ -356,6 +364,8 @@
+ void ctlslot_del(struct ctlslot *);
+ int ctlslot_visible(struct ctlslot *, struct ctl *);
+ struct ctl *ctlslot_lookup(struct ctlslot *, int);
++void ctlslot_update(struct ctlslot *);
++
+ void dev_label(struct dev *, int);
+ void dev_ctlsync(struct dev *);
+ 
+diff -Naur sndio-1.8.1.orig/sndiod/dsp.c sndio-1.8.1.truhobbyist/sndiod/dsp.c
+--- sndio-1.8.1.orig/sndiod/dsp.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/dsp.c	2022-07-20 13:45:27.000000000 -0400
+@@ -321,7 +321,7 @@
+ 			todo--;
+ 		} else {
+ 
+-			for (c = nch; c > 0; c--)
++			for (c = 0; c < nch; c++)
+ 				f[c] = 0;
+ 
+ 			q = diff * p->filt_step;
+@@ -334,7 +334,7 @@
+ 				ds = resamp_filt[qi + 1] - s;
+ 				s += (int64_t)qf * ds >> RESAMP_STEP_BITS;
+ 				ctx = ctxbuf;
+-				for (c = nch; c > 0; c--) {
++				for (c = 0; c < nch; c++) {
+ 					f[c] += (int64_t)ctx[n] * s;
+ 					ctx += RESAMP_NCTX;
+ 				}
+@@ -342,7 +342,7 @@
+ 				n = (n + 1) & (RESAMP_NCTX - 1);
+ 			}
+ 
+-			for (c = nch; c > 0; c--) {
++			for (c = 0; c < nch; c++) {
+ 				s = f[c] >> RESAMP_BITS;
+ 				s = (int64_t)s * p->filt_cutoff >> RESAMP_BITS;
+ #if ADATA_BITS == 16
+diff -Naur sndio-1.8.1.orig/sndiod/dsp.h sndio-1.8.1.truhobbyist/sndiod/dsp.h
+--- sndio-1.8.1.orig/sndiod/dsp.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/dsp.h	2022-07-20 13:45:27.000000000 -0400
+@@ -20,37 +20,25 @@
+ #include <sys/types.h>
+ #include "defs.h"
+ 
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++#include <standards.h>
++#include <sys/endian.h>
++#endif
++
+ /*
+  * Samples are numbers in the interval [-1, 1[, note that 1, the upper
+  * boundary is excluded. We represent them as signed fixed point numbers
+  * of ADATA_BITS. We also assume that 2^(ADATA_BITS - 1) fits in a int.
+  */
+-#ifndef ADATA_BITS
+-#define ADATA_BITS			16
+-#endif
++#define ADATA_BITS			24
+ #define ADATA_LE			(BYTE_ORDER == LITTLE_ENDIAN)
+ #define ADATA_UNIT			(1 << (ADATA_BITS - 1))
+ 
+-#if ADATA_BITS == 16
+-
+-#define ADATA_MUL(x,y)		(((int)(x) * (int)(y)) >> (ADATA_BITS - 1))
+-#define ADATA_MULDIV(x,y,z)	((int)(x) * (int)(y) / (int)(z))
+-
+-typedef short adata_t;
+-
+-#elif ADATA_BITS == 24
+-
+ #define ADATA_MUL(x,y)		\
+ 	((int)(((long long)(x) * (long long)(y)) >> (ADATA_BITS - 1)))
+-#define ADATA_MULDIV(x,y,z)	\
+-	((int)((long long)(x) * (long long)(y) / (long long)(z)))
+ 
+ typedef int adata_t;
+ 
+-#else
+-#error "only 16-bit and 24-bit precisions are supported"
+-#endif
+-
+ /*
+  * The FIR is sampled and stored in a table of fixed-point numbers
+  * with 23 fractional bits. For convenience, we use the same fixed-point
+diff -Naur sndio-1.8.1.orig/sndiod/file.c sndio-1.8.1.truhobbyist/sndiod/file.c
+--- sndio-1.8.1.orig/sndiod/file.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/file.c	2022-07-20 13:45:27.000000000 -0400
+@@ -374,6 +374,8 @@
+ 	for (f = file_list; f != NULL; f = f->next) {
+ 		if (f->nfds > 0)
+ 			continue;
++		if (f->nfds == 0)
++			continue;
+ 		file_process(f, NULL);
+ 	}
+ 
+diff -Naur sndio-1.8.1.orig/sndiod/midi.c sndio-1.8.1.truhobbyist/sndiod/midi.c
+--- sndio-1.8.1.orig/sndiod/midi.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/midi.c	2022-07-20 13:45:27.000000000 -0400
+@@ -434,6 +434,45 @@
+ 	}
+ }
+ 
++/*
++ * connect to "nep" all endpoints currently connected to "oep"
++ */
++void
++midi_migrate(struct midi *oep, struct midi *nep)
++{
++	struct midithru *t;
++	struct midi *ep;
++	int i;
++
++	for (i = 0; i < MIDITHRU_NMAX; i++) {
++		t = midithru + i;
++		if (t->txmask & oep->self) {
++			t->txmask &= ~oep->self;
++			t->txmask |= nep->self;
++		}
++		if (t->rxmask & oep->self) {
++			t->rxmask &= ~oep->self;
++			t->rxmask |= nep->self;
++		}
++	}
++
++	for (i = 0; i < MIDI_NEP; i++) {
++		ep = midi_ep + i;
++		if (ep->txmask & oep->self) {
++			ep->txmask &= ~oep->self;
++			ep->txmask |= nep->self;
++		}
++	}
++
++	for (i = 0; i < MIDI_NEP; i++) {
++		ep = midi_ep + i;
++		if (oep->txmask & ep->self) {
++			oep->txmask &= ~ep->self;
++			nep->txmask |= ep->self;
++		}
++	}
++}
++
+ void
+ port_log(struct port *p)
+ {
+@@ -483,19 +522,17 @@
+ struct port *
+ port_new(char *path, unsigned int mode, int hold)
+ {
+-	struct port *c, **pc;
++	struct port *c;
+ 
+ 	c = xmalloc(sizeof(struct port));
+-	c->path_list = NULL;
+-	namelist_add(&c->path_list, path);
++	c->path = path;
+ 	c->state = PORT_CFG;
+ 	c->hold = hold;
+ 	c->midi = midi_new(&port_midiops, c, mode);
+ 	c->num = midi_portnum++;
+-	for (pc = &port_list; *pc != NULL; pc = &(*pc)->next)
+-		;
+-	c->next = *pc;
+-	*pc = c;
++	c->alt_next = c;
++	c->next = port_list;
++	port_list = c;
+ 	return c;
+ }
+ 
+@@ -519,7 +556,6 @@
+ #endif
+ 	}
+ 	*p = c->next;
+-	namelist_clear(&c->path_list);
+ 	xfree(c);
+ }
+ 
+@@ -556,6 +592,67 @@
+ }
+ 
+ struct port *
++port_alt_ref(int num)
++{
++	struct port *a, *p;
++
++	a = port_bynum(num);
++	if (a == NULL)
++		return NULL;
++
++	/* circulate to first alt port */
++	while (a->alt_next->num > a->num)
++		a = a->alt_next;
++
++	p = a;
++	while (1) {
++		if (port_ref(p))
++			break;
++		p = p->alt_next;
++		if (p == a)
++			return NULL;
++	}
++
++	return p;
++}
++
++struct port *
++port_migrate(struct port *op)
++{
++	struct port *np;
++
++	/* not opened */
++	if (op->state == PORT_CFG)
++		return op;
++
++	np = op;
++	while (1) {
++		/* try next one, circulating through the list */
++		np = np->alt_next;
++		if (np == op) {
++			if (log_level >= 2) {
++				port_log(op);
++				log_puts(": no fall-back port found\n");
++			}
++			return op;
++		}
++
++		if (port_ref(np))
++			break;
++	}
++
++	if (log_level >= 2) {
++		port_log(op);
++		log_puts(": switching to ");
++		port_log(np);
++		log_puts("\n");
++	}
++
++	midi_migrate(op->midi, np->midi);
++	return np;
++}
++
++struct port *
+ port_bynum(int num)
+ {
+ 	struct port *p;
+@@ -591,6 +688,8 @@
+ 		panic();
+ 	}
+ #endif
++	port_log(c);
++	log_puts(": closed\n");
+ 	c->state = PORT_CFG;
+ 	port_mio_close(c);
+ 	return 1;
+@@ -628,15 +727,3 @@
+ 	if (c->state == PORT_INIT)
+ 		port_drain(c);
+ }
+-
+-int
+-port_reopen(struct port *p)
+-{
+-	if (p->state == PORT_CFG)
+-		return 1;
+-
+-	if (!port_mio_reopen(p))
+-		return 0;
+-
+-	return 1;
+-}
+diff -Naur sndio-1.8.1.orig/sndiod/midi.h sndio-1.8.1.truhobbyist/sndiod/midi.h
+--- sndio-1.8.1.orig/sndiod/midi.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/midi.h	2022-07-20 13:45:27.000000000 -0400
+@@ -89,7 +89,8 @@
+ #define PORT_DRAIN	2
+ 	unsigned int state;
+ 	unsigned int num;		/* port serial number */
+-	struct name *path_list;
++	char *path;
++	struct port *alt_next;
+ 	int hold;			/* hold the port open ? */
+ 	struct midi *midi;
+ };
+@@ -113,6 +114,7 @@
+ unsigned int midi_tags(struct midi *);
+ void midi_link(struct midi *, struct midi *);
+ void midi_abort(struct midi *);
++void midi_migrate(struct midi *, struct midi *);
+ 
+ void port_log(struct port *);
+ struct port *port_new(char *, unsigned int, int);
+@@ -124,6 +126,7 @@
+ void port_done(struct port *);
+ void port_drain(struct port *);
+ int  port_close(struct port *);
+-int  port_reopen(struct port *);
++struct port *port_alt_ref(int);
++struct port *port_migrate(struct port *);
+ 
+ #endif /* !defined(MIDI_H) */
+diff -Naur sndio-1.8.1.orig/sndiod/miofile.c sndio-1.8.1.truhobbyist/sndiod/miofile.c
+--- sndio-1.8.1.orig/sndiod/miofile.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/miofile.c	2022-07-20 13:45:27.000000000 -0400
+@@ -44,74 +44,16 @@
+ 	port_mio_hup
+ };
+ 
+-/*
+- * open the port using one of the provided paths
+- */
+-static struct mio_hdl *
+-port_mio_openlist(struct port *c, unsigned int mode)
+-{
+-	struct mio_hdl *hdl;
+-	struct name *n;
+-	int idx;
+-
+-	idx = 0;
+-	n = c->path_list;
+-	while (1) {
+-		if (n == NULL)
+-			break;
+-		hdl = mio_open(n->str, mode, 1);
+-		if (hdl != NULL) {
+-			if (log_level >= 2) {
+-				port_log(c);
+-				log_puts(": using ");
+-				log_puts(n->str);
+-				log_puts("\n");
+-			}
+-			return hdl;
+-		}
+-		n = n->next;
+-		idx++;
+-	}
+-	return NULL;
+-}
+-
+ int
+ port_mio_open(struct port *p)
+ {
+-	p->mio.hdl = port_mio_openlist(p, p->midi->mode);
++	p->mio.hdl = mio_open(p->path, p->midi->mode, 1);
+ 	if (p->mio.hdl == NULL)
+ 		return 0;
+ 	p->mio.file = file_new(&port_mio_ops, p, "port", mio_nfds(p->mio.hdl));
+ 	return 1;
+ }
+ 
+-/*
+- * Open an alternate port. Upon success, close the old port
+- * and continue using the new one.
+- */
+-int
+-port_mio_reopen(struct port *p)
+-{
+-	struct mio_hdl *hdl;
+-
+-	hdl = port_mio_openlist(p, p->midi->mode);
+-	if (hdl == NULL) {
+-		if (log_level >= 1) {
+-			port_log(p);
+-			log_puts(": couldn't open an alternate port\n");
+-		}
+-		return 0;
+-	}
+-
+-	/* close unused device */
+-	file_del(p->mio.file);
+-	mio_close(p->mio.hdl);
+-
+-	p->mio.hdl = hdl;
+-	p->mio.file = file_new(&port_mio_ops, p, "port", mio_nfds(hdl));
+-	return 1;
+-}
+-
+ void
+ port_mio_close(struct port *p)
+ {
+@@ -186,9 +128,8 @@
+ {
+ 	struct port *p = arg;
+ 
+-	if (!port_reopen(p)) {
+-		midi_abort(p->midi);
+-		if (p->state != PORT_CFG)
+-			port_close(p);
+-	}
++	port_migrate(p);
++	midi_abort(p->midi);
++	if (p->state != PORT_CFG)
++		port_close(p);
+ }
+diff -Naur sndio-1.8.1.orig/sndiod/miofile.h sndio-1.8.1.truhobbyist/sndiod/miofile.h
+--- sndio-1.8.1.orig/sndiod/miofile.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/miofile.h	2022-07-20 13:45:27.000000000 -0400
+@@ -25,7 +25,6 @@
+ };
+ 
+ int  port_mio_open(struct port *);
+-int  port_mio_reopen(struct port *);
+ void port_mio_close(struct port *);
+ 
+ #endif /* !defined(MIOFILE_H) */
+diff -Naur sndio-1.8.1.orig/sndiod/opt.c sndio-1.8.1.truhobbyist/sndiod/opt.c
+--- sndio-1.8.1.orig/sndiod/opt.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/opt.c	2022-07-20 13:45:27.000000000 -0400
+@@ -59,8 +59,7 @@
+ 		chan = msg[0] & MIDI_CHANMASK;
+ 		if (chan >= DEV_NSLOT)
+ 			return;
+-		if (slot_array[chan].opt == NULL ||
+-		    slot_array[chan].opt->dev != o->dev)
++		if (slot_array[chan].opt != o)
+ 			return;
+ 		slot_setvol(slot_array + chan, msg[2]);
+ 		ctl_onval(CTL_SLOT_LEVEL, slot_array + chan, NULL, msg[2]);
+@@ -91,6 +90,7 @@
+ 				return;
+ 			if (o->mtc == NULL)
+ 				return;
++			mtc_setdev(o->mtc, o->dev);
+ 			if (log_level >= 2) {
+ 				log_puts(o->name);
+ 				log_puts(": mmc stop\n");
+@@ -102,6 +102,7 @@
+ 				return;
+ 			if (o->mtc == NULL)
+ 				return;
++			mtc_setdev(o->mtc, o->dev);
+ 			if (log_level >= 2) {
+ 				log_puts(o->name);
+ 				log_puts(": mmc start\n");
+@@ -115,6 +116,7 @@
+ 				return;
+ 			if (o->mtc == NULL)
+ 				return;
++			mtc_setdev(o->mtc, o->dev);
+ 			switch (x->u.loc.hr >> 5) {
+ 			case MTC_FPS_24:
+ 				fps = 24;
+@@ -173,22 +175,28 @@
+     int pmin, int pmax, int rmin, int rmax,
+     int maxweight, int mmc, int dup, unsigned int mode)
+ {
++	struct dev *a;
+ 	struct opt *o, **po;
+ 	unsigned int len, num;
+ 	char c;
+ 
+-	for (len = 0; name[len] != '\0'; len++) {
+-		if (len == OPT_NAMEMAX) {
+-			log_puts(name);
+-			log_puts(": too long\n");
+-			return NULL;
+-		}
+-		c = name[len];
+-		if ((c < 'a' || c > 'z') &&
+-		    (c < 'A' || c > 'Z')) {
+-			log_puts(name);
+-			log_puts(": only alphabetic chars allowed\n");
+-			return NULL;
++	if (name == NULL) {
++		name = d->name;
++		len = strlen(name);
++	} else {
++		for (len = 0; name[len] != '\0'; len++) {
++			if (len == OPT_NAMEMAX) {
++				log_puts(name);
++				log_puts(": too long\n");
++				return NULL;
++			}
++			c = name[len];
++			if ((c < 'a' || c > 'z') &&
++			    (c < 'A' || c > 'Z')) {
++				log_puts(name);
++				log_puts(": only alphabetic chars allowed\n");
++				return NULL;
++			}
+ 		}
+ 	}
+ 	num = 0;
+@@ -199,9 +207,8 @@
+ 		log_puts(": too many opts\n");
+ 		return NULL;
+ 	}
+-	if (opt_byname(d, name)) {
+-		dev_log(d);
+-		log_puts(".");
++
++	if (opt_byname(name)) {
+ 		log_puts(name);
+ 		log_puts(": already defined\n");
+ 		return NULL;
+@@ -220,9 +227,18 @@
+ 		}
+ 	}
+ 
++	if (strcmp(d->name, name) == 0)
++		a = d;
++	else {
++		/* circulate to the first "alternate" device (greatest num) */
++		for (a = d; a->alt_next->num > a->num; a = a->alt_next)
++			;
++	}
++
+ 	o = xmalloc(sizeof(struct opt));
+ 	o->num = num;
+-	o->dev = d;
++	o->alt_first = o->dev = a;
++	o->refcnt = 0;
+ 
+ 	/*
+ 	 * XXX: below, we allocate a midi input buffer, since we don't
+@@ -286,19 +302,29 @@
+ }
+ 
+ struct opt *
+-opt_byname(struct dev *d, char *name)
++opt_byname(char *name)
+ {
+ 	struct opt *o;
+ 
+ 	for (o = opt_list; o != NULL; o = o->next) {
+-		if (d != NULL && o->dev != d)
+-			continue;
+ 		if (strcmp(name, o->name) == 0)
+ 			return o;
+ 	}
+ 	return NULL;
+ }
+ 
++struct opt *
++opt_bynum(int num)
++{
++	struct opt *o;
++
++	for (o = opt_list; o != NULL; o = o->next) {
++		if (o->num == num)
++			return o;
++	}
++	return NULL;
++}
++
+ void
+ opt_del(struct opt *o)
+ {
+@@ -316,3 +342,174 @@
+ 	*po = o->next;
+ 	xfree(o);
+ }
++
++void
++opt_init(struct opt *o)
++{
++	struct dev *d;
++
++	if (strcmp(o->name, o->dev->name) != 0) {
++		for (d = dev_list; d != NULL; d = d->next) {
++			ctl_new(CTL_OPT_DEV, o, d,
++			    CTL_SEL, o->name, "server", -1, "device",
++			    d->name, -1, 1, o->dev == d);
++		}
++	}
++}
++
++void
++opt_done(struct opt *o)
++{
++	struct dev *d;
++
++	if (o->refcnt != 0) {
++		// XXX: all clients are already kicked, so this never happens
++		log_puts(o->name);
++		log_puts(": still has refs\n");
++	}
++	for (d = dev_list; d != NULL; d = d->next)
++		ctl_del(CTL_OPT_DEV, o, d);
++}
++
++/*
++ * Set opt's device, and (if necessary) move clients to
++ * to the new device
++ */
++void
++opt_setdev(struct opt *o, struct dev *ndev)
++{
++	struct dev *odev;
++	struct ctl *c;
++	struct ctlslot *p;
++	struct slot *s;
++	int i;
++
++	if (!dev_ref(ndev))
++		return;
++
++	odev = o->dev;
++	if (odev == ndev) {
++		dev_unref(ndev);
++		return;
++	}
++
++	/* check if clients can use new device */
++	for (i = 0, s = slot_array; i < DEV_NSLOT; i++, s++) {
++		if (s->opt != o)
++			continue;
++		if (s->ops != NULL && !dev_iscompat(odev, ndev)) {
++			dev_unref(ndev);
++			return;
++		}
++	}
++
++	/*
++	 * if we're using MMC, move all opts to the new device, mtc_setdev()
++	 * will call us back
++	 */
++	if (o->mtc != NULL && o->mtc->dev != ndev) {
++		mtc_setdev(o->mtc, ndev);
++		dev_unref(ndev);
++		return;
++	}
++
++	c = ctl_find(CTL_OPT_DEV, o, o->dev);
++	if (c != NULL)
++		c->curval = 0;
++
++	/* detach clients from old device */
++	for (i = 0, s = slot_array; i < DEV_NSLOT; i++, s++) {
++		if (s->opt != o)
++			continue;
++
++		if (s->pstate == SLOT_RUN || s->pstate == SLOT_STOP)
++			slot_detach(s);
++	}
++
++	o->dev = ndev;
++
++	if (o->refcnt > 0) {
++		dev_unref(odev);
++		dev_ref(o->dev);
++	}
++
++	c = ctl_find(CTL_OPT_DEV, o, o->dev);
++	if (c != NULL) {
++		c->curval = 1;
++		c->val_mask = ~0;
++	}
++
++	/* attach clients to new device */
++	for (i = 0, s = slot_array; i < DEV_NSLOT; i++, s++) {
++		if (s->opt != o)
++			continue;
++
++		if (ndev != odev) {
++			dev_midi_slotdesc(odev, s);
++			dev_midi_slotdesc(ndev, s);
++			dev_midi_vol(ndev, s);
++		}
++
++		c = ctl_find(CTL_SLOT_LEVEL, s, NULL);
++		ctl_update(c);
++
++		if (s->pstate == SLOT_RUN || s->pstate == SLOT_STOP) {
++			slot_initconv(s);
++			slot_attach(s);
++		}
++	}
++
++	/* move controlling clients to new device */
++	for (p = ctlslot_array, i = 0; i < DEV_NCTLSLOT; i++, p++) {
++		if (p->ops == NULL)
++			continue;
++		if (p->opt == o)
++			ctlslot_update(p);
++	}
++
++	dev_unref(ndev);
++}
++
++/*
++ * Get a reference to opt's device
++ */
++struct dev *
++opt_ref(struct opt *o)
++{
++	struct dev *d;
++
++	if (o->refcnt == 0) {
++		if (strcmp(o->name, o->dev->name) == 0) {
++			if (!dev_ref(o->dev))
++				return NULL;
++		} else {
++			/* find first working one */
++			d = o->alt_first;
++			while (1) {
++				if (dev_ref(d))
++					break;
++				d = d->alt_next;
++				if (d == o->alt_first)
++					return NULL;
++			}
++
++			/* if device changed, move everything to the new one */
++			if (d != o->dev)
++				opt_setdev(o, d);
++		}
++	}
++
++	o->refcnt++;
++	return o->dev;
++}
++
++/*
++ * Release opt's device
++ */
++void
++opt_unref(struct opt *o)
++{
++	o->refcnt--;
++	if (o->refcnt == 0)
++		dev_unref(o->dev);
++}
+diff -Naur sndio-1.8.1.orig/sndiod/opt.h sndio-1.8.1.truhobbyist/sndiod/opt.h
+--- sndio-1.8.1.orig/sndiod/opt.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/opt.h	2022-07-20 13:45:27.000000000 -0400
+@@ -23,7 +23,7 @@
+ 
+ struct opt {
+ 	struct opt *next;
+-	struct dev *dev;
++	struct dev *dev, *alt_first;
+ 	struct midi *midi;
+ 	struct mtc *mtc;	/* if set, MMC-controlled MTC source */
+ 
+@@ -35,6 +35,7 @@
+ 	int rmin, rmax;		/* recording channels */
+ 	int dup;		/* true if join/expand enabled */
+ 	int mode;		/* bitmap of MODE_XXX */
++	int refcnt;
+ };
+ 
+ extern struct opt *opt_list;
+@@ -42,6 +43,12 @@
+ struct opt *opt_new(struct dev *, char *, int, int, int, int,
+     int, int, int, unsigned int);
+ void opt_del(struct opt *);
+-struct opt *opt_byname(struct dev *, char *);
++struct opt *opt_byname(char *);
++struct opt *opt_bynum(int);
++void opt_init(struct opt *);
++void opt_done(struct opt *);
++void opt_setdev(struct opt *, struct dev *);
++struct dev *opt_ref(struct opt *);
++void opt_unref(struct opt *);
+ 
+ #endif /* !defined(OPT_H) */
+diff -Naur sndio-1.8.1.orig/sndiod/siofile.c sndio-1.8.1.truhobbyist/sndiod/siofile.c
+--- sndio-1.8.1.orig/sndiod/siofile.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/siofile.c	2022-07-20 13:45:27.000000000 -0400
+@@ -86,24 +86,25 @@
+ 	dev_abort(d);
+ }
+ 
+-static int
+-dev_sio_openalt(struct dev *d, struct dev_alt *n,
+-    struct sio_hdl **rhdl, struct sioctl_hdl **rctlhdl, unsigned int *rmode)
++/*
++ * open the device.
++ */
++int
++dev_sio_open(struct dev *d)
+ {
+-	struct sio_hdl *hdl;
+-	struct sioctl_hdl *ctlhdl;
+-	unsigned int mode = d->reqmode & (MODE_PLAY | MODE_REC);
++	struct sio_par par;
++	unsigned int rate, mode = d->reqmode & (SIO_PLAY | SIO_REC);
+ 
+-	hdl = sio_open(n->name, mode, 1);
+-	if (hdl == NULL) {
++	d->sio.hdl = sio_open(d->path, mode, 1);
++	if (d->sio.hdl == NULL) {
+ 		if (mode != (SIO_PLAY | SIO_REC))
+ 			return 0;
+-		hdl = sio_open(n->name, SIO_PLAY, 1);
+-		if (hdl != NULL)
++		d->sio.hdl = sio_open(d->path, SIO_PLAY, 1);
++		if (d->sio.hdl != NULL)
+ 			mode = SIO_PLAY;
+ 		else {
+-			hdl = sio_open(n->name, SIO_REC, 1);
+-			if (hdl != NULL)
++			d->sio.hdl = sio_open(d->path, SIO_REC, 1);
++			if (d->sio.hdl != NULL)
+ 				mode = SIO_REC;
+ 			else
+ 				return 0;
+@@ -114,76 +115,16 @@
+ 			log_puts(" mode\n");
+ 		}
+ 	}
++	d->mode = mode;
+ 
+-	ctlhdl = sioctl_open(n->name, SIOCTL_READ | SIOCTL_WRITE, 0);
+-	if (ctlhdl == NULL) {
++	d->sioctl.hdl = sioctl_open(d->path, SIOCTL_READ | SIOCTL_WRITE, 0);
++	if (d->sioctl.hdl == NULL) {
+ 		if (log_level >= 1) {
+ 			dev_log(d);
+ 			log_puts(": no control device\n");
+ 		}
+ 	}
+ 
+-	*rhdl = hdl;
+-	*rctlhdl = ctlhdl;
+-	*rmode = mode;
+-	return 1;
+-}
+-
+-/*
+- * open the device using one of the provided paths
+- */
+-static int
+-dev_sio_openlist(struct dev *d,
+-    struct sio_hdl **rhdl, struct sioctl_hdl **rctlhdl, unsigned int *rmode)
+-{
+-	struct dev_alt *n;
+-	struct ctl *c;
+-	int val;
+-
+-	for (n = d->alt_list; n != NULL; n = n->next) {
+-		if (d->alt_num == n->idx)
+-			continue;
+-		if (log_level >= 2) {
+-			dev_log(d);
+-			log_puts(": trying ");
+-			log_puts(n->name);
+-			log_puts("\n");
+-		}
+-		if (dev_sio_openalt(d, n, rhdl, rctlhdl, rmode)) {
+-			if (log_level >= 2) {
+-				dev_log(d);
+-				log_puts(": using ");
+-				log_puts(n->name);
+-				log_puts("\n");
+-			}
+-			d->alt_num = n->idx;
+-			for (c = ctl_list; c != NULL; c = c->next) {
+-				if (!ctl_match(c, CTL_DEV_ALT, d, NULL))
+-					continue;
+-				val = c->u.dev_alt.idx == n->idx;
+-				if (c->curval == val)
+-					continue;
+-				c->curval = val;
+-				if (val)
+-					c->val_mask = ~0U;
+-			}
+-			return 1;
+-		}
+-	}
+-	return 0;
+-}
+-
+-/*
+- * open the device.
+- */
+-int
+-dev_sio_open(struct dev *d)
+-{
+-	struct sio_par par;
+-
+-	if (!dev_sio_openlist(d, &d->sio.hdl, &d->sioctl.hdl, &d->mode))
+-		return 0;
+-
+ 	sio_initpar(&par);
+ 	par.bits = d->par.bits;
+ 	par.bps = d->par.bps;
+@@ -194,17 +135,40 @@
+ 		par.pchan = d->pchan;
+ 	if (d->mode & SIO_REC)
+ 		par.rchan = d->rchan;
+-	if (d->bufsz)
+-		par.appbufsz = d->bufsz;
+-	if (d->round)
+-		par.round = d->round;
+-	if (d->rate)
+-		par.rate = d->rate;
++	par.appbufsz = d->bufsz;
++	par.round = d->round;
++	par.rate = d->rate;
+ 	if (!sio_setpar(d->sio.hdl, &par))
+ 		goto bad_close;
+ 	if (!sio_getpar(d->sio.hdl, &par))
+ 		goto bad_close;
+ 
++	/*
++	 * If the requested rate is not supported by the device,
++	 * use the new one, but retry using a block size that would
++	 * match the requested one
++	 */
++	rate = par.rate;
++	if (rate != d->rate) {
++		sio_initpar(&par);
++		par.bits = d->par.bits;
++		par.bps = d->par.bps;
++		par.sig = d->par.sig;
++		par.le = d->par.le;
++		par.msb = d->par.msb;
++		if (mode & SIO_PLAY)
++			par.pchan = d->reqpchan;
++		if (mode & SIO_REC)
++			par.rchan = d->reqrchan;
++		par.appbufsz = d->bufsz * rate / d->rate;
++		par.round = d->round * rate / d->rate;
++		par.rate = rate;
++		if (!sio_setpar(d->sio.hdl, &par))
++			goto bad_close;
++		if (!sio_getpar(d->sio.hdl, &par))
++			goto bad_close;
++	}
++
+ #ifdef DEBUG
+ 	/*
+ 	 * We support any parameter combination exposed by the kernel,
+@@ -265,7 +229,6 @@
+ 		goto bad_close;
+ 	}
+ #endif
+-
+ 	d->par.bits = par.bits;
+ 	d->par.bps = par.bps;
+ 	d->par.sig = par.sig;
+@@ -298,88 +261,6 @@
+ 	return 0;
+ }
+ 
+-/*
+- * Open an alternate device. Upon success and if the new device is
+- * compatible with the old one, close the old device and continue
+- * using the new one. The new device is not started.
+- */
+-int
+-dev_sio_reopen(struct dev *d)
+-{
+-	struct sio_par par;
+-	struct sio_hdl *hdl;
+-	struct sioctl_hdl *ctlhdl;
+-	unsigned int mode;
+-
+-	if (!dev_sio_openlist(d, &hdl, &ctlhdl, &mode))
+-		return 0;
+-
+-	sio_initpar(&par);
+-	par.bits = d->par.bits;
+-	par.bps = d->par.bps;
+-	par.sig = d->par.sig;
+-	par.le = d->par.le;
+-	par.msb = d->par.msb;
+-	if (mode & SIO_PLAY)
+-		par.pchan = d->reqpchan;
+-	if (mode & SIO_REC)
+-		par.rchan = d->reqrchan;
+-	par.appbufsz = d->bufsz;
+-	par.round = d->round;
+-	par.rate = d->rate;
+-	if (!sio_setpar(hdl, &par))
+-		goto bad_close;
+-	if (!sio_getpar(hdl, &par))
+-		goto bad_close;
+-
+-	/* check if new parameters are compatible with old ones */
+-	if (par.round != d->round || par.bufsz != d->bufsz ||
+-	    par.rate != d->rate) {
+-		if (log_level >= 1) {
+-			dev_log(d);
+-			log_puts(": alternate device not compatible\n");
+-		}
+-		goto bad_close;
+-	}
+-
+-	/* close unused device */
+-	timo_del(&d->sio.watchdog);
+-	file_del(d->sio.file);
+-	sio_close(d->sio.hdl);
+-	if (d->sioctl.hdl) {
+-		file_del(d->sioctl.file);
+-		sioctl_close(d->sioctl.hdl);
+-		d->sioctl.hdl = NULL;
+-	}
+-
+-	/* update parameters */
+-	d->mode = mode;
+-	d->par.bits = par.bits;
+-	d->par.bps = par.bps;
+-	d->par.sig = par.sig;
+-	d->par.le = par.le;
+-	d->par.msb = par.msb;
+-	if (d->mode & SIO_PLAY)
+-		d->pchan = par.pchan;
+-	if (d->mode & SIO_REC)
+-		d->rchan = par.rchan;
+-
+-	d->sio.hdl = hdl;
+-	d->sioctl.hdl = ctlhdl;
+-	d->sio.file = file_new(&dev_sio_ops, d, "dev", sio_nfds(hdl));
+-	if (d->sioctl.hdl) {
+-		d->sioctl.file = file_new(&dev_sioctl_ops, d, "mix",
+-		    sioctl_nfds(ctlhdl));
+-	}
+-	sio_onmove(hdl, dev_sio_onmove, d);
+-	return 1;
+-bad_close:
+-	sio_close(hdl);
+-	if (ctlhdl)
+-		sioctl_close(ctlhdl);
+-	return 0;
+-}
+-
+ void
+ dev_sio_close(struct dev *d)
+ {
+@@ -398,7 +279,6 @@
+ 		sioctl_close(d->sioctl.hdl);
+ 		d->sioctl.hdl = NULL;
+ 	}
+-	d->alt_num = -1;
+ }
+ 
+ void
+@@ -436,7 +316,7 @@
+ void
+ dev_sio_stop(struct dev *d)
+ {
+-	if (!sio_eof(d->sio.hdl) && !sio_stop(d->sio.hdl)) {
++	if (!sio_eof(d->sio.hdl) && !sio_flush(d->sio.hdl)) {
+ 		if (log_level >= 1) {
+ 			dev_log(d);
+ 			log_puts(": failed to stop device\n");
+@@ -661,6 +541,6 @@
+ 		log_puts(": disconnected\n");
+ 	}
+ #endif
+-	if (!dev_reopen(d))
+-		dev_abort(d);
++	dev_migrate(d);
++	dev_abort(d);
+ }
+diff -Naur sndio-1.8.1.orig/sndiod/siofile.h sndio-1.8.1.truhobbyist/sndiod/siofile.h
+--- sndio-1.8.1.orig/sndiod/siofile.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/siofile.h	2022-07-20 13:45:27.000000000 -0400
+@@ -38,7 +38,6 @@
+ };
+ 
+ int dev_sio_open(struct dev *);
+-int dev_sio_reopen(struct dev *);
+ void dev_sio_close(struct dev *);
+ void dev_sio_log(struct dev *);
+ void dev_sio_start(struct dev *);
+diff -Naur sndio-1.8.1.orig/sndiod/sndiod.8 sndio-1.8.1.truhobbyist/sndiod/sndiod.8
+--- sndio-1.8.1.orig/sndiod/sndiod.8	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/sndiod.8	2022-07-20 13:45:27.000000000 -0400
+@@ -185,22 +185,14 @@
+ Examples:
+ .Va u8 , s16le , s24le3 , s24le4lsb .
+ .It Fl F Ar device
+-Specify an alternate device to use.
+-If it doesn't work, the one given with the last
++Same as
++.Fl f
++except that if the device is disconnected,
++the one given with the previous
+ .Fl f
+ or
+ .Fl F
+-options will be used.
+-For instance, specifying a USB device following a
+-PCI device allows
+-.Nm
+-to use the USB one preferably when it's connected
+-and to fall back to the PCI one when it's disconnected.
+-Alternate devices may be switched with the
+-.Va server.device
+-control of the
+-.Xr sndioctl 1
+-utility.
++option will be used.
+ .It Fl f Ar device
+ Add this
+ .Xr sndio 7
+@@ -368,7 +360,7 @@
+ accuracy.
+ For instance, 100 ticks per second at 48000Hz corresponds
+ to a 480 frame block size.
+-The default is 960 or half of the buffer size
++The default is 480 or half of the buffer size
+ .Pq Fl b ,
+ if the buffer size is set.
+ .El
+@@ -528,6 +520,29 @@
+ wait for the MMC start signal and start synchronously.
+ Regardless of which device a stream is connected to,
+ its playback volume knob is exposed.
++.Sh HOT PLUGGING
++If devices specified with
++.Fl F
++are unavailable when needed or unplugged at runtime,
++.Nm
++will attempt to seamlessly fall back to the last device specified.
++.Pp
++.Nm
++will not automatically switch to specified device that is plugged at runtime.
++Instead,
++.Xr sndioctl 1
++must be used to change the
++.Va server.device
++control.
++.Pp
++For instance, specifying a USB device with
++.Fl F
++following a PCI device with
++.Fl f
++allows
++.Nm
++to use the USB one preferably when it's connected
++and to fall back to the PCI one when it's disconnected.
+ .Sh EXAMPLES
+ Start server using default parameters, creating an
+ additional sub-device for output to channels 2:3 only (rear speakers
+@@ -564,11 +579,6 @@
+ Resampling is low quality; down-sampling especially should be avoided
+ when recording.
+ .Pp
+-Processing is done using 16-bit arithmetic,
+-thus samples with more than 16 bits are rounded.
+-16 bits (i.e. 97dB dynamic) are largely enough for most applications though.
+-Processing precision can be increased to 24-bit at compilation time though.
+-.Pp
+ If
+ .Fl a Ar off
+ is used,
+@@ -580,4 +590,4 @@
+ to attempt to use one of the sub-devices it exposes as an audio device,
+ creating a deadlock.
+ There's nothing to prevent the user
+-from shooting himself in the foot by creating such a deadlock.
++from shooting themselves in the foot by creating such a deadlock.
+diff -Naur sndio-1.8.1.orig/sndiod/sndiod.c sndio-1.8.1.truhobbyist/sndiod/sndiod.c
+--- sndio-1.8.1.orig/sndiod/sndiod.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/sndiod.c	2022-07-20 13:45:27.000000000 -0400
+@@ -19,7 +19,9 @@
+ #include <sys/resource.h>
+ #include <sys/socket.h>
+ 
++#if !defined(__sgi_irix)
+ #include <err.h>
++#endif
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <grp.h>
+@@ -78,6 +80,13 @@
+ #define DEFAULT_BUFSZ	7680
+ #endif
+ 
++/*
++ * default device precision
++ */
++#ifndef DEFAULT_BITS
++#define DEFAULT_BITS	16
++#endif
++
+ void sigint(int);
+ void sighup(int);
+ void opt_ch(int *, int *);
+@@ -188,6 +197,9 @@
+ 	if (strcmp("slave", optarg) == 0)
+ 		return 1;
+ 	errx(1, "%s: off/slave expected", optarg);
++
++	/* Never reached, for strict compilers */
++	return 0;
+ }
+ 
+ int
+@@ -198,6 +210,9 @@
+ 	if (strcmp("on", optarg) == 0)
+ 		return 1;
+ 	errx(1, "%s: on/off expected", optarg);
++
++	/* Never reached, for strict compilers */
++	return 0;
+ }
+ 
+ int
+@@ -315,8 +330,7 @@
+ 	struct dev *d;
+ 
+ 	for (d = dev_list; d != NULL; d = d->next) {
+-		if (d->alt_list->next == NULL &&
+-		    strcmp(d->alt_list->name, path) == 0)
++		if (strcmp(d->path, path) == 0)
+ 			return d;
+ 	}
+ 	if (!bufsz && !round) {
+@@ -338,8 +352,7 @@
+ 	struct port *c;
+ 
+ 	for (c = port_list; c != NULL; c = c->next) {
+-		if (c->path_list->next == NULL &&
+-		    strcmp(c->path_list->str, path) == 0)
++		if (strcmp(c->path, path) == 0)
+ 			return c;
+ 	}
+ 	c = port_new(path, MODE_MIDIMASK, hold);
+@@ -371,10 +384,12 @@
+ 	char base[SOCKPATH_MAX], path[SOCKPATH_MAX];
+ 	unsigned int mode, dup, mmc, vol;
+ 	unsigned int hold, autovol, bufsz, round, rate;
++	unsigned int reopen_list;
+ 	const char *str;
+ 	struct aparams par;
+-	struct dev *d;
+-	struct port *p;
++	struct opt *o;
++	struct dev *d, *dev_first, *dev_next;
++	struct port *p, *port_first, *port_next;
+ 	struct listen *l;
+ 	struct passwd *pw;
+ 	struct tcpaddr {
+@@ -401,8 +416,14 @@
+ 	pmax = 1;
+ 	rmin = 0;
+ 	rmax = 1;
+-	aparams_init(&par);
++	par.bits = DEFAULT_BITS;
++	par.bps = APARAMS_BPS(par.bits);
++	par.le = ADATA_LE;
++	par.sig = 1;
++	par.msb = 0;
+ 	mode = MODE_PLAY | MODE_REC;
++	dev_first = dev_next = NULL;
++	port_first = port_next = NULL;
+ 	tcpaddr_list = NULL;
+ 	d = NULL;
+ 	p = NULL;
+@@ -469,11 +490,17 @@
+ 			break;
+ 		case 'q':
+ 			p = mkport(optarg, hold);
++			/* create new circulate list */
++			port_first = port_next = p;
+ 			break;
+ 		case 'Q':
+ 			if (p == NULL)
+ 				errx(1, "-Q %s: no ports defined", optarg);
+-			namelist_add(&p->path_list, optarg);
++			p = mkport(optarg, hold);
++			/* add to circulate list */
++			p->alt_next = port_next;
++			port_first->alt_next = p;
++			port_next = p;
+ 			break;
+ 		case 'a':
+ 			hold = opt_onoff();
+@@ -494,12 +521,18 @@
+ 		case 'f':
+ 			d = mkdev(optarg, &par, 0, bufsz, round,
+ 			    rate, hold, autovol);
++			/* create new circulate list */
++			dev_first = dev_next = d;
+ 			break;
+ 		case 'F':
+ 			if (d == NULL)
+ 				errx(1, "-F %s: no devices defined", optarg);
+-			if (!dev_addname(d, optarg))
+-				exit(1);
++			d = mkdev(optarg, &par, 0, bufsz, round,
++			    rate, hold, autovol);
++			/* add to circulate list */
++			d->alt_next = dev_next;
++			dev_first->alt_next = d;
++			dev_next = d;
+ 			break;
+ 		default:
+ 			fputs(usagestr, stderr);
+@@ -522,12 +555,27 @@
+ 			    bufsz, round, rate, 0, autovol);
+ 		}
+ 	}
++
++	/*
++	 * Add default sub-device (if none) backed by the last device
++	 */
++	o = opt_byname("default");
++	if (o == NULL) {
++		o = mkopt("default", dev_list, pmin, pmax, rmin, rmax,
++		    mode, vol, 0, dup);
++		if (o == NULL)
++			return 1;
++	}
++
++	/*
++	 * For each device create an anonymous sub-device using
++	 * the "default" sub-device as template
++	 */
+ 	for (d = dev_list; d != NULL; d = d->next) {
+-		if (opt_byname(d, "default"))
+-			continue;
+-		if (mkopt("default", d, pmin, pmax, rmin, rmax,
+-			mode, vol, mmc, dup) == NULL)
++		if (opt_new(d, NULL, o->pmin, o->pmax, o->rmin, o->rmax,
++			o->maxweight, o->mtc != NULL, o->dup, o->mode) == NULL)
+ 			return 1;
++		dev_adjpar(d, o->mode, o->pmax, o->rmax);
+ 	}
+ 
+ 	setsig();
+@@ -559,10 +607,16 @@
+ 		if (!dev_init(d))
+ 			return 1;
+ 	}
++	for (o = opt_list; o != NULL; o = o->next)
++		opt_init(o);
+ 	if (background) {
+ 		log_flush();
+ 		log_level = 0;
++#if defined(__sgi_irix) && defined(_SGI_COMPILER_VERSION)
++		if (_daemonize(_DF_NOCLOSE, -1, -1, -1) == -1)
++#else
+ 		if (daemon(0, 0) == -1)
++#endif
+ 			err(1, "daemon");
+ 	}
+ 	if (pw != NULL) {
+@@ -578,10 +632,28 @@
+ 			break;
+ 		if (reopen_flag) {
+ 			reopen_flag = 0;
+-			for (d = dev_list; d != NULL; d = d->next)
+-				dev_reopen(d);
+-			for (p = port_list; p != NULL; p = p->next)
+-				port_reopen(p);
++
++			reopen_list = 0;
++			for (d = dev_list; d != NULL; d = d->next) {
++				if (d->pstate != DEV_CFG)
++					reopen_list |= (1 << d->num);
++			}
++			for (d = dev_list; d != NULL; d = d->next) {
++				if (reopen_list & (1 << d->num))
++					dev_migrate(d);
++			}
++
++			reopen_list = 0;
++			for (p = port_list; p != NULL; p = p->next) {
++				if (p->state != PORT_CFG)
++					reopen_list |= (1 << p->num);
++			}
++			for (p = port_list; p != NULL; p = p->next) {
++				if (reopen_list & (1 << p->num)) {
++					if (port_migrate(p) != p)
++						port_close(p);
++				}
++			}
+ 		}
+ 		if (!file_poll())
+ 			break;
+@@ -590,6 +662,8 @@
+ 		listen_close(listen_list);
+ 	while (sock_list != NULL)
+ 		sock_close(sock_list);
++	for (o = opt_list; o != NULL; o = o->next)
++		opt_done(o);
+ 	for (d = dev_list; d != NULL; d = d->next)
+ 		dev_done(d);
+ 	for (p = port_list; p != NULL; p = p->next)
+diff -Naur sndio-1.8.1.orig/sndiod/sock.c sndio-1.8.1.truhobbyist/sndiod/sock.c
+--- sndio-1.8.1.orig/sndiod/sock.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/sock.c	2022-07-20 13:45:27.000000000 -0400
+@@ -15,6 +15,7 @@
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  */
+ #include <sys/types.h>
++#include <sys/socket.h>
+ #include <netinet/in.h>
+ #include <errno.h>
+ #include <poll.h>
+@@ -101,6 +102,48 @@
+ unsigned int sock_sesrefs = 0;		/* connections to the session */
+ uint8_t sock_sescookie[AMSG_COOKIELEN];	/* owner of the session */
+ 
++/*
++ * Old clients used to send dev number and opt name. This routine
++ * finds proper opt pointer for the given device.
++ */
++static struct opt *
++legacy_opt(int devnum, char *optname)
++{
++	struct dev *d;
++	struct opt *o;
++
++	d = dev_bynum(devnum);
++	if (d == NULL)
++		return NULL;
++	if (strcmp(optname, "default") == 0) {
++		for (o = opt_list; o != NULL; o = o->next) {
++			if (strcmp(o->name, d->name) == 0)
++				return o;
++		}
++		return NULL;
++	} else {
++		o = opt_byname(optname);
++		return (o != NULL && o->dev == d) ? o : NULL;
++	}
++}
++
++/*
++ * If control slot is associated to a particular opt, then
++ * remove the unused group part of the control name to make mixer
++ * look nicer
++ */
++static char *
++ctlgroup(struct sock *f, struct ctl *c)
++{
++	if (f->ctlslot->opt == NULL)
++		return c->group;
++	if (strcmp(c->group, f->ctlslot->opt->name) == 0)
++		return "";
++	if (strcmp(c->group, f->ctlslot->opt->dev->name) == 0)
++		return "";
++	return c->group;
++}
++
+ void
+ sock_log(struct sock *f)
+ {
+@@ -130,7 +173,7 @@
+ void
+ sock_close(struct sock *f)
+ {
+-	struct dev *d;
++	struct opt *o;
+ 	struct sock **pf;
+ 	unsigned int tags, i;
+ 
+@@ -159,8 +202,8 @@
+ 	if (f->midi) {
+ 		tags = midi_tags(f->midi);
+ 		for (i = 0; i < DEV_NMAX; i++) {
+-			if ((tags & (1 << i)) && (d = dev_bynum(i)) != NULL)
+-				dev_unref(d);
++			if ((tags & (1 << i)) && (o = opt_bynum(i)) != NULL)
++				opt_unref(o);
+ 		}
+ 		midi_del(f->midi);
+ 		f->midi = NULL;
+@@ -789,6 +832,20 @@
+ {
+ 	struct amsg_auth *p = &f->rmsg.u.auth;
+ 
++#ifndef __sgi_irix
++	uid_t euid;
++	gid_t egid;
++
++	/*
++	 * root bypasses any authentication checks and has no session
++	 */
++	if (getpeereid(f->fd, &euid, &egid) == 0 && euid == 0) {
++		f->pstate = SOCK_HELLO;
++		f->sesrefs = 0;
++		return 1;
++	}
++#endif
++
+ 	if (sock_sesrefs == 0) {
+ 		/* start a new session */
+ 		memcpy(sock_sescookie, p->cookie, AMSG_COOKIELEN);
+@@ -807,7 +864,6 @@
+ {
+ 	struct amsg_hello *p = &f->rmsg.u.hello;
+ 	struct port *c;
+-	struct dev *d;
+ 	struct opt *opt;
+ 	unsigned int mode;
+ 	unsigned int id;
+@@ -865,21 +921,25 @@
+ 		if (f->midi == NULL)
+ 			return 0;
+ 		/* XXX: add 'devtype' to libsndio */
+-		if (p->devnum < 16) {
+-			d = dev_bynum(p->devnum);
+-			if (d == NULL)
++		if (p->devnum == AMSG_NODEV) {
++			opt = opt_byname(p->opt);
++			if (opt == NULL)
++				return 0;
++			if (!opt_ref(opt))
+ 				return 0;
+-			opt = opt_byname(d, p->opt);
++			midi_tag(f->midi, opt->num);
++		} else if (p->devnum < 16) {
++			opt = legacy_opt(p->devnum, p->opt);
+ 			if (opt == NULL)
+ 				return 0;
+-			if (!dev_ref(d))
++			if (!opt_ref(opt))
+ 				return 0;
+ 			midi_tag(f->midi, opt->num);
+ 		} else if (p->devnum < 32) {
+ 			midi_tag(f->midi, p->devnum);
+ 		} else if (p->devnum < 48) {
+-			c = port_bynum(p->devnum - 32);
+-			if (c == NULL || !port_ref(c))
++			c = port_alt_ref(p->devnum - 32);
++			if (c == NULL)
+ 				return 0;
+ 			f->port = c;
+ 			midi_link(f->midi, c->midi);
+@@ -888,19 +948,15 @@
+ 		return 1;
+ 	}
+ 	if (mode & MODE_CTLMASK) {
+-		d = dev_bynum(p->devnum);
+-		if (d == NULL) {
+-			if (log_level >= 2) {
+-				sock_log(f);
+-				log_puts(": ");
+-				log_putu(p->devnum);
+-				log_puts(": no such device\n");
+-			}
+-			return 0;
++		if (p->devnum == AMSG_NODEV) {
++			opt = opt_byname(p->opt);
++			if (opt == NULL)
++				return 0;
++		} else {
++			opt = legacy_opt(p->devnum, p->opt);
++			if (opt == NULL)
++				return 0;
+ 		}
+-		opt = opt_byname(d, p->opt);
+-		if (opt == NULL)
+-			return 0;
+ 		f->ctlslot = ctlslot_new(opt, &sock_ctlops, f);
+ 		if (f->ctlslot == NULL) {
+ 			if (log_level >= 2) {
+@@ -915,10 +971,8 @@
+ 		f->ctlsyncpending = 0;
+ 		return 1;
+ 	}
+-	d = dev_bynum(p->devnum);
+-	if (d == NULL)
+-		return 0;
+-	opt = opt_byname(d, p->opt);
++	opt = (p->devnum == AMSG_NODEV) ?
++	    opt_byname(p->opt) : legacy_opt(p->devnum, p->opt);
+ 	if (opt == NULL)
+ 		return 0;
+ 	f->slot = slot_new(opt, id, p->who, &sock_slotops, f, mode);
+@@ -1136,7 +1190,7 @@
+ 				f->ralign = s->round * s->mix.bpf;
+ 			}
+ 		}
+-		slot_stop(s, 1);
++		slot_stop(s, AMSG_ISSET(m->u.stop.drain) ? m->u.stop.drain : 1);
+ 		break;
+ 	case AMSG_SETPAR:
+ #ifdef DEBUG
+@@ -1571,10 +1625,7 @@
+ 			c->val_mask &= ~mask;
+ 			type = ctlslot_visible(f->ctlslot, c) ?
+ 			    c->type : CTL_NONE;
+-			strlcpy(desc->group, (f->ctlslot->opt == NULL ||
+-			    strcmp(c->group, f->ctlslot->opt->dev->name) != 0) ?
+-			    c->group : "",
+-			    AMSG_CTL_NAMEMAX);
++			strlcpy(desc->group, ctlgroup(f, c), AMSG_CTL_NAMEMAX);
+ 			strlcpy(desc->node0.name, c->node0.name,
+ 			    AMSG_CTL_NAMEMAX);
+ 			desc->node0.unit = ntohs(c->node0.unit);
+diff -Naur sndio-1.8.1.orig/sndiod/utils.c sndio-1.8.1.truhobbyist/sndiod/utils.c
+--- sndio-1.8.1.orig/sndiod/utils.c	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/utils.c	2022-07-20 13:45:27.000000000 -0400
+@@ -188,47 +188,3 @@
+ 	memcpy(p, s, size);
+ 	return p;
+ }
+-
+-/*
+- * copy and append the given string to the name list
+- */
+-void
+-namelist_add(struct name **list, char *str)
+-{
+-	struct name *n;
+-	size_t size;
+-
+-	size = strlen(str) + 1;
+-	n = xmalloc(sizeof(struct name) + size);
+-	memcpy(n->str, str, size);
+-	n->next = *list;
+-	*list = n;
+-}
+-
+-void
+-namelist_clear(struct name **list)
+-{
+-	struct name *n;
+-
+-	while ((n = *list) != NULL) {
+-		*list = n->next;
+-		xfree(n);
+-	}
+-}
+-
+-char *
+-namelist_byindex(struct name **list, unsigned int idx)
+-{
+-	struct name *n;
+-
+-	n = *list;
+-	while (1) {
+-		if (n == NULL)
+-			return NULL;
+-		if (idx == 0)
+-			break;
+-		n = n->next;
+-		idx--;
+-	}
+-	return n->str;
+-}
+diff -Naur sndio-1.8.1.orig/sndiod/utils.h sndio-1.8.1.truhobbyist/sndiod/utils.h
+--- sndio-1.8.1.orig/sndiod/utils.h	2021-06-16 03:32:46.000000000 -0400
++++ sndio-1.8.1.truhobbyist/sndiod/utils.h	2022-07-20 13:45:27.000000000 -0400
+@@ -20,11 +20,6 @@
+ 
+ #include <stddef.h>
+ 
+-struct name {
+-	struct name *next;
+-	char str[];
+-};
+-
+ void log_puts(char *);
+ void log_putx(unsigned long);
+ void log_putu(unsigned long);
+@@ -36,10 +31,6 @@
+ char *xstrdup(char *);
+ void xfree(void *);
+ 
+-void namelist_add(struct name **, char *);
+-void namelist_clear(struct name **);
+-char *namelist_byindex(struct name **, unsigned int);
+-
+ /*
+  * Log levels:
+  *
+diff -Naur sndio-1.8.1.orig/version.h sndio-1.8.1.truhobbyist/version.h
+--- sndio-1.8.1.orig/version.h	2021-06-18 07:41:00.000000000 -0400
++++ sndio-1.8.1.truhobbyist/version.h	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-#define VERSION "sndio 1.8.1"
