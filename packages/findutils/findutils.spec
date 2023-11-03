@@ -13,8 +13,8 @@ Source0: ftp://ftp.gnu.org/pub/gnu/findutils/%{name}-%{version}.tar.gz
 # prevent mbrtowc tests from failing (#1294016)
 Patch0: findutils-4.6.0-mbrtowc-tests.patch
 
-# do not build locate
-Patch1: findutils-4.5.15-no-locate.patch
+# fix frcode for locate and updatedb in SGI IRIX
+Patch1: findutils-4.6.0-locate-sgifixes.patch
 
 # fix build failure with glibc-2.28
 # https://lists.gnu.org/r/bug-gnulib/2018-03/msg00000.html
@@ -79,10 +79,6 @@ useful for finding things on your system.
 %prep
 %autosetup -N -S git
 
-# drop the source code of locate
-git rm -q -r locate
-git commit -q -m "drop the source code of locate"
-
 # remove ignored files from git and mark them as ignored
 tee -a .gitignore << EOF
 *~
@@ -101,7 +97,7 @@ git commit -m "remove ignored files from git"
 
 # apply all patches
 %patch0 -p1 -b -mbrtowc-tests
-%patch1 -p1 -b -no-locate
+%patch1 -p1 -b -locate-sgifixes
 %patch2 -p1 -b -gnuib-fflush
 %patch3 -p1 -b -xautofs
 %patch4 -p1 -b -warnings
@@ -115,11 +111,6 @@ git commit -m "remove ignored files from git"
 %patch13 -p1 -b -covscan
 
 %patch100 -p1 -b .sgifixes
-
-# needed because of findutils-4.5.15-no-locate.patch
-autoreconf -fiv
-git add --all .
-git commit -q -m "after invocation of autoreconf"
 
 %build
 # prevent test-isinf from failing with gcc-5.3.1 on ppc64le (#1294016)

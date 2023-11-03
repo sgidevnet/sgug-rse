@@ -1,0 +1,12 @@
+diff -Naur a/locate/frcode.c b/locate/frcode.c
+--- a/locate/frcode.c	2015-12-28 22:10:23.000000000 +0000
++++ b/locate/frcode.c	2023-11-03 19:31:49.538634714 +0000
+@@ -332,7 +332,7 @@
+ 	    }
+ 	  else
+ 	    {
+-	      if (EOF == putc (diffcount, stdout))
++	      if (EOF == putc ((unsigned char)diffcount, stdout))
+ 		outerr ();
+ 	    }
+ 	}
