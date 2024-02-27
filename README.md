@@ -69,8 +69,40 @@ gunzip -dc /path/to/sgug-rse-localrepo-0.0.7beta.tar.gz | tar xf -
 
 **(5)** Setup SGUG environment.
 
+To install and use SGUG software, you'll need to add some directories to PATH and modify some shell variables. Here's an example for tcsh:
+
 ```shell
-TODO
+# Expand path to include SGUG
+set path = ( /usr/sgug/bin /usr/sgug/sbin $path )
+
+# Explicit library paths
+setenv LD_LIBRARYN32_PATH /usr/sgug/lib32:/usr/lib32:/lib32:/usr/lib:/lib
+
+# Add SGUG manuals to search path
+setenv MANPATH /usr/sgug/share/man:/usr/share/catman:/usr/share/man:/usr/catman:/usr/man:$HOME/man
+
+# Work around libiconv localisation issue
+setenv LC_ALL C
+```
+
+If you'd prefer to skip this setup, you can run `/usr/sgug/bin/sgugshell`, which is a wrapper for bash that sets up the correct environment to use SGUG software. This shell wrapper is provided by sgug-rse, so during installations or reinstallations of sgug-rse it is temporarily unavailable. For this reason, **DO NOT** use sgugshell as the root user's default shell. Doing so may cause root to be unable to execute commands after the upgrade, and prevent the system from starting after a reboot. You may use it as the default shell for a non-root user, but exercise caution to do updates to sgug-rse and the base system using a different user and/or shell.
+
+To use `sgugshell` as the default shell for a non-root user:
+
+```shell
+su -  #(enter root password)
+# Add sgugshell to the list of login shells
+echo /usr/sgug/bin/sgugshell >> /etc/shells
+# Modify the last field of your user's entry in /etc/passwd to point to /usr/sgug/bin/sgugshell
+# Make sure you are NOT modifying root's entry!
+vi /etc/passwd
+(log out of root)
+```
+
+For a GUI terminal emulator option, you can install `mrxvt` from SGUG and configure it to use sgugshell by default with this line in your `~/.mrxvtrc`:
+
+```
+Mrxvt.profile0.command: /usr/sgug/bin/sgugshell
 ```
 
 **(6)** Now you can search for and install sgug RPM packages. Note that you have to be root in order for the `tdnf` tool to work:
